@@ -1,3 +1,38 @@
+# TODO: Ensure that index and invindex are one-to-one in constructor?
+function CategoricalPool{T}(index::Vector{T})
+    return CategoricalPool(index, buildinvindex(index))
+end
+
+function CategoricalPool{S, T <: Integer}(invindex::Dict{S, T})
+    invindex = convert(Dict{S, RefType}, invindex)
+    return CategoricalPool(buildindex(invindex), invindex)
+end
+
+function Base.convert{S, T}(::Type{CategoricalPool{S}}, pool::CategoricalPool{T})
+    indexS = convert(Vector{S}, pool.index)
+    invindexS = convert(Dict{S, RefType}, pool.invindex)
+    return CategoricalPool(indexS, invindexS)
+end
+
+Base.convert{T}(::Type{CategoricalPool}, pool::CategoricalPool{T}) = pool
+
+function Base.convert{S, T}(::Type{OrdinalPool{S}}, pool::CategoricalPool{T})
+    poolS = convert(CategoricalPool{S}, pool)
+    order = buildorder(poolS.index)
+    return OrdinalPool(poolS, order)
+end
+
+function Base.convert{T}(::Type{OrdinalPool}, pool::CategoricalPool{T})
+    order = buildorder(pool.index)
+    return OrdinalPool(pool, order)
+end
+
+function Base.show{T}(io::IO, pool::CategoricalPool{T})
+    @printf(io, "CategoricalPool{%s}", T)
+    return
+end
+
+Base.length(pool::CategoricalPool) = length(pool.index)
 levels(pool::CategoricalPool) = pool.index
 
 function add!{S, T}(pool::CategoricalPool{S}, level::T)
