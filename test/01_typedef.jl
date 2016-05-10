@@ -10,11 +10,11 @@ module TestTypeDef
             "b",
             "c"
         ],
-        [
+        Dict(
             "a" => convert(CategoricalData.RefType, 1),
             "b" => convert(CategoricalData.RefType, 2),
             "c" => convert(CategoricalData.RefType, 3),
-        ]
+        )
     )
 
     @test isa(pool, CategoricalPool)

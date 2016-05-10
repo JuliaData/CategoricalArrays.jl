@@ -19,11 +19,11 @@ module TestConstructors
     @test pool.invindex["c"] === convert(CategoricalData.RefType, 3)
 
     pool = CategoricalPool(
-        [
+        Dict(
             "a" => convert(CategoricalData.RefType, 1),
             "b" => convert(CategoricalData.RefType, 2),
             "c" => convert(CategoricalData.RefType, 3),
-        ]
+        )
     )
 
     @test isa(pool, CategoricalPool)
@@ -43,11 +43,11 @@ module TestConstructors
     # TODO: Make sure that invindex input is exhaustive
     # Raise an error if map misses any entries
     pool = CategoricalPool(
-        [
+        Dict(
             "a" => 1,
             "b" => 2,
             "c" => 3,
-        ]
+        )
     )
 
     @test isa(pool, CategoricalPool)
@@ -87,11 +87,11 @@ module TestConstructors
     @test opool.order[3] === convert(CategoricalData.RefType, 1)
 
     opool = OrdinalPool(
-        [
+        Dict(
             "a" => convert(CategoricalData.RefType, 3),
             "b" => convert(CategoricalData.RefType, 2),
             "c" => convert(CategoricalData.RefType, 1),
-        ]
+        )
     )
 
     @test isa(opool, OrdinalPool)
@@ -137,11 +137,11 @@ module TestConstructors
     @test opool.order[3] === convert(CategoricalData.RefType, 3)
 
     opool = OrdinalPool(
-        [
+        Dict(
             "a" => convert(CategoricalData.RefType, 3),
             "b" => convert(CategoricalData.RefType, 2),
             "c" => convert(CategoricalData.RefType, 1),
-        ],
+        ),
         ["c", "b", "a"]
     )
 

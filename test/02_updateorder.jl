@@ -8,11 +8,11 @@ module TestUpdateOrder
             "b",
             "c"
         ],
-        [
+        Dict(
             "a" => convert(CategoricalData.RefType, 1),
             "b" => convert(CategoricalData.RefType, 2),
             "c" => convert(CategoricalData.RefType, 3),
-        ]
+        )
     )
 
     order = Array(CategoricalData.RefType, length(pool.index))

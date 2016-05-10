@@ -4,11 +4,11 @@ module TestBuildFields
 
     index = ["b", "a", "c"]
 
-    invindex = [
+    invindex = Dict(
         "b" => convert(CategoricalData.RefType, 1),
         "a" => convert(CategoricalData.RefType, 2),
         "c" => convert(CategoricalData.RefType, 3),
-    ]
+    )
 
     order = [
         convert(CategoricalData.RefType, 2),
