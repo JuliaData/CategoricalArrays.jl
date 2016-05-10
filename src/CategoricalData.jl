@@ -1,7 +1,7 @@
 module CategoricalData
     export CategoricalPool, OrdinalPool
     export CategoricalValue, OrdinalValue
-    export levels, levels!, add!, order, order!
+    export levels, levels!, order, order!
 
     # TODO: Make this variable and user-specified?
     # TODO: Make this Int for consistency with other indexing in Julia?

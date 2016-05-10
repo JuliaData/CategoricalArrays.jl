@@ -64,11 +64,11 @@ There are also methods for accessing and manipulating the pool:
 
 * `levels`: Determine which levels a pool allows
 * `levels!`: Reset, en masse, the levels that a pool allows
-* `add!`: Add one or more levels to the pool
+* `push!`: Add one or more levels at the end of the pool
 * `delete!`: Delete one or more levels from the pool
 * `order`: Determine the order of an ordinal pool
 * `order!`: Reset, en masse, the ordering of an ordinal pool
 
-Note that `add!` and `delete!` do not work on ordinal variables because they
+Note that `push!` and `delete!` do not work on ordinal variables because they
 not provide any mechanism for specifying how the changes to the levels affect
 the ordering of the pool.

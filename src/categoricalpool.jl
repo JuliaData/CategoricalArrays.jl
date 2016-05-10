@@ -24,23 +24,23 @@ end
 Base.length(pool::CategoricalPool) = length(pool.index)
 levels(pool::CategoricalPool) = pool.index
 
-function add!{S, T}(pool::CategoricalPool{S}, level::T)
+function Base.push!{S}(pool::CategoricalPool{S}, level)
     levelS = convert(S, level)
     if !haskey(pool.invindex, levelS)
         pool.invindex[levelS] = length(pool.index) + 1
         push!(pool.index, levelS)
     end
-    return level
+    return pool
 end
 
-function add!{S, T}(pool::CategoricalPool{S}, levels::T...)
+function Base.append!(pool::CategoricalPool, levels)
     for level in levels
-        add!(pool, level)
+        push!(pool, level)
     end
-    return levels
+    return pool
 end
 
-function Base.delete!{S, T}(pool::CategoricalPool{S}, level::T)
+function Base.delete!{S}(pool::CategoricalPool{S}, level)
     levelS = convert(S, level)
     if haskey(pool.invindex, levelS)
         ind = pool.invindex[levelS]
@@ -50,14 +50,14 @@ function Base.delete!{S, T}(pool::CategoricalPool{S}, level::T)
             pool.invindex[pool.index[i]] -= 1
         end
     end
-    return levelS
+    return pool
 end
 
-function Base.delete!{S, T}(pool::CategoricalPool{S}, levels::T...)
+function Base.delete!(pool::CategoricalPool, levels...)
     for level in levels
         delete!(pool, level)
     end
-    return levels
+    return pool
 end
 
 function levels!{S, T}(pool::CategoricalPool{S}, newlevels::Vector{T})

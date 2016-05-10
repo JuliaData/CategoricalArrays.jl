@@ -9,7 +9,7 @@ module TestLevels
     @test levels(pool) == [1, 2, 3]
 
     for rep in 1:3
-        add!(pool, 4)
+        push!(pool, 4)
 
         @test isa(pool.index, Vector)
         @test length(pool) === 4
@@ -19,7 +19,7 @@ module TestLevels
     end
 
     for rep in 1:3
-        add!(pool, 0)
+        push!(pool, 0)
 
         @test isa(pool.index, Vector)
         @test length(pool) === 5
@@ -29,7 +29,7 @@ module TestLevels
     end
 
     for rep in 1:3
-        add!(pool, 10, 11)
+        push!(pool, 10, 11)
 
         @test isa(pool.index, Vector)
         @test length(pool) === 7
@@ -40,7 +40,7 @@ module TestLevels
     end
 
     for rep in 1:3
-        add!(pool, 12, 13)
+        push!(pool, 12, 13)
 
         @test isa(pool.index, Vector)
         @test length(pool) === 9
