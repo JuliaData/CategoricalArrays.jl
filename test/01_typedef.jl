@@ -33,9 +33,9 @@ module TestTypeDef
 
     # TODO: Need constructors that take in arbitrary integers
     for i in 1:3
-        x = CategoricalVariable(convert(CategoricalData.RefType, i), pool)
+        x = CategoricalValue(convert(CategoricalData.RefType, i), pool)
 
-        @test isa(x, CategoricalVariable)
+        @test isa(x, CategoricalValue)
 
         @test isa(x.level, CategoricalData.RefType)
         @test x.level === convert(CategoricalData.RefType, i)
@@ -65,9 +65,9 @@ module TestTypeDef
     @test opool.order[3] === convert(CategoricalData.RefType, 1)
 
     for i in 1:3
-        y = OrdinalVariable(convert(CategoricalData.RefType, i), opool)
+        y = OrdinalValue(convert(CategoricalData.RefType, i), opool)
 
-        @test isa(y, OrdinalVariable)
+        @test isa(y, OrdinalValue)
 
         @test isa(y.level, CategoricalData.RefType)
         @test y.level === convert(CategoricalData.RefType, i)

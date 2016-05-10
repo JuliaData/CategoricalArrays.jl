@@ -32,10 +32,10 @@ module TestEquality
     @test (opool1 === opool2) === false
     @test (opool2 === opool2) === true
 
-    cv1a = CategoricalVariable(1, pool1)
-    cv2a = CategoricalVariable(1, pool2)
-    cv1b = CategoricalVariable(2, pool1)
-    cv2b = CategoricalVariable(2, pool2)
+    cv1a = CategoricalValue(1, pool1)
+    cv2a = CategoricalValue(1, pool2)
+    cv1b = CategoricalValue(2, pool1)
+    cv2b = CategoricalValue(2, pool2)
 
     @test isequal(cv1a, cv1a) == true
     @test isequal(cv1a, cv2a) == false
@@ -97,10 +97,10 @@ module TestEquality
     @test (cv2b === cv1b) == false
     @test (cv2b === cv2b) == true
 
-    ov1a = OrdinalVariable(1, opool1)
-    ov2a = OrdinalVariable(1, opool2)
-    ov1b = OrdinalVariable(2, opool1)
-    ov2b = OrdinalVariable(2, opool2)
+    ov1a = OrdinalValue(1, opool1)
+    ov2a = OrdinalValue(1, opool2)
+    ov1b = OrdinalValue(2, opool1)
+    ov2b = OrdinalValue(2, opool2)
 
     @test isequal(ov1a, ov1a) == true
     @test isequal(ov1a, ov2a) == false

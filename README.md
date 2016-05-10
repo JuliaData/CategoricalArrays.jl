@@ -19,11 +19,11 @@ using CategoricalData
 pool = CategoricalPool(["Group A", "Group B", "Group C"])
 ```
 
-To create a specific observation, you create a `CategoricalVariable` object
+To create a specific observation, you create a `CategoricalValue` object
 that points to the pool's internal index of values:
 
 ```
-cv = CategoricalVariable(1, pool)
+cv = CategoricalValue(1, pool)
 ```
 
 If you know that you're working with ordinal data, you can use an `OrdinalPool`
@@ -40,12 +40,12 @@ In this example, the first argument to `OrdinalPool` specifies the possible
 levels that this ordered factor can take on. The second argument provides
 the levels of the factors in their sorted order.
 
-Once an `OrdinalPool` exists, you can define `OrdinalVariable` objects and
+Once an `OrdinalPool` exists, you can define `OrdinalValue` objects and
 compare their position in the order:
 
 ```
-ov1 = OrdinalVariable(1, opool)
-ov2 = OrdinalVariable(2, opool)
+ov1 = OrdinalValue(1, opool)
+ov2 = OrdinalValue(2, opool)
 
 ov1 < ov2
 ov1 > ov2
@@ -56,9 +56,9 @@ ov1 > ov2
 As shown above, there are constructors for:
 
 * `CategoricalPool`
-* `CategoricalVariable`
+* `CategoricalValue`
 * `OrdinalPool`
-* `OrdinalVariable`
+* `OrdinalValue`
 
 There are also methods for accessing and manipulating the pool:
 

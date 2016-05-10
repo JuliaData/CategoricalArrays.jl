@@ -5,9 +5,9 @@ module TestIsLess
     pool = CategoricalPool([1, 2, 3])
     opool = OrdinalPool([1, 2, 3], [3, 2, 1])
 
-    cv1 = CategoricalVariable(1, pool)
-    cv2 = CategoricalVariable(2, pool)
-    cv3 = CategoricalVariable(3, pool)
+    cv1 = CategoricalValue(1, pool)
+    cv2 = CategoricalValue(2, pool)
+    cv3 = CategoricalValue(3, pool)
 
     @test_throws Exception cv1 < cv1
     @test_throws Exception cv1 < cv2
@@ -49,9 +49,9 @@ module TestIsLess
     @test_throws Exception cv3 >= cv2
     @test_throws Exception cv3 >= cv3
 
-    ov1 = OrdinalVariable(1, opool)
-    ov2 = OrdinalVariable(2, opool)
-    ov3 = OrdinalVariable(3, opool)
+    ov1 = OrdinalValue(1, opool)
+    ov2 = OrdinalValue(2, opool)
+    ov3 = OrdinalValue(3, opool)
 
     @test (ov1 < ov1) == false
     @test (ov1 < ov2) == false
@@ -95,9 +95,9 @@ module TestIsLess
 
     order!(opool, [2, 3, 1])
 
-    ov1 = OrdinalVariable(1, opool)
-    ov2 = OrdinalVariable(2, opool)
-    ov3 = OrdinalVariable(3, opool)
+    ov1 = OrdinalValue(1, opool)
+    ov2 = OrdinalValue(2, opool)
+    ov3 = OrdinalValue(3, opool)
 
     @test (ov1 < ov1) == false
     @test (ov1 < ov2) == false

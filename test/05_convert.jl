@@ -14,9 +14,9 @@ module TestConvert
     convert(OrdinalPool{Float64}, opool)
     convert(OrdinalPool, opool)
 
-    cv1 = CategoricalVariable(1, pool)
-    cv2 = CategoricalVariable(2, pool)
-    cv3 = CategoricalVariable(3, pool)
+    cv1 = CategoricalValue(1, pool)
+    cv2 = CategoricalValue(2, pool)
+    cv3 = CategoricalValue(3, pool)
 
     convert(Int32, cv1)
     convert(Int32, cv2)
@@ -26,9 +26,9 @@ module TestConvert
     convert(UInt8, cv2)
     convert(UInt8, cv3)
 
-    ov1 = OrdinalVariable(1, opool)
-    ov2 = OrdinalVariable(2, opool)
-    ov3 = OrdinalVariable(3, opool)
+    ov1 = OrdinalValue(1, opool)
+    ov2 = OrdinalValue(2, opool)
+    ov3 = OrdinalValue(3, opool)
 
     convert(Int32, ov1)
     convert(Int32, ov2)
