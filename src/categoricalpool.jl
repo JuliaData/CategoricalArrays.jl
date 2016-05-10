@@ -17,7 +17,7 @@ end
 Base.convert{T}(::Type{CategoricalPool}, pool::CategoricalPool{T}) = pool
 
 function Base.show{T}(io::IO, pool::CategoricalPool{T})
-    @printf(io, "CategoricalPool{%s}", T)
+    @printf(io, "CategoricalPool{%s}([%s])", T, join(map(repr, pool.index), ","))
     return
 end
 

@@ -7,8 +7,11 @@ function Base.convert{S, T}(::Type{S}, x::CategoricalValue{T})
 end
 
 function Base.show{T}(io::IO, x::CategoricalValue{T})
-    @printf(io, "Categorical '%s'", convert(T, x))
-    return
+    if limit_output(io)
+        print(io, repr(x.pool.index[x.level]))
+    else
+        @printf(io, "CategoricalValue{%s} %s", T, repr(x.pool.index[x.level]))
+    end
 end
 
 function Base.isless{S, T}(x::CategoricalValue{S}, y::CategoricalValue{T})

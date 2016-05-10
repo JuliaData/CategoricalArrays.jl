@@ -7,8 +7,12 @@ function Base.convert{S, T}(::Type{S}, x::OrdinalValue{T})
 end
 
 function Base.show{T}(io::IO, x::OrdinalValue{T})
-    @printf(io, "Ordinal '%s'", convert(T, x))
-    return
+    if limit_output(io)
+        print(io, repr(x.opool.pool.index[x.level]))
+    else
+        @printf(io, "OrdinalValue{%s} %s (%i/%i)",
+                T, repr(x.opool.pool.index[x.level]), x.opool.order[x.level], length(x.opool))
+    end
 end
 
 function Base.isless{S, T}(x::OrdinalValue{S}, y::OrdinalValue{T})

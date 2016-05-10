@@ -67,8 +67,7 @@ function Base.convert{T}(::Type{OrdinalPool}, pool::CategoricalPool{T})
 end
 
 function Base.show{T}(io::IO, opool::OrdinalPool{T})
-    @printf(io, "OrdinalPool{%s}", T)
-    return
+    @printf(io, "OrdinalPool{%s}([%s])", T, join(map(repr, opool.pool.index[opool.order]), ","))
 end
 
 Base.length(opool::OrdinalPool) = length(opool.pool.index)
