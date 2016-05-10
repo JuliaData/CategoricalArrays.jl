@@ -2,7 +2,7 @@ module TestTypeDef
     using Base.Test
     using CategoricalData
 
-    @test CategoricalData.RefType === Uint
+    @test CategoricalData.RefType === UInt
 
     pool = CategoricalPool(
         [

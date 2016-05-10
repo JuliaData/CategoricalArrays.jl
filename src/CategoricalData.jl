@@ -5,7 +5,7 @@ module CategoricalData
 
     # TODO: Make this variable and user-specified?
     # TODO: Make this Int for consistency with other indexing in Julia?
-    typealias RefType Uint
+    typealias RefType UInt
 
     include("updateorder.jl")
     include("buildfields.jl")

@@ -22,9 +22,9 @@ module TestConvert
     convert(Int32, cv2)
     convert(Int32, cv3)
 
-    convert(Uint8, cv1)
-    convert(Uint8, cv2)
-    convert(Uint8, cv3)
+    convert(UInt8, cv1)
+    convert(UInt8, cv2)
+    convert(UInt8, cv3)
 
     ov1 = OrdinalVariable(1, opool)
     ov2 = OrdinalVariable(2, opool)
@@ -34,7 +34,7 @@ module TestConvert
     convert(Int32, ov2)
     convert(Int32, ov3)
 
-    convert(Uint8, ov1)
-    convert(Uint8, ov2)
-    convert(Uint8, ov3)
+    convert(UInt8, ov1)
+    convert(UInt8, ov2)
+    convert(UInt8, ov3)
 end
