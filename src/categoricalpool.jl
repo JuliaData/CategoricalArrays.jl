@@ -16,17 +16,6 @@ end
 
 Base.convert{T}(::Type{CategoricalPool}, pool::CategoricalPool{T}) = pool
 
-function Base.convert{S, T}(::Type{OrdinalPool{S}}, pool::CategoricalPool{T})
-    poolS = convert(CategoricalPool{S}, pool)
-    order = buildorder(poolS.index)
-    return OrdinalPool(poolS, order)
-end
-
-function Base.convert{T}(::Type{OrdinalPool}, pool::CategoricalPool{T})
-    order = buildorder(pool.index)
-    return OrdinalPool(pool, order)
-end
-
 function Base.show{T}(io::IO, pool::CategoricalPool{T})
     @printf(io, "CategoricalPool{%s}", T)
     return
