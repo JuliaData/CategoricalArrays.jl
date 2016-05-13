@@ -1,6 +1,7 @@
-immutable CategoricalPool{T}
+immutable CategoricalPool{T, V}
     index::Vector{T}
     invindex::Dict{T, RefType}
+    values::Vector{V}
 end
 
 immutable OrdinalPool{T}

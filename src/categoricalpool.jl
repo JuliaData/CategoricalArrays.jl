@@ -1,17 +1,20 @@
 # TODO: Ensure that index and invindex are one-to-one in constructor?
 function CategoricalPool{T}(index::Vector{T})
-    return CategoricalPool(index, buildinvindex(index))
+    pool = CategoricalPool{T, CategoricalValue{T}}(index, buildinvindex(index), [])
+    buildvalues!(pool)
 end
 
 function CategoricalPool{S, T <: Integer}(invindex::Dict{S, T})
     invindex = convert(Dict{S, RefType}, invindex)
-    return CategoricalPool(buildindex(invindex), invindex)
+    pool = CategoricalPool{T, CategoricalValue{T}}(buildindex(invindex), invindex, [])
+    buildvalues!(pool)
 end
 
 function Base.convert{S, T}(::Type{CategoricalPool{S}}, pool::CategoricalPool{T})
     indexS = convert(Vector{S}, pool.index)
     invindexS = convert(Dict{S, RefType}, pool.invindex)
-    return CategoricalPool(indexS, invindexS)
+    pool = CategoricalPool{T, CategoricalValue{T}}(indexS, invindexS, [])
+    buildvalues!(pool)
 end
 
 Base.convert{T}(::Type{CategoricalPool}, pool::CategoricalPool{T}) = pool

@@ -7,10 +7,10 @@ module CategoricalData
     # TODO: Make this Int for consistency with other indexing in Julia?
     typealias RefType UInt
 
+    include("typedefs.jl")
+
     include("updateorder.jl")
     include("buildfields.jl")
-
-    include("typedefs.jl")
 
     include("categoricalpool.jl")
     include("categoricalvalue.jl")
