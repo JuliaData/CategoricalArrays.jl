@@ -24,6 +24,8 @@ module TestCategoricalData
         "08_equality.jl",
         "09_hash.jl",
         "10_isless.jl",
+        "11_array.jl",
+        "12_nullablearray.jl"
     ]
 
     println("Running tests:")

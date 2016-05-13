@@ -2,6 +2,8 @@ function OrdinalValue(level::Integer, pool::OrdinalPool)
     return OrdinalValue(convert(RefType, level), pool)
 end
 
+Base.convert{T}(::Type{OrdinalValue{T}}, x::OrdinalValue{T}) = x
+
 function Base.convert{S, T}(::Type{S}, x::OrdinalValue{T})
     return convert(S, x.opool.pool.index[x.level])
 end

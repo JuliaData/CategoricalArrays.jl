@@ -2,6 +2,13 @@ function CategoricalValue(level::Integer, pool::CategoricalPool)
     return CategoricalValue(convert(RefType, level), pool)
 end
 
+Base.convert{T}(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) = x
+
+# To fix ambiguity with definition from Base
+function Base.convert{S, T}(::Type{Nullable{S}}, x::CategoricalValue{Nullable{T}})
+    return convert(Nullable{S}, x.pool.index[x.level])
+end
+
 function Base.convert{S, T}(::Type{S}, x::CategoricalValue{T})
     return convert(S, x.pool.index[x.level])
 end

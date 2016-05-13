@@ -1,3 +1,7 @@
+function OrdinalPool{T}(pool::CategoricalPool{T}, order::Vector{RefType})
+    OrdinalPool{T, OrdinalValue{T}}(pool, order)
+end
+
 function OrdinalPool{T}(index::Vector{T})
     pool = CategoricalPool(index)
     order = buildorder(pool.index)
@@ -54,6 +58,7 @@ function Base.convert{S, T}(::Type{OrdinalPool{S}}, opool::OrdinalPool{T})
 end
 
 Base.convert{T}(::Type{OrdinalPool}, opool::OrdinalPool{T}) = opool
+Base.convert{T}(::Type{OrdinalPool{T}}, opool::OrdinalPool{T}) = opool
 
 function Base.convert{S, T}(::Type{OrdinalPool{S}}, pool::CategoricalPool{T})
     poolS = convert(CategoricalPool{S}, pool)
@@ -117,6 +122,7 @@ function levels!{S, T}(opool::OrdinalPool{S}, newlevels::Vector{T})
     for i in 1:n
         opool.order[i] = order[i]
     end
+    buildvalues!(opool, OrdinalValue)
     return newlevels
 end
 
@@ -130,6 +136,7 @@ function levels!{S, T}(opool::OrdinalPool{S},
     for i in 1:n
         opool.order[i] = order[i]
     end
+    buildvalues!(opool, OrdinalValue)
     return newlevels
 end
 
@@ -141,3 +148,5 @@ function order!{S, T}(opool::OrdinalPool{S}, ordered::Vector{T})
     updateorder!(opool.order, opool.pool.invindex, ordered)
     return ordered
 end
+
+invget(pool::OrdinalPool, x::Any) = invget(pool.pool, x::Any)
