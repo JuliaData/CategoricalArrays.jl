@@ -15,6 +15,16 @@ function Base.show{T}(io::IO, x::OrdinalValue{T})
     end
 end
 
+Base.:(==)(x::OrdinalValue, y::OrdinalValue) =
+    x.opool.pool.index[x.level] == y.opool.pool.index[y.level]
+Base.:(==)(x::OrdinalValue, y::Any) = x.opool.pool.index[x.level] == y
+Base.:(==)(x::Any, y::OrdinalValue) = y == x
+
+Base.isequal(x::OrdinalValue, y::OrdinalValue) =
+    isequal(x.opool.pool.index[x.level], y.opool.pool.index[y.level])
+Base.isequal(x::OrdinalValue, y::Any) = isequal(x.opool.pool.index[x.level], y)
+Base.isequal(x::Any, y::OrdinalValue) = isequal(y, x)
+
 function Base.isless{S, T}(x::OrdinalValue{S}, y::OrdinalValue{T})
     error("OrdinalValue objects with different pools cannot be compared")
 end

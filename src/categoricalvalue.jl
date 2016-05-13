@@ -14,6 +14,16 @@ function Base.show{T}(io::IO, x::CategoricalValue{T})
     end
 end
 
+Base.:(==)(x::CategoricalValue, y::CategoricalValue) =
+    x.pool.index[x.level] == y.pool.index[y.level]
+Base.:(==)(x::CategoricalValue, y::Any) = x.pool.index[x.level] == y
+Base.:(==)(x::Any, y::CategoricalValue) = y == x
+
+Base.isequal(x::CategoricalValue, y::CategoricalValue) =
+    isequal(x.pool.index[x.level], y.pool.index[y.level])
+Base.isequal(x::CategoricalValue, y::Any) = isequal(x.pool.index[x.level], y)
+Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
+
 function Base.isless{S, T}(x::CategoricalValue{S}, y::CategoricalValue{T})
     error("CategoricalValue objects cannot be tested for order")
 end
