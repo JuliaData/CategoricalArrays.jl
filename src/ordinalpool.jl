@@ -74,6 +74,42 @@ end
 Base.length(opool::OrdinalPool) = length(opool.pool.index)
 levels(opool::OrdinalPool) = opool.pool.index
 
+function Base.push!{S}(opool::OrdinalPool{S}, level)
+    levelS = convert(S, level)
+    if !haskey(opool.pool.invindex, levelS)
+        push!(opool.pool, levelS)
+        j = length(opool.pool.index)
+        push!(opool.order, j)
+        push!(opool.valindex, OrdinalValue(j, opool))
+    end
+    return opool
+end
+
+function Base.append!(opool::OrdinalPool, levels)
+    for level in levels
+        push!(opool, level)
+    end
+    return opool
+end
+
+function Base.delete!{S}(opool::OrdinalPool{S}, level)
+    levelS = convert(S, level)
+    if haskey(opool.invindex, levelS)
+        delete!(opool.pool, levelS)
+        ind = opool.pool.invindex[levelS]
+        splice!(pool.order, ind)
+        splice!(pool.valindex, ind)
+    end
+    return opool
+end
+
+function Base.delete!(pool::OrdinalPool, levels...)
+    for level in levels
+        delete!(opool, level)
+    end
+    return opool
+end
+
 function levels!{S, T}(opool::OrdinalPool{S}, newlevels::Vector{T})
     levels!(opool.pool, newlevels)
     order = buildorder(newlevels)
