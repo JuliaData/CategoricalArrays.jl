@@ -3,6 +3,12 @@ function OrdinalValue(level::Integer, pool::OrdinalPool)
 end
 
 Base.convert{T}(::Type{OrdinalValue{T}}, x::OrdinalValue{T}) = x
+Base.convert(::Type{OrdinalValue}, x::OrdinalValue) = x
+
+# To fix ambiguity with definition from Base
+function Base.convert{S, T}(::Type{Nullable{S}}, x::OrdinalValue{Nullable{T}})
+    return convert(Nullable{S}, levels(x.opool)[x.level])
+end
 
 function Base.convert{S, T}(::Type{S}, x::OrdinalValue{T})
     return convert(S, levels(x.opool)[x.level])

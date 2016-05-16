@@ -3,6 +3,7 @@ function CategoricalValue(level::Integer, pool::CategoricalPool)
 end
 
 Base.convert{T}(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) = x
+Base.convert(::Type{CategoricalValue}, x::CategoricalValue) = x
 
 # To fix ambiguity with definition from Base
 function Base.convert{S, T}(::Type{Nullable{S}}, x::CategoricalValue{Nullable{T}})
