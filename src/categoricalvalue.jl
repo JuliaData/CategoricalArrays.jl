@@ -6,29 +6,29 @@ Base.convert{T}(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) = x
 
 # To fix ambiguity with definition from Base
 function Base.convert{S, T}(::Type{Nullable{S}}, x::CategoricalValue{Nullable{T}})
-    return convert(Nullable{S}, x.pool.index[x.level])
+    return convert(Nullable{S}, levels(x.pool)[x.level])
 end
 
 function Base.convert{S, T}(::Type{S}, x::CategoricalValue{T})
-    return convert(S, x.pool.index[x.level])
+    return convert(S, levels(x.pool)[x.level])
 end
 
 function Base.show{T}(io::IO, x::CategoricalValue{T})
     if limit_output(io)
-        print(io, repr(x.pool.index[x.level]))
+        print(io, repr(levels(x.pool)[x.level]))
     else
-        @printf(io, "CategoricalValue{%s} %s", T, repr(x.pool.index[x.level]))
+        @printf(io, "CategoricalValue{%s} %s", T, repr(levels(x.pool)[x.level]))
     end
 end
 
 Base.:(==)(x::CategoricalValue, y::CategoricalValue) =
-    x.pool.index[x.level] == y.pool.index[y.level]
-Base.:(==)(x::CategoricalValue, y::Any) = x.pool.index[x.level] == y
+    levels(x.pool)[x.level] == levels(y.pool)[y.level]
+Base.:(==)(x::CategoricalValue, y::Any) = levels(x.pool)[x.level] == y
 Base.:(==)(x::Any, y::CategoricalValue) = y == x
 
 Base.isequal(x::CategoricalValue, y::CategoricalValue) =
-    isequal(x.pool.index[x.level], y.pool.index[y.level])
-Base.isequal(x::CategoricalValue, y::Any) = isequal(x.pool.index[x.level], y)
+    isequal(levels(x.pool)[x.level], levels(y.pool)[y.level])
+Base.isequal(x::CategoricalValue, y::Any) = isequal(levels(x.pool)[x.level], y)
 Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
 
 function Base.isless{S, T}(x::CategoricalValue{S}, y::CategoricalValue{T})

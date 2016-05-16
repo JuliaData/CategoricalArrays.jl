@@ -72,15 +72,16 @@ function Base.convert{T}(::Type{OrdinalPool}, pool::CategoricalPool{T})
 end
 
 function Base.show{T}(io::IO, opool::OrdinalPool{T})
-    @printf(io, "OrdinalPool{%s}([%s])", T, join(map(repr, opool.pool.index[opool.order]), ","))
+    @printf(io, "OrdinalPool{%s}([%s])", T,
+            join(map(repr, levels(opool)[opool.order]), ","))
 end
 
-Base.length(opool::OrdinalPool) = length(opool.pool.index)
+Base.length(opool::OrdinalPool) = length(opool.pool)
 
 Base.getindex(opool::OrdinalPool, i::Integer) = opool.valindex[i]
 Base.get(opool::OrdinalPool, level::Any) = get(opool.pool, level)
 
-levels(opool::OrdinalPool) = opool.pool.index
+levels(opool::OrdinalPool) = levels(opool.pool)
 
 function Base.get!(f, opool::OrdinalPool, level)
     get!(opool.pool, level) do
