@@ -31,36 +31,14 @@ for (A, V, M, P, S) in ((:NullableCategoricalArray, :NullableCategoricalVector,
         convert{T}(::Type{$M}, A::AbstractMatrix{Nullable{T}}) = convert($M{T}, A)
 
         similar{T}(A::$A, ::Type{Nullable{$S{T}}}, dims::Dims) = $A(T, dims)
-    end
-end
 
-typealias NullableCatOrdArray{T, N} Union{NullableCategoricalArray{T, N},
-                                          NullableOrdinalArray{T, N}}
-
-function _convert{S, T<:NullableCatOrdArray, P<:CatOrdPool}(::Type{T}, ::Type{P},
-                                                            A::AbstractArray{Nullable{S}})
-    u = filter(x->!isnull(x), unique(A))
-    pool = P([convert(levelstype(T), get(x)) for x in u])
-    values = Array(RefType, size(A))
-    for (i, x) in enumerate(A)
-        if isnull(x)
-            @inbounds values[i] = 0
-        else
-            @inbounds values[i] = get(pool, get(x))
-        end
-    end
-    T(pool, values)
-end
-
-for T in (NullableCategoricalArray, NullableOrdinalArray)
-    @eval begin
-        function getindex(A::$T, i::Int)
+        function getindex(A::$A, i::Int)
             j = A.values[i]
             S = eltype(eltype(A))
             j > 0 ? Nullable{S}(A.pool[j]) : Nullable{S}()
         end
 
-        function setindex!(A::$T, v::Nullable, i::Int)
+        function setindex!(A::$A, v::Nullable, i::Int)
             if isnull(v)
                 A.values[i] = 0
             else

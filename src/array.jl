@@ -51,18 +51,8 @@ for (A, V, M, P, S) in ((:CategoricalArray, :CategoricalVector,
 
         levelstype{T, N}(::Type{$A{T, N}}) = T
 
-        convert{S, T, N}(::Type{$A{T, N}}, A::AbstractArray{S, N}) =
-            _convert($A{T, N}, $P, A)
+        convert{S, T, N}(::Type{$A{T, N}}, A::AbstractArray{S, N}) = copy!($A{T, N}(size(A)), A)
     end
-end
-
-function _convert{S, T<:CatOrdArray, P<:CatOrdPool}(::Type{T}, ::Type{P}, A::AbstractArray{S})
-    pool = P([convert(levelstype(T), x) for x in unique(A)])
-    values = Array(RefType, size(A))
-    for (i, x) in enumerate(A)
-        @inbounds values[i] = get(pool, x)
-    end
-    T(pool, values)
 end
 
 function Base.:(==)(A::CatOrdArray, B::CatOrdArray)
