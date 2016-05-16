@@ -60,7 +60,7 @@ function _convert{S, T<:CatOrdArray, P<:CatOrdPool}(::Type{T}, ::Type{P}, A::Abs
     pool = P([convert(levelstype(T), x) for x in unique(A)])
     values = Array(RefType, size(A))
     for (i, x) in enumerate(A)
-        @inbounds values[i] = invget(pool, x)
+        @inbounds values[i] = get(pool, x)
     end
     T(pool, values)
 end
@@ -88,6 +88,8 @@ end
 size(A::CatOrdArray) = size(A.values)
 linearindexing{T <: CatOrdArray}(::Type{T}) = Base.LinearFast()
 
+setindex!(A::CatOrdArray, v::Any, i::Int) = A.values[i] = get!(A.pool, v)
+
 
 ## Code specific to CategoricalArray and OrdinalArray
 
@@ -96,27 +98,9 @@ for T in (CategoricalArray, OrdinalArray)
         function getindex(A::$T, i::Int)
             j = A.values[i]
             j > 0 || throw(UndefRefError())
-            A.pool.valindex[j]
+            A.pool[j]
         end
     end
-end
-
-function setindex!(A::CategoricalArray, v::Any, i::Int)
-    pool = A.pool
-    j = get!(pool.invindex, v) do
-        push!(pool, v)
-        A.values[i] = length(pool)
-    end
-    A.values[i] = j
-end
-
-function setindex!(A::OrdinalArray, v::Any, i::Int)
-    pool = A.pool
-    j = get!(pool.pool.invindex, v) do
-        push!(pool, v)
-        A.values[i] = length(pool)
-    end
-    A.values[i] = j
 end
 
 

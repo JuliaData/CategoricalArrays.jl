@@ -46,7 +46,7 @@ function _convert{S, T<:NullableCatOrdArray, P<:CatOrdPool}(::Type{T}, ::Type{P}
         if isnull(x)
             @inbounds values[i] = 0
         else
-            @inbounds values[i] = invget(pool, get(x))
+            @inbounds values[i] = get(pool, get(x))
         end
     end
     T(pool, values)
@@ -57,7 +57,7 @@ for T in (NullableCategoricalArray, NullableOrdinalArray)
         function getindex(A::$T, i::Int)
             j = A.values[i]
             S = eltype(eltype(A))
-            j > 0 ? Nullable{S}(A.pool.valindex[j]) : Nullable{S}()
+            j > 0 ? Nullable{S}(A.pool[j]) : Nullable{S}()
         end
 
         function setindex!(A::$T, v::Nullable, i::Int)
@@ -68,22 +68,4 @@ for T in (NullableCategoricalArray, NullableOrdinalArray)
             end
         end
     end
-end
-
-function setindex!(A::NullableCategoricalArray, v::Any, i::Int)
-    pool = A.pool
-    j = get!(pool.invindex, v) do
-        push!(pool, v)
-        A.values[i] = length(pool)
-    end
-    A.values[i] = j
-end
-
-function setindex!(A::NullableOrdinalArray, v::Any, i::Int)
-    pool = A.pool
-    j = get!(pool.pool.invindex, v) do
-        push!(pool, v)
-        A.values[i] = length(pool)
-    end
-    A.values[i] = j
 end

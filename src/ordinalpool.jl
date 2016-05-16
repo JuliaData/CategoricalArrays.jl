@@ -76,18 +76,23 @@ function Base.show{T}(io::IO, opool::OrdinalPool{T})
 end
 
 Base.length(opool::OrdinalPool) = length(opool.pool.index)
+
+Base.getindex(opool::OrdinalPool, i::Integer) = opool.valindex[i]
+Base.get(opool::OrdinalPool, level::Any) = get(opool.pool, level)
+
 levels(opool::OrdinalPool) = opool.pool.index
 
-function Base.push!{S}(opool::OrdinalPool{S}, level)
-    levelS = convert(S, level)
-    if !haskey(opool.pool.invindex, levelS)
-        push!(opool.pool, levelS)
-        j = length(opool.pool.index)
-        push!(opool.order, j)
-        push!(opool.valindex, OrdinalValue(j, opool))
+function Base.get!(f, opool::OrdinalPool, level)
+    get!(opool.pool, level) do
+        f()
+        i = length(opool) + 1
+        push!(opool.order, i)
+        push!(opool.valindex, OrdinalValue(i, opool))
     end
-    return opool
 end
+Base.get!(opool::OrdinalPool, level) = get!(Void, opool, level)
+
+Base.push!(opool::OrdinalPool, level) = (get!(opool, level); opool)
 
 function Base.append!(opool::OrdinalPool, levels)
     for level in levels
@@ -148,5 +153,3 @@ function order!{S, T}(opool::OrdinalPool{S}, ordered::Vector{T})
     updateorder!(opool.order, opool.pool.invindex, ordered)
     return ordered
 end
-
-invget(pool::OrdinalPool, x::Any) = invget(pool.pool, x::Any)

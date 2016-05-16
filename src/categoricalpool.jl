@@ -29,16 +29,21 @@ end
 Base.length(pool::CategoricalPool) = length(pool.index)
 levels(pool::CategoricalPool) = pool.index
 
-function Base.push!{S}(pool::CategoricalPool{S}, level)
-    levelS = convert(S, level)
-    if !haskey(pool.invindex, levelS)
-        j = length(pool.index) + 1
-        pool.invindex[levelS] = j
-        push!(pool.index, levelS)
-        push!(pool.valindex, CategoricalValue(j, pool))
+Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
+Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
+
+function Base.get!(f, pool::CategoricalPool, level)
+    get!(pool.invindex, level) do
+        f()
+        i = length(pool) + 1
+        push!(pool.index, level)
+        push!(pool.valindex, CategoricalValue(i, pool))
+        i
     end
-    return pool
 end
+Base.get!(pool::CategoricalPool, level) = get!(Void, pool, level)
+
+Base.push!(pool::CategoricalPool, level) = (get!(pool, level); pool)
 
 function Base.append!(pool::CategoricalPool, levels)
     for level in levels
@@ -83,5 +88,3 @@ function levels!{S, T}(pool::CategoricalPool{S}, newlevels::Vector{T})
     end
     return newlevels
 end
-
-invget(pool::CategoricalPool, x::Any) = pool.invindex[x]
