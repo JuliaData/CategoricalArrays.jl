@@ -16,9 +16,9 @@ end
 
 function buildvalues!(pool, T)
     n = length(levels(pool))
-    sizehint!(pool.valindex, n)
+    resize!(pool.valindex, n)
     for i in 1:n
-        push!(pool.valindex, T(i, pool))
+        pool.valindex[i] = T(i, pool)
     end
     pool
 end
