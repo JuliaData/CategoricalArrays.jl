@@ -153,9 +153,16 @@ end
 
 order{T}(opool::OrdinalPool{T}) = opool.order
 
-# TODO: Check that order doesn't specify anything that's not present
-# TODO: Check that order specifies everything that's present
 function order!{S, T}(opool::OrdinalPool{S}, ordered::Vector{T})
+    if !allunique(ordered)
+        throw(ArgumentError(string("duplicated levels found: ",
+                                   join(unique(filter(x->sum(ordered.==x)>1, ordered)), ", "))))
+    end
+    d = symdiff(ordered, levels(opool))
+    if length(d) > 0
+        throw(ArgumentError(string("found levels not in existing levels or vice-versa: ",
+                                   join(d, ", "))))
+    end
     updateorder!(opool.order, opool.pool.invindex, ordered)
     return ordered
 end

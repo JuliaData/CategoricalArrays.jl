@@ -7,6 +7,10 @@ module TestOrder
     @test order(opool) == CategoricalData.RefType[1, 2, 3]
 
     order!(opool, [3, 1, 2])
+    @test_throws ArgumentError order!(opool, [1, 2])
+    @test_throws ArgumentError order!(opool, [3, 1, 2, 3])
+    @test_throws ArgumentError order!(opool, [3, 4, 2])
+    @test_throws ArgumentError order!(opool, ["a", "c", "b"])
 
     @test opool.pool.index == [1, 2, 3]
     @test opool.pool.invindex == Dict(
