@@ -16,7 +16,7 @@ module TestBuildFields
         convert(CategoricalData.RefType, 3),
     ]
 
-    pool = CategoricalPool(index, invindex)
+    pool = OrdinalPool(index, invindex)
 
     ordered = ["c", "a", "b"]
 

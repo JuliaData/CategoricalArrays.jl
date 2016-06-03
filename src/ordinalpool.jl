@@ -1,39 +1,39 @@
-function OrdinalPool{T}(pool::CategoricalPool{T}, order::Vector{RefType})
-    OrdinalPool{T, OrdinalValue{T}}(pool, order)
+function OrdinalPool{S, T <: Integer}(index::Vector{S}, invindex::Dict{S, T}, order::Vector{RefType})
+    invindex = convert(Dict{S, RefType}, invindex)
+    OrdinalPool{S, OrdinalValue{S}}(index, invindex, order)
 end
 
 function OrdinalPool{T}(index::Vector{T})
-    pool = CategoricalPool(index)
-    order = buildorder(pool.index)
-    return OrdinalPool(pool, order)
+    invindex = buildinvindex(index)
+    order = buildorder(index)
+    return OrdinalPool(index, invindex, order)
 end
 
 function OrdinalPool{S, T <: Integer}(invindex::Dict{S, T})
     invindex = convert(Dict{S, RefType}, invindex)
-    pool = CategoricalPool(invindex)
-    order = buildorder(pool.index)
-    return OrdinalPool(pool, order)
+    index = buildindex(invindex)
+    order = buildorder(index)
+    return OrdinalPool(index, invindex, order)
 end
 
 # TODO: Add tests for this
 function OrdinalPool{S, T <: Integer}(index::Vector{S}, invindex::Dict{S, T})
     invindex = convert(Dict{S, RefType}, invindex)
-    pool = CategoricalPool(index, invindex)
-    order = buildorder(pool.index)
-    return OrdinalPool(pool, order)
+    order = buildorder(index)
+    return OrdinalPool(index, invindex, order)
 end
 
 function OrdinalPool{T}(index::Vector{T}, ordered::Vector{T})
-    pool = CategoricalPool(index)
-    order = buildorder(pool.invindex, ordered)
-    return OrdinalPool(pool, order)
+    invindex = buildinvindex(index)
+    order = buildorder(invindex, ordered)
+    return OrdinalPool(index, invindex, order)
 end
 
 function OrdinalPool{S, T <: Integer}(invindex::Dict{S, T}, ordered::Vector{S})
     invindex = convert(Dict{S, RefType}, invindex)
-    pool = CategoricalPool(invindex)
-    order = buildorder(pool.invindex, ordered)
-    return OrdinalPool(pool, order)
+    index = buildindex(invindex)
+    order = buildorder(invindex, ordered)
+    return OrdinalPool(index, invindex, order)
 end
 
 # TODO: Add tests for this
@@ -41,54 +41,40 @@ function OrdinalPool{S, T <: Integer}(index::Vector{S},
                                       invindex::Dict{S, T},
                                       ordered::Vector{S})
     invindex = convert(Dict{S, RefType}, invindex)
-    pool = CategoricalPool(index, invindex)
-    order = buildorder(pool.invindex, ordered)
-    return OrdinalPool(pool, order)
+    index = buildindex(invindex)
+    order = buildorder(invindex, ordered)
+    return OrdinalPool(index, invindex, order)
 end
-
-function Base.convert{S, T}(::Type{CategoricalPool{S}}, opool::OrdinalPool{T})
-    return convert(CategoricalPool{S}, opool.pool)
-end
-
-Base.convert{T}(::Type{CategoricalPool}, opool::OrdinalPool{T}) = opool.pool
 
 function Base.convert{S, T}(::Type{OrdinalPool{S}}, opool::OrdinalPool{T})
-    poolS = convert(CategoricalPool{S}, opool.pool)
-    return OrdinalPool(poolS, opool.order)
+    indexS = convert(Vector{S}, opool.index)
+    invindexS = convert(Dict{S, RefType}, opool.invindex)
+    return OrdinalPool(indexS, invindexS, opool.order)
 end
 
 Base.convert{T}(::Type{OrdinalPool}, opool::OrdinalPool{T}) = opool
 Base.convert{T}(::Type{OrdinalPool{T}}, opool::OrdinalPool{T}) = opool
-
-function Base.convert{S, T}(::Type{OrdinalPool{S}}, pool::CategoricalPool{T})
-    poolS = convert(CategoricalPool{S}, pool)
-    order = buildorder(poolS.index)
-    return OrdinalPool(poolS, order)
-end
-
-function Base.convert{T}(::Type{OrdinalPool}, pool::CategoricalPool{T})
-    order = buildorder(pool.index)
-    return OrdinalPool(pool, order)
-end
 
 function Base.show{T}(io::IO, opool::OrdinalPool{T})
     @printf(io, "OrdinalPool{%s}([%s])", T,
             join(map(repr, levels(opool)[opool.order]), ","))
 end
 
-Base.length(opool::OrdinalPool) = length(opool.pool)
+Base.length(opool::OrdinalPool) = length(opool.index)
 
 Base.getindex(opool::OrdinalPool, i::Integer) = opool.valindex[i]
-Base.get(opool::OrdinalPool, level::Any) = get(opool.pool, level)
+Base.get(opool::OrdinalPool, level::Any) = opool.invindex[level]
 
-levels(opool::OrdinalPool) = levels(opool.pool)
+levels(opool::OrdinalPool) = opool.index
 
 function Base.get!(f, opool::OrdinalPool, level)
-    get!(opool.pool, level) do
+    get!(opool.invindex, level) do
         f()
         i = length(opool) + 1
+        push!(opool.index, level)
         push!(opool.order, i)
         push!(opool.valindex, OrdinalValue(i, opool))
+        i
     end
 end
 Base.get!(opool::OrdinalPool, level) = get!(Void, opool, level)
@@ -105,15 +91,19 @@ end
 function Base.delete!{S}(opool::OrdinalPool{S}, level)
     levelS = convert(S, level)
     if haskey(opool.invindex, levelS)
-        delete!(opool.pool, levelS)
-        ind = opool.pool.invindex[levelS]
-        splice!(pool.order, ind)
-        splice!(pool.valindex, ind)
+        ind = opool.invindex[levelS]
+        delete!(opool.invindex, levelS)
+        deleteat!(opool.index, ind)
+        deleteat!(opool.order, ind)
+        deleteat!(opool.valindex, ind)
+        for i in ind:length(opool)
+            opool.invindex[opool.index[i]] -= 1
+        end
     end
     return opool
 end
 
-function Base.delete!(pool::OrdinalPool, levels...)
+function Base.delete!(opool::OrdinalPool, levels...)
     for level in levels
         delete!(opool, level)
     end
@@ -121,14 +111,21 @@ function Base.delete!(pool::OrdinalPool, levels...)
 end
 
 function levels!{S, T}(opool::OrdinalPool{S}, newlevels::Vector{T})
-    levels!(opool.pool, newlevels)
-    order = buildorder(newlevels)
+    for (k, v) in opool.invindex
+        delete!(opool.invindex, k)
+    end
     n = length(newlevels)
+    resize!(opool.index, n)
+    resize!(opool.valindex, n)
+    order = buildorder(newlevels)
     resize!(order, n)
     for i in 1:n
+        v = newlevels[i]
+        opool.index[i] = v
+        opool.valindex[i] = OrdinalValue(i, opool)
+        opool.invindex[v] = i
         opool.order[i] = order[i]
     end
-    buildvalues!(opool, OrdinalValue)
     return newlevels
 end
 
@@ -140,8 +137,7 @@ function levels!{S, T}(opool::OrdinalPool{S},
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
     end
 
-    levels!(opool.pool, newlevels)
-    order = buildorder(opool.pool.invindex, ordered)
+    order = buildorder(opool.invindex, ordered)
     n = length(newlevels)
     resize!(order, n)
     for i in 1:n
@@ -163,6 +159,6 @@ function order!{S, T}(opool::OrdinalPool{S}, ordered::Vector{T})
         throw(ArgumentError(string("found levels not in existing levels or vice-versa: ",
                                    join(d, ", "))))
     end
-    updateorder!(opool.order, opool.pool.invindex, ordered)
+    updateorder!(opool.order, opool.invindex, ordered)
     return ordered
 end

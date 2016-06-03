@@ -2,7 +2,7 @@ module TestIsLess
     using Base.Test
     using CategoricalData
 
-    pool = CategoricalPool([1, 2, 3])
+    pool = OrdinalPool([1, 2, 3])
     opool = OrdinalPool([1, 2, 3], [3, 2, 1])
 
     cv1 = CategoricalValue(1, pool)

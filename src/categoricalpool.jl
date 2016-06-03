@@ -57,8 +57,8 @@ function Base.delete!{S}(pool::CategoricalPool{S}, level)
     if haskey(pool.invindex, levelS)
         ind = pool.invindex[levelS]
         delete!(pool.invindex, levelS)
-        splice!(pool.index, ind)
-        splice!(pool.valindex, ind)
+        deleteat!(pool.index, ind)
+        deleteat!(pool.valindex, ind)
         for i in ind:length(pool)
             pool.invindex[pool.index[i]] -= 1
         end

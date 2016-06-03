@@ -2,7 +2,7 @@ module TestUpdateOrder
     using Base.Test
     using CategoricalData
 
-    pool = CategoricalPool(
+    pool = OrdinalPool(
         [
             "a",
             "b",

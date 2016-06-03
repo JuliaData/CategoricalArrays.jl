@@ -2,8 +2,8 @@ module TestHash
     using Base.Test
     using CategoricalData
 
-    pool1 = CategoricalPool([1, 2, 3])
-    pool2 = CategoricalPool([2, 1, 3])
+    pool1 = OrdinalPool([1, 2, 3])
+    pool2 = OrdinalPool([2, 1, 3])
 
     @test (hash(pool1) == hash(pool1)) === true
     @test (hash(pool1) == hash(pool2)) === false
@@ -16,10 +16,10 @@ module TestHash
     @test (hash(opool1) == hash(opool2)) === false
     @test (hash(opool2) == hash(opool2)) === true
 
-    cv1a = CategoricalValue(1, pool1)
-    cv2a = CategoricalValue(1, pool2)
-    cv1b = CategoricalValue(2, pool1)
-    cv2b = CategoricalValue(2, pool2)
+    cv1a = OrdinalValue(1, pool1)
+    cv2a = OrdinalValue(1, pool2)
+    cv1b = OrdinalValue(2, pool1)
+    cv2b = OrdinalValue(2, pool2)
 
     @test (hash(cv1a) == hash(cv1a)) == true
     @test (hash(cv1a) == hash(cv2a)) == false

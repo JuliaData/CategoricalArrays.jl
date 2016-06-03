@@ -1,5 +1,9 @@
 function CategoricalValue(level::Integer, pool::CategoricalPool)
-    return CategoricalValue(convert(RefType, level), pool)
+    return CategoricalValue{CategoricalPool}(convert(RefType, level), pool)
+end
+
+function CategoricalValue(level::Integer, pool::OrdinalPool)
+    return CategoricalValue{OrdinalPool}(convert(RefType, level), pool)
 end
 
 Base.convert{T}(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) = x

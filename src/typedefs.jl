@@ -16,12 +16,15 @@ end
 
 # V is always set to OrdinalValue{T}
 immutable OrdinalPool{T, V}
-    pool::CategoricalPool{T}
+    index::Vector{T}
+    invindex::Dict{T, RefType}
     order::Vector{RefType}
     valindex::Vector{V}
 
-    function OrdinalPool{T}(pool::CategoricalPool{T}, order::Vector{RefType})
-        pool = new{T, OrdinalValue{T}}(pool, order, V[])
+    function OrdinalPool{T}(index::Vector{T},
+                            invindex::Dict{T, RefType},
+                            order::Vector{RefType})
+        pool = new{T, OrdinalValue{T}}(index, invindex, order, V[])
         buildvalues!(pool, OrdinalValue)
     end
 end
@@ -33,7 +36,7 @@ typealias CatOrdPool Union{CategoricalPool, OrdinalPool}
 
 immutable CategoricalValue{T}
     level::RefType
-    pool::CategoricalPool{T}
+    pool::T
 end
 
 immutable OrdinalValue{T}

@@ -4,20 +4,20 @@ module TestTypeDef
 
     @test CategoricalData.RefType === UInt
 
-    pool = CategoricalPool(
+    pool = OrdinalPool(
         [
             "a",
             "b",
             "c"
         ],
         Dict(
-            "a" => convert(CategoricalData.RefType, 1),
+            "c" => convert(CategoricalData.RefType, 1),
             "b" => convert(CategoricalData.RefType, 2),
-            "c" => convert(CategoricalData.RefType, 3),
+            "a" => convert(CategoricalData.RefType, 3),
         )
     )
 
-    @test isa(pool, CategoricalPool)
+    @test isa(pool, OrdinalPool)
 
     @test isa(pool.index, Vector)
     @test length(pool.index) == 3
@@ -27,52 +27,23 @@ module TestTypeDef
 
     @test isa(pool.invindex, Dict)
     @test length(pool.invindex) == 3
-    @test pool.invindex["a"] === convert(CategoricalData.RefType, 1)
+    @test pool.invindex["a"] === convert(CategoricalData.RefType, 3)
     @test pool.invindex["b"] === convert(CategoricalData.RefType, 2)
-    @test pool.invindex["c"] === convert(CategoricalData.RefType, 3)
+    @test pool.invindex["c"] === convert(CategoricalData.RefType, 1)
+
+    @test isa(pool.order, Vector{CategoricalData.RefType})
+    @test length(pool.order) == 3
+    @test pool.order[1] === convert(CategoricalData.RefType, 1)
+    @test pool.order[2] === convert(CategoricalData.RefType, 2)
+    @test pool.order[3] === convert(CategoricalData.RefType, 3)
 
     # TODO: Need constructors that take in arbitrary integers
     for i in 1:3
-        x = CategoricalValue(convert(CategoricalData.RefType, i), pool)
+        x = OrdinalValue(convert(CategoricalData.RefType, i), pool)
 
-        @test isa(x, CategoricalValue)
+        @test isa(x, OrdinalValue)
 
         @test isa(x.level, CategoricalData.RefType)
         @test x.level === convert(CategoricalData.RefType, i)
-
-        @test isa(x.pool, CategoricalPool)
-        @test x.pool === pool
-    end
-
-    opool = OrdinalPool(
-        pool,
-        [
-            convert(CategoricalData.RefType, 3),
-            convert(CategoricalData.RefType, 2),
-            convert(CategoricalData.RefType, 1),
-        ]
-    )
-
-    @test isa(opool, OrdinalPool)
-
-    @test isa(opool.pool, CategoricalPool)
-    @test opool.pool === pool
-
-    @test isa(opool.order, Vector{CategoricalData.RefType})
-    @test length(opool.order) == 3
-    @test opool.order[1] === convert(CategoricalData.RefType, 3)
-    @test opool.order[2] === convert(CategoricalData.RefType, 2)
-    @test opool.order[3] === convert(CategoricalData.RefType, 1)
-
-    for i in 1:3
-        y = OrdinalValue(convert(CategoricalData.RefType, i), opool)
-
-        @test isa(y, OrdinalValue)
-
-        @test isa(y.level, CategoricalData.RefType)
-        @test y.level === convert(CategoricalData.RefType, i)
-
-        @test isa(y.opool, OrdinalPool)
-        @test y.opool === opool
     end
 end
