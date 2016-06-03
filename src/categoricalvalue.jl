@@ -15,7 +15,7 @@ function Base.convert{S, T}(::Type{S}, x::CategoricalValue{T})
 end
 
 function Base.show{T}(io::IO, x::CategoricalValue{T})
-    if limit_output(io)
+    if get(io, :compact, false)
         print(io, repr(levels(x.pool)[x.level]))
     else
         @printf(io, "CategoricalValue{%s} %s", T, repr(levels(x.pool)[x.level]))

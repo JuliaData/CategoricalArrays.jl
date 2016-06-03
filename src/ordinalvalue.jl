@@ -15,7 +15,7 @@ function Base.convert{S, T}(::Type{S}, x::OrdinalValue{T})
 end
 
 function Base.show{T}(io::IO, x::OrdinalValue{T})
-    if limit_output(io)
+    if get(io, :compact, false)
         print(io, repr(levels(x.opool)[x.level]))
     else
         @printf(io, "OrdinalValue{%s} %s (%i/%i)",
