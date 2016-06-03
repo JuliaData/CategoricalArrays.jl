@@ -45,5 +45,7 @@ for (A, V, M, P, S) in ((:NullableCategoricalArray, :NullableCategoricalVector,
                 A[i] = get(v)
             end
         end
+
+        levels!(A::$A, newlevels::Vector; nullok=false) = _levels!(A, newlevels, nullok=nullok)
     end
 end

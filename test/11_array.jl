@@ -47,14 +47,36 @@ for (A, V, M) in ((CategoricalArray, CategoricalVector, CategoricalMatrix),
     x[3] = "c"
     @test x[1] === x.pool.valindex[2]
     @test x[2] === x.pool.valindex[2]
-    @test x[3] === x.pool.valindex[3]  
+    @test x[3] === x.pool.valindex[3]
     @test levels(x) == ["a", "b", "c"]
 
     x[2:3] = "a"
     @test x[1] === x.pool.valindex[2]
     @test x[2] === x.pool.valindex[1]
-    @test x[3] === x.pool.valindex[1]  
+    @test x[3] === x.pool.valindex[1]
     @test levels(x) == ["a", "b", "c"]
+
+    droplevels!(x)
+    @test x[1] === x.pool.valindex[2]
+    @test x[2] === x.pool.valindex[1]
+    @test x[3] === x.pool.valindex[1]
+    @test levels(x) == ["a", "b"]
+
+    @test_throws ArgumentError levels!(x, ["a"])
+    @test_throws ArgumentError levels!(x, ["e", "b"])
+    @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
+
+    @test levels!(x, ["e", "a", "b"]) == ["e", "a", "b"]
+    @test x[1] === x.pool.valindex[3]
+    @test x[2] === x.pool.valindex[2]
+    @test x[3] === x.pool.valindex[2]
+    @test levels(x) == ["e", "a", "b"]
+
+    x[1] = "c"
+    @test x[1] === x.pool.valindex[4]
+    @test x[2] === x.pool.valindex[2]
+    @test x[3] === x.pool.valindex[2]
+    @test levels(x) == ["e", "a", "b", "c"]
 
 
     # Vector created from range (i.e. non-Array AbstractArray),

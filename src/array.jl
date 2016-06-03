@@ -81,20 +81,56 @@ linearindexing{T <: CatOrdArray}(::Type{T}) = Base.LinearFast()
 setindex!(A::CatOrdArray, v::Any, i::Int) = A.values[i] = get!(A.pool, v)
 
 
-## Code specific to CategoricalArray and OrdinalArray
-
-for T in (CategoricalArray, OrdinalArray)
-    @eval begin
-        function getindex(A::$T, i::Int)
-            j = A.values[i]
-            j > 0 || throw(UndefRefError())
-            A.pool[j]
-        end
-    end
-end
-
-
 ## Categorical-specific methods
 
 levels(A::CatOrdArray) = levels(A.pool)
-levels!(pool::CatOrdArray, newlevels::Vector) = levels!(A.pool)
+
+function _levels!(A::CatOrdArray, newlevels::Vector; nullok=false)
+    if !allunique(newlevels)
+        throw(ArgumentError(string("duplicated levels found: ",
+                                   join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
+    end
+
+    # findfirst returns 0 when not found, which maps to a missing value
+    levelsmap = [findfirst(newlevels, l) for l in levels(A)]
+
+    if levelsmap != collect(1:length(levels(A)))
+        # first pass to check whether changes can be applied without error
+        # TODO: save original levels and undo changes in case of error to skip this step
+        @inbounds for (i, x) in enumerate(A.values)
+            j = levelsmap[x]
+
+            if (isa(A, CategoricalArray) || isa(A, OrdinalArray)) && j == 0
+                throw(ArgumentError("cannot remove level $(repr(levels(A)[x])) as it is used at position $i. Convert array to a Nullable$(typeof(A).name.name) if you want to transform some levels to missing values."))
+            elseif (isa(A, NullableCategoricalArray) || isa(A, NullableOrdinalArray)) && !nullok && j == 0
+                throw(ArgumentError("cannot remove level $(repr(levels(A)[x])) as it is used at position $i and nullok=false."))
+            end
+        end
+
+        # actually apply changes
+        @inbounds for (i, x) in enumerate(A.values)
+            j = levelsmap[x]
+            x > 0 && (A.values[i] = j)
+        end
+    end
+    levels!(A.pool, newlevels)
+end
+
+function droplevels!(A::CatOrdArray)
+    found = fill(false, length(levels(A)))
+    @inbounds for i in A.values
+        i > 0 && (found[i] = true)
+    end
+    levels!(A, levels(A)[found])
+end
+
+
+## Code specific to CategoricalArray and OrdinalArray
+
+function getindex(A::CatOrdArray, i::Int)
+    j = A.values[i]
+    j > 0 || throw(UndefRefError())
+    A.pool[j]
+end
+
+levels!(A::CatOrdArray, newlevels::Vector) = _levels!(A, newlevels)

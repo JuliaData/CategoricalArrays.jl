@@ -5,7 +5,7 @@ module CategoricalData
     export OrdinalArray, OrdinalVector, OrdinalMatrix
     export NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
     export NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix
-    export levels, levels!, order, order!
+    export droplevels!, levels, levels!, order, order!
 
     # TODO: Make this variable and user-specified?
     # TODO: Make this Int for consistency with other indexing in Julia?

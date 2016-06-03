@@ -135,6 +135,11 @@ end
 function levels!{S, T}(opool::OrdinalPool{S},
                        newlevels::Vector{T},
                        ordered::Vector{T})
+    if !allunique(newlevels)
+        throw(ArgumentError(string("duplicated levels found: ",
+                                   join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
+    end
+
     levels!(opool.pool, newlevels)
     order = buildorder(opool.pool.invindex, ordered)
     n = length(newlevels)

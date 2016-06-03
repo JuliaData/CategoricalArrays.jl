@@ -74,6 +74,11 @@ function Base.delete!(pool::CategoricalPool, levels...)
 end
 
 function levels!{S, T}(pool::CategoricalPool{S}, newlevels::Vector{T})
+    if !allunique(newlevels)
+        throw(ArgumentError(string("duplicated levels found: ",
+                                   join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
+    end
+
     for (k, v) in pool.invindex
         delete!(pool.invindex, k)
     end

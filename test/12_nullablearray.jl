@@ -61,6 +61,35 @@ for (A, V, M) in ((NullableCategoricalArray, NullableCategoricalVector, Nullable
         @test x[2] === Nullable(x.pool.valindex[1])
         @test x[3] === Nullable(x.pool.valindex[1])
         @test levels(x) == ["a", "b", "c"]
+
+        droplevels!(x)
+        @test x[1] === Nullable(x.pool.valindex[2])
+        @test x[2] === Nullable(x.pool.valindex[1])
+        @test x[3] === Nullable(x.pool.valindex[1])
+        @test levels(x) == ["a", "b"]
+
+        @test_throws ArgumentError levels!(x, ["a"])
+        @test_throws ArgumentError levels!(x, ["e", "b"])
+        @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
+
+        @test levels!(x, ["e", "a", "b"]) == ["e", "a", "b"]
+        @test x[1] === Nullable(x.pool.valindex[3])
+        @test x[2] === Nullable(x.pool.valindex[2])
+        @test x[3] === Nullable(x.pool.valindex[2])
+        @test levels(x) == ["e", "a", "b"]
+
+        x[1] = "c"
+        @test x[1] === Nullable(x.pool.valindex[4])
+        @test x[2] === Nullable(x.pool.valindex[2])
+        @test x[3] === Nullable(x.pool.valindex[2])
+        @test levels(x) == ["e", "a", "b", "c"]
+
+        @test_throws ArgumentError levels!(x, ["e", "c"])
+        @test levels!(x, ["e", "c"], nullok=true) == ["e", "c"]
+        @test x[1] === Nullable(x.pool.valindex[2])
+        @test x[2] === eltype(x)()
+        @test x[3] === eltype(x)()
+        @test levels(x) == ["e", "c"]
     end
 
     # Vector with null values
