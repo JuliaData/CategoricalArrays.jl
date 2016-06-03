@@ -2,52 +2,52 @@ module TestIsLess
     using Base.Test
     using CategoricalData
 
-    pool = CategoricalPool([1, 2, 3])
-    opool = CategoricalPool([1, 2, 3], [3, 2, 1])
+    pool = NominalPool([1, 2, 3])
+    opool = OrdinalPool([1, 2, 3], [3, 2, 1])
 
-    cv1 = NominalValue(1, pool)
-    cv2 = NominalValue(2, pool)
-    cv3 = NominalValue(3, pool)
+    nv1 = NominalValue(1, pool)
+    nv2 = NominalValue(2, pool)
+    nv3 = NominalValue(3, pool)
 
-    @test_throws Exception cv1 < cv1
-    @test_throws Exception cv1 < cv2
-    @test_throws Exception cv1 < cv3
-    @test_throws Exception cv2 < cv1
-    @test_throws Exception cv2 < cv2
-    @test_throws Exception cv2 < cv3
-    @test_throws Exception cv3 < cv1
-    @test_throws Exception cv3 < cv2
-    @test_throws Exception cv3 < cv3
+    @test_throws Exception nv1 < nv1
+    @test_throws Exception nv1 < nv2
+    @test_throws Exception nv1 < nv3
+    @test_throws Exception nv2 < nv1
+    @test_throws Exception nv2 < nv2
+    @test_throws Exception nv2 < nv3
+    @test_throws Exception nv3 < nv1
+    @test_throws Exception nv3 < nv2
+    @test_throws Exception nv3 < nv3
 
-    @test_throws Exception cv1 <= cv1
-    @test_throws Exception cv1 <= cv2
-    @test_throws Exception cv1 <= cv3
-    @test_throws Exception cv2 <= cv1
-    @test_throws Exception cv2 <= cv2
-    @test_throws Exception cv2 <= cv3
-    @test_throws Exception cv3 <= cv1
-    @test_throws Exception cv3 <= cv2
-    @test_throws Exception cv3 <= cv3
+    @test_throws Exception nv1 <= nv1
+    @test_throws Exception nv1 <= nv2
+    @test_throws Exception nv1 <= nv3
+    @test_throws Exception nv2 <= nv1
+    @test_throws Exception nv2 <= nv2
+    @test_throws Exception nv2 <= nv3
+    @test_throws Exception nv3 <= nv1
+    @test_throws Exception nv3 <= nv2
+    @test_throws Exception nv3 <= nv3
 
-    @test_throws Exception cv1 > cv1
-    @test_throws Exception cv1 > cv2
-    @test_throws Exception cv1 > cv3
-    @test_throws Exception cv2 > cv1
-    @test_throws Exception cv2 > cv2
-    @test_throws Exception cv2 > cv3
-    @test_throws Exception cv3 > cv1
-    @test_throws Exception cv3 > cv2
-    @test_throws Exception cv3 > cv3
+    @test_throws Exception nv1 > nv1
+    @test_throws Exception nv1 > nv2
+    @test_throws Exception nv1 > nv3
+    @test_throws Exception nv2 > nv1
+    @test_throws Exception nv2 > nv2
+    @test_throws Exception nv2 > nv3
+    @test_throws Exception nv3 > nv1
+    @test_throws Exception nv3 > nv2
+    @test_throws Exception nv3 > nv3
 
-    @test_throws Exception cv1 >= cv1
-    @test_throws Exception cv1 >= cv2
-    @test_throws Exception cv1 >= cv3
-    @test_throws Exception cv2 >= cv1
-    @test_throws Exception cv2 >= cv2
-    @test_throws Exception cv2 >= cv3
-    @test_throws Exception cv3 >= cv1
-    @test_throws Exception cv3 >= cv2
-    @test_throws Exception cv3 >= cv3
+    @test_throws Exception nv1 >= nv1
+    @test_throws Exception nv1 >= nv2
+    @test_throws Exception nv1 >= nv3
+    @test_throws Exception nv2 >= nv1
+    @test_throws Exception nv2 >= nv2
+    @test_throws Exception nv2 >= nv3
+    @test_throws Exception nv3 >= nv1
+    @test_throws Exception nv3 >= nv2
+    @test_throws Exception nv3 >= nv3
 
     ov1 = OrdinalValue(1, opool)
     ov2 = OrdinalValue(2, opool)

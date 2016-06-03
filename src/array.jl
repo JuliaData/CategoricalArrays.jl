@@ -7,13 +7,13 @@ typealias CatOrdArray Union{NominalArray, OrdinalArray,
                             NullableNominalArray, NullableOrdinalArray}
 
 for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
-                         :NominalMatrix, :CategoricalPool, :NominalValue),
+                         :NominalMatrix, :NominalPool, :NominalValue),
                         (:OrdinalArray, :OrdinalVector,
-                         :OrdinalMatrix, :CategoricalPool, :OrdinalValue),
+                         :OrdinalMatrix, :OrdinalPool, :OrdinalValue),
                         (:NullableNominalArray, :NullableNominalVector, 
-                         :NullableNominalMatrix, :CategoricalPool, :NominalValue),
+                         :NullableNominalMatrix, :NominalPool, :NominalValue),
                         (:NullableOrdinalArray, :NullableOrdinalVector,
-                         :NullableOrdinalMatrix, :CategoricalPool, :OrdinalValue))
+                         :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
     @eval begin
         $A{T, N}(::Type{T}, dims::NTuple{N,Int}) =
             $A{T, N}($P(T[]), zeros(RefType, dims))

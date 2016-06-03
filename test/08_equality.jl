@@ -2,8 +2,8 @@ module TestEquality
     using Base.Test
     using CategoricalData
 
-    pool1 = CategoricalPool([1, 2, 3])
-    pool2 = CategoricalPool([2.0, 1.0, 3.0])
+    pool1 = NominalPool([1, 2, 3])
+    pool2 = NominalPool([2.0, 1.0, 3.0])
 
     @test isequal(pool1, pool1) === true
     @test isequal(pool1, pool2) === false
@@ -17,8 +17,8 @@ module TestEquality
     @test (pool1 === pool2) === false
     @test (pool2 === pool2) === true
 
-    opool1 = CategoricalPool([1, 2, 3])
-    opool2 = CategoricalPool([2.0, 1.0, 3.0])
+    opool1 = OrdinalPool([1, 2, 3])
+    opool2 = OrdinalPool([2.0, 1.0, 3.0])
 
     @test isequal(opool1, opool1) === true
     @test isequal(opool1, opool2) === false
@@ -32,90 +32,90 @@ module TestEquality
     @test (opool1 === opool2) === false
     @test (opool2 === opool2) === true
 
-    cv1a = OrdinalValue(1, pool1)
-    cv2a = OrdinalValue(1, pool2)
-    cv1b = OrdinalValue(2, pool1)
-    cv2b = OrdinalValue(2, pool2)
+    nv1a = NominalValue(1, pool1)
+    nv2a = NominalValue(1, pool2)
+    nv1b = NominalValue(2, pool1)
+    nv2b = NominalValue(2, pool2)
 
-    @test isequal(cv1a, cv1a) == true
-    @test isequal(cv1a, cv2a) == false
-    @test isequal(cv1a, cv1b) == false
-    @test isequal(cv1a, cv2b) == true
+    @test isequal(nv1a, nv1a) == true
+    @test isequal(nv1a, nv2a) == false
+    @test isequal(nv1a, nv1b) == false
+    @test isequal(nv1a, nv2b) == true
 
-    @test isequal(cv1b, cv1a) == false
-    @test isequal(cv1b, cv2a) == true
-    @test isequal(cv1b, cv1b) == true
-    @test isequal(cv1b, cv2b) == false
+    @test isequal(nv1b, nv1a) == false
+    @test isequal(nv1b, nv2a) == true
+    @test isequal(nv1b, nv1b) == true
+    @test isequal(nv1b, nv2b) == false
 
-    @test isequal(cv2a, cv1a) == false
-    @test isequal(cv2a, cv2a) == true
-    @test isequal(cv2a, cv1b) == true
-    @test isequal(cv2a, cv2b) == false
+    @test isequal(nv2a, nv1a) == false
+    @test isequal(nv2a, nv2a) == true
+    @test isequal(nv2a, nv1b) == true
+    @test isequal(nv2a, nv2b) == false
 
-    @test isequal(cv2b, cv1a) == true
-    @test isequal(cv2b, cv2a) == false
-    @test isequal(cv2b, cv1b) == false
-    @test isequal(cv2b, cv2b) == true
+    @test isequal(nv2b, nv1a) == true
+    @test isequal(nv2b, nv2a) == false
+    @test isequal(nv2b, nv1b) == false
+    @test isequal(nv2b, nv2b) == true
 
-    @test isequal(1, cv1a) == true
-    @test isequal(1, cv2a) == false
-    @test isequal(1, cv1b) == false
-    @test isequal(1, cv2b) == true
+    @test isequal(1, nv1a) == true
+    @test isequal(1, nv2a) == false
+    @test isequal(1, nv1b) == false
+    @test isequal(1, nv2b) == true
 
-    @test isequal(cv1a, 2) == false
-    @test isequal(cv2a, 2) == true
-    @test isequal(cv1b, 2) == true
-    @test isequal(cv2b, 2) == false
+    @test isequal(nv1a, 2) == false
+    @test isequal(nv2a, 2) == true
+    @test isequal(nv1b, 2) == true
+    @test isequal(nv2b, 2) == false
 
-    @test (cv1a == cv1a) == true
-    @test (cv1a == cv2a) == false
-    @test (cv1a == cv1b) == false
-    @test (cv1a == cv2b) == true
+    @test (nv1a == nv1a) == true
+    @test (nv1a == nv2a) == false
+    @test (nv1a == nv1b) == false
+    @test (nv1a == nv2b) == true
 
-    @test (cv1b == cv1a) == false
-    @test (cv1b == cv2a) == true
-    @test (cv1b == cv1b) == true
-    @test (cv1b == cv2b) == false
+    @test (nv1b == nv1a) == false
+    @test (nv1b == nv2a) == true
+    @test (nv1b == nv1b) == true
+    @test (nv1b == nv2b) == false
 
-    @test (cv2a == cv1a) == false
-    @test (cv2a == cv2a) == true
-    @test (cv2a == cv1b) == true
-    @test (cv2a == cv2b) == false
+    @test (nv2a == nv1a) == false
+    @test (nv2a == nv2a) == true
+    @test (nv2a == nv1b) == true
+    @test (nv2a == nv2b) == false
 
-    @test (cv2b == cv1a) == true
-    @test (cv2b == cv2a) == false
-    @test (cv2b == cv1b) == false
-    @test (cv2b == cv2b) == true
+    @test (nv2b == nv1a) == true
+    @test (nv2b == nv2a) == false
+    @test (nv2b == nv1b) == false
+    @test (nv2b == nv2b) == true
 
-    @test (cv1a === cv1a) == true
-    @test (cv1a === cv2a) == false
-    @test (cv1a === cv1b) == false
-    @test (cv1a === cv2b) == false
+    @test (nv1a === nv1a) == true
+    @test (nv1a === nv2a) == false
+    @test (nv1a === nv1b) == false
+    @test (nv1a === nv2b) == false
 
-    @test (cv1b === cv1a) == false
-    @test (cv1b === cv2a) == false
-    @test (cv1b === cv1b) == true
-    @test (cv1b === cv2b) == false
+    @test (nv1b === nv1a) == false
+    @test (nv1b === nv2a) == false
+    @test (nv1b === nv1b) == true
+    @test (nv1b === nv2b) == false
 
-    @test (cv2a === cv1a) == false
-    @test (cv2a === cv2a) == true
-    @test (cv2a === cv1b) == false
-    @test (cv2a === cv2b) == false
+    @test (nv2a === nv1a) == false
+    @test (nv2a === nv2a) == true
+    @test (nv2a === nv1b) == false
+    @test (nv2a === nv2b) == false
 
-    @test (cv2b === cv1a) == false
-    @test (cv2b === cv2a) == false
-    @test (cv2b === cv1b) == false
-    @test (cv2b === cv2b) == true
+    @test (nv2b === nv1a) == false
+    @test (nv2b === nv2a) == false
+    @test (nv2b === nv1b) == false
+    @test (nv2b === nv2b) == true
 
-    @test (1 == cv1a) == true
-    @test (1 == cv2a) == false
-    @test (1 == cv1b) == false
-    @test (1 == cv2b) == true
+    @test (1 == nv1a) == true
+    @test (1 == nv2a) == false
+    @test (1 == nv1b) == false
+    @test (1 == nv2b) == true
 
-    @test (cv1a == 2) == false
-    @test (cv2a == 2) == true
-    @test (cv1b == 2) == true
-    @test (cv2b == 2) == false
+    @test (nv1a == 2) == false
+    @test (nv2a == 2) == true
+    @test (nv1b == 2) == true
+    @test (nv2b == 2) == false
 
     ov1a = OrdinalValue(1, opool1)
     ov2a = OrdinalValue(1, opool2)

@@ -2,44 +2,44 @@ module TestHash
     using Base.Test
     using CategoricalData
 
-    pool1 = CategoricalPool([1, 2, 3])
-    pool2 = CategoricalPool([2, 1, 3])
+    pool1 = NominalPool([1, 2, 3])
+    pool2 = NominalPool([2, 1, 3])
 
     @test (hash(pool1) == hash(pool1)) === true
     @test (hash(pool1) == hash(pool2)) === false
     @test (hash(pool2) == hash(pool2)) === true
 
-    opool1 = CategoricalPool([1, 2, 3])
-    opool2 = CategoricalPool([2, 1, 3])
+    opool1 = OrdinalPool([1, 2, 3])
+    opool2 = OrdinalPool([2, 1, 3])
 
     @test (hash(opool1) == hash(opool1)) === true
     @test (hash(opool1) == hash(opool2)) === false
     @test (hash(opool2) == hash(opool2)) === true
 
-    cv1a = OrdinalValue(1, pool1)
-    cv2a = OrdinalValue(1, pool2)
-    cv1b = OrdinalValue(2, pool1)
-    cv2b = OrdinalValue(2, pool2)
+    nv1a = NominalValue(1, pool1)
+    nv2a = NominalValue(1, pool2)
+    nv1b = NominalValue(2, pool1)
+    nv2b = NominalValue(2, pool2)
 
-    @test (hash(cv1a) == hash(cv1a)) == true
-    @test (hash(cv1a) == hash(cv2a)) == false
-    @test (hash(cv1a) == hash(cv1b)) == false
-    @test (hash(cv1a) == hash(cv2b)) == false
+    @test (hash(nv1a) == hash(nv1a)) == true
+    @test (hash(nv1a) == hash(nv2a)) == false
+    @test (hash(nv1a) == hash(nv1b)) == false
+    @test (hash(nv1a) == hash(nv2b)) == false
 
-    @test (hash(cv1b) == hash(cv1a)) == false
-    @test (hash(cv1b) == hash(cv2a)) == false
-    @test (hash(cv1b) == hash(cv1b)) == true
-    @test (hash(cv1b) == hash(cv2b)) == false
+    @test (hash(nv1b) == hash(nv1a)) == false
+    @test (hash(nv1b) == hash(nv2a)) == false
+    @test (hash(nv1b) == hash(nv1b)) == true
+    @test (hash(nv1b) == hash(nv2b)) == false
 
-    @test (hash(cv2a) == hash(cv1a)) == false
-    @test (hash(cv2a) == hash(cv2a)) == true
-    @test (hash(cv2a) == hash(cv1b)) == false
-    @test (hash(cv2a) == hash(cv2b)) == false
+    @test (hash(nv2a) == hash(nv1a)) == false
+    @test (hash(nv2a) == hash(nv2a)) == true
+    @test (hash(nv2a) == hash(nv1b)) == false
+    @test (hash(nv2a) == hash(nv2b)) == false
 
-    @test (hash(cv2b) == hash(cv1a)) == false
-    @test (hash(cv2b) == hash(cv2a)) == false
-    @test (hash(cv2b) == hash(cv1b)) == false
-    @test (hash(cv2b) == hash(cv2b)) == true
+    @test (hash(nv2b) == hash(nv1a)) == false
+    @test (hash(nv2b) == hash(nv2a)) == false
+    @test (hash(nv2b) == hash(nv1b)) == false
+    @test (hash(nv2b) == hash(nv2b)) == true
 
     ov1a = OrdinalValue(1, opool1)
     ov2a = OrdinalValue(1, opool2)

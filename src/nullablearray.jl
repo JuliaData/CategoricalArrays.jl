@@ -6,9 +6,9 @@ import Base: convert, getindex, setindex!, similar
 ## (special methods for AbstractArray{Nullable}, to avoid wrapping Nullable inside Nullable)
 
 for (A, V, M, P, S) in ((:NullableNominalArray, :NullableNominalVector,
-                         :NullableNominalMatrix, :CategoricalPool, :NominalValue),
+                         :NullableNominalMatrix, :NominalPool, :NominalValue),
                         (:NullableOrdinalArray, :NullableOrdinalVector,
-                         :NullableOrdinalMatrix, :CategoricalPool, :OrdinalValue))
+                         :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
     @eval begin
         $A{T, N}(::Type{Nullable{T}}, dims::NTuple{N,Int}) =
             $A{T, N}($P(T[]), zeros(RefType, dims))

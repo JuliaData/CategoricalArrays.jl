@@ -14,11 +14,11 @@ function buildinvindex{T}(index::Vector{T})
     return invindex
 end
 
-function buildvalues!(pool, T)
+function buildvalues!{T, V}(pool::CategoricalPool{T, V})
     n = length(levels(pool))
     resize!(pool.valindex, n)
     for i in 1:n
-        pool.valindex[i] = T(i, pool)
+        pool.valindex[i] = V(i, pool)
     end
     pool
 end

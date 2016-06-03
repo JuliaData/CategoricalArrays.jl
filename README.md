@@ -23,14 +23,14 @@ To create a specific observation, you create a `CategoricalValue` object
 that points to the pool's internal index of values:
 
 ```
-cv = CategoricalValue(1, pool)
+nv = NominalValue(1, pool)
 ```
 
 If you know that you're working with ordinal data, you can use an `OrdinalPool`
 object, which augments a `CategoricalPool` with an ordering:
 
 ```
-opool = OrdinalPool(
+opool = CategoricalPool(
     ["Group A", "Group B", "Group C"],
     ["Group B", "Group C", "Group A"]
 )
