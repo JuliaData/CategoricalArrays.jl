@@ -1,19 +1,19 @@
-## Common code for CategoricalArray, OrdinalArray,
-## NullableCategoricalArray and NullableOrdinalArray
+## Common code for NominalArray, OrdinalArray,
+## NullableNominalArray and NullableOrdinalArray
 
 import Base: convert, getindex, setindex!, similar, size, linearindexing
 
-typealias CatOrdArray Union{CategoricalArray, OrdinalArray,
-                            NullableCategoricalArray, NullableOrdinalArray}
+typealias CatOrdArray Union{NominalArray, OrdinalArray,
+                            NullableNominalArray, NullableOrdinalArray}
 
-for (A, V, M, P, S) in ((:CategoricalArray, :CategoricalVector,
-                         :CategoricalMatrix, :CategoricalPool, :CategoricalValue),
+for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
+                         :NominalMatrix, :CategoricalPool, :NominalValue),
                         (:OrdinalArray, :OrdinalVector,
-                         :OrdinalMatrix, :OrdinalPool, :OrdinalValue),
-                        (:NullableCategoricalArray, :NullableCategoricalVector, 
-                         :NullableCategoricalMatrix, :CategoricalPool, :CategoricalValue),
+                         :OrdinalMatrix, :CategoricalPool, :OrdinalValue),
+                        (:NullableNominalArray, :NullableNominalVector, 
+                         :NullableNominalMatrix, :CategoricalPool, :NominalValue),
                         (:NullableOrdinalArray, :NullableOrdinalVector,
-                         :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
+                         :NullableOrdinalMatrix, :CategoricalPool, :OrdinalValue))
     @eval begin
         $A{T, N}(::Type{T}, dims::NTuple{N,Int}) =
             $A{T, N}($P(T[]), zeros(RefType, dims))
@@ -100,9 +100,9 @@ function _levels!(A::CatOrdArray, newlevels::Vector; nullok=false)
         @inbounds for (i, x) in enumerate(A.values)
             j = levelsmap[x]
 
-            if (isa(A, CategoricalArray) || isa(A, OrdinalArray)) && j == 0
+            if (isa(A, NominalArray) || isa(A, OrdinalArray)) && j == 0
                 throw(ArgumentError("cannot remove level $(repr(levels(A)[x])) as it is used at position $i. Convert array to a Nullable$(typeof(A).name.name) if you want to transform some levels to missing values."))
-            elseif (isa(A, NullableCategoricalArray) || isa(A, NullableOrdinalArray)) && !nullok && j == 0
+            elseif (isa(A, NullableNominalArray) || isa(A, NullableOrdinalArray)) && !nullok && j == 0
                 throw(ArgumentError("cannot remove level $(repr(levels(A)[x])) as it is used at position $i and nullok=false."))
             end
         end
@@ -125,7 +125,7 @@ function droplevels!(A::CatOrdArray)
 end
 
 
-## Code specific to CategoricalArray and OrdinalArray
+## Code specific to NominalArray and OrdinalArray
 
 function getindex(A::CatOrdArray, i::Int)
     j = A.values[i]

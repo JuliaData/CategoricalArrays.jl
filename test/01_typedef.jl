@@ -4,7 +4,7 @@ module TestTypeDef
 
     @test CategoricalData.RefType === UInt
 
-    pool = OrdinalPool(
+    pool = CategoricalPool(
         [
             "a",
             "b",
@@ -17,7 +17,7 @@ module TestTypeDef
         )
     )
 
-    @test isa(pool, OrdinalPool)
+    @test isa(pool, CategoricalPool)
 
     @test isa(pool.index, Vector)
     @test length(pool.index) == 3

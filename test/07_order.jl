@@ -2,7 +2,7 @@ module TestOrder
     using Base.Test
     using CategoricalData
 
-    opool = OrdinalPool([1, 2, 3])
+    opool = CategoricalPool([1, 2, 3])
 
     @test order(opool) == CategoricalData.RefType[1, 2, 3]
 
@@ -20,7 +20,7 @@ module TestOrder
     )
     @test opool.order == CategoricalData.RefType[2, 3, 1]
 
-    opool = OrdinalPool(["a", "b", "c"], ["c", "b", "a"])
+    opool = CategoricalPool(["a", "b", "c"], ["c", "b", "a"])
 
     @test order(opool) == CategoricalData.RefType[3, 2, 1]
 

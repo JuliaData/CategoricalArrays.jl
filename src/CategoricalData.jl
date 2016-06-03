@@ -1,9 +1,9 @@
 module CategoricalData
-    export CategoricalPool, OrdinalPool
-    export CategoricalValue, OrdinalValue
-    export CategoricalArray, CategoricalVector, CategoricalMatrix
+    export CategoricalPool
+    export NominalValue, OrdinalValue
+    export NominalArray, NominalVector, NominalMatrix
     export OrdinalArray, OrdinalVector, OrdinalMatrix
-    export NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
+    export NullableNominalArray, NullableNominalVector, NullableNominalMatrix
     export NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix
     export droplevels!, levels, levels!, order, order!
 
@@ -17,11 +17,8 @@ module CategoricalData
     include("buildfields.jl")
 
     include("categoricalpool.jl")
-    include("categoricalvalue.jl")
-    include("ordinalpool.jl")
+    include("nominalvalue.jl")
     include("ordinalvalue.jl")
-
-    include("buildpools.jl")
 
     include("array.jl")
     include("nullablearray.jl")

@@ -2,12 +2,12 @@ module TestIsLess
     using Base.Test
     using CategoricalData
 
-    pool = OrdinalPool([1, 2, 3])
-    opool = OrdinalPool([1, 2, 3], [3, 2, 1])
+    pool = CategoricalPool([1, 2, 3])
+    opool = CategoricalPool([1, 2, 3], [3, 2, 1])
 
-    cv1 = CategoricalValue(1, pool)
-    cv2 = CategoricalValue(2, pool)
-    cv3 = CategoricalValue(3, pool)
+    cv1 = NominalValue(1, pool)
+    cv2 = NominalValue(2, pool)
+    cv3 = NominalValue(3, pool)
 
     @test_throws Exception cv1 < cv1
     @test_throws Exception cv1 < cv2

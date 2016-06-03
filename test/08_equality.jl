@@ -2,8 +2,8 @@ module TestEquality
     using Base.Test
     using CategoricalData
 
-    pool1 = OrdinalPool([1, 2, 3])
-    pool2 = OrdinalPool([2.0, 1.0, 3.0])
+    pool1 = CategoricalPool([1, 2, 3])
+    pool2 = CategoricalPool([2.0, 1.0, 3.0])
 
     @test isequal(pool1, pool1) === true
     @test isequal(pool1, pool2) === false
@@ -17,8 +17,8 @@ module TestEquality
     @test (pool1 === pool2) === false
     @test (pool2 === pool2) === true
 
-    opool1 = OrdinalPool([1, 2, 3])
-    opool2 = OrdinalPool([2.0, 1.0, 3.0])
+    opool1 = CategoricalPool([1, 2, 3])
+    opool2 = CategoricalPool([2.0, 1.0, 3.0])
 
     @test isequal(opool1, opool1) === true
     @test isequal(opool1, opool2) === false

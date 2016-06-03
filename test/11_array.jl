@@ -4,7 +4,7 @@ using Base.Test
 using CategoricalData
 
 
-for (A, V, M) in ((CategoricalArray, CategoricalVector, CategoricalMatrix),
+for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
                   (OrdinalArray, OrdinalVector, OrdinalMatrix))
     # Vector
     a = ["a", "b", "a"]

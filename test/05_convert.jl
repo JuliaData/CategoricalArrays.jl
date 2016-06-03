@@ -2,21 +2,15 @@ module TestConvert
     using Base.Test
     using CategoricalData
 
-    pool = OrdinalPool([1, 2, 3])
-    convert(OrdinalPool{Float64}, pool)
-    convert(OrdinalPool, pool)
-    convert(OrdinalPool{Float64}, pool)
-    convert(OrdinalPool, pool)
+    pool = CategoricalPool([1, 2, 3])
+    convert(CategoricalPool{Float64}, pool)
+    convert(CategoricalPool, pool)
+    convert(CategoricalPool{Float64}, pool)
+    convert(CategoricalPool, pool)
 
-    opool = OrdinalPool([1, 2, 3], [3, 2, 1])
-    convert(OrdinalPool{Float64}, opool)
-    convert(OrdinalPool, opool)
-    convert(OrdinalPool{Float64}, opool)
-    convert(OrdinalPool, opool)
-
-    cv1 = OrdinalValue(1, pool)
-    cv2 = OrdinalValue(2, pool)
-    cv3 = OrdinalValue(3, pool)
+    cv1 = NominalValue(1, pool)
+    cv2 = NominalValue(2, pool)
+    cv3 = NominalValue(3, pool)
 
     convert(Int32, cv1)
     convert(Int32, cv2)
@@ -25,6 +19,12 @@ module TestConvert
     convert(UInt8, cv1)
     convert(UInt8, cv2)
     convert(UInt8, cv3)
+
+    opool = CategoricalPool([1, 2, 3], [3, 2, 1])
+    convert(CategoricalPool{Float64}, opool)
+    convert(CategoricalPool, opool)
+    convert(CategoricalPool{Float64}, opool)
+    convert(CategoricalPool, opool)
 
     ov1 = OrdinalValue(1, opool)
     ov2 = OrdinalValue(2, opool)

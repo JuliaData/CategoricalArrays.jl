@@ -7,7 +7,7 @@ using NullableArrays
 # == currently throws an error for Nullables
 (==) = isequal
 
-for (A, V, M) in ((NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix),
+for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalMatrix),
                   (NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix))
     # Vector with no null values
     for a in (["a", "b", "a"],

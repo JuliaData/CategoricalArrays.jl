@@ -2,7 +2,7 @@ module TestLevels
     using Base.Test
     using CategoricalData
 
-    pool = OrdinalPool([1, 2, 3])
+    pool = CategoricalPool([1, 2, 3])
 
     @test isa(levels(pool), Vector)
     @test length(levels(pool)) === 3
@@ -116,7 +116,7 @@ module TestLevels
 
 ###
 
-    opool = OrdinalPool([1, 2, 3], [3, 2, 1])
+    opool = CategoricalPool([1, 2, 3], [3, 2, 1])
 
     @test levels(opool) == [1, 2, 3]
     # TODO: Test invindex

@@ -2,9 +2,9 @@ module TestShow
     using Base.Test
     using CategoricalData
 
-    pool = OrdinalPool(["c", "b", "a"])
+    pool = CategoricalPool(["c", "b", "a"])
 
-    opool = OrdinalPool(["c", "b", "a"], ["a", "b", "c"])
+    opool = CategoricalPool(["c", "b", "a"], ["a", "b", "c"])
 
     cv1 = OrdinalValue(1, pool)
     cv2 = OrdinalValue(2, pool)
@@ -14,8 +14,8 @@ module TestShow
     ov2 = OrdinalValue(2, opool)
     ov3 = OrdinalValue(3, opool)
 
-    @test string(pool) == "OrdinalPool{String}([\"a\",\"b\",\"c\"])"
-    @test string(opool) == "OrdinalPool{String}([\"a\",\"b\",\"c\"])"
+    @test string(pool) == "CategoricalPool{String}([\"a\",\"b\",\"c\"])"
+    @test string(opool) == "CategoricalPool{String}([\"a\",\"b\",\"c\"])"
 
     @test string(cv1) == "OrdinalValue{String} \"c\" (3/3)"
     @test string(cv2) == "OrdinalValue{String} \"b\" (2/3)"

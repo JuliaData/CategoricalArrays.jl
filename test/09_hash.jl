@@ -2,15 +2,15 @@ module TestHash
     using Base.Test
     using CategoricalData
 
-    pool1 = OrdinalPool([1, 2, 3])
-    pool2 = OrdinalPool([2, 1, 3])
+    pool1 = CategoricalPool([1, 2, 3])
+    pool2 = CategoricalPool([2, 1, 3])
 
     @test (hash(pool1) == hash(pool1)) === true
     @test (hash(pool1) == hash(pool2)) === false
     @test (hash(pool2) == hash(pool2)) === true
 
-    opool1 = OrdinalPool([1, 2, 3])
-    opool2 = OrdinalPool([2, 1, 3])
+    opool1 = CategoricalPool([1, 2, 3])
+    opool2 = CategoricalPool([2, 1, 3])
 
     @test (hash(opool1) == hash(opool1)) === true
     @test (hash(opool1) == hash(opool2)) === false

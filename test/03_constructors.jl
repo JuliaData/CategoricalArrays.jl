@@ -2,9 +2,9 @@ module TestConstructors
     using Base.Test
     using CategoricalData
 
-    pool = OrdinalPool(["a", "b", "c"])
+    pool = CategoricalPool(["a", "b", "c"])
 
-    @test isa(pool, OrdinalPool)
+    @test isa(pool, CategoricalPool)
 
     @test isa(pool.index, Vector)
     @test length(pool.index) == 3
@@ -18,7 +18,7 @@ module TestConstructors
     @test pool.invindex["b"] === convert(CategoricalData.RefType, 2)
     @test pool.invindex["c"] === convert(CategoricalData.RefType, 3)
 
-    pool = OrdinalPool(
+    pool = CategoricalPool(
         Dict(
             "a" => convert(CategoricalData.RefType, 1),
             "b" => convert(CategoricalData.RefType, 2),
@@ -26,7 +26,7 @@ module TestConstructors
         )
     )
 
-    @test isa(pool, OrdinalPool)
+    @test isa(pool, CategoricalPool)
 
     @test isa(pool.index, Vector)
     @test length(pool.index) == 3
@@ -42,7 +42,7 @@ module TestConstructors
 
     # TODO: Make sure that invindex input is exhaustive
     # Raise an error if map misses any entries
-    pool = OrdinalPool(
+    pool = CategoricalPool(
         Dict(
             "a" => 1,
             "b" => 2,
@@ -50,7 +50,7 @@ module TestConstructors
         )
     )
 
-    @test isa(pool, OrdinalPool)
+    @test isa(pool, CategoricalPool)
 
     @test isa(pool.index, Vector)
     @test length(pool.index) == 3
@@ -64,9 +64,9 @@ module TestConstructors
     @test pool.invindex["b"] === convert(CategoricalData.RefType, 2)
     @test pool.invindex["c"] === convert(CategoricalData.RefType, 3)
 
-    opool = OrdinalPool(["c", "b", "a"])
+    opool = CategoricalPool(["c", "b", "a"])
 
-    @test isa(opool, OrdinalPool)
+    @test isa(opool, CategoricalPool)
 
     @test length(opool.index) == 3
     @test opool.index[1] == "c"
@@ -85,7 +85,7 @@ module TestConstructors
     @test opool.order[2] === convert(CategoricalData.RefType, 2)
     @test opool.order[3] === convert(CategoricalData.RefType, 1)
 
-    opool = OrdinalPool(
+    opool = CategoricalPool(
         Dict(
             "a" => convert(CategoricalData.RefType, 3),
             "b" => convert(CategoricalData.RefType, 2),
@@ -93,9 +93,9 @@ module TestConstructors
         )
     )
 
-    @test isa(opool, OrdinalPool)
+    @test isa(opool, CategoricalPool)
 
-    @test isa(opool, OrdinalPool)
+    @test isa(opool, CategoricalPool)
     @test length(opool.index) == 3
     @test opool.index[1] == "c"
     @test opool.index[2] == "b"
@@ -113,9 +113,9 @@ module TestConstructors
     @test opool.order[2] === convert(CategoricalData.RefType, 2)
     @test opool.order[3] === convert(CategoricalData.RefType, 1)
 
-    opool = OrdinalPool(["c", "b", "a"], ["c", "b", "a"])
+    opool = CategoricalPool(["c", "b", "a"], ["c", "b", "a"])
 
-    @test isa(opool, OrdinalPool)
+    @test isa(opool, CategoricalPool)
 
     @test length(opool.index) == 3
     @test opool.index[1] == "c"
@@ -134,7 +134,7 @@ module TestConstructors
     @test opool.order[2] === convert(CategoricalData.RefType, 2)
     @test opool.order[3] === convert(CategoricalData.RefType, 3)
 
-    opool = OrdinalPool(
+    opool = CategoricalPool(
         Dict(
             "a" => convert(CategoricalData.RefType, 3),
             "b" => convert(CategoricalData.RefType, 2),
@@ -143,7 +143,7 @@ module TestConstructors
         ["c", "b", "a"]
     )
 
-    @test isa(opool, OrdinalPool)
+    @test isa(opool, CategoricalPool)
 
     @test length(opool.index) == 3
     @test opool.index[1] == "c"

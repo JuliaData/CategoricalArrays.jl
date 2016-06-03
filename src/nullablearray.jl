@@ -1,14 +1,14 @@
-## Code common to NullableCategoricalArray and NullableOrdinalArray
+## Code common to NullableNominalArray and NullableOrdinalArray
 
 import Base: convert, getindex, setindex!, similar
 
 ## Constructors and converters
 ## (special methods for AbstractArray{Nullable}, to avoid wrapping Nullable inside Nullable)
 
-for (A, V, M, P, S) in ((:NullableCategoricalArray, :NullableCategoricalVector,
-                         :NullableCategoricalMatrix, :CategoricalPool, :CategoricalValue),
+for (A, V, M, P, S) in ((:NullableNominalArray, :NullableNominalVector,
+                         :NullableNominalMatrix, :CategoricalPool, :NominalValue),
                         (:NullableOrdinalArray, :NullableOrdinalVector,
-                         :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
+                         :NullableOrdinalMatrix, :CategoricalPool, :OrdinalValue))
     @eval begin
         $A{T, N}(::Type{Nullable{T}}, dims::NTuple{N,Int}) =
             $A{T, N}($P(T[]), zeros(RefType, dims))
