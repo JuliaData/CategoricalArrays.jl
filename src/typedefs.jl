@@ -11,13 +11,15 @@ for P in (:NominalPool, :OrdinalPool)
             index::Vector{T}
             invindex::Dict{T, RefType}
             order::Vector{RefType}
+            ordered::Vector{T}
             valindex::Vector{V}
 
             function $P{T}(index::Vector{T},
                            invindex::Dict{T, RefType},
                            order::Vector{RefType})
-                pool = new(index, invindex, order, V[])
+                pool = new(index, invindex, order, index[order], V[])
                 buildvalues!(pool)
+                pool
             end
         end
     end

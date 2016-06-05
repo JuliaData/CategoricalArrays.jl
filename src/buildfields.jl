@@ -20,16 +20,24 @@ function buildvalues!{T, V}(pool::CategoricalPool{T, V})
     for i in 1:n
         pool.valindex[i] = V(i, pool)
     end
-    pool
+    return pool.valindex
+end
+
+function buildorder!{S, T}(order::Array{RefType},
+                           invindex::Dict{S, RefType},
+                           ordered::Vector{T})
+    for (i, v) in enumerate(ordered)
+        order[invindex[convert(S, v)]] = i
+    end
+    return order
+end
+
+function buildorder{S, T}(invindex::Dict{S, RefType}, ordered::Vector{T})
+    order = Array(RefType, length(invindex))
+    return buildorder!(order, invindex, ordered)
 end
 
 # TODO: Try to make this faster by avoiding need to call convert
 function buildorder{T}(index::Vector{T})
     return convert(Vector{RefType}, sortperm(index))
-end
-
-function buildorder{S, T}(invindex::Dict{S, RefType}, ordered::Vector{T})
-    order = Array(RefType, length(invindex))
-    updateorder!(order, invindex, ordered)
-    return order
 end

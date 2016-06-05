@@ -5,7 +5,7 @@ module CategoricalData
     export OrdinalArray, OrdinalVector, OrdinalMatrix
     export NullableNominalArray, NullableNominalVector, NullableNominalMatrix
     export NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix
-    export droplevels!, levels, levels!, order, order!
+    export droplevels!, levels, levels!
 
     # TODO: Make this variable and user-specified?
     # TODO: Make this Int for consistency with other indexing in Julia?
@@ -13,7 +13,6 @@ module CategoricalData
 
     include("typedefs.jl")
 
-    include("updateorder.jl")
     include("buildfields.jl")
 
     include("pool.jl")

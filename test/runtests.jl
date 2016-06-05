@@ -12,15 +12,13 @@ module TestCategoricalData
 
     tests = [
         "01_typedef.jl",
-        "02_updateorder.jl",
+        "02_buildorder.jl",
         "03_buildfields.jl",
         "03_constructors.jl",
-        "04_buildpools.jl",
         "05_convert.jl",
         "06_show.jl",
         "06_length.jl",
         "07_levels.jl",
-        "07_order.jl",
         "08_equality.jl",
         "09_hash.jl",
         "10_isless.jl",

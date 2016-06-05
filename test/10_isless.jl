@@ -93,7 +93,7 @@ module TestIsLess
     @test (ov3 >= ov2) == false
     @test (ov3 >= ov3) == true
 
-    order!(opool, [2, 3, 1])
+    levels!(opool, [2, 3, 1])
 
     ov1 = OrdinalValue(1, opool)
     ov2 = OrdinalValue(2, opool)

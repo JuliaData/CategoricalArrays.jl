@@ -61,7 +61,7 @@ end
 
 function Base.show{T}(io::IO, pool::CategoricalPool{T})
     @printf(io, "%s{%s}([%s])", typeof(pool).name, T,
-            join(map(repr, levels(pool)[pool.order]), ","))
+            join(map(repr, levels(pool)), ","))
 end
 
 Base.length(pool::CategoricalPool) = length(pool.index)
@@ -69,7 +69,7 @@ Base.length(pool::CategoricalPool) = length(pool.index)
 Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 
-levels(pool::CategoricalPool) = pool.index
+levels(pool::CategoricalPool) = pool.ordered
 
 function Base.get!{T, V}(f, pool::CategoricalPool{T, V}, level)
     get!(pool.invindex, level) do
@@ -77,6 +77,7 @@ function Base.get!{T, V}(f, pool::CategoricalPool{T, V}, level)
         i = length(pool) + 1
         push!(pool.index, level)
         push!(pool.order, i)
+        push!(pool.ordered, level)
         push!(pool.valindex, V(i, pool))
         i
     end
@@ -85,6 +86,7 @@ Base.get!(pool::CategoricalPool, level) = get!(Void, pool, level)
 
 Base.push!(pool::CategoricalPool, level) = (get!(pool, level); pool)
 
+# TODO: optimize for multiple additions
 function Base.append!(pool::CategoricalPool, levels)
     for level in levels
         push!(pool, level)
@@ -99,6 +101,7 @@ function Base.delete!{S, V}(pool::CategoricalPool{S, V}, level)
         delete!(pool.invindex, levelS)
         splice!(pool.index, ind)
         ord = splice!(pool.order, ind)
+        splice!(pool.ordered, ord)
         splice!(pool.valindex, ind)
         for i in ind:length(pool)
             pool.invindex[pool.index[i]] -= 1
@@ -119,57 +122,36 @@ function Base.delete!(pool::CategoricalPool, levels...)
 end
 
 function levels!{S, V, T}(pool::CategoricalPool{S, V}, newlevels::Vector{T})
-    for (k, v) in pool.invindex
-        delete!(pool.invindex, k)
-    end
-    n = length(newlevels)
-    resize!(pool.index, n)
-    resize!(pool.valindex, n)
-    resize!(pool.order, n)
-    for i in 1:n
-        v = newlevels[i]
-        pool.index[i] = v
-        pool.valindex[i] = V(i, pool)
-        pool.invindex[v] = i
-    end
-    order = buildorder(pool.invindex, newlevels)
-    for i in 1:n
-        pool.order[i] = order[i]
-    end
-    buildvalues!(pool)
-    return newlevels
-end
-
-function levels!{S, V, T}(pool::CategoricalPool{S, V},
-                          newlevels::Vector{T},
-                          ordered::Vector{T})
     if !allunique(newlevels)
-        throw(ArgumentError(string("duplicated levels found: ",
+        throw(ArgumentError(string("duplicated levels found in newlevels: ",
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
     end
 
-    order = buildorder(pool.invindex, ordered)
     n = length(newlevels)
-    resize!(order, n)
-    for i in 1:n
-        pool.order[i] = order[i]
+
+    # No deletions: can preserve position of existing levels
+    if issubset(pool.index, newlevels)
+        append!(pool, setdiff(newlevels, pool.index))
+    else
+        empty!(pool.invindex)
+        resize!(pool.index, n)
+        resize!(pool.valindex, n)
+        resize!(pool.order, n)
+        resize!(pool.ordered, n)
+        for i in 1:n
+            v = newlevels[i]
+            pool.index[i] = v
+            pool.invindex[v] = i
+            pool.valindex[i] = V(i, pool)
+        end
     end
-    buildvalues!(pool)
+
+    buildorder!(pool.order, pool.invindex, newlevels)
+    for (i, x) in enumerate(pool.order)
+        pool.ordered[x] = pool.index[i]
+    end
     return newlevels
 end
 
-order{T}(pool::CategoricalPool{T}) = pool.order
-
-function order!{S, T}(pool::CategoricalPool{S}, ordered::Vector{T})
-    if !allunique(ordered)
-        throw(ArgumentError(string("duplicated levels found: ",
-                                   join(unique(filter(x->sum(ordered.==x)>1, ordered)), ", "))))
-    end
-    d = symdiff(ordered, levels(pool))
-    if length(d) > 0
-        throw(ArgumentError(string("found levels not in existing levels or vice-versa: ",
-                                   join(d, ", "))))
-    end
-    updateorder!(pool.order, pool.invindex, ordered)
-    return ordered
-end
+order(pool::CategoricalPool) = pool.order
+index(pool::CategoricalPool) = pool.index

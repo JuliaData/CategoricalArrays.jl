@@ -18,7 +18,7 @@ module TestUpdateOrder
 
         order = Array(CategoricalData.RefType, length(pool.index))
 
-        CategoricalData.updateorder!(order, pool.invindex, ["b", "a", "c"])
+        CategoricalData.buildorder!(order, pool.invindex, ["b", "a", "c"])
 
         @test order[1] == convert(CategoricalData.RefType, 2)
         @test order[2] == convert(CategoricalData.RefType, 1)
