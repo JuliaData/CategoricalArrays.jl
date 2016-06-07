@@ -7,10 +7,6 @@ module CategoricalData
     export NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix
     export droplevels!, levels, levels!
 
-    # TODO: Make this variable and user-specified?
-    # TODO: Make this Int for consistency with other indexing in Julia?
-    typealias RefType UInt
-
     include("typedefs.jl")
 
     include("buildfields.jl")

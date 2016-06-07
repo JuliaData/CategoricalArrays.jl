@@ -1,22 +1,24 @@
+typealias DefaultRefType UInt32
+
 ## Pools
 
-abstract CategoricalPool{T, V}
+abstract CategoricalPool{T, R <: Integer, V}
 
 # V is always set to NominalValue{T} or OrdinalValue{T}
 # This workaround is needed since this type not defined yet
 # See JuliaLang/julia#269
 for P in (:NominalPool, :OrdinalPool)
     @eval begin
-        immutable $P{T, V} <: CategoricalPool{T, V}
+        immutable $P{T, R <: Integer, V} <: CategoricalPool{T, R, V}
             index::Vector{T}
-            invindex::Dict{T, RefType}
-            order::Vector{RefType}
+            invindex::Dict{T, R}
+            order::Vector{R}
             ordered::Vector{T}
             valindex::Vector{V}
 
-            function $P{T}(index::Vector{T},
-                           invindex::Dict{T, RefType},
-                           order::Vector{RefType})
+            function $P{T, R}(index::Vector{T},
+                              invindex::Dict{T, R},
+                              order::Vector{R})
                 pool = new(index, invindex, order, index[order], V[])
                 buildvalues!(pool)
                 pool
@@ -28,52 +30,52 @@ end
 
 ## Values
 
-abstract CategoricalValue{T}
+abstract CategoricalValue{T, R <: Integer}
 
-immutable NominalValue{T} <: CategoricalValue{T}
-    level::RefType
-    pool::NominalPool{T, NominalValue{T}}
+immutable NominalValue{T, R <: Integer} <: CategoricalValue{T, R}
+    level::R
+    pool::NominalPool{T, R, NominalValue{T, R}}
 end
 
-immutable OrdinalValue{T} <: CategoricalValue{T}
-    level::RefType
-    pool::OrdinalPool{T, OrdinalValue{T}}
+immutable OrdinalValue{T, R <: Integer} <: CategoricalValue{T, R}
+    level::R
+    pool::OrdinalPool{T, R, OrdinalValue{T, R}}
 end
 
 
 ## Arrays
 
-type NominalArray{T, N} <: AbstractArray{NominalValue{T}, N}
-    pool::NominalPool{T, NominalValue{T}}
-    values::Array{RefType, N}
+type NominalArray{T, N, R <: Integer} <: AbstractArray{NominalValue{T, R}, N}
+    pool::NominalPool{T, R, NominalValue{T, R}}
+    values::Array{R, N}
 end
-typealias NominalVector{T} NominalArray{T, 1}
-typealias NominalMatrix{T} NominalArray{T, 2}
+typealias NominalVector{T, R} NominalArray{T, 1, R}
+typealias NominalMatrix{T, R} NominalArray{T, 2, R}
 
-abstract AbstractOrdinalArray{T, N} <: AbstractArray{OrdinalValue{T}, N}
-typealias AbstractOrdinalVector{T} AbstractOrdinalArray{T, 1}
-typealias AbstractOrdinalMatrix{T} AbstractOrdinalArray{T, 2}
+abstract AbstractOrdinalArray{T, N, R <: Integer} <: AbstractArray{OrdinalValue{T, R}, N}
+typealias AbstractOrdinalVector{T, R} AbstractOrdinalArray{T, 1, R}
+typealias AbstractOrdinalMatrix{T, R} AbstractOrdinalArray{T, 2, R}
 
-type OrdinalArray{T, N} <: AbstractOrdinalArray{T, N}
-    pool::OrdinalPool{T, OrdinalValue{T}}
-    values::Array{RefType, N}
+type OrdinalArray{T, N, R <: Integer} <: AbstractOrdinalArray{T, N}
+    pool::OrdinalPool{T, R, OrdinalValue{T, R}}
+    values::Array{R, N}
 end
-typealias OrdinalVector{T} OrdinalArray{T, 1}
-typealias OrdinalMatrix{T} OrdinalArray{T, 2}
+typealias OrdinalVector{T, R} OrdinalArray{T, 1, R}
+typealias OrdinalMatrix{T, R} OrdinalArray{T, 2, R}
 
 
 ## Nullable Arrays
 
-type NullableNominalArray{T, N} <: AbstractArray{Nullable{NominalValue{T}}, N}
-    pool::NominalPool{T, NominalValue{T}}
-    values::Array{RefType, N}
+type NullableNominalArray{T, N, R <: Integer} <: AbstractArray{Nullable{NominalValue{T, R}}, N}
+    pool::NominalPool{T, R, NominalValue{T, R}}
+    values::Array{R, N}
 end
-typealias NullableNominalVector{T} NullableNominalArray{T, 1}
-typealias NullableNominalMatrix{T} NullableNominalArray{T, 2}
+typealias NullableNominalVector{T, R} NullableNominalArray{T, 1, R}
+typealias NullableNominalMatrix{T, R} NullableNominalArray{T, 2, R}
 
-type NullableOrdinalArray{T, N} <: AbstractArray{Nullable{OrdinalValue{T}}, N}
-    pool::OrdinalPool{T, OrdinalValue{T}}
-    values::Array{RefType, N}
+type NullableOrdinalArray{T, N, R <: Integer} <: AbstractArray{Nullable{OrdinalValue{T, R}}, N}
+    pool::OrdinalPool{T, R, OrdinalValue{T, R}}
+    values::Array{R, N}
 end
-typealias NullableOrdinalVector{T} NullableOrdinalArray{T, 1}
-typealias NullableOrdinalMatrix{T} NullableOrdinalArray{T, 2}
+typealias NullableOrdinalVector{T, R} NullableOrdinalArray{T, 1, R}
+typealias NullableOrdinalMatrix{T, R} NullableOrdinalArray{T, 2, R}

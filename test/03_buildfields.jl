@@ -1,19 +1,20 @@
 module TestBuildFields
     using Base.Test
     using CategoricalData
+    using CategoricalData: DefaultRefType
 
     index = ["b", "a", "c"]
 
     invindex = Dict(
-        "b" => convert(CategoricalData.RefType, 1),
-        "a" => convert(CategoricalData.RefType, 2),
-        "c" => convert(CategoricalData.RefType, 3),
+        "b" => DefaultRefType(1),
+        "a" => DefaultRefType(2),
+        "c" => DefaultRefType(3),
     )
 
     order = [
-        convert(CategoricalData.RefType, 2),
-        convert(CategoricalData.RefType, 1),
-        convert(CategoricalData.RefType, 3),
+        DefaultRefType(2),
+        DefaultRefType(1),
+        DefaultRefType(3),
     ]
 
     for P in (NominalPool, OrdinalPool)
@@ -30,17 +31,17 @@ module TestBuildFields
         @test built_invindex == invindex
 
         built_order = CategoricalData.buildorder(index)
-        @test isa(order, Vector{CategoricalData.RefType})
+        @test isa(order, Vector{DefaultRefType})
         @test built_order == order
 
         neworder = [
-            convert(CategoricalData.RefType, 3),
-            convert(CategoricalData.RefType, 2),
-            convert(CategoricalData.RefType, 1),
+            DefaultRefType(3),
+            DefaultRefType(2),
+            DefaultRefType(1),
         ]
 
         built_order = CategoricalData.buildorder(pool.invindex, ordered)
-        @test isa(order, Vector{CategoricalData.RefType})
+        @test isa(order, Vector{DefaultRefType})
         @test built_order == neworder
     end
 end

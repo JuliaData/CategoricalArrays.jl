@@ -1,4 +1,4 @@
-function buildindex{S, T <: Integer}(invindex::Dict{S, T})
+function buildindex{S, R <: Integer}(invindex::Dict{S, R})
     index = Array(S, length(invindex))
     for (v, i) in invindex
         index[i] = v
@@ -7,14 +7,14 @@ function buildindex{S, T <: Integer}(invindex::Dict{S, T})
 end
 
 function buildinvindex{T}(index::Vector{T})
-    invindex = Dict{T, RefType}()
+    invindex = Dict{T, DefaultRefType}()
     for (i, v) in enumerate(index)
         invindex[v] = i
     end
     return invindex
 end
 
-function buildvalues!{T, V}(pool::CategoricalPool{T, V})
+function buildvalues!{T, R, V}(pool::CategoricalPool{T, R, V})
     n = length(levels(pool))
     resize!(pool.valindex, n)
     for i in 1:n
@@ -23,21 +23,21 @@ function buildvalues!{T, V}(pool::CategoricalPool{T, V})
     return pool.valindex
 end
 
-function buildorder!{S, T}(order::Array{RefType},
-                           invindex::Dict{S, RefType},
-                           ordered::Vector{T})
+function buildorder!{S, R <: Integer}(order::Array{R},
+                                      invindex::Dict{S, R},
+                                      ordered::Vector{S})
     for (i, v) in enumerate(ordered)
         order[invindex[convert(S, v)]] = i
     end
     return order
 end
 
-function buildorder{S, T}(invindex::Dict{S, RefType}, ordered::Vector{T})
-    order = Array(RefType, length(invindex))
+function buildorder{S, R <: Integer}(invindex::Dict{S, R}, ordered::Vector)
+    order = Array(R, length(invindex))
     return buildorder!(order, invindex, ordered)
 end
 
 # TODO: Try to make this faster by avoiding need to call convert
-function buildorder{T}(index::Vector{T})
-    return convert(Vector{RefType}, sortperm(index))
+function buildorder(index::Vector)
+    return convert(Vector{DefaultRefType}, sortperm(index))
 end

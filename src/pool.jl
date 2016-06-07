@@ -1,26 +1,29 @@
 for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
     @eval begin
-        function $P{S, T <: Integer}(index::Vector{S}, invindex::Dict{S, T}, order::Vector{RefType})
-            invindex = convert(Dict{S, RefType}, invindex)
-            $P{S, $V{S}}(index, invindex, order)
+        function $P{S, T <: Integer, R <: Integer}(index::Vector{S},
+                                                   invindex::Dict{S, T},
+                                                   order::Vector{R})
+            invindex = convert(Dict{S, R}, invindex)
+            $P{S, R, $V{S, R}}(index, invindex, order)
         end
 
-        function $P{T}(index::Vector{T})
+        (::Type{$P{T, R}}){T, R}() = $P(T[], Dict{T, R}(), R[])
+        (::Type{$P{T}}){T}() = $P(T[], Dict{T, DefaultRefType}(), DefaultRefType[])
+
+        function $P(index::Vector)
             invindex = buildinvindex(index)
             order = buildorder(index)
             return $P(index, invindex, order)
         end
 
-        function $P{S, T <: Integer}(invindex::Dict{S, T})
-            invindex = convert(Dict{S, RefType}, invindex)
+        function $P{S, R <: Integer}(invindex::Dict{S, R})
             index = buildindex(invindex)
             order = buildorder(index)
             return $P(index, invindex, order)
         end
 
         # TODO: Add tests for this
-        function $P{S, T <: Integer}(index::Vector{S}, invindex::Dict{S, T})
-            invindex = convert(Dict{S, RefType}, invindex)
+        function $P{S, R <: Integer}(index::Vector{S}, invindex::Dict{S, R})
             order = buildorder(index)
             return $P(index, invindex, order)
         end
@@ -31,36 +34,38 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
             return $P(index, invindex, order)
         end
 
-        function $P{S, T <: Integer}(invindex::Dict{S, T}, ordered::Vector{S})
-            invindex = convert(Dict{S, RefType}, invindex)
+        function $P{S, R <: Integer}(invindex::Dict{S, R}, ordered::Vector{S})
             index = buildindex(invindex)
             order = buildorder(invindex, ordered)
             return $P(index, invindex, order)
         end
 
         # TODO: Add tests for this
-        function $P{S, T <: Integer}(index::Vector{S},
-                                     invindex::Dict{S, T},
+        function $P{S, R <: Integer}(index::Vector{S},
+                                     invindex::Dict{S, R},
                                      ordered::Vector{S})
-            invindex = convert(Dict{S, RefType}, invindex)
             index = buildindex(invindex)
             order = buildorder(invindex, ordered)
             return $P(index, invindex, order)
         end
 
-        function Base.convert{S, T}(::Type{$P{S}}, pool::$P{T})
+        function Base.convert{S, R}(::Type{$P{S, R}}, pool::$P)
             indexS = convert(Vector{S}, pool.index)
-            invindexS = convert(Dict{S, RefType}, pool.invindex)
+            invindexS = convert(Dict{S, R}, pool.invindex)
             return $P(indexS, invindexS, pool.order)
         end
 
-        Base.convert{T}(::Type{$P}, pool::$P{T}) = pool
+        Base.convert{S, T, R}(::Type{$P{S}}, pool::$P{T, R}) = convert($P{S, R}, pool)
+        Base.convert{T, R}(::Type{$P}, pool::$P{T, R}) = convert($P{T, R}, pool)
+
+        Base.convert{T, R}(::Type{$P{T, R}}, pool::$P{T, R}) = pool
         Base.convert{T}(::Type{$P{T}}, pool::$P{T}) = pool
+        Base.convert(::Type{$P}, pool::$P) = pool
     end
 end
 
-function Base.show{T}(io::IO, pool::CategoricalPool{T})
-    @printf(io, "%s{%s}([%s])", typeof(pool).name, T,
+function Base.show{T, R}(io::IO, pool::CategoricalPool{T, R})
+    @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
             join(map(repr, levels(pool)), ","))
 end
 
@@ -71,7 +76,7 @@ Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 
 levels(pool::CategoricalPool) = pool.ordered
 
-function Base.get!{T, V}(f, pool::CategoricalPool{T, V}, level)
+function Base.get!{T, R, V}(f, pool::CategoricalPool{T, R, V}, level)
     get!(pool.invindex, level) do
         f()
         i = length(pool) + 1
@@ -94,34 +99,29 @@ function Base.append!(pool::CategoricalPool, levels)
     return pool
 end
 
-function Base.delete!{S, V}(pool::CategoricalPool{S, V}, level)
-    levelS = convert(S, level)
-    if haskey(pool.invindex, levelS)
-        ind = pool.invindex[levelS]
-        delete!(pool.invindex, levelS)
-        splice!(pool.index, ind)
-        ord = splice!(pool.order, ind)
-        splice!(pool.ordered, ord)
-        splice!(pool.valindex, ind)
-        for i in ind:length(pool)
-            pool.invindex[pool.index[i]] -= 1
-            pool.valindex[i] = V(i, pool)
-        end
-        for i in 1:length(pool)
-            pool.order[i] > ord && (pool.order[i] -= 1)
-        end
-    end
-    return pool
-end
-
-function Base.delete!(pool::CategoricalPool, levels...)
+function Base.delete!{S, R, V}(pool::CategoricalPool{S, R, V}, levels...)
     for level in levels
-        delete!(pool, level)
+        levelS = convert(S, level)
+        if haskey(pool.invindex, levelS)
+            ind = pool.invindex[levelS]
+            delete!(pool.invindex, levelS)
+            splice!(pool.index, ind)
+            ord = splice!(pool.order, ind)
+            splice!(pool.ordered, ord)
+            splice!(pool.valindex, ind)
+            for i in ind:length(pool)
+                pool.invindex[pool.index[i]] -= 1
+                pool.valindex[i] = V(i, pool)
+            end
+            for i in 1:length(pool)
+                pool.order[i] > ord && (pool.order[i] -= 1)
+            end
+        end
     end
     return pool
 end
 
-function levels!{S, V, T}(pool::CategoricalPool{S, V}, newlevels::Vector{T})
+function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
     if !allunique(newlevels)
         throw(ArgumentError(string("duplicated levels found in newlevels: ",
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))

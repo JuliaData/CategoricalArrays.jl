@@ -1,6 +1,7 @@
 module TestUpdateOrder
     using Base.Test
     using CategoricalData
+    using CategoricalData: DefaultRefType
 
     for P in (NominalPool, OrdinalPool)
         pool = P(
@@ -10,18 +11,18 @@ module TestUpdateOrder
                 "c"
             ],
             Dict(
-                "a" => convert(CategoricalData.RefType, 1),
-                "b" => convert(CategoricalData.RefType, 2),
-                "c" => convert(CategoricalData.RefType, 3),
+                "a" => convert(DefaultRefType, 1),
+                "b" => convert(DefaultRefType, 2),
+                "c" => convert(DefaultRefType, 3),
             )
         )
 
-        order = Array(CategoricalData.RefType, length(pool.index))
+        order = Array(DefaultRefType, length(pool.index))
 
         CategoricalData.buildorder!(order, pool.invindex, ["b", "a", "c"])
 
-        @test order[1] == convert(CategoricalData.RefType, 2)
-        @test order[2] == convert(CategoricalData.RefType, 1)
-        @test order[3] == convert(CategoricalData.RefType, 3)
+        @test order[1] == convert(DefaultRefType, 2)
+        @test order[2] == convert(DefaultRefType, 1)
+        @test order[3] == convert(DefaultRefType, 3)
     end
 end

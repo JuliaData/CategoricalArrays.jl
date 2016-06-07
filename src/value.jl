@@ -1,9 +1,10 @@
 for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
     @eval begin
-        function $V(level::Integer, pool::$P)
-            return $V(convert(RefType, level), pool)
+        function $V{T, R}(level::Integer, pool::$P{T, R})
+            return $V(convert(R, level), pool)
         end
 
+        Base.convert{T, R}(::Type{$V{T, R}}, x::$V{T}) = x
         Base.convert{T}(::Type{$V{T}}, x::$V{T}) = x
         Base.convert(::Type{$V}, x::$V) = x
     end

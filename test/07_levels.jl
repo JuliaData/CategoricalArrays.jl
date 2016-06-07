@@ -1,6 +1,7 @@
 module TestLevels
     using Base.Test
     using CategoricalData
+    using CategoricalData: DefaultRefType
 
     for (P, V) in ((NominalPool, NominalValue), (OrdinalPool, OrdinalValue))
         pool = P([1, 2, 3])
@@ -21,7 +22,7 @@ module TestLevels
             @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4)
             @test pool.order == [1, 2, 3, 4]
             @test pool.ordered == [1, 2, 3, 4]
-            @test get(pool, 4) === convert(CategoricalData.RefType, 4)
+            @test get(pool, 4) === DefaultRefType(4)
             @test pool[4] === V(4, pool)
             @test pool.valindex == [V(i, pool) for i in pool.index]
         end
@@ -35,7 +36,7 @@ module TestLevels
             @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5)
             @test pool.order == [1, 2, 3, 4, 5]
             @test pool.ordered == [1, 2, 3, 4, 0]
-            @test get(pool, 0) === convert(CategoricalData.RefType, 5)
+            @test get(pool, 0) === DefaultRefType(5)
             @test pool[5] === V(5, pool)
             @test pool.valindex == [V(i, pool) for i in 1:5]
         end
@@ -49,8 +50,8 @@ module TestLevels
             @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7)
             @test pool.order == [1, 2, 3, 4, 5, 6, 7]
             @test pool.ordered == [1, 2, 3, 4, 0, 10, 11]
-            @test get(pool, 10) === convert(CategoricalData.RefType, 6)
-            @test get(pool, 11) === convert(CategoricalData.RefType, 7)
+            @test get(pool, 10) === DefaultRefType(6)
+            @test get(pool, 11) === DefaultRefType(7)
             @test pool[6] === V(6, pool)
             @test pool[7] === V(7, pool)
             @test pool.valindex == [V(i, pool) for i in 1:7]
@@ -65,8 +66,8 @@ module TestLevels
             @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9)
             @test pool.order == [1, 2, 3, 4, 5, 6, 7, 8, 9]
             @test pool.ordered == [1, 2, 3, 4, 0, 10, 11, 12, 13]
-            @test get(pool, 12) === convert(CategoricalData.RefType, 8)
-            @test get(pool, 13) === convert(CategoricalData.RefType, 9)
+            @test get(pool, 12) === DefaultRefType(8)
+            @test get(pool, 13) === DefaultRefType(9)
             @test pool[8] === V(8, pool)
             @test pool[9] === V(9, pool)
             @test pool.valindex == [V(i, pool) for i in 1:9]
@@ -121,7 +122,7 @@ module TestLevels
         @test pool.invindex == Dict(1=>1, 2=>2, 3=>3)
         @test pool.order == [1, 2, 3]
         @test pool.ordered == [1, 2, 3]
-        @test get(pool, 1) === convert(CategoricalData.RefType, 1)
+        @test get(pool, 1) === DefaultRefType(1)
         @test_throws KeyError get(pool, 0)
         @test_throws KeyError get(pool, 10)
         @test pool.valindex == [V(i, pool) for i in 1:3]
@@ -135,7 +136,7 @@ module TestLevels
         @test pool.invindex == Dict(1=>1, 2=>2, 4=>3)
         @test pool.order == [1, 2, 3]
         @test pool.ordered == [1, 2, 4]
-        @test get(pool, 1) === convert(CategoricalData.RefType, 1)
+        @test get(pool, 1) === DefaultRefType(1)
         @test_throws KeyError get(pool, 3)
         @test pool.valindex == [V(i, pool) for i in 1:3]
 
@@ -148,7 +149,7 @@ module TestLevels
         @test pool.invindex == Dict(6=>1, 5=>2, 4=>3)
         @test pool.order == [1, 2, 3]
         @test pool.ordered == [6, 5, 4]
-        @test get(pool, 5) === convert(CategoricalData.RefType, 2)
+        @test get(pool, 5) === DefaultRefType(2)
         @test_throws KeyError get(pool, 3)
         @test pool.valindex == [V(i, pool) for i in 1:3]
 
@@ -163,7 +164,7 @@ module TestLevels
         @test pool.invindex == Dict(6=>1, 5=>2, 4=>3)
         @test pool.order == [2, 1, 3]
         @test pool.ordered == [5, 6, 4]
-        @test get(pool, 5) === convert(CategoricalData.RefType, 2)
+        @test get(pool, 5) === DefaultRefType(2)
         @test pool.valindex == [V(i, pool) for i in 1:3]
 
         # Adding levels while preserving existing ones
@@ -177,8 +178,8 @@ module TestLevels
         @test pool.invindex == Dict(6=>1, 5=>2, 4=>3, 2=>4, 3=>5)
         @test pool.order == [4, 1, 5, 2, 3]
         @test pool.ordered == [5, 2, 3, 6, 4]
-        @test get(pool, 2) === convert(CategoricalData.RefType, 4)
-        @test get(pool, 3) === convert(CategoricalData.RefType, 5)
+        @test get(pool, 2) === DefaultRefType(4)
+        @test get(pool, 3) === DefaultRefType(5)
         @test pool.valindex == [V(i, pool) for i in 1:5]
 
         for rep in 1:3
@@ -192,7 +193,7 @@ module TestLevels
             @test pool.invindex == Dict(5=>1, 4=>2, 2=>3, 3=>4)
             @test pool.order == [1, 4, 2, 3]
             @test pool.ordered == [5, 2, 3, 4]
-            @test get(pool, 4) === convert(CategoricalData.RefType, 2)
+            @test get(pool, 4) === DefaultRefType(2)
             @test_throws KeyError get(pool, 6)
             @test pool.valindex == [V(i, pool) for i in 1:4]
         end
