@@ -24,7 +24,7 @@ module TestLevels
             @test pool.ordered == [1, 2, 3, 4]
             @test get(pool, 4) === DefaultRefType(4)
             @test pool[4] === V(4, pool)
-            @test pool.valindex == [V(i, pool) for i in pool.index]
+            @test pool.valindex == [V(i, pool) for i in 1:4]
         end
 
         for rep in 1:3
