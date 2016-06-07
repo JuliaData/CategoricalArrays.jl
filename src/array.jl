@@ -28,6 +28,10 @@ for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
             $A{T, N, R}($P{T, R}(), zeros(R, dims))
         (::Type{$A{T, N}}){T, N}(dims::NTuple{N,Int}) = $A{T, N, DefaultRefType}(dims)
         (::Type{$A{T}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
+        (::Type{$A{T, 1, R}}){T, R}(m::Int) = $A{T, 1, R}((m,))
+        # R <: Integer is required to prevent default constructor from being called instead
+        (::Type{$A{T, 2, R}}){T, R <: Integer}(m::Int, n::Int) = $A{T, 2, R}((m, n))
+        (::Type{$A{T, 3, R}}){T, R}(m::Int, n::Int, o::Int) = $A{T, 3, R}((m, n, o))
         (::Type{$A{T}}){T}(m::Int) = $A{T}((m,))
         (::Type{$A{T}}){T}(m::Int, n::Int) = $A{T}((m, n))
         (::Type{$A{T}}){T}(m::Int, n::Int, o::Int) = $A{T}((m, n, o))
@@ -39,15 +43,13 @@ for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
         (::Type{$A{$S, N}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
         (::Type{$A{$S}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
 
-        $V{T}(::Type{T}, m::Integer) = $A{T}(m)
+        $V{T}(::Type{T}, m::Integer) = $A{T}((m,))
         $V(m::Integer) = $A(m)
-        (::Type{$V{T, R}}){T, R}(m::Int) = $V{T, 1, R}((m,))
-        (::Type{$V{T}}){T}(m::Int) = $A{T}(m)
+        (::Type{$V{T}}){T}(m::Int) = $A{T}((m,))
 
-        $M{T}(::Type{T}, m::Int) = $A{T}(m)
+        $M{T}(::Type{T}, m::Int, n::Int) = $A{T}((m, n))
         $M(m::Int, n::Int) = $A(m, n)
-        (::Type{$M{T, R}}){T, R}(m::Int, n::Int) = $A{T, 2, R}(m)
-        (::Type{$M{T}}){T}(m::Int, n::Int) = $A{T}(m)
+        (::Type{$M{T}}){T}(m::Int, n::Int) = $A{T}((m, n))
 
         convert{T, N, R}(::Type{$A{T, N, R}}, A::$A{T, N, R}) = A
         convert{T, N}(::Type{$A{T, N}}, A::$A{T, N}) = A

@@ -573,10 +573,12 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         end
 
         # Uninitialized array
-        for x in (A(2), V(2),
-                  A(String, 2), V(String, 2),
-                  A(2, 3), M(2, 3),
-                  A(String, 2), M(String, 2))
+        for x in (A(2), V(2), A(String, 2), V(String, 2),
+                  A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
+                  V{String}(2), V{String, R}(2),
+                  A(2, 3), M(2, 3), A(String, 2, 3), M(String, 2, 3),
+                  A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
+                  M{String}(2, 3), M{String, R}(2, 3))
             @test isnull(x[1])
             @test isnull(x[2])
             @test levels(x) == []

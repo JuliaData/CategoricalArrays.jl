@@ -31,8 +31,8 @@ for (A, V, M, P, S) in ((:NullableNominalArray, :NullableNominalVector,
         $V{T}(::Type{Nullable{T}}, m::Integer) = $A{T}((m,))
         (::Type{$V{Nullable{T}}}){T}(m::Int) = $A{T}((n,))
 
-        $M{T}(::Type{Nullable{T}}, m::Int) = $A{T}((m,))
-        (::Type{$M{Nullable{T}}}){T}(m::Int, n::Int) = $A{T}((n,))
+        $M{T}(::Type{Nullable{T}}, m::Int, n::Int) = $A{T}((m, n))
+        (::Type{$M{Nullable{T}}}){T}(m::Int, n::Int) = $A{T}((m, n))
 
         convert{T, N, R}(::Type{$A{T, N, R}}, A::AbstractArray{Nullable{T}}) = convert($A{T, N, R}, A)
         convert{T, N}(::Type{$A{T}}, A::AbstractArray{Nullable{T}, N}) = convert($A{T, N}, A)
