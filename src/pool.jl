@@ -12,19 +12,19 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
 
         function $P(index::Vector)
             invindex = buildinvindex(index)
-            order = buildorder(index)
+            order = Vector{DefaultRefType}(1:length(index))
             return $P(index, invindex, order)
         end
 
         function $P{S, R <: Integer}(invindex::Dict{S, R})
             index = buildindex(invindex)
-            order = buildorder(index)
+            order = Vector{DefaultRefType}(1:length(index))
             return $P(index, invindex, order)
         end
 
         # TODO: Add tests for this
         function $P{S, R <: Integer}(index::Vector{S}, invindex::Dict{S, R})
-            order = buildorder(index)
+            order = Vector{DefaultRefType}(1:length(index))
             return $P(index, invindex, order)
         end
 

@@ -103,9 +103,9 @@ module TestConstructors
 
         @test isa(pool.order, Vector{DefaultRefType})
         @test length(pool.order) == 3
-        @test pool.order[1] === DefaultRefType(3)
+        @test pool.order[1] === DefaultRefType(1)
         @test pool.order[2] === DefaultRefType(2)
-        @test pool.order[3] === DefaultRefType(1)
+        @test pool.order[3] === DefaultRefType(3)
 
         pool = P(
             Dict(
@@ -131,9 +131,9 @@ module TestConstructors
 
         @test isa(pool.order, Vector{DefaultRefType})
         @test length(pool.order) == 3
-        @test pool.order[1] === DefaultRefType(3)
+        @test pool.order[1] === DefaultRefType(1)
         @test pool.order[2] === DefaultRefType(2)
-        @test pool.order[3] === DefaultRefType(1)
+        @test pool.order[3] === DefaultRefType(3)
 
         pool = P(["c", "b", "a"], ["c", "b", "a"])
 

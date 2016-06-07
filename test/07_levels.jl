@@ -4,12 +4,12 @@ module TestLevels
     using CategoricalData: DefaultRefType
 
     for (P, V) in ((NominalPool, NominalValue), (OrdinalPool, OrdinalValue))
-        pool = P([1, 2, 3])
+        pool = P([2, 1, 3])
 
         @test isa(levels(pool), Vector{Int})
         @test length(levels(pool)) === 3
-        @test levels(pool) == pool.index == [1, 2, 3]
-        @test pool.invindex == Dict(1=>1, 2=>2, 3=>3)
+        @test levels(pool) == pool.index == [2, 1, 3]
+        @test pool.invindex == Dict(1=>2, 2=>1, 3=>3)
         @test pool.order == [1, 2, 3]
         @test pool.valindex == [V(i, pool) for i in 1:3]
 
@@ -18,10 +18,10 @@ module TestLevels
 
             @test isa(pool.index, Vector{Int})
             @test length(pool) === 4
-            @test pool.index == [1, 2, 3, 4]
-            @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4)
+            @test pool.index == [2, 1, 3, 4]
+            @test pool.invindex == Dict(1=>2, 2=>1, 3=>3, 4=>4)
             @test pool.order == [1, 2, 3, 4]
-            @test pool.ordered == [1, 2, 3, 4]
+            @test pool.ordered == [2, 1, 3, 4]
             @test get(pool, 4) === DefaultRefType(4)
             @test pool[4] === V(4, pool)
             @test pool.valindex == [V(i, pool) for i in 1:4]
@@ -32,10 +32,10 @@ module TestLevels
 
             @test isa(pool.index, Vector{Int})
             @test length(pool) === 5
-            @test levels(pool) == pool.index == [1, 2, 3, 4, 0]
-            @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5)
+            @test levels(pool) == pool.index == [2, 1, 3, 4, 0]
+            @test pool.invindex == Dict(1=>2, 2=>1, 3=>3, 4=>4, 0=>5)
             @test pool.order == [1, 2, 3, 4, 5]
-            @test pool.ordered == [1, 2, 3, 4, 0]
+            @test pool.ordered == [2, 1, 3, 4, 0]
             @test get(pool, 0) === DefaultRefType(5)
             @test pool[5] === V(5, pool)
             @test pool.valindex == [V(i, pool) for i in 1:5]
@@ -46,10 +46,10 @@ module TestLevels
 
             @test isa(pool.index, Vector{Int})
             @test length(pool) === 7
-            @test levels(pool) == pool.index == [1, 2, 3, 4, 0, 10, 11]
-            @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7)
+            @test levels(pool) == pool.index == [2, 1, 3, 4, 0, 10, 11]
+            @test pool.invindex == Dict(1=>2, 2=>1, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7)
             @test pool.order == [1, 2, 3, 4, 5, 6, 7]
-            @test pool.ordered == [1, 2, 3, 4, 0, 10, 11]
+            @test pool.ordered == [2, 1, 3, 4, 0, 10, 11]
             @test get(pool, 10) === DefaultRefType(6)
             @test get(pool, 11) === DefaultRefType(7)
             @test pool[6] === V(6, pool)
@@ -62,10 +62,10 @@ module TestLevels
 
             @test isa(pool.index, Vector{Int})
             @test length(pool) === 9
-            @test levels(pool) == pool.index == [1, 2, 3, 4, 0, 10, 11, 12, 13]
-            @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9)
+            @test levels(pool) == pool.index == [2, 1, 3, 4, 0, 10, 11, 12, 13]
+            @test pool.invindex == Dict(1=>2, 2=>1, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9)
             @test pool.order == [1, 2, 3, 4, 5, 6, 7, 8, 9]
-            @test pool.ordered == [1, 2, 3, 4, 0, 10, 11, 12, 13]
+            @test pool.ordered == [2, 1, 3, 4, 0, 10, 11, 12, 13]
             @test get(pool, 12) === DefaultRefType(8)
             @test get(pool, 13) === DefaultRefType(9)
             @test pool[8] === V(8, pool)
@@ -78,10 +78,10 @@ module TestLevels
 
             @test isa(pool.index, Vector{Int})
             @test length(pool) == 8
-            @test levels(pool) == pool.index == [1, 2, 3, 4, 0, 10, 11, 12]
-            @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8)
+            @test levels(pool) == pool.index == [2, 1, 3, 4, 0, 10, 11, 12]
+            @test pool.invindex == Dict(1=>2, 2=>1, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8)
             @test pool.order == [1, 2, 3, 4, 5, 6, 7, 8]
-            @test pool.ordered == [1, 2, 3, 4, 0, 10, 11, 12]
+            @test pool.ordered == [2, 1, 3, 4, 0, 10, 11, 12]
             @test_throws KeyError get(pool, 13)
             @test pool.valindex == [V(i, pool) for i in 1:8]
         end
@@ -91,10 +91,10 @@ module TestLevels
 
             @test isa(pool.index, Vector{Int})
             @test length(pool) == 6
-            @test levels(pool) == pool.index == [1, 2, 3, 4, 0, 10]
-            @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 4=>4, 0=>5, 10=>6)
+            @test levels(pool) == pool.index == [2, 1, 3, 4, 0, 10]
+            @test pool.invindex == Dict(1=>2, 2=>1, 3=>3, 4=>4, 0=>5, 10=>6)
             @test pool.order == [1, 2, 3, 4, 5, 6]
-            @test pool.ordered == [1, 2, 3, 4, 0, 10]
+            @test pool.ordered == [2, 1, 3, 4, 0, 10]
             @test_throws KeyError get(pool, 11)
             @test_throws KeyError get(pool, 12)
             @test pool.valindex == [V(i, pool) for i in 1:6]
@@ -105,10 +105,10 @@ module TestLevels
 
             @test isa(pool.index, Vector{Int})
             @test length(pool) == 5
-            @test levels(pool) == pool.index == [1, 2, 3, 0, 10]
-            @test pool.invindex == Dict(1=>1, 2=>2, 3=>3, 0=>4, 10=>5)
+            @test levels(pool) == pool.index == [2, 1, 3, 0, 10]
+            @test pool.invindex == Dict(1=>2, 2=>1, 3=>3, 0=>4, 10=>5)
             @test pool.order == [1, 2, 3, 4, 5]
-            @test pool.ordered == [1, 2, 3, 0, 10]
+            @test pool.ordered == [2, 1, 3, 0, 10]
             @test_throws KeyError get(pool, 4)
             @test pool.valindex == [V(i, pool) for i in 1:5]
         end

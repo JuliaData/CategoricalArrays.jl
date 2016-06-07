@@ -14,7 +14,7 @@ module TestShow
     ov2 = OrdinalValue(2, opool)
     ov3 = OrdinalValue(3, opool)
 
-    @test string(pool) == "CategoricalData.NominalPool{String,UInt32}([\"a\",\"b\",\"c\"])"
+    @test string(pool) == "CategoricalData.NominalPool{String,UInt32}([\"c\",\"b\",\"a\"])"
     @test string(opool) == "CategoricalData.OrdinalPool{String,UInt32}([\"a\",\"b\",\"c\"])"
 
     @test string(nv1) == "CategoricalData.NominalValue{String,UInt32} \"c\""

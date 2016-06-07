@@ -36,8 +36,3 @@ function buildorder{S, R <: Integer}(invindex::Dict{S, R}, ordered::Vector)
     order = Array(R, length(invindex))
     return buildorder!(order, invindex, ordered)
 end
-
-# TODO: Try to make this faster by avoiding need to call convert
-function buildorder(index::Vector)
-    return convert(Vector{DefaultRefType}, sortperm(index))
-end

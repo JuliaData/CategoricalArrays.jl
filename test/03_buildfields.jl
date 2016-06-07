@@ -30,10 +30,6 @@ module TestBuildFields
         @test isa(invindex, Dict)
         @test built_invindex == invindex
 
-        built_order = CategoricalData.buildorder(index)
-        @test isa(order, Vector{DefaultRefType})
-        @test built_order == order
-
         neworder = [
             DefaultRefType(3),
             DefaultRefType(2),
