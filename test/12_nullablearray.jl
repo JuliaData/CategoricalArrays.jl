@@ -98,26 +98,32 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[3] === Nullable(x.pool.valindex[1])
             @test levels(x) == ["a", "b", "c"]
 
-            droplevels!(x)
+            droplevels!(x) == ["a", "b"]
             @test x[1] === Nullable(x.pool.valindex[2])
             @test x[2] === Nullable(x.pool.valindex[1])
             @test x[3] === Nullable(x.pool.valindex[1])
             @test levels(x) == ["a", "b"]
+
+            levels!(x, ["b", "a"]) == ["b", "a"]
+            @test x[1] === Nullable(x.pool.valindex[2])
+            @test x[2] === Nullable(x.pool.valindex[1])
+            @test x[3] === Nullable(x.pool.valindex[1])
+            @test levels(x) == ["b", "a"]
 
             @test_throws ArgumentError levels!(x, ["a"])
             @test_throws ArgumentError levels!(x, ["e", "b"])
             @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
 
             @test levels!(x, ["e", "a", "b"]) == ["e", "a", "b"]
-            @test x[1] === Nullable(x.pool.valindex[3])
-            @test x[2] === Nullable(x.pool.valindex[2])
-            @test x[3] === Nullable(x.pool.valindex[2])
+            @test x[1] === Nullable(x.pool.valindex[2])
+            @test x[2] === Nullable(x.pool.valindex[1])
+            @test x[3] === Nullable(x.pool.valindex[1])
             @test levels(x) == ["e", "a", "b"]
 
             x[1] = "c"
             @test x[1] === Nullable(x.pool.valindex[4])
-            @test x[2] === Nullable(x.pool.valindex[2])
-            @test x[3] === Nullable(x.pool.valindex[2])
+            @test x[2] === Nullable(x.pool.valindex[1])
+            @test x[3] === Nullable(x.pool.valindex[1])
             @test levels(x) == ["e", "a", "b", "c"]
 
             @test_throws ArgumentError levels!(x, ["e", "c"])

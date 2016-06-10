@@ -119,37 +119,42 @@ function _levels!(A::CatOrdArray, newlevels::Vector; nullok=false)
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
     end
 
-    # findfirst returns 0 when not found, which maps to a missing value
-    levelsmap = [findfirst(newlevels, l) for l in levels(A)]
-
-    if levelsmap != collect(1:length(levels(A)))
-        # first pass to check whether changes can be applied without error
-        # TODO: save original levels and undo changes in case of error to skip this step
+    # first pass to check whether changes can be applied without error
+    # TODO: save original levels and undo changes in case of error to skip this step
+    if !all(l->l in newlevels, index(A.pool))
+        deleted = [!(l in newlevels) for l in index(A.pool)]
         @inbounds for (i, x) in enumerate(A.values)
-            j = levelsmap[x]
-
-            if (isa(A, NominalArray) || isa(A, OrdinalArray)) && j == 0
-                throw(ArgumentError("cannot remove level $(repr(levels(A)[x])) as it is used at position $i. Convert array to a Nullable$(typeof(A).name.name) if you want to transform some levels to missing values."))
-            elseif (isa(A, NullableNominalArray) || isa(A, NullableOrdinalArray)) && !nullok && j == 0
-                throw(ArgumentError("cannot remove level $(repr(levels(A)[x])) as it is used at position $i and nullok=false."))
+            if (isa(A, NominalArray) || isa(A, OrdinalArray)) && deleted[x]
+                throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i. Convert array to a Nullable$(typeof(A).name.name) if you want to transform some levels to missing values."))
+            elseif (isa(A, NullableNominalArray) || isa(A, NullableOrdinalArray)) && !nullok && deleted[x]
+                throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i and nullok=false."))
             end
         end
+    end
 
-        # actually apply changes
+    # actually apply changes
+    oldindex = copy(index(A.pool))
+    levels!(A.pool, newlevels)
+
+    if index(A.pool) != oldindex
+        # indexin returns 0 when not found, which maps to a missing value
+        levelsmap = indexin(oldindex, index(A.pool))
+
         @inbounds for (i, x) in enumerate(A.values)
             j = levelsmap[x]
             x > 0 && (A.values[i] = j)
         end
     end
-    levels!(A.pool, newlevels)
+
+    levels(A.pool)
 end
 
 function droplevels!(A::CatOrdArray)
-    found = fill(false, length(levels(A)))
+    found = fill(false, length(index(A.pool)))
     @inbounds for i in A.values
         i > 0 && (found[i] = true)
     end
-    levels!(A, levels(A)[found])
+    levels!(A, intersect(levels(A.pool), index(A.pool)[found]))
 end
 
 
