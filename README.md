@@ -1,4 +1,4 @@
-CategoricalData.jl
+CategoricalArrays.jl
 ==================
 
 Tools for working with categorical variables, both with unordered (nominal variables)
@@ -45,10 +45,10 @@ This kind of data is best handled as an ordinal variable, i.e. `OrdinalArray`. N
 everything would work the same with `NominalArray`, except for the comparison using `<`.
 
 ```julia
-julia> using CategoricalData
+julia> using CategoricalArrays
 
 julia> x = OrdinalArray(["Old", "Young", "Middle", "Young"])
-4-element CategoricalData.OrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.OrdinalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -77,10 +77,10 @@ Thanks to this order, we can not only test for equality between two values, but 
 compare the ages of e.g. individuals 1 and 2:
 ```julia
 julia> x[1]
-CategoricalData.OrdinalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.OrdinalValue{String,UInt32} "Old" (3/3)
 
 julia> x[2]
-CategoricalData.OrdinalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.OrdinalValue{String,UInt32} "Young" (1/3)
 
 julia> x[2] == x[4]
 true
@@ -97,7 +97,7 @@ julia> x[1] = "Young"
 "Young"
 
 julia> x[1]
-CategoricalData.OrdinalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.OrdinalValue{String,UInt32} "Young" (1/3)
 
 ```
 
@@ -133,8 +133,8 @@ that are currently used:
 ```julia
 julia> levels!(x, ["Young", "Midle"]) # Note the typo in "Middle"
 ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 1. Convert array to a NullableOrdinalArray if you want to transform some levels to missing values.
- in #_levels!#5(::Bool, ::Function, ::CategoricalData.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalData/src/array.jl:132
- in levels!(::CategoricalData.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalData/src/array.jl:164
+ in #_levels!#5(::Bool, ::Function, ::CategoricalArrays.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalArrays/src/array.jl:132
+ in levels!(::CategoricalArrays.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalArrays/src/array.jl:164
  in eval(::Module, ::Any) at ./boot.jl:225
  in macro expansion at ./REPL.jl:92 [inlined]
  in (::Base.REPL.##1#2{Base.REPL.REPLBackend})() at ./event.jl:46
@@ -155,7 +155,7 @@ Let's adapt the example developed above to support missing values. At first sigh
 not much changes:
 ```julia
 julia> y = NullableOrdinalArray(["Old", "Young", "Middle", "Young"])
-4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -183,10 +183,10 @@ A first difference from the previous example is that indexing the array returns 
 `Nullable` value:
 ```julia
 julia> y[1]
-Nullable{CategoricalData.OrdinalValue{String,UInt32}}("Old")
+Nullable{CategoricalArrays.OrdinalValue{String,UInt32}}("Old")
 
 julia> get(y[1])
-CategoricalData.OrdinalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.OrdinalValue{String,UInt32} "Old" (3/3)
 ```
 
 Currently, comparison between two `Nullable` objects requires extracting their values using
@@ -201,14 +201,14 @@ julia> y[1] = Nullable()
 Nullable{Union{}}()
 
 julia> y
-4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
  #NULL   
  "Young" 
  "Middle"
  "Young" 
 
 julia> y[1]
-Nullable{CategoricalData.OrdinalValue{String,UInt32}}()
+Nullable{CategoricalArrays.OrdinalValue{String,UInt32}}()
 
 ```
 
@@ -221,7 +221,7 @@ julia> y[1] = "Old"
 "Old"
 
 julia> y
-4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -233,7 +233,7 @@ julia> levels!(y, ["Young", "Middle"]; nullok=true)
  "Middle"
 
 julia> y
-4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
  #NULL   
  "Young" 
  "Middle"

@@ -1,7 +1,7 @@
 module TestBuildFields
     using Base.Test
-    using CategoricalData
-    using CategoricalData: DefaultRefType
+    using CategoricalArrays
+    using CategoricalArrays: DefaultRefType
 
     index = ["b", "a", "c"]
 
@@ -22,11 +22,11 @@ module TestBuildFields
 
         ordered = ["c", "a", "b"]
 
-        built_index = CategoricalData.buildindex(invindex)
+        built_index = CategoricalArrays.buildindex(invindex)
         @test isa(index, Vector)
         @test built_index == index
 
-        built_invindex = CategoricalData.buildinvindex(index)
+        built_invindex = CategoricalArrays.buildinvindex(index)
         @test isa(invindex, Dict)
         @test built_invindex == invindex
 
@@ -36,7 +36,7 @@ module TestBuildFields
             DefaultRefType(1),
         ]
 
-        built_order = CategoricalData.buildorder(pool.invindex, ordered)
+        built_order = CategoricalArrays.buildorder(pool.invindex, ordered)
         @test isa(order, Vector{DefaultRefType})
         @test built_order == neworder
     end

@@ -1,7 +1,7 @@
 module TestConstructors
     using Base.Test
-    using CategoricalData
-    using CategoricalData: DefaultRefType
+    using CategoricalArrays
+    using CategoricalArrays: DefaultRefType
 
     for P in (NominalPool, OrdinalPool)
         pool = P{String}()

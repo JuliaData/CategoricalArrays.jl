@@ -1,6 +1,6 @@
 module TestLength
     using Base.Test
-    using CategoricalData
+    using CategoricalArrays
 
     for P in (NominalPool, OrdinalPool)
         pool = P([1, 2, 3])

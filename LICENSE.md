@@ -1,4 +1,4 @@
-CategoricalData.jl is licensed under the MIT License:
+CategoricalArrays.jl is licensed under the MIT License:
 
 > Copyright (c) 2016: John Myles White, Milan Bouchet-Valat and other contributors.
 >

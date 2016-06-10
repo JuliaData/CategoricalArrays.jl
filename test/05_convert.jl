@@ -1,6 +1,6 @@
 module TestConvert
     using Base.Test
-    using CategoricalData
+    using CategoricalArrays
 
     for (P, V) in ((NominalPool, NominalValue), (OrdinalPool, OrdinalValue))
         pool = P([1, 2, 3])

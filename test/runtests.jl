@@ -2,13 +2,13 @@
 # Correctness Tests
 #
 
-module TestCategoricalData
+module TestCategoricalArrays
     fatalerrors = length(ARGS) > 0 && ARGS[1] == "-f"
     quiet = length(ARGS) > 0 && ARGS[1] == "-q"
     anyerrors = false
 
     using Base.Test
-    using CategoricalData
+    using CategoricalArrays
 
     tests = [
         "01_typedef.jl",

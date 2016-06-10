@@ -1,16 +1,16 @@
 module TestNullableArray
 
 using Base.Test
-using CategoricalData
+using CategoricalArrays
 using NullableArrays
-using CategoricalData: DefaultRefType
+using CategoricalArrays: DefaultRefType
 
 # == currently throws an error for Nullables
 (==) = isequal
 
 for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalMatrix),
                   (NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix))
-    for R in (CategoricalData.DefaultRefType, UInt8, UInt, Int8, Int)
+    for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         # Vector with no null values
         for a in (["a", "b", "a"],
                   Nullable{String}["a", "b", "a"],

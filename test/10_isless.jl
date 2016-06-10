@@ -1,6 +1,6 @@
 module TestIsLess
     using Base.Test
-    using CategoricalData
+    using CategoricalArrays
 
     pool = NominalPool([1, 2, 3])
     opool = OrdinalPool([1, 2, 3], [3, 2, 1])

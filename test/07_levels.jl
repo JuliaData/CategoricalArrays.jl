@@ -1,7 +1,7 @@
 module TestLevels
     using Base.Test
-    using CategoricalData
-    using CategoricalData: DefaultRefType
+    using CategoricalArrays
+    using CategoricalArrays: DefaultRefType
 
     for (P, V) in ((NominalPool, NominalValue), (OrdinalPool, OrdinalValue))
         pool = P([2, 1, 3])

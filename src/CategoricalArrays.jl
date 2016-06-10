@@ -1,4 +1,4 @@
-module CategoricalData
+module CategoricalArrays
     export CategoricalPool, NominalPool, OrdinalPool
     export NominalValue, OrdinalValue
     export NominalArray, NominalVector, NominalMatrix

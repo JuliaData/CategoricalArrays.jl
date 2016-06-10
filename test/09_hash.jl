@@ -1,6 +1,6 @@
 module TestHash
     using Base.Test
-    using CategoricalData
+    using CategoricalArrays
 
     pool1 = NominalPool([1, 2, 3])
     pool2 = NominalPool([2, 1, 3])

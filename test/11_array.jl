@@ -1,12 +1,12 @@
 module TestArray
 
 using Base.Test
-using CategoricalData
-using CategoricalData: DefaultRefType
+using CategoricalArrays
+using CategoricalArrays: DefaultRefType
 
 for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
                   (OrdinalArray, OrdinalVector, OrdinalMatrix))
-    for R in (CategoricalData.DefaultRefType, UInt8, UInt, Int8, Int)
+    for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         # Vector
         a = ["a", "b", "a"]
         x = V{String, R}(a)
