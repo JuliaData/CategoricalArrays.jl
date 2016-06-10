@@ -1,74 +1,272 @@
 CategoricalData.jl
 ==================
 
-Tools for working with categorical variables, including ordered categories
-(AKA ordinal variables). This package is intentionally designed to provide
-low-level machinery for working with categorical data. Most of API would not
-be of interest to end-users, only those working on higher-level projects like
-DataArrays.jl.
+Tools for working with categorical variables, both with unordered (nominal variables)
+and ordered categories (ordinal variables). This package provides a replacement for
+[DataArrays.jl](https://github.com/JuliaStats/DataArrays.jl)'s `PooledDataArray` type.
+It offers better performance by getting rid of type stability thanks to the `Nullable`
+type, which is used to represent missing data. It is also based on a simpler design by
+only supporting categorical data, which allows offering more specialized features
+(like ordering of categories).
 
-# Examples
+The package provides four array types designed to hold categorical data:
+- `NominalArray` can hold any type of *unordered* categorical data, storing them in a
+space-efficient fashion
+- `OrdinalArray` is the equivalent type for storing *ordered* data
+- `NullableNominalArray` works like a `NominalArray` but also supports missing data
+- `NullableOrdinalArray` works like a `OrdinalArray` but also supports missing data
 
-Suppose that you want to work with three categories. To represent information
-about those categories, you first build a pool that enumerates the possible
-categories:
+These arrays behave just like standard Julia `Array`s, but they return special types
+when indexed:
+- `NominalArray` returns a `CategoricalValue` object, and `NullableNominalArray` a
+`Nullable{CategoricalValue}` object
+- `OrdinalArray` returns an `OrdinalValue` object, and `NullableOrdinalArray` a
+`Nullable{OrdinalValue}` object
+
+These two kinds of objects are simple wrappers around the actual categorical levels
+which allow for very efficient extraction and equality tests. `OrdinalValue` offers
+the additional property that two such values can be compared using the `<` and `>`
+operators. The comparison is based on the ordering of levels stored in the array.
+
+Indeed, the last peculiarity of these four categorical arrays types is that they
+store a pool of the levels that can appear in the variable. These levels appear
+in a specific order: for nominal variables, the order is only used for pretty printing
+(e.g. in cross tables); for ordinal variables, it is used in comparisons mentioned above.
+
+Use the `levels` function to access the levels of a categorical array, and the `levels!`
+function to set them. Levels are automatically created when setting an element to a
+previously unused level. On the other hand, they are never removed without manual intervention:
+use the `droplevels!` function for this.
+
+# Using OrdinalArray and NominalArray
+
+Suppose that you have data about four individuals, with three different age groups.
+This kind of data is best handled as an ordinal variable, i.e. `OrdinalArray`. Note
+everything would work the same with `NominalArray`, except for the comparison using `<`.
+
+```julia
+julia> using CategoricalData
+
+julia> x = OrdinalArray(["Old", "Young", "Middle", "Young"])
+4-element CategoricalData.OrdinalArray{String,1,UInt32}:
+ "Old"   
+ "Young" 
+ "Middle"
+ "Young" 
 
 ```
-using CategoricalData
 
-pool = CategoricalPool(["Group A", "Group B", "Group C"])
-```
+By default, the levels are sorted in their order of appearance in the data, which is
+cleary not correct in our case. But this is easily fixed using the `levels!` function:
+```julia
+julia> levels(x)
+3-element Array{String,1}:
+ "Old"   
+ "Young" 
+ "Middle"
 
-To create a specific observation, you create a `CategoricalValue` object
-that points to the pool's internal index of values:
-
-```
-nv = NominalValue(1, pool)
-```
-
-If you know that you're working with ordinal data, you can use an `OrdinalPool`
-object, which augments a `CategoricalPool` with an ordering:
-
-```
-opool = CategoricalPool(
-    ["Group A", "Group B", "Group C"],
-    ["Group B", "Group C", "Group A"]
-)
-```
-
-In this example, the first argument to `OrdinalPool` specifies the possible
-levels that this ordered factor can take on. The second argument provides
-the levels of the factors in their sorted order.
-
-Once an `OrdinalPool` exists, you can define `OrdinalValue` objects and
-compare their position in the order:
+julia> levels!(x, ["Young", "Middle", "Old"])
+3-element Array{String,1}:
+ "Young" 
+ "Middle"
+ "Old"   
 
 ```
-ov1 = OrdinalValue(1, opool)
-ov2 = OrdinalValue(2, opool)
 
-ov1 < ov2
-ov1 > ov2
+Thanks to this order, we can not only test for equality between two values, but also
+compare the ages of e.g. individuals 1 and 2:
+```julia
+julia> x[1]
+CategoricalData.OrdinalValue{String,UInt32} "Old" (3/3)
+
+julia> x[2]
+CategoricalData.OrdinalValue{String,UInt32} "Young" (1/3)
+
+julia> x[2] == x[4]
+true
+
+julia> x[1] > x[2]
+true
+
 ```
 
-# Full API
+Now let us imagine the first individual is actually in the "Young" group. Let's fix this
+(notice how the string `"Young"` is automatically converted to an `OrdinalValue`):
+```julia
+julia> x[1] = "Young"
+"Young"
 
-As shown above, there are constructors for:
+julia> x[1]
+CategoricalData.OrdinalValue{String,UInt32} "Young" (1/3)
 
-* `CategoricalPool`
-* `CategoricalValue`
-* `OrdinalPool`
-* `OrdinalValue`
+```
 
-There are also methods for accessing and manipulating the pool:
+The `OrdinalArray` still considers `"Old"` as a possible level even if it is unused now.
+This is necessary to allow efficiently accessing the levels and setting values of elements
+in the array: indeed, dropping unused levels requires iterating over every element in the
+array, which is expensive. This property can also be useful to keep track of possible
+levels, even if they do not occur in practice.
 
-* `levels`: Determine which levels a pool allows
-* `levels!`: Reset, en masse, the levels that a pool allows
-* `push!`: Add one or more levels at the end of the pool
-* `delete!`: Delete one or more levels from the pool
-* `order`: Determine the order of an ordinal pool
-* `order!`: Reset, en masse, the ordering of an ordinal pool
+To get rid of the `"Old"` group, just call the `droplevels!` function:
+```julia
+julia> levels(x)
+3-element Array{String,1}:
+ "Young" 
+ "Middle"
+ "Old"   
 
-Note that `push!` and `delete!` do not work on ordinal variables because they
-not provide any mechanism for specifying how the changes to the levels affect
-the ordering of the pool.
+julia> droplevels!(x)
+2-element Array{String,1}:
+ "Young" 
+ "Middle"
+
+julia> levels(x)
+2-element Array{String,1}:
+ "Young" 
+ "Middle"
+
+```
+
+Another solution would have been to call `levels(x, ["Young", "Middle"])` manually.
+This command is safe too, since it will raise an error when trying to remove levels
+that are currently used:
+```julia
+julia> levels!(x, ["Young", "Midle"]) # Note the typo in "Middle"
+ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 1. Convert array to a NullableOrdinalArray if you want to transform some levels to missing values.
+ in #_levels!#5(::Bool, ::Function, ::CategoricalData.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalData/src/array.jl:132
+ in levels!(::CategoricalData.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalData/src/array.jl:164
+ in eval(::Module, ::Any) at ./boot.jl:225
+ in macro expansion at ./REPL.jl:92 [inlined]
+ in (::Base.REPL.##1#2{Base.REPL.REPLBackend})() at ./event.jl:46
+```
+
+### Handling Missing Values: NullableNominalArray and NullableOrdinalArray
+
+The examples above assumed that the data contained no missing values. This is
+generally not the case in real data. This is where `NullableNominalArray` and
+`NullableOrdinalArray` come into play. They are essentially the categorical-data
+equivalent of [NullableArrays](https://github.com/JuliaStats/NullableArrays.jl).
+They behave exactly the same as `NominalArray` and `OrdinalArray`, except that
+they return respectively `Nullable{NominalValue}` and `Nullable{OrdinalValue}`.
+See [the Julia manual](http://docs.julialang.org/en/stable/manual/types/?highlight=nullable#nullable-types-representing-missing-values)
+for more information on `Nullable` types.
+
+Let's adapt the example developed above to support missing values. At first sight,
+not much changes:
+```julia
+julia> y = NullableOrdinalArray(["Old", "Young", "Middle", "Young"])
+4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+ "Old"   
+ "Young" 
+ "Middle"
+ "Young" 
+
+```
+
+Levels still need to be ordered:
+```julia
+julia> levels(y)
+3-element Array{String,1}:
+ "Old"   
+ "Young" 
+ "Middle"
+
+julia> levels!(y, ["Young", "Middle", "Old"])
+3-element Array{String,1}:
+ "Young" 
+ "Middle"
+ "Old"   
+ 
+```
+
+A first difference from the previous example is that indexing the array returns a
+`Nullable` value:
+```julia
+julia> y[1]
+Nullable{CategoricalData.OrdinalValue{String,UInt32}}("Old")
+
+julia> get(y[1])
+CategoricalData.OrdinalValue{String,UInt32} "Old" (3/3)
+```
+
+Currently, comparison between two `Nullable` objects requires extracting their values using
+`get`, which throws an error in the presence of missing values. This should hopefully be fixed
+soon.
+
+Missing values can be introduced either manually, or by restricting the set of possible
+levels. Let us imagine this time that we actually do not know the age of the first
+individual. We can set it to a missing value this way:
+```julia
+julia> y[1] = Nullable()
+Nullable{Union{}}()
+
+julia> y
+4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+ #NULL   
+ "Young" 
+ "Middle"
+ "Young" 
+
+julia> y[1]
+Nullable{CategoricalData.OrdinalValue{String,UInt32}}()
+
+```
+
+It is also possible to turn all values belonging to some levels to missing values, which is
+equivalent here since we have only one individual in the `"Old"` group. Let's first restore
+the original value for the first element, and then set it to missing again using the `nullok`
+argument to `levels!`:
+```julia
+julia> y[1] = "Old"
+"Old"
+
+julia> y
+4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+ "Old"   
+ "Young" 
+ "Middle"
+ "Young" 
+
+julia> levels!(y, ["Young", "Middle"]; nullok=true)
+2-element Array{String,1}:
+ "Young" 
+ "Middle"
+
+julia> y
+4-element CategoricalData.NullableOrdinalArray{String,1,UInt32}:
+ #NULL   
+ "Young" 
+ "Middle"
+ "Young" 
+
+```
+
+
+# Implementation details
+
+`NominalArray`, `OrdinalArray`, `NullableNominalArray` and `NullableOrdinalArray` share a
+common implementation for the most part, with the main differences being their element
+types. They are all based on the `CategoricalPool` type, which keeps track of the levels
+and associates them with an integer reference (for internal use). `CategoricalPool` provides
+methods to set levels, change their order while preserving the references, and efficiently get
+the integer index corresponding to a level and vice-versa. `CategoricalPool` is
+parameterized on the type used to store the indices, so that small pools can use as little
+memory as possible. Finally, it is parameterized on the value type (`NominalValue` or
+`CategoricalValue`) and it keeps a vector of such objects, so that `getindex` can
+return the existing object instead of allocating a new one.
+
+Array types are made of two fields:
+- `pool`: the `CategoricalPool` object keeping the levels of the array
+- `values`: an integer vector giving the indices of the level for each element. `0`
+corresponds to a missing value for `NullableNominalArray` and `NullableOrdinalArray`.
+
+`CategoricalPool` is designed to limit the need to go over all elements of the vector,
+either for reading or for writing. This is why unused levels are not dropped automatically
+(this would force checking all elements on every modification or keeping a counts table),
+but only when `droplevels!` is called. `levels` is a (very fast) `O(1)` operation since it
+merely returns the (ordered) vector of levels, without accessing the data at all. Another
+useful property is that integer indices referring to levels are preserved when adding or
+reordering levels: the order of levels exposed to the user by the `levels` function does not
+necessarily match these internal indices. This means a reordering of the levels is also an
+`O(1)` operation. On the other hand, deleting levels may change the indices and therefore
+require iterating over all elements in the array to update the references.
