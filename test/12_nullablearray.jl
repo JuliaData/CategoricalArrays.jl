@@ -4,6 +4,9 @@ using Base.Test
 using CategoricalArrays
 using NullableArrays
 using CategoricalArrays: DefaultRefType
+using Compat
+
+typealias String Compat.ASCIIString
 
 # == currently throws an error for Nullables
 (==) = isequal
@@ -16,7 +19,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
                   Nullable{String}["a", "b", "a"],
                   NullableArray(["a", "b", "a"]))
             x = V{String, R}(a)
-            na = eltype(a) <: Nullable ? a : convert(Array{Nullable}, a)
+            na = eltype(a) <: Nullable ? a : convert(Array{Nullable{String}}, a)
 
             @test x == na
             @test levels(x) == map(get, unique(na))
@@ -331,7 +334,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         for a in (["a" "b" "c"; "b" "a" "c"],
                   Nullable{String}["a" "b" "c"; "b" "a" "c"],
                   NullableArray(["a" "b" "c"; "b" "a" "c"]))
-            na = eltype(a) <: Nullable ? a : convert(Array{Nullable}, a)
+            na = eltype(a) <: Nullable ? a : convert(Array{Nullable{String}}, a)
             x = M{String, R}(a)
 
             @test x == na
@@ -579,12 +582,19 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         end
 
         # Uninitialized array
-        for x in (A(2), V(2), A(String, 2), V(String, 2),
-                  A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
-                  V{String}(2), V{String, R}(2),
-                  A(2, 3), M(2, 3), A(String, 2, 3), M(String, 2, 3),
-                  A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
-                  M{String}(2, 3), M{String, R}(2, 3))
+        v = [A(2), A(String, 2),
+             A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
+             V{String}(2), V{String, R}(2),
+             A(2, 3), A(String, 2, 3),
+             A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
+             M{String}(2, 3), M{String, R}(2, 3)]
+
+        # See conditional definition of constructors in array.jl and nullablearray.jl
+        if VERSION >= v"0.5.0-dev"
+            push!(v, V(2), V(String, 2), M(2, 3), M(String, 2, 3))
+        end
+
+        for x in v
             @test isnull(x[1])
             @test isnull(x[2])
             @test levels(x) == []

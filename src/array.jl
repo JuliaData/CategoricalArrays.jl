@@ -24,32 +24,37 @@ for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
         $A{T, N}(::Type{$S{T}}, dims::NTuple{N,Int}) = $A{T, N}(dims)
         $A{N}(::Type{$S}, dims::NTuple{N,Int}) = $A{String, N}(dims)
 
-        (::Type{$A{T, N, R}}){T, N, R}(dims::NTuple{N,Int}) =
+        @compat (::Type{$A{T, N, R}}){T, N, R}(dims::NTuple{N,Int}) =
             $A{T, N, R}($P{T, R}(), zeros(R, dims))
-        (::Type{$A{T, N}}){T, N}(dims::NTuple{N,Int}) = $A{T, N, DefaultRefType}(dims)
-        (::Type{$A{T}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
-        (::Type{$A{T, 1, R}}){T, R}(m::Int) = $A{T, 1, R}((m,))
+        @compat (::Type{$A{T, N}}){T, N}(dims::NTuple{N,Int}) =
+            $A{T, N, DefaultRefType}(dims)
+        @compat (::Type{$A{T}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
+        @compat (::Type{$A{T, 1, R}}){T, R}(m::Int) = $A{T, 1, R}((m,))
         # R <: Integer is required to prevent default constructor from being called instead
-        (::Type{$A{T, 2, R}}){T, R <: Integer}(m::Int, n::Int) = $A{T, 2, R}((m, n))
-        (::Type{$A{T, 3, R}}){T, R}(m::Int, n::Int, o::Int) = $A{T, 3, R}((m, n, o))
-        (::Type{$A{T}}){T}(m::Int) = $A{T}((m,))
-        (::Type{$A{T}}){T}(m::Int, n::Int) = $A{T}((m, n))
-        (::Type{$A{T}}){T}(m::Int, n::Int, o::Int) = $A{T}((m, n, o))
+        @compat (::Type{$A{T, 2, R}}){T, R <: Integer}(m::Int, n::Int) = $A{T, 2, R}((m, n))
+        @compat (::Type{$A{T, 3, R}}){T, R}(m::Int, n::Int, o::Int) = $A{T, 3, R}((m, n, o))
+        @compat (::Type{$A{T}}){T}(m::Int) = $A{T}((m,))
+        @compat (::Type{$A{T}}){T}(m::Int, n::Int) = $A{T}((m, n))
+        @compat (::Type{$A{T}}){T}(m::Int, n::Int, o::Int) = $A{T}((m, n, o))
 
-        (::Type{$A{$S{T, R}, N, R}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
-        (::Type{$A{$S{T}, N, R}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
-        (::Type{$A{$S{T, R}, N}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
-        (::Type{$A{$S{T}, N}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
-        (::Type{$A{$S, N}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
-        (::Type{$A{$S}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
+        @compat (::Type{$A{$S{T, R}, N, R}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
+        @compat (::Type{$A{$S{T}, N, R}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
+        @compat (::Type{$A{$S{T, R}, N}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
+        @compat (::Type{$A{$S{T}, N}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
+        @compat (::Type{$A{$S, N}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
+        @compat (::Type{$A{$S}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
 
+if VERSION >= v"0.5.0-dev"
         $V{T}(::Type{T}, m::Integer) = $A{T}((m,))
         $V(m::Integer) = $A(m)
-        (::Type{$V{T}}){T}(m::Int) = $A{T}((m,))
+end
+        @compat (::Type{$V{T}}){T}(m::Int) = $A{T}((m,))
 
+if VERSION >= v"0.5.0-dev"
         $M{T}(::Type{T}, m::Int, n::Int) = $A{T}((m, n))
         $M(m::Int, n::Int) = $A(m, n)
-        (::Type{$M{T}}){T}(m::Int, n::Int) = $A{T}((m, n))
+end
+        @compat (::Type{$M{T}}){T}(m::Int, n::Int) = $A{T}((m, n))
 
         convert{T, N, R}(::Type{$A{T, N, R}}, A::$A{T, N, R}) = A
         convert{T, N}(::Type{$A{T, N}}, A::$A{T, N}) = A
@@ -76,14 +81,15 @@ for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
         convert{T}(::Type{$M{T}}, A::$M{T}) = A
         convert(::Type{$M}, A::$M) = A
 
-        similar{S, T, M, N, R}(A::$A{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) = $A{T, N, R}(dims)
+        similar{S, T, M, N, R}(A::$A{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) =
+            $A{T, N, R}(dims)
 
         convert{S, T, N, R}(::Type{$A{T, N, R}}, A::AbstractArray{S, N}) =
             copy!($A{T, N, R}(size(A)), A)
     end
 end
 
-function Base.:(==)(A::CatOrdArray, B::CatOrdArray)
+function @compat(Base.:(==))(A::CatOrdArray, B::CatOrdArray)
     if size(A) != size(B)
         return false
     end

@@ -2,6 +2,9 @@ module TestConstructors
     using Base.Test
     using CategoricalArrays
     using CategoricalArrays: DefaultRefType
+    using Compat
+
+    typealias String Compat.ASCIIString
 
     for P in (NominalPool, OrdinalPool)
         pool = P{String}()

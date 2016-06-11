@@ -3,6 +3,9 @@ module TestArray
 using Base.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
+using Compat
+
+typealias String Compat.ASCIIString
 
 for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
                   (OrdinalArray, OrdinalVector, OrdinalMatrix))
@@ -329,12 +332,19 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
 
 
         # Uninitialized array
-        for x in (A(2), V(2), A(String, 2), V(String, 2),
-                  A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
-                  V{String}(2), V{String, R}(2),
-                  A(2, 3), M(2, 3), A(String, 2, 3), M(String, 2, 3),
-                  A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
-                  M{String}(2, 3), M{String, R}(2, 3))
+        v = [A(2), A(String, 2),
+             A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
+             V{String}(2), V{String, R}(2),
+             A(2, 3), A(String, 2, 3),
+             A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
+             M{String}(2, 3), M{String, R}(2, 3)]
+
+        # See conditional definition of constructors in array.jl
+        if VERSION >= v"0.5.0-dev"
+            push!(v, V(2), V(String, 2), M(2, 3), M(String, 2, 3))
+        end
+
+        for x in v
             @test !isassigned(x, 1) && isdefined(x, 1)
             @test !isassigned(x, 2) && isdefined(x, 2)
             @test_throws UndefRefError x[1]

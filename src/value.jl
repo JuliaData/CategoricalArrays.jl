@@ -20,7 +20,7 @@ function Base.convert{S, T}(::Type{S}, x::CategoricalValue{T})
 end
 
 function Base.show{T}(io::IO, x::NominalValue{T})
-    if get(io, :compact, false)
+    if @compat(get(io, :compact, false))
         print(io, repr(index(x.pool)[x.level]))
     else
         @printf(io, "%s %s",
@@ -30,7 +30,7 @@ function Base.show{T}(io::IO, x::NominalValue{T})
 end
 
 function Base.show{T}(io::IO, x::OrdinalValue{T})
-    if get(io, :compact, false)
+    if @compat(get(io, :compact, false))
         print(io, repr(index(x.pool)[x.level]))
     else
         @printf(io, "%s %s (%i/%i)",
@@ -40,10 +40,15 @@ function Base.show{T}(io::IO, x::OrdinalValue{T})
     end
 end
 
-Base.:(==)(x::CategoricalValue, y::CategoricalValue) =
+if VERSION < v"0.5.0-dev+1936"
+    Base.showcompact{T}(io::IO, x::CategoricalValue{T}) =
+        print(io, repr(index(x.pool)[x.level]))
+end
+
+@compat Base.:(==)(x::CategoricalValue, y::CategoricalValue) =
     index(x.pool)[x.level] == index(y.pool)[y.level]
-Base.:(==)(x::CategoricalValue, y::Any) = index(x.pool)[x.level] == y
-Base.:(==)(x::Any, y::CategoricalValue) = y == x
+@compat Base.:(==)(x::CategoricalValue, y::Any) = index(x.pool)[x.level] == y
+@compat Base.:(==)(x::Any, y::CategoricalValue) = y == x
 
 Base.isequal(x::CategoricalValue, y::CategoricalValue) =
     isequal(index(x.pool)[x.level], index(y.pool)[y.level])

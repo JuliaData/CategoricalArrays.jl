@@ -7,8 +7,8 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
             $P{S, R, $V{S, R}}(index, invindex, order)
         end
 
-        (::Type{$P{T, R}}){T, R}() = $P(T[], Dict{T, R}(), R[])
-        (::Type{$P{T}}){T}() = $P(T[], Dict{T, DefaultRefType}(), DefaultRefType[])
+        @compat (::Type{$P{T, R}}){T, R}() = $P(T[], Dict{T, R}(), R[])
+        @compat (::Type{$P{T}}){T}() = $P(T[], Dict{T, DefaultRefType}(), DefaultRefType[])
 
         function $P(index::Vector)
             invindex = buildinvindex(index)
