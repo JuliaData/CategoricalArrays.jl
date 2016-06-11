@@ -58,9 +58,9 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
         Base.convert{S, T, R}(::Type{$P{S}}, pool::$P{T, R}) = convert($P{S, R}, pool)
         Base.convert{T, R}(::Type{$P}, pool::$P{T, R}) = convert($P{T, R}, pool)
 
-        Base.convert{T, R}(::Type{$P{T, R}}, pool::$P{T, R}) = pool
-        Base.convert{T}(::Type{$P{T}}, pool::$P{T}) = pool
         Base.convert(::Type{$P}, pool::$P) = pool
+        Base.convert{T}(::Type{$P{T}}, pool::$P{T}) = pool
+        Base.convert{T, R}(::Type{$P{T, R}}, pool::$P{T, R}) = pool
     end
 end
 
@@ -76,9 +76,8 @@ Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 
 levels(pool::CategoricalPool) = pool.ordered
 
-function Base.get!{T, R, V}(f, pool::CategoricalPool{T, R, V}, level)
+function Base.get!{T, R, V}(pool::CategoricalPool{T, R, V}, level)
     get!(pool.invindex, level) do
-        f()
         i = length(pool) + 1
         push!(pool.index, level)
         push!(pool.order, i)
@@ -87,7 +86,6 @@ function Base.get!{T, R, V}(f, pool::CategoricalPool{T, R, V}, level)
         i
     end
 end
-Base.get!(pool::CategoricalPool, level) = get!(Void, pool, level)
 
 Base.push!(pool::CategoricalPool, level) = (get!(pool, level); pool)
 

@@ -10,14 +10,18 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
     end
 end
 
-# To fix ambiguity with definition from Base
-function Base.convert{S, T}(::Type{Nullable{S}}, x::CategoricalValue{Nullable{T}})
-    return convert(Nullable{S}, index(x.pool)[x.level])
-end
+# To fix ambiguities with definitions from Base
+Base.convert{S}(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) =
+    convert(Nullable{S}, index(x.pool)[x.level])
+Base.convert{S}(::Type{Nullable}, x::CategoricalValue{S}) = convert(Nullable{S}, x)
+Base.convert{T}(::Type{Nullable{CategoricalValue{Nullable{T}}}},
+                x::CategoricalValue{Nullable{T}}) =
+    Nullable(x)
+Base.convert(::Type{Nullable{CategoricalValue}}, x::CategoricalValue{Nullable}) =
+    Nullable(x)
+Base.convert{T}(::Type{Ref}, x::CategoricalValue{T}) = RefValue{T}(x)
 
-function Base.convert{S, T}(::Type{S}, x::CategoricalValue{T})
-    return convert(S, index(x.pool)[x.level])
-end
+Base.convert{S, T}(::Type{S}, x::CategoricalValue{T}) = convert(S, index(x.pool)[x.level])
 
 function Base.show{T}(io::IO, x::NominalValue{T})
     if @compat(get(io, :compact, false))
@@ -47,6 +51,11 @@ end
 
 @compat Base.:(==)(x::CategoricalValue, y::CategoricalValue) =
     index(x.pool)[x.level] == index(y.pool)[y.level]
+
+# To fix ambiguities with Base
+@compat Base.:(==)(x::CategoricalValue, y::WeakRef) = index(x.pool)[x.level] == y
+@compat Base.:(==)(x::WeakRef, y::CategoricalValue) = y == x
+
 @compat Base.:(==)(x::CategoricalValue, y::Any) = index(x.pool)[x.level] == y
 @compat Base.:(==)(x::Any, y::CategoricalValue) = y == x
 
