@@ -69,6 +69,10 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test V{String, DefaultRefType}(a) == x
         @test V{String, UInt8}(a) == x
 
+        x2 = copy(x)
+        @test x2 == x
+        @test typeof(x2) === typeof(x)
+
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
@@ -77,7 +81,7 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test x[1:2] == ["a", "b"]
         @test typeof(x[1:2]) === typeof(x)
 
-        x[1] = "b"
+        x[1] = x[2]
         @test x[1] === x.pool.valindex[2]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
@@ -197,6 +201,10 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test V{Float64, DefaultRefType}(a) == x
         @test V{Float32, DefaultRefType}(a) == x
 
+        x2 = copy(x)
+        @test x2 == x
+        @test typeof(x2) === typeof(x)
+
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[3]
@@ -280,6 +288,10 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test M{String, DefaultRefType}(a) == x
         @test M{String, UInt8}(a) == x
 
+        x2 = copy(x)
+        @test x2 == x
+        @test typeof(x2) === typeof(x)
+
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[2]
@@ -349,6 +361,7 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
             @test !isassigned(x, 2) && isdefined(x, 2)
             @test_throws UndefRefError x[1]
             @test_throws UndefRefError x[2]
+            @test_throws UndefRefError copy(x)
             @test levels(x) == []
 
             x[1] = "c"

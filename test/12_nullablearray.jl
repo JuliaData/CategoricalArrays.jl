@@ -76,6 +76,10 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test V{String, DefaultRefType}(a) == x
             @test V{String, UInt8}(a) == x
 
+            x2 = copy(x)
+            @test x2 == x
+            @test typeof(x2) === typeof(x)
+
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
             @test x[3] === Nullable(x.pool.valindex[1])
@@ -84,7 +88,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[1:2] == Nullable{String}["a", "b"]
             @test typeof(x[1:2]) === typeof(x)
 
-            x[1] = "b"
+            x[1] = x[2]
             @test x[1] === Nullable(x.pool.valindex[2])
             @test x[2] === Nullable(x.pool.valindex[2])
             @test x[3] === Nullable(x.pool.valindex[1])
@@ -197,6 +201,10 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test V{String, DefaultRefType}(a) == x
             @test V{String, UInt8}(a) == x
 
+            x2 = copy(x)
+            @test x2 == x
+            @test typeof(x2) === typeof(x)
+
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
             @test x[3] === eltype(x)()
@@ -306,6 +314,10 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         @test V{Float64, DefaultRefType}(a) == x
         @test V{Float32, DefaultRefType}(a) == x
 
+        x2 = copy(x)
+        @test x2 == x
+        @test typeof(x2) === typeof(x)
+
         @test x[1] === Nullable(x.pool.valindex[1])
         @test x[2] === Nullable(x.pool.valindex[2])
         @test x[3] === Nullable(x.pool.valindex[3])
@@ -391,6 +403,10 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test M{String, R}(a) == x
             @test M{String, DefaultRefType}(a) == x
             @test M{String, UInt8}(a) == x
+
+            x2 = copy(x)
+            @test x2 == x
+            @test typeof(x2) === typeof(x)
 
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
@@ -503,6 +519,10 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test M{String, DefaultRefType}(a) == x
             @test M{String, UInt8}(a) == x
 
+            x2 = copy(x)
+            @test x2 == x
+            @test typeof(x2) === typeof(x)
+
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
             @test x[3] === eltype(x)()
@@ -595,6 +615,10 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         end
 
         for x in v
+            x2 = copy(x)
+            @test x2 == x
+            @test typeof(x2) === typeof(x)
+
             @test isnull(x[1])
             @test isnull(x[2])
             @test levels(x) == []

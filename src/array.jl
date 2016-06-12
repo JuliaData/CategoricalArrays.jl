@@ -113,6 +113,8 @@ size(A::CatOrdArray) = size(A.values)
 linearindexing{T <: CatOrdArray}(::Type{T}) = Base.LinearFast()
 
 setindex!(A::CatOrdArray, v::Any, i::Int) = A.values[i] = get!(A.pool, v)
+setindex!{T}(A::CatOrdArray, v::CategoricalValue{T}, i::Int) =
+    A.values[i] = get!(A.pool, convert(T, v))
 
 
 ## Categorical-specific methods
