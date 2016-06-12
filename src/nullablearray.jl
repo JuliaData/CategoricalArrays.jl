@@ -11,11 +11,11 @@ for (A, V, M, P, S) in ((:NullableNominalArray, :NullableNominalVector,
                          :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
     @eval begin
         $A{T, N}(::Type{Nullable{T}}, dims::NTuple{N,Int}) =
-            $A{T, N}($P(), zeros(DefaultRefType, dims))
+            $A{T, N}(zeros(DefaultRefType, dims), $P())
         $A{T}(::Type{Nullable{T}}, dims::Int...) = $A(T, dims)
 
         @compat (::Type{$A{Nullable{T}, N, R}}){T, N, R}(dims::NTuple{N,Int}) =
-            $A($P{T, R}(), zeros(R, dims))
+            $A(zeros(R, dims), $P{T, R}())
         @compat (::Type{$A{Nullable{T}, N}}){T, N}(dims::NTuple{N,Int}) = $A{T}(dims)
         @compat (::Type{$A{Nullable{T}}}){T}(m::Int) = $A{T}((m,))
         @compat (::Type{$A{Nullable{T}}}){T}(m::Int, n::Int) = $A{T}((m, n))

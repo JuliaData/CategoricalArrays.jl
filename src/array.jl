@@ -16,7 +16,7 @@ for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
                          :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
     @eval begin
         $A{T, N}(::Type{T}, dims::NTuple{N,Int}) =
-            $A($P{T}(), zeros(DefaultRefType, dims))
+            $A(zeros(DefaultRefType, dims), $P{T}())
         $A{T}(::Type{T}, dims::Int...) = $A{T}(dims)
         $A(dims::Int...) = $A{String}(dims)
 
@@ -25,7 +25,7 @@ for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
         $A{N}(::Type{$S}, dims::NTuple{N,Int}) = $A{String, N}(dims)
 
         @compat (::Type{$A{T, N, R}}){T, N, R}(dims::NTuple{N,Int}) =
-            $A{T, N, R}($P{T, R}(), zeros(R, dims))
+            $A{T, N, R}(zeros(R, dims), $P{T, R}())
         @compat (::Type{$A{T, N}}){T, N}(dims::NTuple{N,Int}) =
             $A{T, N, DefaultRefType}(dims)
         @compat (::Type{$A{T}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
