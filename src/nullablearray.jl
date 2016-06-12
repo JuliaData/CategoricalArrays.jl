@@ -42,17 +42,6 @@ if VERSION >= v"0.5.0-dev"
 end
         @compat (::Type{$M{Nullable{T}}}){T}(m::Int, n::Int) = $A{T}((m, n))
 
-        convert{T, N, R}(::Type{$A{T, N, R}}, A::AbstractArray{Nullable{T}}) = convert($A{T, N, R}, A)
-        convert{T, N}(::Type{$A{T}}, A::AbstractArray{Nullable{T}, N}) = convert($A{T, N}, A)
-        convert{T, N}(::Type{$A}, A::AbstractArray{Nullable{T}, N}) = convert($A{T, N}, A)
-        convert{T}(::Type{$V}, A::AbstractVector{Nullable{T}}) = convert($V{T}, A)
-        convert{T}(::Type{$M}, A::AbstractMatrix{Nullable{T}}) = convert($M{T}, A)
-
-        convert{T, N, R}(::Type{$A{Nullable{$S{T, R}}, N}}, A::AbstractArray{T, N}) =
-            convert($A{T, N, R}, A)
-        convert{T, N}(::Type{$A{Nullable{$S{T}}, N}}, A::AbstractArray{T, N}) =
-            convert($A{T, N}, A)
-
         function getindex(A::$A, i::Int)
             j = A.values[i]
             S = eltype(eltype(A))
