@@ -1,10 +1,15 @@
 module CategoricalArrays
     export CategoricalPool, NominalPool, OrdinalPool
     export NominalValue, OrdinalValue
+
+    export CategoricalArray, CategoricalVector, CategoricalMatrix
     export NominalArray, NominalVector, NominalMatrix
     export OrdinalArray, OrdinalVector, OrdinalMatrix
+
+    export NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
     export NullableNominalArray, NullableNominalVector, NullableNominalMatrix
     export NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix
+
     export droplevels!, levels, levels!
 
     using Compat
