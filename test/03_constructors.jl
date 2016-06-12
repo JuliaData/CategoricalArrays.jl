@@ -43,6 +43,22 @@ module TestConstructors
         @test pool.invindex["b"] === DefaultRefType(2)
         @test pool.invindex["c"] === DefaultRefType(3)
 
+        pool = P{String, UInt8}(["a", "b", "c"])
+
+        @test isa(pool, P)
+
+        @test isa(pool.index, Vector{String})
+        @test length(pool.index) == 3
+        @test pool.index[1] == "a"
+        @test pool.index[2] == "b"
+        @test pool.index[3] == "c"
+
+        @test isa(pool.invindex, Dict{String, UInt8})
+        @test length(pool.invindex) == 3
+        @test pool.invindex["a"] === UInt8(1)
+        @test pool.invindex["b"] === UInt8(2)
+        @test pool.invindex["c"] === UInt8(3)
+
         pool = P(
             Dict(
                 "a" => DefaultRefType(1),

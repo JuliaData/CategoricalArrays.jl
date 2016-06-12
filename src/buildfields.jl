@@ -6,8 +6,8 @@ function buildindex{S, R <: Integer}(invindex::Dict{S, R})
     return index
 end
 
-function buildinvindex{T}(index::Vector{T})
-    invindex = Dict{T, DefaultRefType}()
+function buildinvindex{T}(index::Vector{T}, R=DefaultRefType)
+    invindex = Dict{T, R}()
     for (i, v) in enumerate(index)
         invindex[v] = i
     end

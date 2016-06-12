@@ -10,6 +10,12 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
         @compat (::Type{$P{T, R}}){T, R}() = $P(T[], Dict{T, R}(), R[])
         @compat (::Type{$P{T}}){T}() = $P(T[], Dict{T, DefaultRefType}(), DefaultRefType[])
 
+        @compat function (::Type{$P{T, R}}){T, R}(index::Vector)
+            invindex = buildinvindex(index, R)
+            order = Vector{R}(1:length(index))
+            $P(index, invindex, order)
+        end
+
         function $P(index::Vector)
             invindex = buildinvindex(index)
             order = Vector{DefaultRefType}(1:length(index))
