@@ -94,7 +94,7 @@ function @compat(Base.:(==))(A::CatOrdArray, B::CatOrdArray)
         return false
     end
     if A.pool === B.pool
-        for (a, b) in zip(A.values, B.values)
+        for (a, b) in zip(A.refs, B.refs)
             if a != b
                 return false
             end
@@ -109,12 +109,12 @@ function @compat(Base.:(==))(A::CatOrdArray, B::CatOrdArray)
     return true
 end
 
-size(A::CatOrdArray) = size(A.values)
+size(A::CatOrdArray) = size(A.refs)
 linearindexing{T <: CatOrdArray}(::Type{T}) = Base.LinearFast()
 
-setindex!(A::CatOrdArray, v::Any, i::Int) = A.values[i] = get!(A.pool, v)
+setindex!(A::CatOrdArray, v::Any, i::Int) = A.refs[i] = get!(A.pool, v)
 setindex!{T}(A::CatOrdArray, v::CategoricalValue{T}, i::Int) =
-    A.values[i] = get!(A.pool, convert(T, v))
+    A.refs[i] = get!(A.pool, convert(T, v))
 
 
 ## Categorical-specific methods
@@ -131,7 +131,7 @@ function _levels!(A::CatOrdArray, newlevels::Vector; nullok=false)
     # TODO: save original levels and undo changes in case of error to skip this step
     if !all(l->l in newlevels, index(A.pool))
         deleted = [!(l in newlevels) for l in index(A.pool)]
-        @inbounds for (i, x) in enumerate(A.values)
+        @inbounds for (i, x) in enumerate(A.refs)
             if (isa(A, NominalArray) || isa(A, OrdinalArray)) && deleted[x]
                 throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i. Convert array to a Nullable$(typeof(A).name.name) if you want to transform some levels to missing values."))
             elseif (isa(A, NullableNominalArray) || isa(A, NullableOrdinalArray)) && !nullok && deleted[x]
@@ -148,9 +148,9 @@ function _levels!(A::CatOrdArray, newlevels::Vector; nullok=false)
         # indexin returns 0 when not found, which maps to a missing value
         levelsmap = indexin(oldindex, index(A.pool))
 
-        @inbounds for (i, x) in enumerate(A.values)
+        @inbounds for (i, x) in enumerate(A.refs)
             j = levelsmap[x]
-            x > 0 && (A.values[i] = j)
+            x > 0 && (A.refs[i] = j)
         end
     end
 
@@ -159,7 +159,7 @@ end
 
 function droplevels!(A::CatOrdArray)
     found = fill(false, length(index(A.pool)))
-    @inbounds for i in A.values
+    @inbounds for i in A.refs
         i > 0 && (found[i] = true)
     end
     levels!(A, intersect(levels(A.pool), index(A.pool)[found]))
@@ -169,7 +169,7 @@ end
 ## Code specific to NominalArray and OrdinalArray
 
 function getindex(A::CatOrdArray, i::Int)
-    j = A.values[i]
+    j = A.refs[i]
     j > 0 || throw(UndefRefError())
     A.pool[j]
 end

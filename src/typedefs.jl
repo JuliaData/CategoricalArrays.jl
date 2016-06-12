@@ -47,7 +47,7 @@ end
 
 type NominalArray{T, N, R <: Integer} <: AbstractArray{NominalValue{T, R}, N}
     pool::NominalPool{T, R, NominalValue{T, R}}
-    values::Array{R, N}
+    refs::Array{R, N}
 end
 typealias NominalVector{T, R} NominalArray{T, 1, R}
 typealias NominalMatrix{T, R} NominalArray{T, 2, R}
@@ -58,7 +58,7 @@ typealias AbstractOrdinalMatrix{T, R} AbstractOrdinalArray{T, 2, R}
 
 type OrdinalArray{T, N, R <: Integer} <: AbstractOrdinalArray{T, N}
     pool::OrdinalPool{T, R, OrdinalValue{T, R}}
-    values::Array{R, N}
+    refs::Array{R, N}
 end
 typealias OrdinalVector{T, R} OrdinalArray{T, 1, R}
 typealias OrdinalMatrix{T, R} OrdinalArray{T, 2, R}
@@ -68,14 +68,14 @@ typealias OrdinalMatrix{T, R} OrdinalArray{T, 2, R}
 
 type NullableNominalArray{T, N, R <: Integer} <: AbstractArray{Nullable{NominalValue{T, R}}, N}
     pool::NominalPool{T, R, NominalValue{T, R}}
-    values::Array{R, N}
+    refs::Array{R, N}
 end
 typealias NullableNominalVector{T, R} NullableNominalArray{T, 1, R}
 typealias NullableNominalMatrix{T, R} NullableNominalArray{T, 2, R}
 
 type NullableOrdinalArray{T, N, R <: Integer} <: AbstractArray{Nullable{OrdinalValue{T, R}}, N}
     pool::OrdinalPool{T, R, OrdinalValue{T, R}}
-    values::Array{R, N}
+    refs::Array{R, N}
 end
 typealias NullableOrdinalVector{T, R} NullableOrdinalArray{T, 1, R}
 typealias NullableOrdinalMatrix{T, R} NullableOrdinalArray{T, 2, R}

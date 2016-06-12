@@ -43,14 +43,14 @@ end
         @compat (::Type{$M{Nullable{T}}}){T}(m::Int, n::Int) = $A{T}((m, n))
 
         function getindex(A::$A, i::Int)
-            j = A.values[i]
+            j = A.refs[i]
             S = eltype(eltype(A))
             j > 0 ? Nullable{S}(A.pool[j]) : Nullable{S}()
         end
 
         function setindex!(A::$A, v::Nullable, i::Int)
             if isnull(v)
-                A.values[i] = 0
+                A.refs[i] = 0
             else
                 A[i] = get(v)
             end
