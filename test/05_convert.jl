@@ -20,5 +20,9 @@ module TestConvert
         convert(UInt8, v1)
         convert(UInt8, v2)
         convert(UInt8, v3)
+
+        @test promote(1, v1) === (1, 1)
+        @test promote(1.0, v1) === (1.0, 1.0)
+        @test promote(0x1, v1) === (1, 1)
     end
 end

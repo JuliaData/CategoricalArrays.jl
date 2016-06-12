@@ -7,6 +7,10 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
         Base.convert{T, R}(::Type{$V{T, R}}, x::$V{T}) = x
         Base.convert{T}(::Type{$V{T}}, x::$V{T}) = x
         Base.convert(::Type{$V}, x::$V) = x
+
+        Base.promote_rule{S, T, R}(::Type{$V{S, R}}, ::Type{T}) = promote_type(S, T)
+        Base.promote_rule{S, T}(::Type{$V{S}}, ::Type{T}) = promote_type(S, T)
+        Base.promote_rule{T}(::Type{$V}, ::Type{T}) = T
     end
 end
 
