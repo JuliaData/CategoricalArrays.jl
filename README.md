@@ -1,6 +1,8 @@
 CategoricalArrays.jl
 ==================
 
+[![Build Status](https://travis-ci.org/nalimilan/CategoricalArrays.jl.svg?branch=master)](https://travis-ci.org/nalimilan/CategoricalArrays.jl)
+
 Tools for working with categorical variables, both with unordered (nominal variables)
 and ordered categories (ordinal variables). This package provides a replacement for
 [DataArrays.jl](https://github.com/JuliaStats/DataArrays.jl)'s `PooledDataArray` type.
