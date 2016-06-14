@@ -599,6 +599,12 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[5] === Nullable(x.pool.valindex[1])
             @test x[6] === eltype(x)()
             @test levels(x) == ["a", "b", "c", "z"]
+
+
+            # Constructor with values plus missingness array
+            @test A(1:3, [true, false, true]) == Nullable{Int}[Nullable(), 2, Nullable()]
+            @test V(1:3, [true, false, true]) == Nullable{Int}[Nullable(), 2, Nullable()]
+            @test M([1 2; 3 4], [true false; false true]) == Nullable{Int}[Nullable() 2; 3 Nullable()]
         end
 
         # Uninitialized array

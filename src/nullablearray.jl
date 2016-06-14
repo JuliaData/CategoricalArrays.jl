@@ -42,6 +42,16 @@ if VERSION >= v"0.5.0-dev"
 end
         @compat (::Type{$M{Nullable{T}}}){T}(m::Int, n::Int) = $A{T}((m, n))
 
+        function $A{T, N}(A::AbstractArray{T, N}, missing::AbstractArray{Bool})
+            res = $A{T, N}(size(A))
+            @inbounds for (i, x, m) in zip(eachindex(res), A, missing)
+                res[i] = ifelse(m, Nullable{T}(), x)
+            end
+            res
+        end
+        $V{T}(A::AbstractVector{T}, missing::AbstractVector{Bool}) = $A(A, missing)
+        $M{T}(A::AbstractMatrix{T}, missing::AbstractMatrix{Bool}) = $A(A, missing)
+
         function getindex(A::$A, i::Int)
             j = A.refs[i]
             S = eltype(eltype(A))
