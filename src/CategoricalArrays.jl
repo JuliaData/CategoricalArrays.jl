@@ -19,8 +19,6 @@ module CategoricalArrays
         Base.convert{T,n,S}(::Type{Array{T,n}}, x::AbstractArray{S,n}) = copy!(Array{T}(size(x)), x)
 
         Base.convert{T}(::Type{Nullable   }, x::T) = Nullable{T}(x)
-
-        allunique(C) = length(unique(C)) == length(C)
     end
 
     include("typedefs.jl")
