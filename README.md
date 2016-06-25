@@ -2,6 +2,8 @@ CategoricalArrays.jl
 ==================
 
 [![Build Status](https://travis-ci.org/nalimilan/CategoricalArrays.jl.svg?branch=master)](https://travis-ci.org/nalimilan/CategoricalArrays.jl)
+[![Coveralls](https://coveralls.io/repos/github/nalimilan/CategoricalArrays.jl/badge.svg)](https://coveralls.io/github/nalimilan/CategoricalArrays.jl)
+[![Codecov](https://codecov.io/gh/nalimilan/CategoricalArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/nalimilan/CategoricalArrays.jl)
 
 Tools for working with categorical variables, both with unordered (nominal variables)
 and ordered categories (ordinal variables). This package provides a replacement for
