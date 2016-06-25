@@ -603,17 +603,20 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
 
             # Constructor with values plus missingness array
             @test A(1:3, [true, false, true]) == Nullable{Int}[Nullable(), 2, Nullable()]
-            @test V(1:3, [true, false, true]) == Nullable{Int}[Nullable(), 2, Nullable()]
-            @test M([1 2; 3 4], [true false; false true]) == Nullable{Int}[Nullable() 2; 3 Nullable()]
+
+            if VERSION >= v"0.5.0-dev"
+                @test V(1:3, [true, false, true]) == Nullable{Int}[Nullable(), 2, Nullable()]
+                @test M([1 2; 3 4], [true false; false true]) == Nullable{Int}[Nullable() 2; 3 Nullable()]
+            end
         end
 
         # Uninitialized array
-        v = [A(2), A(String, 2),
-             A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
-             V{String}(2), V{String, R}(2),
-             A(2, 3), A(String, 2, 3),
-             A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
-             M{String}(2, 3), M{String, R}(2, 3)]
+        v = Any[A(2), A(String, 2),
+                A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
+                V{String}(2), V{String, R}(2),
+                A(2, 3), A(String, 2, 3),
+                A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
+                M{String}(2, 3), M{String, R}(2, 3)]
 
         # See conditional definition of constructors in array.jl and nullablearray.jl
         if VERSION >= v"0.5.0-dev"

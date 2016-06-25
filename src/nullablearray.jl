@@ -49,8 +49,11 @@ end
             end
             res
         end
+
+if VERSION >= v"0.5.0-dev"
         $V{T}(A::AbstractVector{T}, missing::AbstractVector{Bool}) = $A(A, missing)
         $M{T}(A::AbstractMatrix{T}, missing::AbstractMatrix{Bool}) = $A(A, missing)
+end
 
         function getindex(A::$A, i::Int)
             j = A.refs[i]

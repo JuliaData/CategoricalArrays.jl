@@ -344,12 +344,12 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
 
 
         # Uninitialized array
-        v = [A(2), A(String, 2),
-             A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
-             V{String}(2), V{String, R}(2),
-             A(2, 3), A(String, 2, 3),
-             A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
-             M{String}(2, 3), M{String, R}(2, 3)]
+        v = Any[A(2), A(String, 2),
+                A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
+                V{String}(2), V{String, R}(2),
+                A(2, 3), A(String, 2, 3),
+                A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
+                M{String}(2, 3), M{String, R}(2, 3)]
 
         # See conditional definition of constructors in array.jl
         if VERSION >= v"0.5.0-dev"
