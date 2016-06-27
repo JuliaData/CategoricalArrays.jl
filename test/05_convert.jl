@@ -4,8 +4,10 @@ module TestConvert
 
     for (P, V) in ((NominalPool, NominalValue), (OrdinalPool, OrdinalValue))
         pool = P([1, 2, 3])
-        convert(P{Float64}, pool)
-        convert(P, pool)
+        @test convert(P{Int, CategoricalArrays.DefaultRefType}, pool) === pool
+        @test convert(P{Int}, pool) === pool
+        @test convert(P, pool) === pool
+        convert(P{Float64, UInt8}, pool)
         convert(P{Float64}, pool)
         convert(P, pool)
 

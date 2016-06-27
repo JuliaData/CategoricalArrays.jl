@@ -55,18 +55,19 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
             return $P(index, invindex, order)
         end
 
+        Base.convert(::Type{$P}, pool::$P) = pool
+        Base.convert{T}(::Type{$P{T}}, pool::$P{T}) = pool
+        Base.convert{T, R}(::Type{$P{T, R}}, pool::$P{T, R}) = pool
+
         function Base.convert{S, R}(::Type{$P{S, R}}, pool::$P)
             indexS = convert(Vector{S}, pool.index)
             invindexS = convert(Dict{S, R}, pool.invindex)
-            return $P(indexS, invindexS, pool.order)
+            order = convert(Vector{R}, pool.order)
+            return $P(indexS, invindexS, order)
         end
 
         Base.convert{S, T, R}(::Type{$P{S}}, pool::$P{T, R}) = convert($P{S, R}, pool)
         Base.convert{T, R}(::Type{$P}, pool::$P{T, R}) = convert($P{T, R}, pool)
-
-        Base.convert(::Type{$P}, pool::$P) = pool
-        Base.convert{T}(::Type{$P{T}}, pool::$P{T}) = pool
-        Base.convert{T, R}(::Type{$P{T, R}}, pool::$P{T, R}) = pool
     end
 end
 
