@@ -2,6 +2,8 @@ CategoricalArrays.jl
 ==================
 
 [![Build Status](https://travis-ci.org/nalimilan/CategoricalArrays.jl.svg?branch=master)](https://travis-ci.org/nalimilan/CategoricalArrays.jl)
+[![Julia 0.4 Status](http://pkg.julialang.org/badges/CategoricalArrays_0.4.svg)](http://pkg.julialang.org/?pkg=CategoricalArrays&ver=0.4)
+[![Julia 0.5 Status](http://pkg.julialang.org/badges/CategoricalArrays_0.5.svg)](http://pkg.julialang.org/?pkg=CategoricalArrays&ver=0.5)
 [![Coveralls](https://coveralls.io/repos/github/nalimilan/CategoricalArrays.jl/badge.svg)](https://coveralls.io/github/nalimilan/CategoricalArrays.jl)
 [![Codecov](https://codecov.io/gh/nalimilan/CategoricalArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/nalimilan/CategoricalArrays.jl)
 
