@@ -86,6 +86,24 @@ end
 
         convert{S, T, N, R}(::Type{$A{T, N, R}}, A::AbstractArray{S, N}) =
             copy!($A{T, N, R}(size(A)), A)
+
+        # More efficient method than the general definition above
+        function convert{T, N, R}(::Type{$A{T, N, R}}, A::$A)
+            pool = convert($P{T, R}, A.pool)
+            refs = convert(Array{R, N}, A.refs)
+            $A(refs, pool)
+        end
+
+        function compact{T, N}(A::$A{T, N})
+            sz = length(index(A.pool))
+
+            R = sz <= typemax(UInt8)  ? UInt8 :
+                sz <= typemax(UInt16) ? UInt16 :
+                sz <= typemax(UInt32) ? UInt32 :
+                                        UInt64
+
+            convert($A{T, N, R}, A)
+        end
     end
 end
 

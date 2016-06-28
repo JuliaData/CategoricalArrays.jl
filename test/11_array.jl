@@ -69,9 +69,15 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test V{String, DefaultRefType}(a) == x
         @test V{String, UInt8}(a) == x
 
+        x2 = compact(x)
+        @test x2 == x
+        @test isa(x2, V{String, UInt8})
+        @test levels(x2) == levels(x)
+
         x2 = copy(x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
+        @test levels(x2) == levels(x)
 
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
@@ -201,9 +207,15 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test V{Float64, DefaultRefType}(a) == x
         @test V{Float32, DefaultRefType}(a) == x
 
+        x2 = compact(x)
+        @test x2 == x
+        @test isa(x2, V{Float64, UInt8})
+        @test levels(x2) == levels(x)
+
         x2 = copy(x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
+        @test levels(x2) == levels(x)
 
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
@@ -288,9 +300,15 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test M{String, DefaultRefType}(a) == x
         @test M{String, UInt8}(a) == x
 
+        x2 = compact(x)
+        @test x2 == x
+        @test isa(x2, M{String, UInt8})
+        @test levels(x2) == levels(x)
+
         x2 = copy(x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
+        @test levels(x2) == levels(x)
 
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
@@ -363,6 +381,18 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
             @test_throws UndefRefError x[2]
             @test_throws UndefRefError copy(x)
             @test levels(x) == []
+
+            x2 = compact(x)
+            if VERSION >= v"0.5.0"
+                @test isa(x2, A{String, ndims(x), UInt8})
+            else
+                @test isa(x2, A{A.parameters[1], ndims(x), UInt8})
+            end
+            @test !isassigned(x2, 1) && isdefined(x2, 1)
+            @test !isassigned(x2, 2) && isdefined(x2, 2)
+            @test_throws UndefRefError x2[1]
+            @test_throws UndefRefError x2[2]
+            @test levels(x2) == []
 
             x[1] = "c"
             @test x[1] === x.pool.valindex[1]

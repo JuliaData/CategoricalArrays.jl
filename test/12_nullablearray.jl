@@ -76,9 +76,15 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test V{String, DefaultRefType}(a) == x
             @test V{String, UInt8}(a) == x
 
+            x2 = compact(x)
+            @test x2 == x
+            @test isa(x2, V{String, UInt8})
+            @test levels(x2) == levels(x)
+
             x2 = copy(x)
             @test x2 == x
             @test typeof(x2) === typeof(x)
+            @test levels(x2) == levels(x)
 
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
@@ -141,6 +147,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test levels(x) == ["e", "c"]
         end
 
+
         # Vector with null values
         for a in (Nullable{String}["a", "b", Nullable()],
                   NullableArray(Nullable{String}["a", "b", Nullable()]))
@@ -201,9 +208,15 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test V{String, DefaultRefType}(a) == x
             @test V{String, UInt8}(a) == x
 
+            x2 = compact(x)
+            @test x2 == x
+            @test isa(x2, V{String, UInt8})
+            @test levels(x2) == levels(x)
+
             x2 = copy(x)
             @test x2 == x
             @test typeof(x2) === typeof(x)
+            @test levels(x2) == levels(x)
 
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
@@ -239,6 +252,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[3] === eltype(x)()
             @test levels(x) == ["a", "b", "c"]
         end
+
 
         # Vector created from range (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
@@ -314,9 +328,15 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         @test V{Float64, DefaultRefType}(a) == x
         @test V{Float32, DefaultRefType}(a) == x
 
+        x2 = compact(x)
+        @test x2 == x
+        @test isa(x2, V{Float64, UInt8})
+        @test levels(x2) == levels(x)
+
         x2 = copy(x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
+        @test levels(x2) == levels(x)
 
         @test x[1] === Nullable(x.pool.valindex[1])
         @test x[2] === Nullable(x.pool.valindex[2])
@@ -404,9 +424,15 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test M{String, DefaultRefType}(a) == x
             @test M{String, UInt8}(a) == x
 
+            x2 = compact(x)
+            @test x2 == x
+            @test isa(x2, M{String, UInt8})
+            @test levels(x2) == levels(x)
+
             x2 = copy(x)
             @test x2 == x
             @test typeof(x2) === typeof(x)
+            @test levels(x2) == levels(x)
 
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
@@ -458,6 +484,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[6] === Nullable(x.pool.valindex[3])
             @test levels(x) == ["a", "b", "c", "z"]
         end
+
 
         # Matrix with null values
         for a in (Nullable{String}["a" Nullable() "c"; "b" "a" Nullable()],
@@ -519,9 +546,15 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test M{String, DefaultRefType}(a) == x
             @test M{String, UInt8}(a) == x
 
+            x2 = compact(x)
+            @test x2 == x
+            @test isa(x2, M{String, UInt8})
+            @test levels(x2) == levels(x)
+
             x2 = copy(x)
             @test x2 == x
             @test typeof(x2) === typeof(x)
+            @test levels(x2) == levels(x)
 
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
@@ -610,6 +643,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             end
         end
 
+
         # Uninitialized array
         v = Any[A(2), A(String, 2),
                 A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
@@ -624,9 +658,19 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         end
 
         for x in v
+            x2 = compact(x)
+            @test x2 == x
+            if VERSION >= v"0.5.0"
+                @test isa(x2, A{String, ndims(x), UInt8})
+            else
+                @test isa(x2, A{A.parameters[1], ndims(x), UInt8})
+            end
+            @test levels(x2) == []
+
             x2 = copy(x)
             @test x2 == x
             @test typeof(x2) === typeof(x)
+            @test levels(x2) == []
 
             @test isnull(x[1])
             @test isnull(x[2])

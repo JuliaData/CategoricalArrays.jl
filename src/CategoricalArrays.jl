@@ -10,7 +10,7 @@ module CategoricalArrays
     export NullableNominalArray, NullableNominalVector, NullableNominalMatrix
     export NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix
 
-    export droplevels!, levels, levels!
+    export compact, droplevels!, levels, levels!
 
     using Compat
 
