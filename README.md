@@ -133,7 +133,7 @@ julia> levels(x)
 
 ```
 
-Another solution would have been to call `levels(x, ["Young", "Middle"])` manually.
+Another solution would have been to call `levels!(x, ["Young", "Middle"])` manually.
 This command is safe too, since it will raise an error when trying to remove levels
 that are currently used:
 ```julia
@@ -153,9 +153,9 @@ generally not the case in real data. This is where `NullableNominalArray` and
 `NullableOrdinalArray` come into play. They are essentially the categorical-data
 equivalent of [NullableArrays](https://github.com/JuliaStats/NullableArrays.jl).
 They behave exactly the same as `NominalArray` and `OrdinalArray`, except that
-they return respectively `Nullable{NominalValue}` and `Nullable{OrdinalValue}`.
+they return respectively `Nullable{NominalValue}` and `Nullable{OrdinalValue}` elements.
 See [the Julia manual](http://docs.julialang.org/en/stable/manual/types/?highlight=nullable#nullable-types-representing-missing-values)
-for more information on `Nullable` types.
+for more information on the `Nullable` type.
 
 Let's adapt the example developed above to support missing values. At first sight,
 not much changes:
@@ -169,7 +169,7 @@ julia> y = NullableOrdinalArray(["Old", "Young", "Middle", "Young"])
 
 ```
 
-Levels still need to be ordered:
+Levels still need to be reordered manually:
 ```julia
 julia> levels(y)
 3-element Array{String,1}:
@@ -218,10 +218,10 @@ Nullable{CategoricalArrays.OrdinalValue{String,UInt32}}()
 
 ```
 
-It is also possible to turn all values belonging to some levels to missing values, which is
-equivalent here since we have only one individual in the `"Old"` group. Let's first restore
-the original value for the first element, and then set it to missing again using the `nullok`
-argument to `levels!`:
+It is also possible to transform all values belonging to some levels into missing values, which
+gives the same result as above in the present case since we have only one individual in the
+`"Old"` group. Let's first restore the original value for the first element, and then set it
+to missing again using the `nullok` argument to `levels!`:
 ```julia
 julia> y[1] = "Old"
 "Old"
@@ -256,15 +256,15 @@ types. They are based on the `NominalPool` and `OrdinalPool` types, which keep t
 levels and associates them with an integer reference (for internal use). They offer
 methods to set levels, change their order while preserving the references, and efficiently
 get the integer index corresponding to a level and vice-versa. They are also
-parameterized on the type used to store the indices, so that small pools can use as little
+parameterized on the type used to store the references, so that small pools can use as little
 memory as possible. Finally, they keep a vector of value objects (`NominalValue` or
 `CategoricalValue`), so that `getindex` can return the existing object instead of allocating
 a new one.
 
 Array types are made of two fields:
-- `pool`: the `NominalPool` or `OrdinalPool` object keeping the levels of the array
-- `values`: an integer vector giving the indices of the level for each element. `0`
-corresponds to a missing value for `NullableNominalArray` and `NullableOrdinalArray`.
+- `refs`: an integer vector giving the index of the level in the pool for each element.
+For `NullableNominalArray` and `NullableOrdinalArray`, `0` indicates a missing value.
+- `pool`: the `NominalPool` or `OrdinalPool` object keeping the levels of the array.
 
 `NominalPool` and `OrdinalPool` are designed to limit the need to go over all elements of
 the vector, either for reading or for writing. This is why unused levels are not dropped
