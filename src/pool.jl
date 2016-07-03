@@ -46,15 +46,6 @@ for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
             return $P(index, invindex, order)
         end
 
-        # TODO: Add tests for this
-        function $P{S, R <: Integer}(index::Vector{S},
-                                     invindex::Dict{S, R},
-                                     ordered::Vector{S})
-            index = buildindex(invindex)
-            order = buildorder(invindex, ordered)
-            return $P(index, invindex, order)
-        end
-
         Base.convert(::Type{$P}, pool::$P) = pool
         Base.convert{T}(::Type{$P{T}}, pool::$P{T}) = pool
         Base.convert{T, R}(::Type{$P{T, R}}, pool::$P{T, R}) = pool
