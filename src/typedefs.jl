@@ -60,7 +60,7 @@ abstract AbstractOrdinalArray{T, N, R <: Integer} <: AbstractArray{OrdinalValue{
 typealias AbstractOrdinalVector{T, R} AbstractOrdinalArray{T, 1, R}
 typealias AbstractOrdinalMatrix{T, R} AbstractOrdinalArray{T, 2, R}
 
-type OrdinalArray{T, N, R <: Integer} <: AbstractOrdinalArray{T, N}
+type OrdinalArray{T, N, R <: Integer} <: AbstractOrdinalArray{T, N, R}
     refs::Array{R, N}
     pool::OrdinalPool{T, R, OrdinalValue{T, R}}
 end
