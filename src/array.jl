@@ -3,14 +3,11 @@
 
 import Base: convert, getindex, setindex!, similar, size, linearindexing
 
-typealias CatOrdArray Union{NominalArray, OrdinalArray,
-                            NullableNominalArray, NullableOrdinalArray}
-
 for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
                          :NominalMatrix, :NominalPool, :NominalValue),
                         (:OrdinalArray, :OrdinalVector,
                          :OrdinalMatrix, :OrdinalPool, :OrdinalValue),
-                        (:NullableNominalArray, :NullableNominalVector, 
+                        (:NullableNominalArray, :NullableNominalVector,
                          :NullableNominalMatrix, :NominalPool, :NominalValue),
                         (:NullableOrdinalArray, :NullableOrdinalVector,
                          :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
