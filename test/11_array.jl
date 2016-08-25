@@ -132,6 +132,37 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test x[3] === x.pool.valindex[1]
         @test levels(x) == ["e", "a", "b", "c"]
 
+        push!(x, "a")
+        @test length(x) == 4
+        @test x[end] == "a"
+        @test levels(x) == ["e", "a", "b", "c"]
+
+        push!(x, "zz")
+        @test length(x) == 5
+        @test x[end] == "zz"
+        @test levels(x) == ["e", "a", "b", "c", "zz"]
+
+        push!(x, x[1])
+        @test length(x) == 6
+        @test x[1] == x[end]
+        @test levels(x) == ["e", "a", "b", "c", "zz"]
+
+        y = V{String, R}(a)
+        append!(x, y)
+        @test length(x) == 9
+
+        b = ["z","y","x"]
+        y = V{String, R}(b)
+        append!(x, y)
+        @test length(x) == 12
+        @test x[end-2] == "z"
+        @test x[end-1] == "y"
+        @test x[end] == "x"
+        @test levels(x) == ["e", "a", "b", "c", "zz", "z", "y", "x"]
+
+
+        empty!(x)
+        @test length(x) == 0
 
         # Vector created from range (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype

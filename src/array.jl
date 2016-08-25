@@ -190,3 +190,21 @@ function getindex(A::CatOrdArray, i::Int)
 end
 
 levels!(A::CatOrdArray, newlevels::Vector) = _levels!(A, newlevels)
+
+function Base.push!(A::CatOrdArray, item)
+    resize!(A.refs, length(A.refs) + 1)
+    A[end] = item
+    return A
+end
+
+function Base.append!(A::CatOrdArray, B::CatOrdArray)
+    levels!(A, union(levels(A), levels(B)))
+    len = length(A.refs)
+    resize!(A.refs, len + length(B.refs))
+    for (i, item) in enumerate(B)
+        A[len + i] = item
+    end
+    return A
+end
+
+Base.empty!(A::CatOrdArray) = (empty!(A.refs); return A)

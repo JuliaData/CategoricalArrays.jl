@@ -145,6 +145,44 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[2] === eltype(x)()
             @test x[3] === eltype(x)()
             @test levels(x) == ["e", "c"]
+
+            push!(x, "e")
+            @test length(x) == 4
+            @test get(x[end]) == "e"
+            @test levels(x) == ["e", "c"]
+
+            push!(x, "zz")
+            @test length(x) == 5
+            @test get(x[end]) == "zz"
+            @test levels(x) == ["e", "c", "zz"]
+
+            push!(x, x[1])
+            @test length(x) == 6
+            @test get(x[1]) == get(x[end])
+            @test levels(x) == ["e", "c", "zz"]
+
+            push!(x, eltype(x)())
+            @test length(x) == 7
+            @test isnull(x[end])
+            @test levels(x) == ["e", "c", "zz"]
+
+            y = V{String, R}(a)
+            append!(x, y)
+            @test length(x) == 10
+
+            b = ["z","y","x"]
+            y = V{String, R}(b)
+            append!(x, y)
+            @test length(x) == 13
+            @test levels(x) == ["e", "c", "zz", "a", "b", "z", "y", "x"]
+
+            push!(y, eltype(y)())
+            append!(x, y)
+            @test isnull(x[end])
+            @test levels(x) == ["e", "c", "zz", "a", "b", "z", "y", "x"]
+
+            empty!(x)
+            @test length(x) == 0
         end
 
 
