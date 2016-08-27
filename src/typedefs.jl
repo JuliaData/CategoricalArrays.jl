@@ -88,5 +88,19 @@ end
 typealias NullableOrdinalVector{T, R} NullableOrdinalArray{T, 1, R}
 typealias NullableOrdinalMatrix{T, R} NullableOrdinalArray{T, 2, R}
 
+
+## Type Aliases
+
 typealias CatOrdArray Union{NominalArray, OrdinalArray,
                             NullableNominalArray, NullableOrdinalArray}
+
+typealias CategoricalArray{T, N, R} Union{NominalArray{T, N, R}, OrdinalArray{T, N, R}}
+typealias CategoricalVector{T, R} Union{NominalVector{T, R}, OrdinalVector{T, R}}
+typealias CategoricalMatrix{T, R} Union{NominalMatrix{T, R}, OrdinalMatrix{T, R}}
+
+typealias NullableCategoricalArray{T, N, R}
+    Union{NullableNominalArray{T, N, R}, NullableOrdinalArray{T, N, R}}
+typealias NullableCategoricalVector{T, R}
+    Union{NullableNominalVector{T, R}, NullableOrdinalVector{T, R}}
+typealias NullableCategoricalMatrix{T, R}
+    Union{NullableNominalMatrix{T, R}, NullableOrdinalMatrix{T, R}}
