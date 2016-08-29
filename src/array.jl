@@ -164,8 +164,7 @@ function _levels!(A::CatOrdArray, newlevels::Vector; nullok=false)
         levelsmap = indexin(oldindex, index(A.pool))
 
         @inbounds for (i, x) in enumerate(A.refs)
-            j = levelsmap[x]
-            x > 0 && (A.refs[i] = j)
+            x > 0 && (A.refs[i] = levelsmap[x])
         end
     end
 
@@ -200,9 +199,10 @@ end
 function Base.append!(A::CatOrdArray, B::CatOrdArray)
     levels!(A, union(levels(A), levels(B)))
     len = length(A.refs)
+    len2 = length(B.refs)
     resize!(A.refs, len + length(B.refs))
-    for (i, item) in enumerate(B)
-        A[len + i] = item
+    for i = 1:len2
+        A[len + i] = B[i]
     end
     return A
 end

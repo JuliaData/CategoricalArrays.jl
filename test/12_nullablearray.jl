@@ -166,7 +166,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test isnull(x[end])
             @test levels(x) == ["e", "c", "zz"]
 
-            y = V{String, R}(a)
+            y = V{String, R}(levels(x))
             append!(x, y)
             @test length(x) == 10
 
@@ -174,15 +174,16 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             y = V{String, R}(b)
             append!(x, y)
             @test length(x) == 13
-            @test levels(x) == ["e", "c", "zz", "a", "b", "z", "y", "x"]
+            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
 
             push!(y, eltype(y)())
             append!(x, y)
             @test isnull(x[end])
-            @test levels(x) == ["e", "c", "zz", "a", "b", "z", "y", "x"]
+            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
 
             empty!(x)
             @test length(x) == 0
+            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
         end
 
 
@@ -399,6 +400,43 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         @test x[4] === Nullable(x.pool.valindex[4])
         @test levels(x) == vcat(unique(a), -1)
 
+        push!(x, 2.0)
+        @test length(x) == 5
+        @test get(x[end]) == 2.0
+        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
+
+        push!(x, x[1])
+        @test length(x) == 6
+        @test x[1] == x[end]
+        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
+
+        append!(x, x)
+        @test length(x) == 12
+        @test get(x[1]) == -1.0
+        @test get(x[2]) == -1.0
+        @test get(x[3]) == 1.0
+        @test get(x[4]) == 1.5
+        @test get(x[5]) == 2.0
+        @test get(x[6]) == -1.0
+        @test get(x[7]) == -1.0
+        @test get(x[8]) == -1.0
+        @test get(x[9]) == 1.0
+        @test get(x[10]) == 1.5
+        @test get(x[11]) == 2.0
+        @test get(x[12]) == -1.0
+
+        b = [2.5, 3.0, -3.5]
+        y = V{Float64, R}(b)
+        append!(x, y)
+        @test length(x) == 15
+        @test get(x[end-2]) == 2.5
+        @test get(x[end-1]) == 3.0
+        @test get(x[end]) == -3.5
+        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
+
+        empty!(x)
+        @test length(x) == 0
+        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
 
         # Matrix with no null values
         for a in (["a" "b" "c"; "b" "a" "c"],
