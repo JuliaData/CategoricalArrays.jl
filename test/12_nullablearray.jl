@@ -148,38 +148,35 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
 
             push!(x, "e")
             @test length(x) == 4
-            @test get(x[end]) == "e"
+            @test isequal(x, NullableArray(["c", "", "", "e"], [false, true, true, false]))
             @test levels(x) == ["e", "c"]
 
             push!(x, "zz")
             @test length(x) == 5
-            @test get(x[end]) == "zz"
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz"], [false, true, true, false, false]))
             @test levels(x) == ["e", "c", "zz"]
 
             push!(x, x[1])
             @test length(x) == 6
-            @test get(x[1]) == get(x[end])
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c"], [false, true, true, false, false, false]))
             @test levels(x) == ["e", "c", "zz"]
 
             push!(x, eltype(x)())
             @test length(x) == 7
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c", ""], [false, true, true, false, false, false, true]))
             @test isnull(x[end])
             @test levels(x) == ["e", "c", "zz"]
 
-            y = V{String, R}(levels(x))
-            append!(x, y)
-            @test length(x) == 10
+            append!(x, x)
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c", "", "c", "", "", "e", "zz", "c", ""], [false, true, true, false, false, false, true, false, true, true, false, false, false, true]))
+            @test length(x) == 14
 
             b = ["z","y","x"]
             y = V{String, R}(b)
             append!(x, y)
-            @test length(x) == 13
+            @test length(x) == 17
             @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
-
-            push!(y, eltype(y)())
-            append!(x, y)
-            @test isnull(x[end])
-            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c", "", "c", "", "", "e", "zz", "c", "", "z", "y", "x"], [false, true, true, false, false, false, true, false, true, true, false, false, false, true, false, false, false]))
 
             empty!(x)
             @test length(x) == 0
@@ -402,36 +399,23 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
 
         push!(x, 2.0)
         @test length(x) == 5
-        @test get(x[end]) == 2.0
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0]))
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
         push!(x, x[1])
         @test length(x) == 6
-        @test x[1] == x[end]
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0, -1.0]))
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
         append!(x, x)
         @test length(x) == 12
-        @test get(x[1]) == -1.0
-        @test get(x[2]) == -1.0
-        @test get(x[3]) == 1.0
-        @test get(x[4]) == 1.5
-        @test get(x[5]) == 2.0
-        @test get(x[6]) == -1.0
-        @test get(x[7]) == -1.0
-        @test get(x[8]) == -1.0
-        @test get(x[9]) == 1.0
-        @test get(x[10]) == 1.5
-        @test get(x[11]) == 2.0
-        @test get(x[12]) == -1.0
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0]))
 
         b = [2.5, 3.0, -3.5]
         y = V{Float64, R}(b)
         append!(x, y)
         @test length(x) == 15
-        @test get(x[end-2]) == 2.5
-        @test get(x[end-1]) == 3.0
-        @test get(x[end]) == -3.5
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]))
         @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
 
         empty!(x)

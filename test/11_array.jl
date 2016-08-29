@@ -146,30 +146,16 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test length(x) == 6
         @test x[1] == x[end]
         @test levels(x) == ["e", "a", "b", "c", "zz"]
-        # ["c", "a", "a", "a", "zz", "c"]
 
         append!(x, x)
         @test length(x) == 12
-        @test x[1] == "c"
-        @test x[2] == "a"
-        @test x[3] == "a"
-        @test x[4] == "a"
-        @test x[5] == "zz"
-        @test x[6] == "c"
-        @test x[7] == "c"
-        @test x[8] == "a"
-        @test x[9] == "a"
-        @test x[10] == "a"
-        @test x[11] == "zz"
-        @test x[12] == "c"
+        @test x == ["c", "a", "a", "a", "zz", "c", "c" ,"a", "a", "a", "zz", "c"]
 
         b = ["z","y","x"]
         y = V{String, R}(b)
         append!(x, y)
         @test length(x) == 15
-        @test x[end-2] == "z"
-        @test x[end-1] == "y"
-        @test x[end] == "x"
+        @test x == ["c", "a", "a", "a", "zz", "c", "c" ,"a", "a", "a", "zz", "c", "z", "y", "x"]
         @test levels(x) == ["e", "a", "b", "c", "zz", "z", "y", "x"]
 
         empty!(x)
@@ -295,26 +281,13 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
 
         append!(x, x)
         @test length(x) == 12
-        @test x[1] == -1.0
-        @test x[2] == -1.0
-        @test x[3] == 1.0
-        @test x[4] == 1.5
-        @test x[5] == 2.0
-        @test x[6] == -1.0
-        @test x[7] == -1.0
-        @test x[8] == -1.0
-        @test x[9] == 1.0
-        @test x[10] == 1.5
-        @test x[11] == 2.0
-        @test x[12] == -1.0
+        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0]
 
         b = [2.5, 3.0, -3.5]
         y = V{Float64, R}(b)
         append!(x, y)
         @test length(x) == 15
-        @test x[end-2] == 2.5
-        @test x[end-1] == 3.0
-        @test x[end] == -3.5
+        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
         @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
 
         empty!(x)
