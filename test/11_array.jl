@@ -11,11 +11,11 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
                   (OrdinalArray, OrdinalVector, OrdinalMatrix))
     for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         # Vector
-        a = ["a", "b", "a"]
+        a = ["b", "a", "b"]
         x = V{String, R}(a)
 
         @test x == a
-        @test levels(x) == unique(a)
+        @test levels(x) == sort(unique(a))
         @test size(x) === (3,)
         @test length(x) === 3
 
@@ -84,7 +84,7 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test x[3] === x.pool.valindex[1]
         @test_throws BoundsError x[4]
 
-        @test x[1:2] == ["a", "b"]
+        @test x[1:2] == ["b", "a"]
         @test typeof(x[1:2]) === typeof(x)
 
         x[1] = x[2]
@@ -98,22 +98,22 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test x[3] === x.pool.valindex[3]
         @test levels(x) == ["a", "b", "c"]
 
-        x[2:3] = "a"
+        x[2:3] = "b"
         @test x[1] === x.pool.valindex[2]
         @test x[2] === x.pool.valindex[1]
         @test x[3] === x.pool.valindex[1]
         @test levels(x) == ["a", "b", "c"]
 
         droplevels!(x) == ["a", "b"]
-        @test x[1] === x.pool.valindex[2]
-        @test x[2] === x.pool.valindex[1]
-        @test x[3] === x.pool.valindex[1]
+        @test x[1] === x.pool.valindex[1]
+        @test x[2] === x.pool.valindex[2]
+        @test x[3] === x.pool.valindex[2]
         @test levels(x) == ["a", "b"]
 
         levels!(x, ["b", "a"]) == ["b", "a"]
-        @test x[1] === x.pool.valindex[2]
-        @test x[2] === x.pool.valindex[1]
-        @test x[3] === x.pool.valindex[1]
+        @test x[1] === x.pool.valindex[1]
+        @test x[2] === x.pool.valindex[2]
+        @test x[3] === x.pool.valindex[2]
         @test levels(x) == ["b", "a"]
 
         @test_throws ArgumentError levels!(x, ["a"])
@@ -121,15 +121,15 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
 
         @test levels!(x, ["e", "a", "b"]) == ["e", "a", "b"]
-        @test x[1] === x.pool.valindex[2]
-        @test x[2] === x.pool.valindex[1]
-        @test x[3] === x.pool.valindex[1]
+        @test x[1] === x.pool.valindex[1]
+        @test x[2] === x.pool.valindex[2]
+        @test x[3] === x.pool.valindex[2]
         @test levels(x) == ["e", "a", "b"]
 
         x[1] = "c"
         @test x[1] === x.pool.valindex[4]
-        @test x[2] === x.pool.valindex[1]
-        @test x[3] === x.pool.valindex[1]
+        @test x[2] === x.pool.valindex[2]
+        @test x[3] === x.pool.valindex[2]
         @test levels(x) == ["e", "a", "b", "c"]
 
         push!(x, "a")
@@ -149,18 +149,18 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
 
         append!(x, x)
         @test length(x) == 12
-        @test x == ["c", "a", "a", "a", "zz", "c", "c" ,"a", "a", "a", "zz", "c"]
+        @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c"]
 
         b = ["z","y","x"]
         y = V{String, R}(b)
         append!(x, y)
         @test length(x) == 15
-        @test x == ["c", "a", "a", "a", "zz", "c", "c" ,"a", "a", "a", "zz", "c", "z", "y", "x"]
-        @test levels(x) == ["e", "a", "b", "c", "zz", "z", "y", "x"]
+        @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c", "z", "y", "x"]
+        @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z"]
 
         empty!(x)
         @test length(x) == 0
-        @test levels(x) == ["e", "a", "b", "c", "zz", "z", "y", "x"]
+        @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z"]
 
         # Vector created from range (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
@@ -288,11 +288,11 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         append!(x, y)
         @test length(x) == 15
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
-        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
 
         empty!(x)
         @test length(x) == 0
-        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
 
         # Matrix
         a = ["a" "b" "c"; "b" "a" "c"]
@@ -432,7 +432,6 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
             @test !isassigned(x, 2) && isdefined(x, 2)
             @test_throws UndefRefError x[1]
             @test_throws UndefRefError x[2]
-            @test_throws UndefRefError copy(x)
             @test levels(x) == []
 
             x2 = compact(x)

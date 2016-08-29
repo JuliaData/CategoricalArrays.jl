@@ -62,14 +62,14 @@ julia> x = OrdinalArray(["Old", "Young", "Middle", "Young"])
 
 ```
 
-By default, the levels are sorted in their order of appearance in the data, which is
-cleary not correct in our case. But this is easily fixed using the `levels!` function:
+By default, the levels are lexically sorted, which is cleary not correct in our case.
+This is easily fixed using the `levels!` function:
 ```julia
 julia> levels(x)
 3-element Array{String,1}:
+ "Middle"
  "Old"   
  "Young" 
- "Middle"
 
 julia> levels!(x, ["Young", "Middle", "Old"])
 3-element Array{String,1}:
@@ -173,9 +173,9 @@ Levels still need to be reordered manually:
 ```julia
 julia> levels(y)
 3-element Array{String,1}:
+ "Middle"
  "Old"   
  "Young" 
- "Middle"
 
 julia> levels!(y, ["Young", "Middle", "Old"])
 3-element Array{String,1}:

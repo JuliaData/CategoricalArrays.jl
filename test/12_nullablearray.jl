@@ -15,14 +15,16 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
                   (NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix))
     for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         # Vector with no null values
-        for a in (["a", "b", "a"],
-                  Nullable{String}["a", "b", "a"],
-                  NullableArray(["a", "b", "a"]))
+        for a in (["b", "a", "b"],
+                  Nullable{String}["b", "a", "b"],
+                  NullableArray(["b", "a", "b"]))
             x = V{String, R}(a)
             na = eltype(a) <: Nullable ? a : convert(Array{Nullable{String}}, a)
 
             @test x == na
-            @test levels(x) == map(get, unique(na))
+            # FIXME: remove when JuliaStats/NullableArrays.jl#141 is merged and released
+            levels!(x, sort(map(get, unique(na))))
+            @test levels(x) == sort(map(get, unique(na)))
             @test size(x) === (3,)
             @test length(x) === 3
 
@@ -91,7 +93,7 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[3] === Nullable(x.pool.valindex[1])
             @test_throws BoundsError x[4]
 
-            @test x[1:2] == Nullable{String}["a", "b"]
+            @test x[1:2] == Nullable{String}["b", "a"]
             @test typeof(x[1:2]) === typeof(x)
 
             x[1] = x[2]
@@ -105,22 +107,22 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[3] === Nullable(x.pool.valindex[3])
             @test levels(x) == ["a", "b", "c"]
 
-            x[2:3] = "a"
+            x[2:3] = "b"
             @test x[1] === Nullable(x.pool.valindex[2])
             @test x[2] === Nullable(x.pool.valindex[1])
             @test x[3] === Nullable(x.pool.valindex[1])
             @test levels(x) == ["a", "b", "c"]
 
             droplevels!(x) == ["a", "b"]
-            @test x[1] === Nullable(x.pool.valindex[2])
-            @test x[2] === Nullable(x.pool.valindex[1])
-            @test x[3] === Nullable(x.pool.valindex[1])
+            @test x[1] === Nullable(x.pool.valindex[1])
+            @test x[2] === Nullable(x.pool.valindex[2])
+            @test x[3] === Nullable(x.pool.valindex[2])
             @test levels(x) == ["a", "b"]
 
             levels!(x, ["b", "a"]) == ["b", "a"]
-            @test x[1] === Nullable(x.pool.valindex[2])
-            @test x[2] === Nullable(x.pool.valindex[1])
-            @test x[3] === Nullable(x.pool.valindex[1])
+            @test x[1] === Nullable(x.pool.valindex[1])
+            @test x[2] === Nullable(x.pool.valindex[2])
+            @test x[3] === Nullable(x.pool.valindex[2])
             @test levels(x) == ["b", "a"]
 
             @test_throws ArgumentError levels!(x, ["a"])
@@ -128,15 +130,15 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
 
             @test levels!(x, ["e", "a", "b"]) == ["e", "a", "b"]
-            @test x[1] === Nullable(x.pool.valindex[2])
-            @test x[2] === Nullable(x.pool.valindex[1])
-            @test x[3] === Nullable(x.pool.valindex[1])
+            @test x[1] === Nullable(x.pool.valindex[1])
+            @test x[2] === Nullable(x.pool.valindex[2])
+            @test x[3] === Nullable(x.pool.valindex[2])
             @test levels(x) == ["e", "a", "b"]
 
             x[1] = "c"
             @test x[1] === Nullable(x.pool.valindex[4])
-            @test x[2] === Nullable(x.pool.valindex[1])
-            @test x[3] === Nullable(x.pool.valindex[1])
+            @test x[2] === Nullable(x.pool.valindex[2])
+            @test x[3] === Nullable(x.pool.valindex[2])
             @test levels(x) == ["e", "a", "b", "c"]
 
             @test_throws ArgumentError levels!(x, ["e", "c"])
@@ -175,12 +177,12 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             y = V{String, R}(b)
             append!(x, y)
             @test length(x) == 17
-            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
+            @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
             @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c", "", "c", "", "", "e", "zz", "c", "", "z", "y", "x"], [false, true, true, false, false, false, true, false, true, true, false, false, false, true, false, false, false]))
 
             empty!(x)
             @test length(x) == 0
-            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
+            @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
         end
 
 
@@ -416,11 +418,11 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         append!(x, y)
         @test length(x) == 15
         @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]))
-        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
 
         empty!(x)
         @test length(x) == 0
-        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
 
         # Matrix with no null values
         for a in (["a" "b" "c"; "b" "a" "c"],

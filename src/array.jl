@@ -1,7 +1,7 @@
 ## Common code for NominalArray, OrdinalArray,
 ## NullableNominalArray and NullableOrdinalArray
 
-import Base: convert, getindex, setindex!, similar, size, linearindexing
+import Base: convert, copy, getindex, setindex!, similar, size, linearindexing
 
 for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
                          :NominalMatrix, :NominalPool, :NominalValue),
@@ -81,8 +81,16 @@ end
         similar{S, T, M, N, R}(A::$A{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) =
             $A{T, N, R}(dims)
 
-        convert{S, T, N, R}(::Type{$A{T, N, R}}, A::AbstractArray{S, N}) =
-            copy!($A{T, N, R}(size(A)), A)
+        function convert{S, T, N, R}(::Type{$A{T, N, R}}, A::AbstractArray{S, N})
+            res = $A{T, N, R}(size(A))
+            copy!(res, A)
+
+            if method_exists(isless, (S, S))
+                levels!(res, sort(levels(res)))
+            end
+
+            res
+        end
 
         # More efficient method than the general definition above
         function convert{T, N, R}(::Type{$A{T, N, R}}, A::$A)
@@ -130,6 +138,9 @@ linearindexing{T <: CatOrdArray}(::Type{T}) = Base.LinearFast()
 setindex!(A::CatOrdArray, v::Any, i::Int) = A.refs[i] = get!(A.pool, v)
 setindex!{T}(A::CatOrdArray, v::CategoricalValue{T}, i::Int) =
     A.refs[i] = get!(A.pool, convert(T, v))
+
+# Method preserving levels and more efficient than AbstractArray one
+copy(A::CatOrdArray) = deepcopy(A)
 
 
 ## Categorical-specific methods
