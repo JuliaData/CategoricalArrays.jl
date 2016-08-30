@@ -132,6 +132,35 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test x[3] === x.pool.valindex[1]
         @test levels(x) == ["e", "a", "b", "c"]
 
+        push!(x, "a")
+        @test length(x) == 4
+        @test x[end] == "a"
+        @test levels(x) == ["e", "a", "b", "c"]
+
+        push!(x, "zz")
+        @test length(x) == 5
+        @test x[end] == "zz"
+        @test levels(x) == ["e", "a", "b", "c", "zz"]
+
+        push!(x, x[1])
+        @test length(x) == 6
+        @test x[1] == x[end]
+        @test levels(x) == ["e", "a", "b", "c", "zz"]
+
+        append!(x, x)
+        @test length(x) == 12
+        @test x == ["c", "a", "a", "a", "zz", "c", "c" ,"a", "a", "a", "zz", "c"]
+
+        b = ["z","y","x"]
+        y = V{String, R}(b)
+        append!(x, y)
+        @test length(x) == 15
+        @test x == ["c", "a", "a", "a", "zz", "c", "c" ,"a", "a", "a", "zz", "c", "z", "y", "x"]
+        @test levels(x) == ["e", "a", "b", "c", "zz", "z", "y", "x"]
+
+        empty!(x)
+        @test length(x) == 0
+        @test levels(x) == ["e", "a", "b", "c", "zz", "z", "y", "x"]
 
         # Vector created from range (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
@@ -240,6 +269,30 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == vcat(unique(a), -1)
 
+        push!(x, 2.0)
+        @test length(x) == 5
+        @test x[end] == 2.0
+        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
+
+        push!(x, x[1])
+        @test length(x) == 6
+        @test x[1] == x[end]
+        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
+
+        append!(x, x)
+        @test length(x) == 12
+        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0]
+
+        b = [2.5, 3.0, -3.5]
+        y = V{Float64, R}(b)
+        append!(x, y)
+        @test length(x) == 15
+        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
+        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
+
+        empty!(x)
+        @test length(x) == 0
+        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
 
         # Matrix
         a = ["a" "b" "c"; "b" "a" "c"]

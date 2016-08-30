@@ -145,6 +145,42 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test x[2] === eltype(x)()
             @test x[3] === eltype(x)()
             @test levels(x) == ["e", "c"]
+
+            push!(x, "e")
+            @test length(x) == 4
+            @test isequal(x, NullableArray(["c", "", "", "e"], [false, true, true, false]))
+            @test levels(x) == ["e", "c"]
+
+            push!(x, "zz")
+            @test length(x) == 5
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz"], [false, true, true, false, false]))
+            @test levels(x) == ["e", "c", "zz"]
+
+            push!(x, x[1])
+            @test length(x) == 6
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c"], [false, true, true, false, false, false]))
+            @test levels(x) == ["e", "c", "zz"]
+
+            push!(x, eltype(x)())
+            @test length(x) == 7
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c", ""], [false, true, true, false, false, false, true]))
+            @test isnull(x[end])
+            @test levels(x) == ["e", "c", "zz"]
+
+            append!(x, x)
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c", "", "c", "", "", "e", "zz", "c", ""], [false, true, true, false, false, false, true, false, true, true, false, false, false, true]))
+            @test length(x) == 14
+
+            b = ["z","y","x"]
+            y = V{String, R}(b)
+            append!(x, y)
+            @test length(x) == 17
+            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
+            @test isequal(x, NullableArray(["c", "", "", "e", "zz", "c", "", "c", "", "", "e", "zz", "c", "", "z", "y", "x"], [false, true, true, false, false, false, true, false, true, true, false, false, false, true, false, false, false]))
+
+            empty!(x)
+            @test length(x) == 0
+            @test levels(x) == ["e", "c", "zz", "z", "y", "x"]
         end
 
 
@@ -361,6 +397,30 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
         @test x[4] === Nullable(x.pool.valindex[4])
         @test levels(x) == vcat(unique(a), -1)
 
+        push!(x, 2.0)
+        @test length(x) == 5
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0]))
+        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
+
+        push!(x, x[1])
+        @test length(x) == 6
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0, -1.0]))
+        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
+
+        append!(x, x)
+        @test length(x) == 12
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0]))
+
+        b = [2.5, 3.0, -3.5]
+        y = V{Float64, R}(b)
+        append!(x, y)
+        @test length(x) == 15
+        @test isequal(x, NullableArray([-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]))
+        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
+
+        empty!(x)
+        @test length(x) == 0
+        @test levels(x) == [0.0,0.5,1.0,1.5,-1.0,2.0,2.5,3.0,-3.5]
 
         # Matrix with no null values
         for a in (["a" "b" "c"; "b" "a" "c"],
