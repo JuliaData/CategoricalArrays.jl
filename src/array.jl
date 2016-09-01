@@ -38,8 +38,8 @@ for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
         @compat (::Type{$A{$S{T}, N, R}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
         @compat (::Type{$A{$S{T, R}, N}}){T, N, R}(dims::NTuple{N,Int}) = $A{T, N, R}(dims)
         @compat (::Type{$A{$S{T}, N}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
-        @compat (::Type{$A{$S, N}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
-        @compat (::Type{$A{$S}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
+        # @compat (::Type{$A{$S, N}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
+        # @compat (::Type{$A{$S}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
 
 if VERSION >= v"0.5.0-dev"
         $V{T}(::Type{T}, m::Integer) = $A{T}((m,))

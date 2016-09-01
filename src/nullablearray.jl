@@ -29,8 +29,8 @@ for (A, V, M, P, S) in ((:NullableNominalArray, :NullableNominalVector,
             $A{T, N, R}(dims)
         @compat (::Type{$A{Nullable{$S{T}}, N}}){T, N}(dims::NTuple{N,Int}) =
             $A{T, N}(dims)
-        @compat (::Type{$A{Nullable{$S}, N}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
-        @compat (::Type{$A{Nullable{$S}}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
+        # @compat (::Type{$A{Nullable{$S}, N}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
+        # @compat (::Type{$A{Nullable{$S}}}){N}(dims::NTuple{N,Int}) = $A{String, N}(dims)
 
 if VERSION >= v"0.5.0-dev"
         $V{T}(::Type{Nullable{T}}, m::Integer) = $A{T}((m,))
