@@ -1,32 +1,30 @@
-## Common code for NominalArray, OrdinalArray,
-## NullableNominalArray and NullableOrdinalArray
+## Common code for CategoricalArray, NullableCategoricalArray
 
 import Base: convert, copy, getindex, setindex!, similar, size, linearindexing
 
-for (A, V, M, P, S) in ((:NominalArray, :NominalVector,
-                         :NominalMatrix, :NominalPool, :NominalValue),
-                        (:OrdinalArray, :OrdinalVector,
-                         :OrdinalMatrix, :OrdinalPool, :OrdinalValue),
-                        (:NullableNominalArray, :NullableNominalVector,
-                         :NullableNominalMatrix, :NominalPool, :NominalValue),
-                        (:NullableOrdinalArray, :NullableOrdinalVector,
-                         :NullableOrdinalMatrix, :OrdinalPool, :OrdinalValue))
+for (A, V, M, P, S) in ((:CategoricalArray, :CategoricalVector,
+                         :CategoricalMatrix, :CategoricalPool, :CategoricalValue),
+                        (:NullableCategoricalArray, :NullableCategoricalVector,
+                         :NullableCategoricalMatrix, :CategoricalPool, :CategoricalValue))
     @eval begin
         $A{T, N}(::Type{T}, dims::NTuple{N,Int}) =
             $A(zeros(DefaultRefType, dims), $P{T}())
         $A{T}(::Type{T}, dims::Int...) = $A{T}(dims)
         $A(dims::Int...) = $A{String}(dims)
 
+        $A{T, N, R, O}(::Type{$S{T, R, O}}, dims::NTuple{N,Int}) = $A{T, N, R, O}(dims)
         $A{T, N, R}(::Type{$S{T, R}}, dims::NTuple{N,Int}) = $A{T, N, R}(dims)
         $A{T, N}(::Type{$S{T}}, dims::NTuple{N,Int}) = $A{T, N}(dims)
         $A{N}(::Type{$S}, dims::NTuple{N,Int}) = $A{String, N}(dims)
 
+        @compat (::Type{$A{T, N, R, O}}){T, N, R, O}(dims::NTuple{N,Int}) =
+            $A{T, N, R, O}(zeros(R, dims), $P{T, R, O}())
         @compat (::Type{$A{T, N, R}}){T, N, R}(dims::NTuple{N,Int}) =
             $A{T, N, R}(zeros(R, dims), $P{T, R}())
         @compat (::Type{$A{T, N}}){T, N}(dims::NTuple{N,Int}) =
             $A{T, N, DefaultRefType}(dims)
         @compat (::Type{$A{T}}){T, N}(dims::NTuple{N,Int}) = $A{T, N}(dims)
-        @compat (::Type{$A{T, 1, R}}){T, R}(m::Int) = $A{T, 1, R}((m,))
+        @compat (::Type{$A{T, 1, R, O}}){T, R, O}(m::Int) = $A{T, 1, R, O}((m,))
         # R <: Integer is required to prevent default constructor from being called instead
         @compat (::Type{$A{T, 2, R}}){T, R <: Integer}(m::Int, n::Int) = $A{T, 2, R}((m, n))
         @compat (::Type{$A{T, 3, R}}){T, R}(m::Int, n::Int, o::Int) = $A{T, 3, R}((m, n, o))
