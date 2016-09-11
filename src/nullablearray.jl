@@ -47,6 +47,11 @@ end
             @inbounds for (i, x, m) in zip(eachindex(res), A, missing)
                 res[i] = ifelse(m, Nullable{T}(), x)
             end
+
+            if method_exists(isless, (T, T))
+                levels!(res, sort(levels(res)))
+            end
+
             res
         end
 

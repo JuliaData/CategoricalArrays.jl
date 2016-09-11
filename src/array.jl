@@ -85,7 +85,7 @@ end
             res = $A{T, N, R}(size(A))
             copy!(res, A)
 
-            if method_exists(isless, (S, S))
+            if method_exists(isless, (T, T))
                 levels!(res, sort(levels(res)))
             end
 

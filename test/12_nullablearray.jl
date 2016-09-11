@@ -22,8 +22,6 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             na = eltype(a) <: Nullable ? a : convert(Array{Nullable{String}}, a)
 
             @test x == na
-            # FIXME: remove when JuliaStats/NullableArrays.jl#141 is merged and released
-            levels!(x, sort(map(get, unique(na))))
             @test levels(x) == sort(map(get, unique(na)))
             @test size(x) === (3,)
             @test length(x) === 3
@@ -700,8 +698,13 @@ for (A, V, M) in ((NullableNominalArray, NullableNominalVector, NullableNominalM
             @test A(1:3, [true, false, true]) == Nullable{Int}[Nullable(), 2, Nullable()]
 
             if VERSION >= v"0.5.0-dev"
-                @test V(1:3, [true, false, true]) == Nullable{Int}[Nullable(), 2, Nullable()]
-                @test M([1 2; 3 4], [true false; false true]) == Nullable{Int}[Nullable() 2; 3 Nullable()]
+                x = V(1:3, [true, false, true])
+                @test x == Nullable{Int}[Nullable(), 2, Nullable()]
+                @test levels(x) == [2]
+
+                x = M([1 2; 3 4], [true false; false true])
+                @test x == Nullable{Int}[Nullable() 2; 3 Nullable()]
+                @test levels(x) == [2, 3]
             end
         end
 
