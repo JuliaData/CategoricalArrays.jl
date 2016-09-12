@@ -19,7 +19,7 @@ module TestBuildFields
 
     pool = CategoricalPool(index, invindex)
 
-    ordered = ["c", "a", "b"]
+    levels = ["c", "a", "b"]
 
     built_index = CategoricalArrays.buildindex(invindex)
     @test isa(index, Vector)
@@ -35,7 +35,7 @@ module TestBuildFields
         DefaultRefType(1),
     ]
 
-    built_order = CategoricalArrays.buildorder(pool.invindex, ordered)
+    built_order = CategoricalArrays.buildorder(pool.invindex, levels)
     @test isa(order, Vector{DefaultRefType})
     @test built_order == neworder
 end

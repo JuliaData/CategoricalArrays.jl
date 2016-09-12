@@ -9,15 +9,15 @@ type CategoricalPool{T, R <: Integer, V}
     index::Vector{T}
     invindex::Dict{T, R}
     order::Vector{R}
-    ordered::Vector{T}
+    levels::Vector{T}
     valindex::Vector{V}
-    isordered::Bool
+    ordered::Bool
 
     function CategoricalPool{T, R}(index::Vector{T},
                                    invindex::Dict{T, R},
                                    order::Vector{R},
-                                   isordered::Bool)
-        pool = new(index, invindex, order, index[order], V[], isordered)
+                                   ordered::Bool)
+        pool = new(index, invindex, order, index[order], V[], ordered)
         buildvalues!(pool)
         return pool
     end

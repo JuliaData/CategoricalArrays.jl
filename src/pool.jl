@@ -1,58 +1,58 @@
 function CategoricalPool{S, T <: Integer, R <: Integer}(index::Vector{S},
                                            invindex::Dict{S, T},
                                            order::Vector{R},
-                                           isordered::Bool=false)
+                                           ordered::Bool=false)
     invindex = convert(Dict{S, R}, invindex)
-    CategoricalPool{S, R, CategoricalValue{S, R}}(index, invindex, order, isordered)
+    CategoricalPool{S, R, CategoricalValue{S, R}}(index, invindex, order, ordered)
 end
 
-@compat (::Type{CategoricalPool{T, R}}){T, R}(isordered::Bool=false) =
-    CategoricalPool(T[], Dict{T, R}(), R[], isordered)
-@compat (::Type{CategoricalPool{T}}){T}(isordered::Bool=false) =
-    CategoricalPool(T[], Dict{T, DefaultRefType}(), DefaultRefType[], isordered)
+@compat (::Type{CategoricalPool{T, R}}){T, R}(ordered::Bool=false) =
+    CategoricalPool(T[], Dict{T, R}(), R[], ordered)
+@compat (::Type{CategoricalPool{T}}){T}(ordered::Bool=false) =
+    CategoricalPool(T[], Dict{T, DefaultRefType}(), DefaultRefType[], ordered)
 
 @compat function (::Type{CategoricalPool{T, R}}){T, R}(index::Vector,
-                                                       isordered::Bool=false)
+                                                       ordered::Bool=false)
     invindex = buildinvindex(index, R)
     order = Vector{R}(1:length(index))
-    CategoricalPool(index, invindex, order, isordered)
+    CategoricalPool(index, invindex, order, ordered)
 end
 
-function CategoricalPool(index::Vector, isordered::Bool=false)
+function CategoricalPool(index::Vector, ordered::Bool=false)
     invindex = buildinvindex(index)
     order = Vector{DefaultRefType}(1:length(index))
-    return CategoricalPool(index, invindex, order, isordered)
+    return CategoricalPool(index, invindex, order, ordered)
 end
 
 function CategoricalPool{S, R <: Integer}(invindex::Dict{S, R},
-                                          isordered::Bool=false)
+                                          ordered::Bool=false)
     index = buildindex(invindex)
     order = Vector{DefaultRefType}(1:length(index))
-    return CategoricalPool(index, invindex, order, isordered)
+    return CategoricalPool(index, invindex, order, ordered)
 end
 
 # TODO: Add tests for this
 function CategoricalPool{S, R <: Integer}(index::Vector{S},
                                           invindex::Dict{S, R},
-                                          isordered::Bool=false)
+                                          ordered::Bool=false)
     order = Vector{DefaultRefType}(1:length(index))
-    return CategoricalPool(index, invindex, order, isordered)
+    return CategoricalPool(index, invindex, order, ordered)
 end
 
 function CategoricalPool{T}(index::Vector{T},
-                            ordered::Vector{T},
-                            isordered::Bool=false)
+                            levels::Vector{T},
+                            ordered::Bool=false)
     invindex = buildinvindex(index)
-    order = buildorder(invindex, ordered)
-    return CategoricalPool(index, invindex, order, isordered)
+    order = buildorder(invindex, levels)
+    return CategoricalPool(index, invindex, order, ordered)
 end
 
 function CategoricalPool{S, R <: Integer}(invindex::Dict{S, R},
-                                          ordered::Vector{S},
-                                          isordered::Bool=false)
+                                          levels::Vector{S},
+                                          ordered::Bool=false)
     index = buildindex(invindex)
-    order = buildorder(invindex, ordered)
-    return CategoricalPool(index, invindex, order, isordered)
+    order = buildorder(invindex, levels)
+    return CategoricalPool(index, invindex, order, ordered)
 end
 
 Base.convert(::Type{CategoricalPool}, pool::CategoricalPool) = pool
@@ -75,7 +75,7 @@ function Base.show{T, R}(io::IO, pool::CategoricalPool{T, R})
     @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
                 join(map(repr, levels(pool)), ","))
 
-    pool.isordered && print(io, " with ordered levels")
+    pool.ordered && print(io, " with ordered levels")
 end
 
 Base.length(pool::CategoricalPool) = length(pool.index)
@@ -83,14 +83,12 @@ Base.length(pool::CategoricalPool) = length(pool.index)
 Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 
-levels(pool::CategoricalPool) = pool.ordered
-
 function Base.get!{T, R, V}(pool::CategoricalPool{T, R, V}, level)
     get!(pool.invindex, level) do
         i = length(pool) + 1
         push!(pool.index, level)
         push!(pool.order, i)
-        push!(pool.ordered, level)
+        push!(pool.levels, level)
         push!(pool.valindex, V(i, pool))
         i
     end
@@ -114,7 +112,7 @@ function Base.delete!{S, R, V}(pool::CategoricalPool{S, R, V}, levels...)
             delete!(pool.invindex, levelS)
             splice!(pool.index, ind)
             ord = splice!(pool.order, ind)
-            splice!(pool.ordered, ord)
+            splice!(pool.levels, ord)
             splice!(pool.valindex, ind)
             for i in ind:length(pool)
                 pool.invindex[pool.index[i]] -= 1
@@ -144,7 +142,7 @@ function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
         resize!(pool.index, n)
         resize!(pool.valindex, n)
         resize!(pool.order, n)
-        resize!(pool.ordered, n)
+        resize!(pool.levels, n)
         for i in 1:n
             v = newlevels[i]
             pool.index[i] = v
@@ -155,12 +153,14 @@ function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
 
     buildorder!(pool.order, pool.invindex, newlevels)
     for (i, x) in enumerate(pool.order)
-        pool.ordered[x] = pool.index[i]
+        pool.levels[x] = pool.index[i]
     end
     return newlevels
 end
 
-order(pool::CategoricalPool) = pool.order
 index(pool::CategoricalPool) = pool.index
-ordered(pool::CategoricalPool) = pool.isordered
-ordered!(pool::CategoricalPool, ordered) = pool.isordered = ordered
+levels(pool::CategoricalPool) = pool.levels
+order(pool::CategoricalPool) = pool.order
+
+ordered(pool::CategoricalPool) = pool.ordered
+ordered!(pool::CategoricalPool, ordered) = pool.ordered = ordered

@@ -25,14 +25,14 @@ end
 
 function buildorder!{S, R <: Integer}(order::Array{R},
                                       invindex::Dict{S, R},
-                                      ordered::Vector{S})
-    for (i, v) in enumerate(ordered)
+                                      levels::Vector{S})
+    for (i, v) in enumerate(levels)
         order[invindex[convert(S, v)]] = i
     end
     return order
 end
 
-function buildorder{S, R <: Integer}(invindex::Dict{S, R}, ordered::Vector)
+function buildorder{S, R <: Integer}(invindex::Dict{S, R}, levels::Vector)
     order = Array(R, length(invindex))
-    return buildorder!(order, invindex, ordered)
+    return buildorder!(order, invindex, levels)
 end
