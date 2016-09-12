@@ -1,18 +1,17 @@
-for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
-    @eval begin
-        function $V{T, R}(level::Integer, pool::$P{T, R})
-            return $V(convert(R, level), pool)
-        end
 
-        Base.convert{T, R}(::Type{$V{T, R}}, x::$V{T}) = x
-        Base.convert{T}(::Type{$V{T}}, x::$V{T}) = x
-        Base.convert(::Type{$V}, x::$V) = x
-
-        Base.promote_rule{S, T, R}(::Type{$V{S, R}}, ::Type{T}) = promote_type(S, T)
-        Base.promote_rule{S, T}(::Type{$V{S}}, ::Type{T}) = promote_type(S, T)
-        Base.promote_rule{T}(::Type{$V}, ::Type{T}) = T
-    end
+function CategoricalValue{T, R, O}(level::Integer, pool::CategoricalPool{T, R, O})
+    return CategoricalValue(convert(R, level), pool)
 end
+
+Base.convert{T, R, O}(::Type{CategoricalValue{T, R, O}}, x::CategoricalValue{T, R, O}) = x
+Base.convert{T, R}(::Type{CategoricalValue{T, R}}, x::CategoricalValue{T, R}) = x
+Base.convert{T}(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) = x
+Base.convert(::Type{CategoricalValue}, x::CategoricalValue) = x
+
+Base.promote_rule{S, T, R, O}(::Type{CategoricalValue{S, R, O}}, ::Type{T}) = promote_type(S, T)
+Base.promote_rule{S, T, R}(::Type{CategoricalValue{S, R}}, ::Type{T}) = promote_type(S, T)
+Base.promote_rule{S, T}(::Type{CategoricalValue{S}}, ::Type{T}) = promote_type(S, T)
+Base.promote_rule{T}(::Type{CategoricalValue}, ::Type{T}) = T
 
 # To fix ambiguities with definitions from Base
 Base.convert{S}(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) =
@@ -27,24 +26,13 @@ Base.convert{T}(::Type{Ref}, x::CategoricalValue{T}) = RefValue{T}(x)
 
 Base.convert{S, T}(::Type{S}, x::CategoricalValue{T}) = convert(S, index(x.pool)[x.level])
 
-function Base.show{T}(io::IO, x::NominalValue{T})
+function Base.show{T}(io::IO, x::CategoricalValue{T})
     if @compat(get(io, :compact, false))
         print(io, repr(index(x.pool)[x.level]))
     else
         @printf(io, "%s %s",
                 typeof(x),
                 repr(index(x.pool)[x.level]))
-    end
-end
-
-function Base.show{T}(io::IO, x::OrdinalValue{T})
-    if @compat(get(io, :compact, false))
-        print(io, repr(index(x.pool)[x.level]))
-    else
-        @printf(io, "%s %s (%i/%i)",
-                typeof(x),
-                repr(index(x.pool)[x.level]),
-                order(x.pool)[x.level], length(x.pool))
     end
 end
 
@@ -68,17 +56,25 @@ Base.isequal(x::CategoricalValue, y::CategoricalValue) =
 Base.isequal(x::CategoricalValue, y::Any) = isequal(index(x.pool)[x.level], y)
 Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
 
-function Base.isless{S, T}(x::NominalValue{S}, y::NominalValue{T})
-    error("NominalValue objects cannot be tested for order")
+function Base.isless{S, T}(x::CategoricalValue{S}, y::CategoricalValue{T})
+    error("CategoricalValue objects with different pools cannot be tested for order")
 end
 
-function Base.isless{S, T}(x::OrdinalValue{S}, y::OrdinalValue{T})
-    error("OrdinalValue objects with different pools cannot be compared")
+function Base.isless{T, R1, R2}(x::CategoricalValue{T, R1, false}, y::CategoricalValue{T, R2, true})
+    error("CategoricalValue objects cannot be compared unless both are ordered")
 end
 
-function Base.isless{T}(x::OrdinalValue{T}, y::OrdinalValue{T})
+function Base.isless{T, R1, R2}(x::CategoricalValue{T, R1, true}, y::CategoricalValue{T, R2, false})
+    error("CategoricalValue objects cannot be compared unless both are ordered")
+end
+
+function Base.isless{T, R1, R2}(x::CategoricalValue{T, R1, false}, y::CategoricalValue{T, R2, false})
+    error("CategoricalValue objects cannot be compared unless both are ordered")
+end
+
+function Base.isless{T, R1, R2}(x::CategoricalValue{T, R1, true}, y::CategoricalValue{T, R2, true})
     if !(x.pool === y.pool)
-        error("OrdinalValue objects with different pools cannot be compared")
+        error("CategoricalValue objects with different pools cannot be compared")
     else
         return isless(order(x.pool)[x.level], order(y.pool)[y.level])
     end

@@ -14,7 +14,7 @@ function buildinvindex{T}(index::Vector{T}, R=DefaultRefType)
     return invindex
 end
 
-function buildvalues!{T, R, V}(pool::CategoricalPool{T, R, V})
+function buildvalues!{T, R, V, O}(pool::CategoricalPool{T, R, V, O})
     n = length(levels(pool))
     resize!(pool.valindex, n)
     for i in 1:n

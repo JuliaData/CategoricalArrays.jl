@@ -1,69 +1,67 @@
-for (P, V) in ((:NominalPool, :NominalValue), (:OrdinalPool, :OrdinalValue))
-    @eval begin
-        function $P{S, T <: Integer, R <: Integer}(index::Vector{S},
-                                                   invindex::Dict{S, T},
-                                                   order::Vector{R})
-            invindex = convert(Dict{S, R}, invindex)
-            $P{S, R, $V{S, R}}(index, invindex, order)
-        end
-
-        @compat (::Type{$P{T, R}}){T, R}() = $P(T[], Dict{T, R}(), R[])
-        @compat (::Type{$P{T}}){T}() = $P(T[], Dict{T, DefaultRefType}(), DefaultRefType[])
-
-        @compat function (::Type{$P{T, R}}){T, R}(index::Vector)
-            invindex = buildinvindex(index, R)
-            order = Vector{R}(1:length(index))
-            $P(index, invindex, order)
-        end
-
-        function $P(index::Vector)
-            invindex = buildinvindex(index)
-            order = Vector{DefaultRefType}(1:length(index))
-            return $P(index, invindex, order)
-        end
-
-        function $P{S, R <: Integer}(invindex::Dict{S, R})
-            index = buildindex(invindex)
-            order = Vector{DefaultRefType}(1:length(index))
-            return $P(index, invindex, order)
-        end
-
-        # TODO: Add tests for this
-        function $P{S, R <: Integer}(index::Vector{S}, invindex::Dict{S, R})
-            order = Vector{DefaultRefType}(1:length(index))
-            return $P(index, invindex, order)
-        end
-
-        function $P{T}(index::Vector{T}, ordered::Vector{T})
-            invindex = buildinvindex(index)
-            order = buildorder(invindex, ordered)
-            return $P(index, invindex, order)
-        end
-
-        function $P{S, R <: Integer}(invindex::Dict{S, R}, ordered::Vector{S})
-            index = buildindex(invindex)
-            order = buildorder(invindex, ordered)
-            return $P(index, invindex, order)
-        end
-
-        Base.convert(::Type{$P}, pool::$P) = pool
-        Base.convert{T}(::Type{$P{T}}, pool::$P{T}) = pool
-        Base.convert{T, R}(::Type{$P{T, R}}, pool::$P{T, R}) = pool
-
-        function Base.convert{S, R}(::Type{$P{S, R}}, pool::$P)
-            indexS = convert(Vector{S}, pool.index)
-            invindexS = convert(Dict{S, R}, pool.invindex)
-            order = convert(Vector{R}, pool.order)
-            return $P(indexS, invindexS, order)
-        end
-
-        Base.convert{S, T, R}(::Type{$P{S}}, pool::$P{T, R}) = convert($P{S, R}, pool)
-        Base.convert{T, R}(::Type{$P}, pool::$P{T, R}) = convert($P{T, R}, pool)
-    end
+function CategoricalPool{S, T <: Integer, R <: Integer}(index::Vector{S},
+                                           invindex::Dict{S, T},
+                                           order::Vector{R},
+                                           isordered::Bool=false)
+    invindex = convert(Dict{S, R}, invindex)
+    CategoricalPool{S, R, CategoricalValue{S, R, isordered}, isordered}(index, invindex, order)
 end
 
-function Base.show{T, R}(io::IO, pool::CategoricalPool{T, R})
-    @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
+@compat (::Type{CategoricalPool{T, R, O}}){T, R, O}() = CategoricalPool(T[], Dict{T, R}(), R[], O)
+@compat (::Type{CategoricalPool{T}}){T}() = CategoricalPool(T[], Dict{T, DefaultRefType}(), DefaultRefType[])
+
+@compat function (::Type{CategoricalPool{T, R}}){T, R}(index::Vector, isordered::Bool=false)
+    invindex = buildinvindex(index, R)
+    order = Vector{R}(1:length(index))
+    CategoricalPool(index, invindex, order, isordered)
+end
+
+function CategoricalPool(index::Vector, isordered::Bool=false)
+    invindex = buildinvindex(index)
+    order = Vector{DefaultRefType}(1:length(index))
+    return CategoricalPool(index, invindex, order, isordered)
+end
+
+function CategoricalPool{S, R <: Integer}(invindex::Dict{S, R}, isordered::Bool=false)
+    index = buildindex(invindex)
+    order = Vector{DefaultRefType}(1:length(index))
+    return CategoricalPool(index, invindex, order, isordered)
+end
+
+# TODO: Add tests for this
+function CategoricalPool{S, R <: Integer}(index::Vector{S}, invindex::Dict{S, R}, isordered::Bool=false)
+    order = Vector{DefaultRefType}(1:length(index))
+    return CategoricalPool(index, invindex, order, isordered)
+end
+
+function CategoricalPool{T}(index::Vector{T}, ordered::Vector{T}, isordered::Bool=false)
+    invindex = buildinvindex(index)
+    order = buildorder(invindex, ordered)
+    return CategoricalPool(index, invindex, order, isordered)
+end
+
+function CategoricalPool{S, R <: Integer}(invindex::Dict{S, R}, ordered::Vector{S}, isordered::Bool=false)
+    index = buildindex(invindex)
+    order = buildorder(invindex, ordered)
+    return CategoricalPool(index, invindex, order, isordered)
+end
+
+Base.convert(::Type{CategoricalPool}, pool::CategoricalPool) = pool
+Base.convert{T}(::Type{CategoricalPool{T}}, pool::CategoricalPool{T}) = pool
+Base.convert{T, R}(::Type{CategoricalPool{T, R}}, pool::CategoricalPool{T, R}) = pool
+Base.convert{T, R, O}(::Type{CategoricalPool{T, R, O}}, pool::CategoricalPool{T, R, O}) = pool
+
+function Base.convert{S, R}(::Type{CategoricalPool{S, R}}, pool::CategoricalPool)
+    indexS = convert(Vector{S}, pool.index)
+    invindexS = convert(Dict{S, R}, pool.invindex)
+    order = convert(Vector{R}, pool.order)
+    return CategoricalPool(indexS, invindexS, order)
+end
+
+Base.convert{S, T, R}(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) = convert(CategoricalPool{S, R}, pool)
+Base.convert{T, R}(::Type{CategoricalPool}, pool::CategoricalPool{T, R}) = convert(CategoricalPool{T, R}, pool)
+
+function Base.show{T, R, O}(io::IO, pool::CategoricalPool{T, R, O})
+    @printf(io, "%s{%s,%s,%s}([%s])", typeof(pool).name, T, R, O,
             join(map(repr, levels(pool)), ","))
 end
 
