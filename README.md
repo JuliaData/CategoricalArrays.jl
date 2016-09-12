@@ -15,46 +15,43 @@ type, which is used to represent missing data. It is also based on a simpler des
 only supporting categorical data, which allows offering more specialized features
 (like ordering of categories).
 
-The package provides four array types designed to hold categorical data:
-- `NominalArray` can hold any type of *unordered* categorical data, storing them in a
-space-efficient fashion
-- `OrdinalArray` is the equivalent type for storing *ordered* data
-- `NullableNominalArray` works like a `NominalArray` but also supports missing data
-- `NullableOrdinalArray` works like a `OrdinalArray` but also supports missing data
+The package provides two array types designed to hold categorical data efficiently and
+conveniently:
+- `CategoricalArray` can hold both unordered and ordered categorical data
+- `NullableCategoricalArray` supports the same features as the first type, also accepts
+missing data
 
 These arrays behave just like standard Julia `Array`s, but they return special types
 when indexed:
-- `NominalArray` returns a `CategoricalValue` object, and `NullableNominalArray` a
-`Nullable{CategoricalValue}` object
-- `OrdinalArray` returns an `OrdinalValue` object, and `NullableOrdinalArray` a
-`Nullable{OrdinalValue}` object
+- `CategoricalArray` returns a `CategoricalValue` object
+- `NullableCategoricalArray` returns a `Nullable{CategoricalValue}` object
 
-These two kinds of objects are simple wrappers around the actual categorical levels
-which allow for very efficient extraction and equality tests. `OrdinalValue` offers
-the additional property that two such values can be compared using the `<` and `>`
-operators. The comparison is based on the ordering of levels stored in the array.
-
-Indeed, the last peculiarity of these four categorical arrays types is that they
-store a pool of the levels that can appear in the variable. These levels appear
-in a specific order: for nominal variables, the order is only used for pretty printing
-(e.g. in cross tables); for ordinal variables, it is used in comparisons mentioned above.
+`CategoricalValue` objects are simple wrappers around the actual categorical levels
+which allow for very efficient extraction and equality tests. Indeed, the main feature of
+categorical arrays types is that they store a pool of the levels which can appear in the
+variable. These levels are stored in a specific order: for unordered arrays, this order
+is only used for pretty printing (e.g. in cross tables or plots); for ordered arrays, it
+also allows comparing values using the `<` and `>` operators: the comparison is then based
+on the ordering of levels stored in the array. Whether an array is ordered can be defined
+either on construction via the `ordered` argument, or at any time via the `ordered!`
+function.
 
 Use the `levels` function to access the levels of a categorical array, and the `levels!`
-function to set them. Levels are automatically created when setting an element to a
-previously unused level. On the other hand, they are never removed without manual intervention:
-use the `droplevels!` function for this.
+function to set and order them. Levels are automatically created when setting an element
+to a previously unused level. On the other hand, they are never removed without manual
+intervention: use the `droplevels!` function for this.
 
-# Using OrdinalArray and NominalArray
+# Using CategoricalArray
 
 Suppose that you have data about four individuals, with three different age groups.
-This kind of data is best handled as an ordinal variable, i.e. `OrdinalArray`. Note
-everything would work the same with `NominalArray`, except for the comparison using `<`.
+Since this variable is clearly ordinal, we mark the array as such via the `ordered`
+argument.
 
 ```julia
 julia> using CategoricalArrays
 
-julia> x = OrdinalArray(["Old", "Young", "Middle", "Young"])
-4-element CategoricalArrays.OrdinalArray{String,1,UInt32}:
+julia> x = CategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -62,8 +59,9 @@ julia> x = OrdinalArray(["Old", "Young", "Middle", "Young"])
 
 ```
 
-By default, the levels are lexically sorted, which is cleary not correct in our case.
-This is easily fixed using the `levels!` function:
+By default, the levels are lexically sorted, which is cleary not correct in our case
+and would give incorrect results when testing for order. This is easily fixed using
+the `levels!` function to reorder levels:
 ```julia
 julia> levels(x)
 3-element Array{String,1}:
@@ -83,10 +81,10 @@ Thanks to this order, we can not only test for equality between two values, but 
 compare the ages of e.g. individuals 1 and 2:
 ```julia
 julia> x[1]
-CategoricalArrays.OrdinalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
 
 julia> x[2]
-CategoricalArrays.OrdinalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.CategoricalValue{String,UInt32} "Young" (1/3)
 
 julia> x[2] == x[4]
 true
@@ -97,17 +95,17 @@ true
 ```
 
 Now let us imagine the first individual is actually in the "Young" group. Let's fix this
-(notice how the string `"Young"` is automatically converted to an `OrdinalValue`):
+(notice how the string `"Young"` is automatically converted to an `CategoricalValue`):
 ```julia
 julia> x[1] = "Young"
 "Young"
 
 julia> x[1]
-CategoricalArrays.OrdinalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.CategoricalValue{String,UInt32} "Young" (1/3)
 
 ```
 
-The `OrdinalArray` still considers `"Old"` as a possible level even if it is unused now.
+The `CategoricalArray` still considers `"Old"` as a possible level even if it is unused now.
 This is necessary to allow efficiently accessing the levels and setting values of elements
 in the array: indeed, dropping unused levels requires iterating over every element in the
 array, which is expensive. This property can also be useful to keep track of possible
@@ -138,30 +136,30 @@ This command is safe too, since it will raise an error when trying to remove lev
 that are currently used:
 ```julia
 julia> levels!(x, ["Young", "Midle"]) # Note the typo in "Middle"
-ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 1. Convert array to a NullableOrdinalArray if you want to transform some levels to missing values.
- in #_levels!#5(::Bool, ::Function, ::CategoricalArrays.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalArrays/src/array.jl:132
- in levels!(::CategoricalArrays.OrdinalArray{String,1,UInt32}, ::Array{String,1}) at /home/milan/.julia/CategoricalArrays/src/array.jl:164
+ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 1. Convert array to a NullableCategoricalArray if you want to transform some levels to missing values.
+ in #_levels!#5(::Bool, ::Function, ::CategoricalArrays.CategoricalArray{String,1,UInt32}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:132
+ in levels!(::CategoricalArrays.CategoricalArray{String,1,UInt32}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:164
  in eval(::Module, ::Any) at ./boot.jl:225
  in macro expansion at ./REPL.jl:92 [inlined]
  in (::Base.REPL.##1#2{Base.REPL.REPLBackend})() at ./event.jl:46
 ```
 
-### Handling Missing Values: NullableNominalArray and NullableOrdinalArray
+### Handling Missing Values: NullableCategoricalArray
 
 The examples above assumed that the data contained no missing values. This is
-generally not the case in real data. This is where `NullableNominalArray` and
-`NullableOrdinalArray` come into play. They are essentially the categorical-data
-equivalent of [NullableArrays](https://github.com/JuliaStats/NullableArrays.jl).
-They behave exactly the same as `NominalArray` and `OrdinalArray`, except that
-they return respectively `Nullable{NominalValue}` and `Nullable{OrdinalValue}` elements.
+generally not the case in real data. This is where `NullableCategoricalArray`
+comes into play. It is essentially the categorical-data equivalent of
+[NullableArrays](https://github.com/JuliaStats/NullableArrays.jl).
+It behaves exactly the same as `CategoricalArray` , except that it returns
+`Nullable{CategoricalValue}` elements when indexed.
 See [the Julia manual](http://docs.julialang.org/en/stable/manual/types/?highlight=nullable#nullable-types-representing-missing-values)
 for more information on the `Nullable` type.
 
 Let's adapt the example developed above to support missing values. At first sight,
 not much changes:
 ```julia
-julia> y = NullableOrdinalArray(["Old", "Young", "Middle", "Young"])
-4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
+julia> y = NullableCategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
+4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -189,15 +187,24 @@ A first difference from the previous example is that indexing the array returns 
 `Nullable` value:
 ```julia
 julia> y[1]
-Nullable{CategoricalArrays.OrdinalValue{String,UInt32}}("Old")
+Nullable{CategoricalArrays.CategoricalValue{String,UInt32}}("Old")
 
 julia> get(y[1])
-CategoricalArrays.OrdinalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
 ```
 
-Currently, comparison between two `Nullable` objects requires extracting their values using
-`get`, which throws an error in the presence of missing values. This should hopefully be fixed
-soon.
+`Nullable` objects currenty require the [NullableArrays](https://github.com/JuliaStats/NullableArrays.jl)
+package to be compared:
+```julia
+julia> using NullableArrays
+
+julia> get(y[2] == y[4])
+true
+
+julia> get(y[2] > y[4])
+false
+
+```
 
 Missing values can be introduced either manually, or by restricting the set of possible
 levels. Let us imagine this time that we actually do not know the age of the first
@@ -207,14 +214,14 @@ julia> y[1] = Nullable()
 Nullable{Union{}}()
 
 julia> y
-4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
  #NULL   
  "Young" 
  "Middle"
  "Young" 
 
 julia> y[1]
-Nullable{CategoricalArrays.OrdinalValue{String,UInt32}}()
+Nullable{CategoricalArrays.CategoricalValue{String,UInt32}}()
 
 ```
 
@@ -227,7 +234,7 @@ julia> y[1] = "Old"
 "Old"
 
 julia> y
-4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -239,7 +246,7 @@ julia> levels!(y, ["Young", "Middle"]; nullok=true)
  "Middle"
 
 julia> y
-4-element CategoricalArrays.NullableOrdinalArray{String,1,UInt32}:
+4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
  #NULL   
  "Young" 
  "Middle"
@@ -250,23 +257,24 @@ julia> y
 
 # Implementation details
 
-`NominalArray`, `OrdinalArray`, `NullableNominalArray` and `NullableOrdinalArray` share a
+`CategoricalArray` and `NullableCategoricalArray` share a
 common implementation for the most part, with the main differences being their element
-types. They are based on the `NominalPool` and `OrdinalPool` types, which keep track of the
+types. They are based on the `CategoricalPool` type, which keep track of the
 levels and associates them with an integer reference (for internal use). They offer
 methods to set levels, change their order while preserving the references, and efficiently
 get the integer index corresponding to a level and vice-versa. They are also
 parameterized on the type used to store the references, so that small pools can use as little
-memory as possible. Finally, they keep a vector of value objects (`NominalValue` or
-`CategoricalValue`), so that `getindex` can return the existing object instead of allocating
-a new one.
+memory as possible. Finally, they keep a vector of value objects (`CategoricalValue`),
+so that `getindex` can return the existing object instead of allocating a new one.
 
 Array types are made of two fields:
 - `refs`: an integer vector giving the index of the level in the pool for each element.
-For `NullableNominalArray` and `NullableOrdinalArray`, `0` indicates a missing value.
-- `pool`: the `NominalPool` or `OrdinalPool` object keeping the levels of the array.
+For `NullableCategoricalArray`, `0` indicates a missing value.
+- `pool`: the `CategoricalPool` object keeping the levels of the array.
 
-`NominalPool` and `OrdinalPool` are designed to limit the need to go over all elements of
+Whether an array (and its values) are ordered or not is stored as a property of the pool.
+
+`CategoricalPool` is designed to limit the need to go over all elements of
 the vector, either for reading or for writing. This is why unused levels are not dropped
 automatically (this would force checking all elements on every modification or keeping a
 counts table), but only when `droplevels!` is called.
@@ -274,6 +282,7 @@ counts table), but only when `droplevels!` is called.
 levels, without accessing the data at all. Another useful property is that integer indices
 referring to levels are preserved when adding or reordering levels: the order of levels
 exposed to the user by the `levels` function does not necessarily match these internal
-indices. This means a reordering of the levels is also an O(1) operation. On the other
-hand, deleting levels may change the indices and therefore require iterating over all
+indices, which are stored in the `index` field of the pool.
+This means a reordering of the levels is also an O(1) operation. On the other
+hand, deleting levels may change the indices and therefore requires iterating over all
 elements in the array to update the references.

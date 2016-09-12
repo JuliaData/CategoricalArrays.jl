@@ -7,77 +7,95 @@ using Compat
 
 typealias String Compat.ASCIIString
 
-for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
-                  (OrdinalArray, OrdinalVector, OrdinalMatrix))
+for isordered in (false, true)
     for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         # Vector
         a = ["b", "a", "b"]
-        x = V{String, R}(a)
+        x = CategoricalVector{String, R}(a, ordered=isordered)
 
         @test x == a
+        @test ordered(x) === isordered
         @test levels(x) == sort(unique(a))
         @test size(x) === (3,)
         @test length(x) === 3
 
-        @test convert(A, x) === x
-        @test convert(A{String}, x) === x
-        @test convert(A{String, 1}, x) === x
-        @test convert(A{String, 1, R}, x) === x
-        @test convert(A{String, 1, DefaultRefType}, x) == x
-        @test convert(A{String, 1, UInt8}, x) == x
+        @test convert(CategoricalArray, x) === x
+        @test convert(CategoricalArray{String}, x) === x
+        @test convert(CategoricalArray{String, 1}, x) === x
+        @test convert(CategoricalArray{String, 1, R}, x) === x
+        @test convert(CategoricalArray{String, 1, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{String, 1, UInt8}, x) == x
 
-        @test convert(V, x) === x
-        @test convert(V{String}, x) === x
-        @test convert(V{String, R}, x) === x
-        @test convert(V{String, DefaultRefType}, x) == x
-        @test convert(V{String, UInt8}, x) == x
+        @test convert(CategoricalVector, x) === x
+        @test convert(CategoricalVector{String}, x) === x
+        @test convert(CategoricalVector{String, R}, x) === x
+        @test convert(CategoricalVector{String, DefaultRefType}, x) == x
+        @test convert(CategoricalVector{String, UInt8}, x) == x
 
-        @test A{String}(x) === x
-        @test A{String, 1}(x) === x
-        @test A{String, 1, R}(x) === x
-        @test A{String, 1, DefaultRefType}(x) == x
-        @test A{String, 1, UInt8}(x) == x
+        for y in (CategoricalArray(x, ordered=isordered),
+                  CategoricalArray{String}(x, ordered=isordered),
+                  CategoricalArray{String, 1}(x, ordered=isordered),
+                  CategoricalArray{String, 1, R}(x, ordered=isordered),
+                  CategoricalArray{String, 1, DefaultRefType}(x, ordered=isordered),
+                  CategoricalArray{String, 1, UInt8}(x, ordered=isordered),
+                  CategoricalVector(x, ordered=isordered),
+                  CategoricalVector{String}(x, ordered=isordered),
+                  CategoricalVector{String, R}(x, ordered=isordered),
+                  CategoricalVector{String, DefaultRefType}(x, ordered=isordered),
+                  CategoricalVector{String, UInt8}(x, ordered=isordered))
+            @test y == x
+            @test y !== x
+            @test y.refs !== x.refs
+            @test y.pool !== x.pool
+        end
 
-        @test V(x) === x
-        @test V{String}(x) === x
-        @test V{String, R}(x) === x
-        @test V{String, DefaultRefType}(x) == x
-        @test V{String, UInt8}(x) == x
+        @test convert(CategoricalArray, a) == x
+        @test convert(CategoricalArray{String}, a) == x
+        @test convert(CategoricalArray{String, 1}, a) == x
+        @test convert(CategoricalArray{String, 1, R}, a) == x
+        @test convert(CategoricalArray{String, 1, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{String, 1, UInt8}, a) == x
 
-        @test convert(A, a) == x
-        @test convert(A{String}, a) == x
-        @test convert(A{String, 1}, a) == x
-        @test convert(A{String, 1, R}, a) == x
-        @test convert(A{String, 1, DefaultRefType}, a) == x
-        @test convert(A{String, 1, UInt8}, a) == x
+        @test convert(CategoricalVector, a) == x
+        @test convert(CategoricalVector{String}, a) == x
+        @test convert(CategoricalVector{String, R}, a) == x
+        @test convert(CategoricalVector{String, DefaultRefType}, a) == x
+        @test convert(CategoricalVector{String, UInt8}, a) == x
 
-        @test convert(V, a) == x
-        @test convert(V{String}, a) == x
-        @test convert(V{String, R}, a) == x
-        @test convert(V{String, DefaultRefType}, a) == x
-        @test convert(V{String, UInt8}, a) == x
+        @test CategoricalArray{String}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 1}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 1, R}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 1, DefaultRefType}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 1, UInt8}(a, ordered=isordered) == x
 
-        @test A{String}(a) == x
-        @test A{String, 1}(a) == x
-        @test A{String, 1, R}(a) == x
-        @test A{String, 1, DefaultRefType}(a) == x
-        @test A{String, 1, UInt8}(a) == x
-
-        @test V(a) == x
-        @test V{String}(a) == x
-        @test V{String, R}(a) == x
-        @test V{String, DefaultRefType}(a) == x
-        @test V{String, UInt8}(a) == x
+        @test CategoricalVector(a, ordered=isordered) == x
+        @test CategoricalVector{String}(a, ordered=isordered) == x
+        @test CategoricalVector{String, R}(a, ordered=isordered) == x
+        @test CategoricalVector{String, DefaultRefType}(a, ordered=isordered) == x
+        @test CategoricalVector{String, UInt8}(a, ordered=isordered) == x
 
         x2 = compact(x)
         @test x2 == x
-        @test isa(x2, V{String, UInt8})
+        @test isa(x2, CategoricalVector{String, UInt8})
+        @test ordered(x2) === ordered(x)
         @test levels(x2) == levels(x)
 
         x2 = copy(x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
+        @test ordered(x2) === ordered(x)
         @test levels(x2) == levels(x)
+
+        if !ordered(x)
+            @test ordered!(x, true) === true
+        end
+        @test x[1] > x[2]
+        @test x[3] > x[2]
+
+        @test ordered!(x, false) === false
+        @test ordered(x) === false
+        @test_throws Exception x[1] > x[2]
+        @test_throws Exception x[3] > x[2]
 
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
@@ -150,9 +168,11 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         append!(x, x)
         @test length(x) == 12
         @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c"]
+        @test ordered(x) === false
+        @test levels(x) == ["e", "a", "b", "c", "zz"]
 
         b = ["z","y","x"]
-        y = V{String, R}(b)
+        y = CategoricalVector{String, R}(b)
         append!(x, y)
         @test length(x) == 15
         @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c", "z", "y", "x"]
@@ -165,85 +185,93 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         # Vector created from range (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
         a = 0.0:0.5:1.5
-        x = V{Float64, R}(a)
+        x = CategoricalVector{Float64, R}(a, ordered=isordered)
 
         @test x == collect(a)
+        @test ordered(x) === isordered
         @test levels(x) == unique(a)
         @test size(x) === (4,)
         @test length(x) === 4
 
-        @test convert(A, x) === x
-        @test convert(A{Float64}, x) === x
-        @test convert(A{Float64, 1}, x) === x
-        @test convert(A{Float64, 1, R}, x) === x
-        @test convert(A{Float64, 1, DefaultRefType}, x) == x
-        @test convert(A{Float64, 1, UInt8}, x) == x
+        @test convert(CategoricalArray, x) === x
+        @test convert(CategoricalArray{Float64}, x) === x
+        @test convert(CategoricalArray{Float64, 1}, x) === x
+        @test convert(CategoricalArray{Float64, 1, R}, x) === x
+        @test convert(CategoricalArray{Float64, 1, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{Float64, 1, UInt8}, x) == x
 
-        @test convert(V, x) === x
-        @test convert(V{Float64}, x) === x
-        @test convert(V{Float64, R}, x) === x
-        @test convert(V{Float64, DefaultRefType}, x) == x
-        @test convert(V{Float64, UInt8}, x) == x
+        @test convert(CategoricalVector, x) === x
+        @test convert(CategoricalVector{Float64}, x) === x
+        @test convert(CategoricalVector{Float64, R}, x) === x
+        @test convert(CategoricalVector{Float64, DefaultRefType}, x) == x
+        @test convert(CategoricalVector{Float64, UInt8}, x) == x
 
-        @test A{Float64}(x) === x
-        @test A{Float64, 1}(x) === x
-        @test A{Float64, 1, R}(x) === x
-        @test A{Float64, 1, DefaultRefType}(x) == x
-        @test A{Float64, 1, UInt8}(x) == x
+        for y in (CategoricalArray(x, ordered=isordered),
+                  CategoricalArray{Float64}(x, ordered=isordered),
+                  CategoricalArray{Float64, 1}(x, ordered=isordered),
+                  CategoricalArray{Float64, 1, R}(x, ordered=isordered),
+                  CategoricalArray{Float64, 1, DefaultRefType}(x, ordered=isordered),
+                  CategoricalArray{Float64, 1, UInt8}(x, ordered=isordered),
+                  CategoricalVector(x, ordered=isordered),
+                  CategoricalVector{Float64}(x, ordered=isordered),
+                  CategoricalVector{Float64, R}(x, ordered=isordered),
+                  CategoricalVector{Float64, DefaultRefType}(x, ordered=isordered),
+                  CategoricalVector{Float64, UInt8}(x, ordered=isordered))
+            @test y == x
+            @test y !== x
+            @test y.refs !== x.refs
+            @test y.pool !== x.pool
+        end
 
-        @test V(x) === x
-        @test V{Float64}(x) === x
-        @test V{Float64, R}(x) === x
-        @test V{Float64, DefaultRefType}(x) == x
-        @test V{Float64, UInt8}(x) == x
+        @test convert(CategoricalArray, a) == x
+        @test convert(CategoricalArray{Float64}, a) == x
+        @test convert(CategoricalArray{Float32}, a) == x
+        @test convert(CategoricalArray{Float64, 1}, a) == x
+        @test convert(CategoricalArray{Float32, 1}, a) == x
+        @test convert(CategoricalArray{Float64, 1, R}, a) == x
+        @test convert(CategoricalArray{Float32, 1, R}, a) == x
+        @test convert(CategoricalArray{Float64, 1, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{Float32, 1, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{Float64, 1, UInt8}, a) == x
+        @test convert(CategoricalArray{Float32, 1, UInt8}, a) == x
 
-        @test convert(A, a) == x
-        @test convert(A{Float64}, a) == x
-        @test convert(A{Float32}, a) == x
-        @test convert(A{Float64, 1}, a) == x
-        @test convert(A{Float32, 1}, a) == x
-        @test convert(A{Float64, 1, R}, a) == x
-        @test convert(A{Float32, 1, R}, a) == x
-        @test convert(A{Float64, 1, DefaultRefType}, a) == x
-        @test convert(A{Float32, 1, DefaultRefType}, a) == x
-        @test convert(A{Float64, 1, UInt8}, a) == x
-        @test convert(A{Float32, 1, UInt8}, a) == x
+        @test convert(CategoricalVector, a) == x
+        @test convert(CategoricalVector{Float64}, a) == x
+        @test convert(CategoricalVector{Float32}, a) == x
+        @test convert(CategoricalVector{Float64, R}, a) == x
+        @test convert(CategoricalVector{Float32, R}, a) == x
+        @test convert(CategoricalVector{Float64, DefaultRefType}, a) == x
+        @test convert(CategoricalVector{Float32, DefaultRefType}, a) == x
+        @test convert(CategoricalVector{Float64, UInt8}, a) == x
+        @test convert(CategoricalVector{Float32, UInt8}, a) == x
 
-        @test convert(V, a) == x
-        @test convert(V{Float64}, a) == x
-        @test convert(V{Float32}, a) == x
-        @test convert(V{Float64, R}, a) == x
-        @test convert(V{Float32, R}, a) == x
-        @test convert(V{Float64, DefaultRefType}, a) == x
-        @test convert(V{Float32, DefaultRefType}, a) == x
-        @test convert(V{Float64, UInt8}, a) == x
-        @test convert(V{Float32, UInt8}, a) == x
+        @test CategoricalArray{Float64}(a, ordered=isordered) == x
+        @test CategoricalArray{Float32}(a, ordered=isordered) == x
+        @test CategoricalArray{Float64, 1}(a, ordered=isordered) == x
+        @test CategoricalArray{Float32, 1}(a, ordered=isordered) == x
+        @test CategoricalArray{Float64, 1, R}(a, ordered=isordered) == x
+        @test CategoricalArray{Float32, 1, R}(a, ordered=isordered) == x
+        @test CategoricalArray{Float64, 1, DefaultRefType}(a, ordered=isordered) == x
+        @test CategoricalArray{Float32, 1, DefaultRefType}(a, ordered=isordered) == x
 
-        @test A{Float64}(a) == x
-        @test A{Float32}(a) == x
-        @test A{Float64, 1}(a) == x
-        @test A{Float32, 1}(a) == x
-        @test A{Float64, 1, R}(a) == x
-        @test A{Float32, 1, R}(a) == x
-        @test A{Float64, 1, DefaultRefType}(a) == x
-        @test A{Float32, 1, DefaultRefType}(a) == x
-
-        @test V(a) == x
-        @test V{Float64}(a) == x
-        @test V{Float32}(a) == x
-        @test V{Float64, R}(a) == x
-        @test V{Float32, R}(a) == x
-        @test V{Float64, DefaultRefType}(a) == x
-        @test V{Float32, DefaultRefType}(a) == x
+        @test CategoricalVector(a, ordered=isordered) == x
+        @test CategoricalVector{Float64}(a, ordered=isordered) == x
+        @test CategoricalVector{Float32}(a, ordered=isordered) == x
+        @test CategoricalVector{Float64, R}(a, ordered=isordered) == x
+        @test CategoricalVector{Float32, R}(a, ordered=isordered) == x
+        @test CategoricalVector{Float64, DefaultRefType}(a, ordered=isordered) == x
+        @test CategoricalVector{Float32, DefaultRefType}(a, ordered=isordered) == x
 
         x2 = compact(x)
         @test x2 == x
-        @test isa(x2, V{Float64, UInt8})
+        @test isa(x2, CategoricalVector{Float64, UInt8})
+        @test ordered(x2) === ordered(x)
         @test levels(x2) == levels(x)
 
         x2 = copy(x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
+        @test ordered(x2) === ordered(x)
         @test levels(x2) == levels(x)
 
         @test x[1] === x.pool.valindex[1]
@@ -272,95 +300,109 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         push!(x, 2.0)
         @test length(x) == 5
         @test x[end] == 2.0
+        @test ordered(x) === isordered
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
         push!(x, x[1])
         @test length(x) == 6
         @test x[1] == x[end]
+        @test ordered(x) === isordered
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
         append!(x, x)
         @test length(x) == 12
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0]
+        @test ordered(x) === isordered
+        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
         b = [2.5, 3.0, -3.5]
-        y = V{Float64, R}(b)
+        y = CategoricalVector{Float64, R}(b, ordered=isordered)
         append!(x, y)
         @test length(x) == 15
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
+        @test ordered(x) === isordered
         @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
 
         empty!(x)
         @test length(x) == 0
+        @test ordered(x) === isordered
         @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
 
         # Matrix
         a = ["a" "b" "c"; "b" "a" "c"]
-        x = M{String, R}(a)
+        x = CategoricalMatrix{String, R}(a, ordered=isordered)
 
         @test x == a
+        @test ordered(x) === isordered
         @test levels(x) == unique(a)
         @test size(x) === (2, 3)
         @test length(x) === 6
 
-        @test convert(A, x) === x
-        @test convert(A{String}, x) === x
-        @test convert(A{String, 2}, x) === x
-        @test convert(A{String, 2, R}, x) === x
-        @test convert(A{String, 2, DefaultRefType}, x) == x
-        @test convert(A{String, 2, UInt8}, x) == x
+        @test convert(CategoricalArray, x) === x
+        @test convert(CategoricalArray{String}, x) === x
+        @test convert(CategoricalArray{String, 2}, x) === x
+        @test convert(CategoricalArray{String, 2, R}, x) === x
+        @test convert(CategoricalArray{String, 2, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{String, 2, UInt8}, x) == x
 
-        @test convert(M, x) === x
-        @test convert(M{String}, x) === x
-        @test convert(M{String, R}, x) === x
-        @test convert(M{String, DefaultRefType}, x) == x
-        @test convert(M{String, UInt8}, x) == x
+        @test convert(CategoricalMatrix, x) === x
+        @test convert(CategoricalMatrix{String}, x) === x
+        @test convert(CategoricalMatrix{String, R}, x) === x
+        @test convert(CategoricalMatrix{String, DefaultRefType}, x) == x
+        @test convert(CategoricalMatrix{String, UInt8}, x) == x
 
-        @test A{String}(x) === x
-        @test A{String, 2}(x) === x
-        @test A{String, 2, R}(x) === x
-        @test A{String, 2, DefaultRefType}(x) == x
-        @test A{String, 2, UInt8}(x) == x
+        for y in (CategoricalArray(x, ordered=isordered),
+                  CategoricalArray{String}(x, ordered=isordered),
+                  CategoricalArray{String, 2}(x, ordered=isordered),
+                  CategoricalArray{String, 2, R}(x, ordered=isordered),
+                  CategoricalArray{String, 2, DefaultRefType}(x, ordered=isordered),
+                  CategoricalArray{String, 2, UInt8}(x, ordered=isordered),
+                  CategoricalMatrix(x, ordered=isordered),
+                  CategoricalMatrix{String}(x, ordered=isordered),
+                  CategoricalMatrix{String, R}(x, ordered=isordered),
+                  CategoricalMatrix{String, DefaultRefType}(x, ordered=isordered),
+                  CategoricalMatrix{String, UInt8}(x, ordered=isordered))
+            @test y == x
+            @test y !== x
+            @test y.refs !== x.refs
+            @test y.pool !== x.pool
+        end
 
-        @test M(x) === x
-        @test M{String}(x) === x
-        @test M{String, R}(x) === x
-        @test M{String, DefaultRefType}(x) == x
-        @test M{String, UInt8}(x) == x
+        @test convert(CategoricalArray, a) == x
+        @test convert(CategoricalArray{String}, a) == x
+        @test convert(CategoricalArray{String, 2, R}, a) == x
+        @test convert(CategoricalArray{String, 2, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{String, 2, UInt8}, a) == x
 
-        @test convert(A, a) == x
-        @test convert(A{String}, a) == x
-        @test convert(A{String, 2, R}, a) == x
-        @test convert(A{String, 2, DefaultRefType}, a) == x
-        @test convert(A{String, 2, UInt8}, a) == x
+        @test convert(CategoricalMatrix, a) == x
+        @test convert(CategoricalMatrix{String}, a) == x
+        @test convert(CategoricalMatrix{String, R}, a) == x
+        @test convert(CategoricalMatrix{String, DefaultRefType}, a) == x
+        @test convert(CategoricalMatrix{String, UInt8}, a) == x
 
-        @test convert(M, a) == x
-        @test convert(M{String}, a) == x
-        @test convert(M{String, R}, a) == x
-        @test convert(M{String, DefaultRefType}, a) == x
-        @test convert(M{String, UInt8}, a) == x
+        @test CategoricalArray{String}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 2}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 2}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 2, R}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 2, DefaultRefType}(a, ordered=isordered) == x
+        @test CategoricalArray{String, 2, UInt8}(a, ordered=isordered) == x
 
-        @test A{String}(a) == x
-        @test A{String, 2}(a) == x
-        @test A{String, 2}(a) == x
-        @test A{String, 2, R}(a) == x
-        @test A{String, 2, DefaultRefType}(a) == x
-        @test A{String, 2, UInt8}(a) == x
-
-        @test M(a) == x
-        @test M{String}(a) == x
-        @test M{String, R}(a) == x
-        @test M{String, DefaultRefType}(a) == x
-        @test M{String, UInt8}(a) == x
+        @test CategoricalMatrix(a, ordered=isordered) == x
+        @test CategoricalMatrix{String}(a, ordered=isordered) == x
+        @test CategoricalMatrix{String, R}(a, ordered=isordered) == x
+        @test CategoricalMatrix{String, DefaultRefType}(a, ordered=isordered) == x
+        @test CategoricalMatrix{String, UInt8}(a, ordered=isordered) == x
 
         x2 = compact(x)
         @test x2 == x
-        @test isa(x2, M{String, UInt8})
+        @test isa(x2, CategoricalMatrix{String, UInt8})
+        @test ordered(x2) === ordered(x)
         @test levels(x2) == levels(x)
 
         x2 = copy(x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
+        @test ordered(x2) === ordered(x)
         @test levels(x2) == levels(x)
 
         @test x[1] === x.pool.valindex[1]
@@ -384,7 +426,7 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
         @test x[1:2,:] == x
         @test typeof(x[1:2,:]) === typeof(x)
         @test x[1:2,1] == ["a", "b"]
-        @test typeof(x[1:2,1]) === V{String, R}
+        @test typeof(x[1:2,1]) === CategoricalVector{String, R}
 
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
@@ -415,16 +457,27 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
 
 
         # Uninitialized array
-        v = Any[A(2), A(String, 2),
-                A{String}(2), A{String, 1}(2), A{String, 1, R}(2),
-                V{String}(2), V{String, R}(2),
-                A(2, 3), A(String, 2, 3),
-                A{String}(2, 3), A{String, 2}(2, 3), A{String, 2, R}(2, 3),
-                M{String}(2, 3), M{String, R}(2, 3)]
+        v = Any[CategoricalArray(2, ordered=isordered),
+                CategoricalArray(String, 2, ordered=isordered),
+                CategoricalArray{String}(2, ordered=isordered),
+                CategoricalArray{String, 1}(2, ordered=isordered),
+                CategoricalArray{String, 1, R}(2, ordered=isordered),
+                CategoricalVector{String}(2, ordered=isordered),
+                CategoricalVector{String, R}(2, ordered=isordered),
+                CategoricalArray(2, 3, ordered=isordered),
+                CategoricalArray(String, 2, 3, ordered=isordered),
+                CategoricalArray{String}(2, 3, ordered=isordered),
+                CategoricalArray{String, 2}(2, 3, ordered=isordered),
+                CategoricalArray{String, 2, R}(2, 3, ordered=isordered),
+                CategoricalMatrix{String}(2, 3, ordered=isordered),
+                CategoricalMatrix{String, R}(2, 3, ordered=isordered)]
 
         # See conditional definition of constructors in array.jl
         if VERSION >= v"0.5.0-dev"
-            push!(v, V(2), V(String, 2), M(2, 3), M(String, 2, 3))
+            push!(v, CategoricalVector(2, ordered=isordered),
+                     CategoricalVector(String, 2, ordered=isordered),
+                     CategoricalMatrix(2, 3, ordered=isordered),
+                     CategoricalMatrix(String, 2, 3, ordered=isordered))
         end
 
         for x in v
@@ -432,13 +485,14 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
             @test !isassigned(x, 2) && isdefined(x, 2)
             @test_throws UndefRefError x[1]
             @test_throws UndefRefError x[2]
+            @test ordered(x) === isordered
             @test levels(x) == []
 
             x2 = compact(x)
-            if VERSION >= v"0.5.0"
-                @test isa(x2, A{String, ndims(x), UInt8})
+            if VERSION >= v"0.5.0-dev"
+                @test isa(x2, CategoricalArray{String, ndims(x), UInt8})
             else
-                @test isa(x2, A{A.parameters[1], ndims(x), UInt8})
+                @test isa(x2, CategoricalArray{typeof(x).parameters[1], ndims(x), UInt8})
             end
             @test !isassigned(x2, 1) && isdefined(x2, 1)
             @test !isassigned(x2, 2) && isdefined(x2, 2)
@@ -456,6 +510,7 @@ for (A, V, M) in ((NominalArray, NominalVector, NominalMatrix),
             @test x[1] === x.pool.valindex[2]
             @test !isassigned(x, 2) && isdefined(x, 2)
             @test_throws UndefRefError x[2]
+            @test ordered(x) === isordered
             @test levels(x) == ["c", "a"]
 
             x[2] = "c"

@@ -17,27 +17,25 @@ module TestBuildFields
         DefaultRefType(3),
     ]
 
-    for P in (NominalPool, OrdinalPool)
-        pool = P(index, invindex)
+    pool = CategoricalPool(index, invindex)
 
-        ordered = ["c", "a", "b"]
+    ordered = ["c", "a", "b"]
 
-        built_index = CategoricalArrays.buildindex(invindex)
-        @test isa(index, Vector)
-        @test built_index == index
+    built_index = CategoricalArrays.buildindex(invindex)
+    @test isa(index, Vector)
+    @test built_index == index
 
-        built_invindex = CategoricalArrays.buildinvindex(index)
-        @test isa(invindex, Dict)
-        @test built_invindex == invindex
+    built_invindex = CategoricalArrays.buildinvindex(index)
+    @test isa(invindex, Dict)
+    @test built_invindex == invindex
 
-        neworder = [
-            DefaultRefType(3),
-            DefaultRefType(2),
-            DefaultRefType(1),
-        ]
+    neworder = [
+        DefaultRefType(3),
+        DefaultRefType(2),
+        DefaultRefType(1),
+    ]
 
-        built_order = CategoricalArrays.buildorder(pool.invindex, ordered)
-        @test isa(order, Vector{DefaultRefType})
-        @test built_order == neworder
-    end
+    built_order = CategoricalArrays.buildorder(pool.invindex, ordered)
+    @test isa(order, Vector{DefaultRefType})
+    @test built_order == neworder
 end

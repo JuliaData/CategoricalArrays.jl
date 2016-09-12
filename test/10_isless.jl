@@ -2,140 +2,177 @@ module TestIsLess
     using Base.Test
     using CategoricalArrays
 
-    pool = NominalPool([1, 2, 3])
-    opool = OrdinalPool([1, 2, 3], [3, 2, 1])
+    pool = CategoricalPool([1, 2, 3])
 
-    nv1 = NominalValue(1, pool)
-    nv2 = NominalValue(2, pool)
-    nv3 = NominalValue(3, pool)
+    v1 = CategoricalValue(1, pool)
+    v2 = CategoricalValue(2, pool)
+    v3 = CategoricalValue(3, pool)
 
-    @test_throws Exception nv1 < nv1
-    @test_throws Exception nv1 < nv2
-    @test_throws Exception nv1 < nv3
-    @test_throws Exception nv2 < nv1
-    @test_throws Exception nv2 < nv2
-    @test_throws Exception nv2 < nv3
-    @test_throws Exception nv3 < nv1
-    @test_throws Exception nv3 < nv2
-    @test_throws Exception nv3 < nv3
+    @test_throws Exception v1 < v1
+    @test_throws Exception v1 < v2
+    @test_throws Exception v1 < v3
+    @test_throws Exception v2 < v1
+    @test_throws Exception v2 < v2
+    @test_throws Exception v2 < v3
+    @test_throws Exception v3 < v1
+    @test_throws Exception v3 < v2
+    @test_throws Exception v3 < v3
 
-    @test_throws Exception nv1 <= nv1
-    @test_throws Exception nv1 <= nv2
-    @test_throws Exception nv1 <= nv3
-    @test_throws Exception nv2 <= nv1
-    @test_throws Exception nv2 <= nv2
-    @test_throws Exception nv2 <= nv3
-    @test_throws Exception nv3 <= nv1
-    @test_throws Exception nv3 <= nv2
-    @test_throws Exception nv3 <= nv3
+    @test_throws Exception v1 <= v1
+    @test_throws Exception v1 <= v2
+    @test_throws Exception v1 <= v3
+    @test_throws Exception v2 <= v1
+    @test_throws Exception v2 <= v2
+    @test_throws Exception v2 <= v3
+    @test_throws Exception v3 <= v1
+    @test_throws Exception v3 <= v2
+    @test_throws Exception v3 <= v3
 
-    @test_throws Exception nv1 > nv1
-    @test_throws Exception nv1 > nv2
-    @test_throws Exception nv1 > nv3
-    @test_throws Exception nv2 > nv1
-    @test_throws Exception nv2 > nv2
-    @test_throws Exception nv2 > nv3
-    @test_throws Exception nv3 > nv1
-    @test_throws Exception nv3 > nv2
-    @test_throws Exception nv3 > nv3
+    @test_throws Exception v1 > v1
+    @test_throws Exception v1 > v2
+    @test_throws Exception v1 > v3
+    @test_throws Exception v2 > v1
+    @test_throws Exception v2 > v2
+    @test_throws Exception v2 > v3
+    @test_throws Exception v3 > v1
+    @test_throws Exception v3 > v2
+    @test_throws Exception v3 > v3
 
-    @test_throws Exception nv1 >= nv1
-    @test_throws Exception nv1 >= nv2
-    @test_throws Exception nv1 >= nv3
-    @test_throws Exception nv2 >= nv1
-    @test_throws Exception nv2 >= nv2
-    @test_throws Exception nv2 >= nv3
-    @test_throws Exception nv3 >= nv1
-    @test_throws Exception nv3 >= nv2
-    @test_throws Exception nv3 >= nv3
+    @test_throws Exception v1 >= v1
+    @test_throws Exception v1 >= v2
+    @test_throws Exception v1 >= v3
+    @test_throws Exception v2 >= v1
+    @test_throws Exception v2 >= v2
+    @test_throws Exception v2 >= v3
+    @test_throws Exception v3 >= v1
+    @test_throws Exception v3 >= v2
+    @test_throws Exception v3 >= v3
 
-    ov1 = OrdinalValue(1, opool)
-    ov2 = OrdinalValue(2, opool)
-    ov3 = OrdinalValue(3, opool)
+    @test ordered!(pool, true) === true
+    @test ordered(pool) === true
 
-    @test (ov1 < ov1) == false
-    @test (ov1 < ov2) == false
-    @test (ov1 < ov3) == false
-    @test (ov2 < ov1) == true
-    @test (ov2 < ov2) == false
-    @test (ov2 < ov3) == false
-    @test (ov3 < ov1) == true
-    @test (ov3 < ov2) == true
-    @test (ov3 < ov3) == false
+    @test (v1 < v1) === false
+    @test (v1 < v2) === true
+    @test (v1 < v3) === true
+    @test (v2 < v1) === false
+    @test (v2 < v2) === false
+    @test (v2 < v3) === true
+    @test (v3 < v1) === false
+    @test (v3 < v2) === false
+    @test (v3 < v3) === false
 
-    @test (ov1 <= ov1) == true
-    @test (ov1 <= ov2) == false
-    @test (ov1 <= ov3) == false
-    @test (ov2 <= ov1) == true
-    @test (ov2 <= ov2) == true
-    @test (ov2 <= ov3) == false
-    @test (ov3 <= ov1) == true
-    @test (ov3 <= ov2) == true
-    @test (ov3 <= ov3) == true
+    @test (v1 <= v1) === true
+    @test (v1 <= v2) === true
+    @test (v1 <= v3) === true
+    @test (v2 <= v1) === false
+    @test (v2 <= v2) === true
+    @test (v2 <= v3) === true
+    @test (v3 <= v1) === false
+    @test (v3 <= v2) === false
+    @test (v3 <= v3) === true
 
-    @test (ov1 > ov1) == false
-    @test (ov1 > ov2) == true
-    @test (ov1 > ov3) == true
-    @test (ov2 > ov1) == false
-    @test (ov2 > ov2) == false
-    @test (ov2 > ov3) == true
-    @test (ov3 > ov1) == false
-    @test (ov3 > ov2) == false
-    @test (ov3 > ov3) == false
+    @test (v1 > v1) === false
+    @test (v1 > v2) === false
+    @test (v1 > v3) === false
+    @test (v2 > v1) === true
+    @test (v2 > v2) === false
+    @test (v2 > v3) === false
+    @test (v3 > v1) === true
+    @test (v3 > v2) === true
+    @test (v3 > v3) === false
 
-    @test (ov1 >= ov1) == true
-    @test (ov1 >= ov2) == true
-    @test (ov1 >= ov3) == true
-    @test (ov2 >= ov1) == false
-    @test (ov2 >= ov2) == true
-    @test (ov2 >= ov3) == true
-    @test (ov3 >= ov1) == false
-    @test (ov3 >= ov2) == false
-    @test (ov3 >= ov3) == true
+    @test (v1 >= v1) === true
+    @test (v1 >= v2) === false
+    @test (v1 >= v3) === false
+    @test (v2 >= v1) === true
+    @test (v2 >= v2) === true
+    @test (v2 >= v3) === false
+    @test (v3 >= v1) === true
+    @test (v3 >= v2) === true
+    @test (v3 >= v3) === true
 
-    levels!(opool, [2, 3, 1])
+    levels!(pool, [2, 3, 1])
 
-    ov1 = OrdinalValue(1, opool)
-    ov2 = OrdinalValue(2, opool)
-    ov3 = OrdinalValue(3, opool)
+    @test (v1 < v1) === false
+    @test (v1 < v2) === false
+    @test (v1 < v3) === false
+    @test (v2 < v1) === true
+    @test (v2 < v2) === false
+    @test (v2 < v3) === true
+    @test (v3 < v1) === true
+    @test (v3 < v2) === false
+    @test (v3 < v3) === false
 
-    @test (ov1 < ov1) == false
-    @test (ov1 < ov2) == false
-    @test (ov1 < ov3) == false
-    @test (ov2 < ov1) == true
-    @test (ov2 < ov2) == false
-    @test (ov2 < ov3) == true
-    @test (ov3 < ov1) == true
-    @test (ov3 < ov2) == false
-    @test (ov3 < ov3) == false
+    @test (v1 <= v1) === true
+    @test (v1 <= v2) === false
+    @test (v1 <= v3) === false
+    @test (v2 <= v1) === true
+    @test (v2 <= v2) === true
+    @test (v2 <= v3) === true
+    @test (v3 <= v1) === true
+    @test (v3 <= v2) === false
+    @test (v3 <= v3) === true
 
-    @test (ov1 <= ov1) == true
-    @test (ov1 <= ov2) == false
-    @test (ov1 <= ov3) == false
-    @test (ov2 <= ov1) == true
-    @test (ov2 <= ov2) == true
-    @test (ov2 <= ov3) == true
-    @test (ov3 <= ov1) == true
-    @test (ov3 <= ov2) == false
-    @test (ov3 <= ov3) == true
+    @test (v1 > v1) === false
+    @test (v1 > v2) === true
+    @test (v1 > v3) === true
+    @test (v2 > v1) === false
+    @test (v2 > v2) === false
+    @test (v2 > v3) === false
+    @test (v3 > v1) === false
+    @test (v3 > v2) === true
+    @test (v3 > v3) === false
 
-    @test (ov1 > ov1) == false
-    @test (ov1 > ov2) == true
-    @test (ov1 > ov3) == true
-    @test (ov2 > ov1) == false
-    @test (ov2 > ov2) == false
-    @test (ov2 > ov3) == false
-    @test (ov3 > ov1) == false
-    @test (ov3 > ov2) == true
-    @test (ov3 > ov3) == false
+    @test (v1 >= v1) === true
+    @test (v1 >= v2) === true
+    @test (v1 >= v3) === true
+    @test (v2 >= v1) === false
+    @test (v2 >= v2) === true
+    @test (v2 >= v3) === false
+    @test (v3 >= v1) === false
+    @test (v3 >= v2) === true
+    @test (v3 >= v3) === true
 
-    @test (ov1 >= ov1) == true
-    @test (ov1 >= ov2) == true
-    @test (ov1 >= ov3) == true
-    @test (ov2 >= ov1) == false
-    @test (ov2 >= ov2) == true
-    @test (ov2 >= ov3) == false
-    @test (ov3 >= ov1) == false
-    @test (ov3 >= ov2) == true
-    @test (ov3 >= ov3) == true
+    @test ordered!(pool, false) === false
+    @test ordered(pool) === false
+
+    @test_throws Exception v1 < v1
+    @test_throws Exception v1 < v2
+    @test_throws Exception v1 < v3
+    @test_throws Exception v2 < v1
+    @test_throws Exception v2 < v2
+    @test_throws Exception v2 < v3
+    @test_throws Exception v3 < v1
+    @test_throws Exception v3 < v2
+    @test_throws Exception v3 < v3
+
+    @test_throws Exception v1 <= v1
+    @test_throws Exception v1 <= v2
+    @test_throws Exception v1 <= v3
+    @test_throws Exception v2 <= v1
+    @test_throws Exception v2 <= v2
+    @test_throws Exception v2 <= v3
+    @test_throws Exception v3 <= v1
+    @test_throws Exception v3 <= v2
+    @test_throws Exception v3 <= v3
+
+    @test_throws Exception v1 > v1
+    @test_throws Exception v1 > v2
+    @test_throws Exception v1 > v3
+    @test_throws Exception v2 > v1
+    @test_throws Exception v2 > v2
+    @test_throws Exception v2 > v3
+    @test_throws Exception v3 > v1
+    @test_throws Exception v3 > v2
+    @test_throws Exception v3 > v3
+
+    @test_throws Exception v1 >= v1
+    @test_throws Exception v1 >= v2
+    @test_throws Exception v1 >= v3
+    @test_throws Exception v2 >= v1
+    @test_throws Exception v2 >= v2
+    @test_throws Exception v2 >= v3
+    @test_throws Exception v3 >= v1
+    @test_throws Exception v3 >= v2
+    @test_throws Exception v3 >= v3
 end

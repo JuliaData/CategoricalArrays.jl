@@ -1,25 +1,13 @@
 module CategoricalArrays
-    export CategoricalPool, NominalPool, OrdinalPool
-    export NominalValue, OrdinalValue
+    export CategoricalPool, CategoricalValue
+    export AbstractCategoricalArray, CategoricalArray,
+           CategoricalVector, CategoricalMatrix
+    export AbstractNullableCategoricalArray, NullableCategoricalArray,
+           NullableCategoricalVector, NullableCategoricalMatrix
 
-    export CategoricalArray, CategoricalVector, CategoricalMatrix
-    export NominalArray, NominalVector, NominalMatrix
-    export OrdinalArray, OrdinalVector, OrdinalMatrix
-
-    export NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
-    export NullableNominalArray, NullableNominalVector, NullableNominalMatrix
-    export NullableOrdinalArray, NullableOrdinalVector, NullableOrdinalMatrix
-
-    export compact, droplevels!, levels, levels!
+    export compact, droplevels!, levels, levels!, ordered, ordered!
 
     using Compat
-
-    if VERSION < v"0.5.0-dev"
-        Base.convert{T,n,S}(::Type{Array{T}}, x::AbstractArray{S, n}) = convert(Array{T, n}, x)
-        Base.convert{T,n,S}(::Type{Array{T,n}}, x::AbstractArray{S,n}) = copy!(Array{T}(size(x)), x)
-
-        Base.convert{T}(::Type{Nullable   }, x::T) = Nullable{T}(x)
-    end
 
     include("typedefs.jl")
 
@@ -30,4 +18,22 @@ module CategoricalArrays
 
     include("array.jl")
     include("nullablearray.jl")
+
+    if VERSION < v"0.5.0-dev"
+        Base.convert{T,n,S}(::Type{Array{T}}, x::AbstractArray{S, n}) = convert(Array{T, n}, x)
+        Base.convert{T,n,S}(::Type{Array{T,n}}, x::AbstractArray{S,n}) = copy!(Array{T}(size(x)), x)
+
+        Base.convert{T}(::Type{Nullable   }, x::T) = Nullable{T}(x)
+
+        Base.promote_op{S<:CategoricalValue, T<:CategoricalValue}(::typeof(@functorize(==)),
+                                                                  ::Type{S}, ::Type{T}) = Bool
+        Base.promote_op{S<:CategoricalValue, T<:CategoricalValue}(::typeof(@functorize(>)),
+                                                                  ::Type{S}, ::Type{T}) = Bool
+        Base.promote_op{S<:CategoricalValue, T<:CategoricalValue}(::typeof(@functorize(<)),
+                                                                  ::Type{S}, ::Type{T}) = Bool
+        Base.promote_op{S<:CategoricalValue, T<:CategoricalValue}(::typeof(@functorize(>=)),
+                                                                  ::Type{S}, ::Type{T}) = Bool
+        Base.promote_op{S<:CategoricalValue, T<:CategoricalValue}(::typeof(@functorize(<=)),
+                                                                  ::Type{S}, ::Type{T}) = Bool
+    end
 end
