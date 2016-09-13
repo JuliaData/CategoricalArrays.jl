@@ -10,7 +10,7 @@ CategoricalArrays.jl
 Tools for working with categorical variables, both with unordered (nominal variables)
 and ordered categories (ordinal variables). This package provides a replacement for
 [DataArrays.jl](https://github.com/JuliaStats/DataArrays.jl)'s `PooledDataArray` type.
-It offers better performance by getting rid of type stability thanks to the `Nullable`
+It offers better performance by getting rid of type instability thanks to the `Nullable`
 type, which is used to represent missing data. It is also based on a simpler design by
 only supporting categorical data, which allows offering more specialized features
 (like ordering of categories).
