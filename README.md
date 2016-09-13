@@ -95,7 +95,7 @@ true
 ```
 
 Now let us imagine the first individual is actually in the "Young" group. Let's fix this
-(notice how the string `"Young"` is automatically converted to an `CategoricalValue`):
+(notice how the string `"Young"` is automatically converted to a `CategoricalValue`):
 ```julia
 julia> x[1] = "Young"
 "Young"
@@ -259,7 +259,7 @@ julia> y
 
 `CategoricalArray` and `NullableCategoricalArray` share a
 common implementation for the most part, with the main differences being their element
-types. They are based on the `CategoricalPool` type, which keep track of the
+types. They are based on the `CategoricalPool` type, which keeps track of the
 levels and associates them with an integer reference (for internal use). They offer
 methods to set levels, change their order while preserving the references, and efficiently
 get the integer index corresponding to a level and vice-versa. They are also
