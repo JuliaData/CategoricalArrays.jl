@@ -522,6 +522,39 @@ for isordered in (false, true)
             @test x[1] === x.pool.valindex[3]
             @test x[2] === x.pool.valindex[1]
             @test levels(x) == ["c", "a", "b"]
+
+            a1 = 3:200
+            a2 = 300:-1:100
+            ca1 = CategoricalArray(a1)
+            ca2 = CategoricalArray(a2)
+            cca1 = compact(ca1)
+            cca2 = compact(ca2)
+            r = vcat(cca1, cca2)
+            @test r == vcat(a1, a2)
+            @test isa(r, CategoricalArray{Int,1,CategoricalArrays.DefaultRefType})
+            @test isa(vcat(cca1, ca2), CategoricalArray{Int,1,CategoricalArrays.DefaultRefType})
+
+            a1 = Array{Int}(2,3,4,5)
+            a2 = Array{Int}(3,3,4,5)
+            a1[1:end] = (length(a1):-1:1) + 2
+            a2[1:end] = (1:length(a2)) + 10
+            ca1 = CategoricalArray(a1)
+            ca2 = CategoricalArray(a2)
+            cca1 = compact(ca1)
+            cca2 = compact(ca2)
+            r = vcat(cca1, cca2)
+            @test r == vcat(a1, a2)
+            @test isa(r, CategoricalArray{Int,4,CategoricalArrays.DefaultRefType})
+
+            a1 = ["Old", "Young", "Young"]
+            ca1 = CategoricalArray(a1, ordered=true)
+            levels!(ca1, ["Young", "Middle", "Old"])
+            a2 = ["Old", "Young", "Middle", "Young"]
+            ca2 = CategoricalArray(a2)
+            r = vcat(ca1, ca2)
+            @test r == vcat(a1, a2)
+            @test isa(r, CategoricalArray{ASCIIString,1,CategoricalArrays.DefaultRefType})
+            @test levels(r) == ["Young", "Middle", "Old"]
         end
     end
 end

@@ -212,6 +212,22 @@ end
 
             convert($A{T, N, R}, A)
         end
+
+        function Base.vcat{T,N,R}(A1::$A{T, N, R}, An::$A...)
+            As = (A1, An...)
+            levels = unique(T[[a.pool.levels for a in As]...;])
+
+            ordered = A1.pool.ordered
+            if ordered && levels != A1.pool.levels
+                warn("Failed to preserve ordered pool since not all levels were definied in the first $($A).")
+                ordered = false
+            else
+                # ignoring ordering in An...
+            end
+
+            refs = DefaultRefType[[indexin(a.pool.index, levels)[a.refs] for a in As]...;]
+            $A(refs, CategoricalPool(levels, ordered))
+        end
     end
 end
 
