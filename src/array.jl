@@ -216,16 +216,25 @@ end
         function Base.vcat{T,N,R}(A1::$A{T, N, R}, An::$A...)
             As = (A1, An...)
             levels = unique(T[[a.pool.levels for a in As]...;])
+            idx = [indexin(a.pool.index, levels) for a in As]
 
             ordered = A1.pool.ordered
             if ordered && levels != A1.pool.levels
-                warn("Failed to preserve ordered pool since not all levels were definied in the first $($A).")
+                warn("Failed to preserve order of levels. Define all levels in the first argument.")
                 ordered = false
             else
-                # ignoring ordering in An...
+                for (i,a) in zip(idx,As)
+                    if a.pool.ordered
+                        if !issorted(i[Base.invperm(a.pool.order)])
+                            warn("Failed to preserve order of levels. The first argument defines the levels and their order.")
+                            ordered = false
+                            break
+                        end
+                    end
+                end
             end
 
-            refs = DefaultRefType[[indexin(a.pool.index, levels)[a.refs] for a in As]...;]
+            refs = DefaultRefType[[i[a.refs] for (i,a) in zip(idx,As)]...;]
             $A(refs, CategoricalPool(levels, ordered))
         end
     end

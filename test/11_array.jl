@@ -546,15 +546,26 @@ for isordered in (false, true)
             @test r == vcat(a1, a2)
             @test isa(r, CategoricalArray{Int,4,CategoricalArrays.DefaultRefType})
 
+            # All levels has to be present in the first argument to vcat to preserve ordering
             a1 = ["Old", "Young", "Young"]
-            ca1 = CategoricalArray(a1, ordered=true)
-            levels!(ca1, ["Young", "Middle", "Old"])
             a2 = ["Old", "Young", "Middle", "Young"]
+            ca1 = CategoricalArray(a1, ordered=true)
             ca2 = CategoricalArray(a2)
+            levels!(ca1, ["Young", "Middle", "Old"])
             r = vcat(ca1, ca2)
             @test r == vcat(a1, a2)
             @test isa(r, CategoricalArray{ASCIIString,1,CategoricalArrays.DefaultRefType})
             @test levels(r) == ["Young", "Middle", "Old"]
+
+            # This would throw a warning about mixing ordering and return a
+            # categorical array with ordered=false.
+            #a1 = ["Old", "Young", "Middle", "Young"]
+            #a2 = ["Old", "Young", "Young"]
+            #ca1 = CategoricalArray(a1, ordered=true)
+            #ca2 = CategoricalArray(a2, ordered=true)
+            #levels!(ca1, ["Old", "Young", "Middle"])
+            #levels!(ca2, ["Young", "Old"])
+            #@test vcat(ca1, ca2) == vcat(a1, a2)
         end
     end
 end
