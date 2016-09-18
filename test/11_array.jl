@@ -556,16 +556,25 @@ for isordered in (false, true)
             @test r == vcat(a1, a2)
             @test isa(r, CategoricalArray{ASCIIString,1,CategoricalArrays.DefaultRefType})
             @test levels(r) == ["Young", "Middle", "Old"]
+            @test ordered(r) == true
 
-            # This would throw a warning about mixing ordering and return a
-            # categorical array with ordered=false.
-            #a1 = ["Old", "Young", "Middle", "Young"]
-            #a2 = ["Old", "Young", "Young"]
-            #ca1 = CategoricalArray(a1, ordered=true)
-            #ca2 = CategoricalArray(a2, ordered=true)
-            #levels!(ca1, ["Old", "Young", "Middle"])
-            #levels!(ca2, ["Young", "Old"])
-            #@test vcat(ca1, ca2) == vcat(a1, a2)
+            #=
+            # Test concatenation of ambiguous ordering. This prints a warning about
+            # mixing ordering and returns a categorical array with ordered=false.
+            levels!(ca1, ["Young", "Old"])
+            levels!(ca2, ["Old", "Young", "Middle"])
+            ordered!(ca1,true)
+            ordered!(ca2,true)
+            println("Expect warning: Failed to preserve order of levels. Define all levels in the first argument.")
+            r = vcat(ca1, ca2)
+            @test r == vcat(a1, a2)
+            @test ordered(r) == false
+
+            println("Expect warning: Failed to preserve order of levels. The first argument defines the levels and their order.")
+            r = vcat(ca2, ca1)
+            @test r == vcat(a2, a1)
+            @test ordered(r) == false
+            =#
         end
     end
 end
