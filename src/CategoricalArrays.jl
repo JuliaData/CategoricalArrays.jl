@@ -1,3 +1,4 @@
+__precompile__(true)
 module CategoricalArrays
     export CategoricalPool, CategoricalValue
     export AbstractCategoricalArray, CategoricalArray,
