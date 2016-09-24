@@ -7,6 +7,18 @@ _ordered(x::AbstractCategoricalArray) = ordered(x)
 _ordered(x::AbstractNullableCategoricalArray) = ordered(x)
 _ordered(x::Any) = false
 
+function reftype(sz::Int)
+    if sz <= typemax(UInt8)
+        return UInt8
+    elseif sz <= typemax(UInt16)
+        return UInt16
+    elseif sz <= typemax(UInt32)
+        return UInt32
+    else
+        return UInt64
+    end
+end
+
 for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
                   (:NullableCategoricalArray, :NullableCategoricalVector, :NullableCategoricalMatrix))
     @eval begin
@@ -118,24 +130,21 @@ end
             $A{T, 2}(A, ordered=ordered)
 
         # From CategoricalArray (preserve R)
-        @compat (::Type{$A{T, N}}){S, T, N, R}(A::CategoricalArray{S, N, R};
-                                               ordered=_ordered(A)) =
+        @compat (::Type{$A{T, N}}){S, T, N, R}(A::$A{S, N, R}; ordered=_ordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
-        @compat (::Type{$A{T}}){S, T, N, R}(A::CategoricalArray{S, N, R};
-                                            ordered=_ordered(A)) =
+        @compat (::Type{$A{T}}){S, T, N, R}(A::$A{S, N, R}; ordered=_ordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
-        @compat (::Type{$A}){T, N, R}(A::CategoricalArray{T, N, R};
-                                      ordered=_ordered(A)) =
+        @compat (::Type{$A}){T, N, R}(A::$A{T, N, R}; ordered=_ordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
 
-        @compat (::Type{$V{T}}){S, T, R}(A::CategoricalVector{S, R}; ordered=_ordered(A)) =
+        @compat (::Type{$V{T}}){S, T, R}(A::$V{S, R}; ordered=_ordered(A)) =
             $A{T, 1, R}(A, ordered=ordered)
-        @compat (::Type{$V}){T, R}(A::CategoricalVector{T, R}; ordered=_ordered(A)) =
+        @compat (::Type{$V}){T, R}(A::$V{T, R}; ordered=_ordered(A)) =
             $A{T, 1, R}(A, ordered=ordered)
 
-        @compat (::Type{$M{T}}){S, T, R}(A::CategoricalMatrix{S, R}; ordered=_ordered(A)) =
+        @compat (::Type{$M{T}}){S, T, R}(A::$M{S, R}; ordered=_ordered(A)) =
             $A{T, 2, R}(A, ordered=ordered)
-        @compat (::Type{$M}){T, R}(A::CategoricalMatrix{T, R}; ordered=_ordered(A)) =
+        @compat (::Type{$M}){T, R}(A::$M{T, R}; ordered=_ordered(A)) =
             $A{T, 2, R}(A, ordered=ordered)
 
 
@@ -203,13 +212,7 @@ end
             $A{T, N, R}(dims; ordered=ordered(A))
 
         function compact{T, N}(A::$A{T, N})
-            sz = length(index(A.pool))
-
-            R = sz <= typemax(UInt8)  ? UInt8 :
-                sz <= typemax(UInt16) ? UInt16 :
-                sz <= typemax(UInt32) ? UInt32 :
-                                        UInt64
-
+            R = reftype(length(index(A.pool)))
             convert($A{T, N, R}, A)
         end
     end
@@ -314,6 +317,29 @@ function Base.append!(A::CatArray, B::CatArray)
 end
 
 Base.empty!(A::CatArray) = (empty!(A.refs); return A)
+
+categorical(A::AbstractArray; ordered=false) = CategoricalArray(A, ordered=ordered)
+categorical{T<:Nullable}(A::AbstractArray{T}; ordered=false) =
+    NullableCategoricalArray(A, ordered=ordered)
+
+# Type-unstable methods
+function categorical{T, N}(A::AbstractArray{T, N}, compact; ordered=false)
+    RefType = compact ? reftype(length(unique(A))) : DefaultRefType
+    CategoricalArray{T, N, RefType}(A, ordered=ordered)
+end
+function categorical{T<:Nullable, N}(A::AbstractArray{T, N}, compact; ordered=false)
+    RefType = compact ? reftype(length(unique(A))) : DefaultRefType
+    NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
+end
+function categorical{T, N, R}(A::CategoricalArray{T, N, R}, compact; ordered=false)
+    RefType = compact ? reftype(length(levels(A))) : R
+    CategoricalArray{T, N, RefType}(A, ordered=ordered)
+end
+function categorical{T, N, R}(A::NullableCategoricalArray{T, N, R}, compact; ordered=false)
+    RefType = compact ? reftype(length(levels(A))) : R
+    NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
+end
+
 
 
 ## Code specific to CategoricalArray
