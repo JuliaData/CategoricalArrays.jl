@@ -546,35 +546,32 @@ for isordered in (false, true)
             @test r == vcat(a1, a2)
             @test isa(r, CategoricalArray{Int,4,CategoricalArrays.DefaultRefType})
 
-            # All levels has to be present in the first argument to vcat to preserve ordering
-            a1 = ["Old", "Young", "Young"]
-            a2 = ["Old", "Young", "Middle", "Young"]
+            # Test that sortedmerge handles mutually compatible ordering
+            @test CategoricalArrays.sortedmerge([6,3,4,7],[2,3,5,4]) == ([6,2,3,5,4,7],true)
+
+            # Test concatenation of mutually compatible levels
+            a1 = ["Young", "Middle"]
+            a2 = ["Middle", "Old"]
             ca1 = CategoricalArray(a1, ordered=true)
-            ca2 = CategoricalArray(a2)
-            levels!(ca1, ["Young", "Middle", "Old"])
+            ca2 = CategoricalArray(a2, ordered=true)
+            levels!(ca1, ["Young", "Middle"])
+            levels!(ca2, ["Middle", "Old"])
             r = vcat(ca1, ca2)
             @test r == vcat(a1, a2)
-            @test isa(r, CategoricalArray{ASCIIString,1,CategoricalArrays.DefaultRefType})
             @test levels(r) == ["Young", "Middle", "Old"]
             @test ordered(r) == true
 
-            #=
-            # Test concatenation of ambiguous ordering. This prints a warning about
-            # mixing ordering and returns a categorical array with ordered=false.
-            levels!(ca1, ["Young", "Old"])
-            levels!(ca2, ["Old", "Young", "Middle"])
-            ordered!(ca1,true)
-            ordered!(ca2,true)
-            println("Expect warning: Failed to preserve order of levels. Define all levels in the first argument.")
+            # Test concatenation of ambiguous ordering. This drops the ordering
+            a1 = ["Old", "Young", "Young"]
+            a2 = ["Old", "Young", "Middle", "Young"]
+            ca1 = CategoricalArray(a1, ordered=true)
+            ca2 = CategoricalArray(a2, ordered=true)
+            levels!(ca1, ["Young", "Middle", "Old"])
+            # ca2 has another order
             r = vcat(ca1, ca2)
             @test r == vcat(a1, a2)
+            @test levels(r) == ["Young", "Middle", "Old"]
             @test ordered(r) == false
-
-            println("Expect warning: Failed to preserve order of levels. The first argument defines the levels and their order.")
-            r = vcat(ca2, ca1)
-            @test r == vcat(a2, a1)
-            @test ordered(r) == false
-            =#
         end
     end
 end

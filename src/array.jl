@@ -1,6 +1,6 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
-import Base: convert, copy, getindex, setindex!, similar, size, linearindexing
+import Base: convert, copy, getindex, setindex!, similar, size, linearindexing, vcat
 
 # Used for keyword argument default value
 _ordered(x::AbstractCategoricalArray) = ordered(x)
@@ -213,29 +213,11 @@ end
             convert($A{T, N, R}, A)
         end
 
-        function Base.vcat{T,N,R}(A1::$A{T, N, R}, An::$A...)
-            As = (A1, An...)
-            levels = unique(T[[a.pool.levels for a in As]...;])
-            idx = [indexin(a.pool.index, levels) for a in As]
+        function vcat(A::$A...)
+            L, O = sortedmerge(map(levels, A)...)
 
-            ordered = A1.pool.ordered
-            if ordered && levels != A1.pool.levels
-                warn("Failed to preserve order of levels. Define all levels in the first argument.")
-                ordered = false
-            else
-                for (i,a) in zip(idx,As)
-                    if a.pool.ordered
-                        if !issorted(i[Base.invperm(a.pool.order)])
-                            warn("Failed to preserve order of levels. The first argument defines the levels and their order.")
-                            ordered = false
-                            break
-                        end
-                    end
-                end
-            end
-
-            refs = DefaultRefType[[i[a.refs] for (i,a) in zip(idx,As)]...;]
-            $A(refs, CategoricalPool(levels, ordered))
+            refs = DefaultRefType[[indexin(index(a.pool), L)[a.refs] for a in A]...;]
+            $A(refs, CategoricalPool(L, O && all(ordered, A)))
         end
     end
 end
@@ -350,3 +332,31 @@ function getindex(A::CategoricalArray, i::Int)
 end
 
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
+
+
+function sortedmerge(A...)
+    T = Base.promote_eltype(A...)
+    m = Array{T}(0)
+    ordered = true
+
+    for a in A
+        i = indexin(a, m)
+
+        ordered &= issorted(i[i.!=0])
+        if !ordered
+            append!(m, a[i.==0])
+            continue
+        end
+
+        x = length(m)+1
+        for j = length(i):-1:1
+            if i[j] == 0
+                insert!(m, x, a[j])
+            else
+                x = i[j]
+            end
+        end
+    end
+
+    m, ordered
+end
