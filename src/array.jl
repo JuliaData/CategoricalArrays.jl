@@ -214,10 +214,11 @@ end
         end
 
         function vcat(A::$A...)
-            L, O = sortedmerge(map(levels, A)...)
+            newlevels, isordered = mergelevels(map(levels, A)...)
 
-            refs = DefaultRefType[[indexin(index(a.pool), L)[a.refs] for a in A]...;]
-            $A(refs, CategoricalPool(L, O && all(ordered, A)))
+            refs = [indexin(index(a.pool), newlevels)[a.refs] for a in A]
+            $A(DefaultRefType[refs...;],
+               CategoricalPool(newlevels, isordered && all(ordered, A)))
         end
     end
 end
@@ -333,30 +334,29 @@ end
 
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 
+function mergelevels(levels...)
+    T = Base.promote_eltype(levels...)
+    res = Array{T}(0)
+    isordered = true
 
-function sortedmerge(A...)
-    T = Base.promote_eltype(A...)
-    m = Array{T}(0)
-    ordered = true
+    for l in levels
+        levelsmap = indexin(l, res)
 
-    for a in A
-        i = indexin(a, m)
-
-        ordered &= issorted(i[i.!=0])
-        if !ordered
-            append!(m, a[i.==0])
-            continue
-        end
-
-        x = length(m)+1
-        for j = length(i):-1:1
-            if i[j] == 0
-                insert!(m, x, a[j])
-            else
-                x = i[j]
+        isordered &= issorted(levelsmap[levelsmap.!=0])
+        if !isordered
+            # Give up attempt to order res
+            append!(res, l[levelsmap.==0])
+        else
+            i = length(res)+1
+            for j = length(l):-1:1
+                if levelsmap[j] == 0
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
             end
         end
     end
 
-    m, ordered
+    res, isordered
 end

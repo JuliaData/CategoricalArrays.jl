@@ -523,6 +523,9 @@ for isordered in (false, true)
             @test x[2] === x.pool.valindex[1]
             @test levels(x) == ["c", "a", "b"]
 
+
+            # Tests of vcat of CategoricalArray
+            # Test that vcat of compact arrays use a reftype that doesn't overflow
             a1 = 3:200
             a2 = 300:-1:100
             ca1 = CategoricalArray(a1)
@@ -531,9 +534,14 @@ for isordered in (false, true)
             cca2 = compact(ca2)
             r = vcat(cca1, cca2)
             @test r == vcat(a1, a2)
+            @test isa(cca1, CategoricalArray{Int,1,UInt8})
+            @test isa(cca2, CategoricalArray{Int,1,UInt8})
             @test isa(r, CategoricalArray{Int,1,CategoricalArrays.DefaultRefType})
             @test isa(vcat(cca1, ca2), CategoricalArray{Int,1,CategoricalArrays.DefaultRefType})
+            @test ordered(r) == false
+            @test sort(levels(r)) == collect(3:300)
 
+            # Test vcat of multidimensional arrays
             a1 = Array{Int}(2,3,4,5)
             a2 = Array{Int}(3,3,4,5)
             a1[1:end] = (length(a1):-1:1) + 2
@@ -545,9 +553,12 @@ for isordered in (false, true)
             r = vcat(cca1, cca2)
             @test r == vcat(a1, a2)
             @test isa(r, CategoricalArray{Int,4,CategoricalArrays.DefaultRefType})
+            @test ordered(r) == false
+            @test sort(levels(r)) == collect(3:length(a2)+10)
 
             # Test that sortedmerge handles mutually compatible ordering
-            @test CategoricalArrays.sortedmerge([6,3,4,7],[2,3,5,4]) == ([6,2,3,5,4,7],true)
+            @test CategoricalArrays.mergelevels([6,3,4,7],[2,3,5,4],[2,4,8]) == ([6,2,3,5,4,7,8],true)
+            @test CategoricalArrays.mergelevels([6,3,4,7],[2,3,6,5,4],[2,4,8]) == ([6,3,4,7,2,5,8],false)
 
             # Test concatenation of mutually compatible levels
             a1 = ["Young", "Middle"]
@@ -561,7 +572,7 @@ for isordered in (false, true)
             @test levels(r) == ["Young", "Middle", "Old"]
             @test ordered(r) == true
 
-            # Test concatenation of ambiguous ordering. This drops the ordering
+            # Test concatenation of conflicting ordering. This drops the ordering
             a1 = ["Old", "Young", "Young"]
             a2 = ["Old", "Young", "Middle", "Young"]
             ca1 = CategoricalArray(a1, ordered=true)
