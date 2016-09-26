@@ -1,6 +1,6 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
-import Base: convert, copy, getindex, setindex!, similar, size, linearindexing
+import Base: convert, copy, getindex, setindex!, similar, size, linearindexing, vcat
 
 # Used for keyword argument default value
 _ordered(x::AbstractCategoricalArray) = ordered(x)
@@ -215,6 +215,14 @@ end
             R = reftype(length(index(A.pool)))
             convert($A{T, N, R}, A)
         end
+
+        function vcat(A::$A...)
+            newlevels, isordered = mergelevels(map(levels, A)...)
+
+            refs = [indexin(index(a.pool), newlevels)[a.refs] for a in A]
+            $A(DefaultRefType[refs...;],
+               CategoricalPool(newlevels, isordered && all(ordered, A)))
+        end
     end
 end
 
@@ -351,3 +359,30 @@ function getindex(A::CategoricalArray, i::Int)
 end
 
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
+
+function mergelevels(levels...)
+    T = Base.promote_eltype(levels...)
+    res = Array{T}(0)
+    isordered = true
+
+    for l in levels
+        levelsmap = indexin(l, res)
+
+        isordered &= issorted(levelsmap[levelsmap.!=0])
+        if !isordered
+            # Give up attempt to order res
+            append!(res, l[levelsmap.==0])
+        else
+            i = length(res)+1
+            for j = length(l):-1:1
+                if levelsmap[j] == 0
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
+            end
+        end
+    end
+
+    res, isordered
+end
