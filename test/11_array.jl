@@ -32,6 +32,8 @@ for isordered in (false, true)
         @test convert(CategoricalVector{String, DefaultRefType}, x) == x
         @test convert(CategoricalVector{String, UInt8}, x) == x
 
+        @test get(x[2]) == a[2]
+
         for y in (CategoricalArray(x, ordered=isordered),
                   CategoricalArray{String}(x, ordered=isordered),
                   CategoricalArray{String, 1}(x, ordered=isordered),

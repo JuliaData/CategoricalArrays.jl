@@ -71,3 +71,5 @@ function Base.isless{T}(x::CategoricalValue{T}, y::CategoricalValue{T})
         return isless(order(x.pool)[x.level], order(y.pool)[y.level])
     end
 end
+
+Base.get{T,R}(x::CategoricalValue{T,R}) = convert(T,x)
