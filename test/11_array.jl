@@ -539,7 +539,7 @@ for isordered in (false, true)
             @test isa(r, CategoricalArray{Int,1,CategoricalArrays.DefaultRefType})
             @test isa(vcat(cca1, ca2), CategoricalArray{Int,1,CategoricalArrays.DefaultRefType})
             @test ordered(r) == false
-            @test sort(levels(r)) == collect(3:300)
+            @test levels(r) == collect(3:300)
 
             # Test vcat of multidimensional arrays
             a1 = Array{Int}(2,3,4,5)
@@ -554,7 +554,7 @@ for isordered in (false, true)
             @test r == vcat(a1, a2)
             @test isa(r, CategoricalArray{Int,4,CategoricalArrays.DefaultRefType})
             @test ordered(r) == false
-            @test sort(levels(r)) == collect(3:length(a2)+10)
+            @test levels(r) == collect(3:length(a2)+10)
 
             # Test that sortedmerge handles mutually compatible ordering
             @test CategoricalArrays.mergelevels([6,3,4,7],[2,3,5,4],[2,4,8]) == ([6,2,3,5,4,7,8],true)
