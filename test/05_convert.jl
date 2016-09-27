@@ -22,9 +22,9 @@ module TestConvert
     convert(UInt8, v2)
     convert(UInt8, v3)
 
-    @test get(v1) == 1
-    @test get(v2) == 2
-    @test get(v3) == 3
+    @test get(v1) === 1
+    @test get(v2) === 2
+    @test get(v3) === 3
 
     @test promote(1, v1) === (1, 1)
     @test promote(1.0, v1) === (1.0, 1.0)
