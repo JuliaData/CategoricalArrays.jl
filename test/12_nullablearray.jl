@@ -86,8 +86,6 @@ for isordered in (false, true)
             @test NullableCategoricalVector{String, DefaultRefType}(a, ordered=isordered) == x
             @test NullableCategoricalVector{String, UInt8}(a, ordered=isordered) == x
 
-            @test get(get(x[2])) == (eltype(a) <: Nullable ? get(a[2]) : a[2])
-
             for (y, R1, R2, compact) in ((a, DefaultRefType, UInt8, true),
                                          (a, DefaultRefType, DefaultRefType, false),
                                          (x, R, UInt8, true),
