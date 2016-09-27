@@ -15,10 +15,10 @@ typealias String Compat.ASCIIString
 # Tests of vcat of CategoricalArray amd NullableCategoricalArray
 
 # Test that mergelevels handles mutually compatible ordering
-@test CategoricalArrays.mergelevels([6,3,4,7],[2,3,5,4],[2,4,8]) == ([6,2,3,5,4,7,8],true)
-@test CategoricalArrays.mergelevels([6,3,4,7],[2,3,6,5,4],[2,4,8]) == ([6,3,4,7,2,5,8],false)
+@test CategoricalArrays.mergelevels([6, 3, 4, 7], [2, 3, 5, 4], [2, 4, 8]) == ([6, 2, 3, 5, 4, 7, 8], true)
+@test CategoricalArrays.mergelevels([6, 3, 4, 7], [2, 3, 6, 5, 4], [2, 4, 8]) == ([6, 3, 4, 7, 2, 5, 8], false)
 
-for (CA,A) in ((CategoricalArray,Array),(NullableCategoricalArray,NullableArray))
+for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableArray))
     # Test that vcat of compact arrays use a reftype that doesn't overflow
     a1 = 3:200
     a2 = 300:-1:100
@@ -28,16 +28,16 @@ for (CA,A) in ((CategoricalArray,Array),(NullableCategoricalArray,NullableArray)
     cca2 = compact(ca2)
     r = vcat(cca1, cca2)
     @test r == A(vcat(a1, a2))
-    @test isa(cca1, CA{Int,1,UInt8})
-    @test isa(cca2, CA{Int,1,UInt8})
-    @test isa(r, CA{Int,1,CategoricalArrays.DefaultRefType})
-    @test isa(vcat(cca1, ca2), CA{Int,1,CategoricalArrays.DefaultRefType})
+    @test isa(cca1, CA{Int, 1, UInt8})
+    @test isa(cca2, CA{Int, 1, UInt8})
+    @test isa(r, CA{Int, 1, CategoricalArrays.DefaultRefType})
+    @test isa(vcat(cca1, ca2), CA{Int, 1, CategoricalArrays.DefaultRefType})
     @test ordered(r) == false
     @test levels(r) == collect(3:300)
 
     # Test vcat of multidimensional arrays
-    a1 = Array{Int}(2,3,4,5)
-    a2 = Array{Int}(3,3,4,5)
+    a1 = Array{Int}(2, 3, 4, 5)
+    a2 = Array{Int}(3, 3, 4, 5)
     a1[1:end] = (length(a1):-1:1) + 2
     a2[1:end] = (1:length(a2)) + 10
     ca1 = CA(a1)
@@ -46,7 +46,7 @@ for (CA,A) in ((CategoricalArray,Array),(NullableCategoricalArray,NullableArray)
     cca2 = compact(ca2)
     r = vcat(cca1, cca2)
     @test r == A(vcat(a1, a2))
-    @test isa(r, CA{Int,4,CategoricalArrays.DefaultRefType})
+    @test isa(r, CA{Int, 4, CategoricalArrays.DefaultRefType})
     @test ordered(r) == false
     @test levels(r) == collect(3:length(a2)+10)
 
