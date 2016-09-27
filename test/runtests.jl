@@ -23,7 +23,8 @@ module TestCategoricalArrays
         "09_hash.jl",
         "10_isless.jl",
         "11_array.jl",
-        "12_nullablearray.jl"
+        "12_nullablearray.jl",
+        "13_arraycommon.jl"
     ]
 
     println("Running tests:")
