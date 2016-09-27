@@ -12,14 +12,14 @@ typealias String Compat.ASCIIString
 (==) = isequal
 
 
-# Tests of vcat of CategoricalArray amd NullableCategoricalArray
+# Tests of vcat of CategoricalArray and NullableCategoricalArray
 
 # Test that mergelevels handles mutually compatible ordering
 @test CategoricalArrays.mergelevels([6, 3, 4, 7], [2, 3, 5, 4], [2, 4, 8]) == ([6, 2, 3, 5, 4, 7, 8], true)
 @test CategoricalArrays.mergelevels([6, 3, 4, 7], [2, 3, 6, 5, 4], [2, 4, 8]) == ([6, 3, 4, 7, 2, 5, 8], false)
 
 for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableArray))
-    # Test that vcat of compact arrays use a reftype that doesn't overflow
+    # Test that vcat of compact arrays uses a reftype that doesn't overflow
     a1 = 3:200
     a2 = 300:-1:100
     ca1 = CA(a1)
