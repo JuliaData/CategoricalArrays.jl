@@ -1,9 +1,10 @@
 module CategoricalArrays
     export CategoricalPool, CategoricalValue
-    export AbstractCategoricalArray, CategoricalArray,
-           CategoricalVector, CategoricalMatrix
-    export AbstractNullableCategoricalArray, NullableCategoricalArray,
-           NullableCategoricalVector, NullableCategoricalMatrix
+    export AbstractCategoricalArray, AbstractCategoricalVector, AbstractCategoricalMatrix,
+           CategoricalArray, CategoricalVector, CategoricalMatrix
+    export AbstractNullableCategoricalArray, AbstractNullableCategoricalVector,
+           AbstractNullableCategoricalMatrix,
+           NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
 
     export categorical, compact, droplevels!, levels, levels!, ordered, ordered!
 
