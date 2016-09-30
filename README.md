@@ -2,8 +2,8 @@ CategoricalArrays.jl
 ==================
 
 [![Build Status](https://travis-ci.org/nalimilan/CategoricalArrays.jl.svg?branch=master)](https://travis-ci.org/nalimilan/CategoricalArrays.jl)
-[![Julia 0.4 Status](http://pkg.julialang.org/badges/CategoricalArrays_0.4.svg)](http://pkg.julialang.org/?pkg=CategoricalArrays&ver=0.4)
 [![Julia 0.5 Status](http://pkg.julialang.org/badges/CategoricalArrays_0.5.svg)](http://pkg.julialang.org/?pkg=CategoricalArrays&ver=0.5)
+[![Julia 0.6 Status](http://pkg.julialang.org/badges/CategoricalArrays_0.6.svg)](http://pkg.julialang.org/?pkg=CategoricalArrays&ver=0.6)
 [![Coveralls](https://coveralls.io/repos/github/nalimilan/CategoricalArrays.jl/badge.svg)](https://coveralls.io/github/nalimilan/CategoricalArrays.jl)
 [![Codecov](https://codecov.io/gh/nalimilan/CategoricalArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/nalimilan/CategoricalArrays.jl)
 
@@ -13,7 +13,8 @@ and ordered categories (ordinal variables). This package provides a replacement 
 It offers better performance by getting rid of type instability thanks to the `Nullable`
 type, which is used to represent missing data. It is also based on a simpler design by
 only supporting categorical data, which allows offering more specialized features
-(like ordering of categories).
+(like ordering of categories). See the [IndirectArrays.jl](https://github.com/JuliaArrays/IndirectArrays.jl)
+package for a simpler array type storing data with a small number of values.
 
 The package provides two array types designed to hold categorical data efficiently and
 conveniently:
