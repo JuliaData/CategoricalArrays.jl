@@ -3,9 +3,9 @@
 import Base: convert, copy, getindex, setindex!, similar, size, linearindexing, vcat
 
 # Used for keyword argument default value
-_ordered(x::AbstractCategoricalArray) = ordered(x)
-_ordered(x::AbstractNullableCategoricalArray) = ordered(x)
-_ordered(x::Any) = false
+_isordered(x::AbstractCategoricalArray) = isordered(x)
+_isordered(x::AbstractNullableCategoricalArray) = isordered(x)
+_isordered(x::Any) = false
 
 function reftype(sz::Int)
     if sz <= typemax(UInt8)
@@ -93,7 +93,7 @@ end
 
         # This method is needed to ensure ordered!() only mutates a copy of A
         @compat function (::Type{$A{T, N, R}}){T, N, R}(A::$A{T, N, R};
-                                                        ordered=_ordered(A))
+                                                        ordered=_isordered(A))
             ret = copy(A)
             ordered!(ret, ordered)
             ret
@@ -101,50 +101,50 @@ end
 
         # Note this method is also used for CategoricalArrays when T, N or R don't match
         @compat function (::Type{$A{T, N, R}}){T, N, R}(A::AbstractArray;
-                                                        ordered=_ordered(A))
+                                                        ordered=_isordered(A))
             ret = convert($A{T, N, R}, A)
             ordered!(ret, ordered)
             ret
         end
 
         @compat (::Type{$A{T, N, R}}){T<:CategoricalValue, N, R}(A::AbstractArray;
-                                                                 ordered=_ordered(A)) =
+                                                                 ordered=_isordered(A)) =
             $A{T.parameters[1], N, R}(A, ordered=ordered)
 
         # From AbstractArray
-        @compat (::Type{$A{T, N}}){S, T, N}(A::AbstractArray{S, N}; ordered=_ordered(A)) =
+        @compat (::Type{$A{T, N}}){S, T, N}(A::AbstractArray{S, N}; ordered=_isordered(A)) =
             $A{T, N, DefaultRefType}(A, ordered=ordered)
-        @compat (::Type{$A{T}}){S, T, N}(A::AbstractArray{S, N}; ordered=_ordered(A)) =
+        @compat (::Type{$A{T}}){S, T, N}(A::AbstractArray{S, N}; ordered=_isordered(A)) =
             $A{T, N}(A, ordered=ordered)
-        @compat (::Type{$A}){T, N}(A::AbstractArray{T, N}; ordered=_ordered(A)) =
+        @compat (::Type{$A}){T, N}(A::AbstractArray{T, N}; ordered=_isordered(A)) =
             $A{T, N}(A, ordered=ordered)
 
-        @compat (::Type{$V{T}}){S, T}(A::AbstractVector{S}; ordered=_ordered(A)) =
+        @compat (::Type{$V{T}}){S, T}(A::AbstractVector{S}; ordered=_isordered(A)) =
             $A{T, 1}(A, ordered=ordered)
-        @compat (::Type{$V}){T}(A::AbstractVector{T}; ordered=_ordered(A)) =
+        @compat (::Type{$V}){T}(A::AbstractVector{T}; ordered=_isordered(A)) =
             $A{T, 1}(A, ordered=ordered)
 
-        @compat (::Type{$M{T}}){S, T}(A::AbstractMatrix{S}; ordered=_ordered(A)) =
+        @compat (::Type{$M{T}}){S, T}(A::AbstractMatrix{S}; ordered=_isordered(A)) =
             $A{T, 2}(A, ordered=ordered)
-        @compat (::Type{$M}){T}(A::AbstractMatrix{T}; ordered=_ordered(A)) =
+        @compat (::Type{$M}){T}(A::AbstractMatrix{T}; ordered=_isordered(A)) =
             $A{T, 2}(A, ordered=ordered)
 
         # From CategoricalArray (preserve R)
-        @compat (::Type{$A{T, N}}){S, T, N, R}(A::$A{S, N, R}; ordered=_ordered(A)) =
+        @compat (::Type{$A{T, N}}){S, T, N, R}(A::$A{S, N, R}; ordered=_isordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
-        @compat (::Type{$A{T}}){S, T, N, R}(A::$A{S, N, R}; ordered=_ordered(A)) =
+        @compat (::Type{$A{T}}){S, T, N, R}(A::$A{S, N, R}; ordered=_isordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
-        @compat (::Type{$A}){T, N, R}(A::$A{T, N, R}; ordered=_ordered(A)) =
+        @compat (::Type{$A}){T, N, R}(A::$A{T, N, R}; ordered=_isordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
 
-        @compat (::Type{$V{T}}){S, T, R}(A::$V{S, R}; ordered=_ordered(A)) =
+        @compat (::Type{$V{T}}){S, T, R}(A::$V{S, R}; ordered=_isordered(A)) =
             $A{T, 1, R}(A, ordered=ordered)
-        @compat (::Type{$V}){T, R}(A::$V{T, R}; ordered=_ordered(A)) =
+        @compat (::Type{$V}){T, R}(A::$V{T, R}; ordered=_isordered(A)) =
             $A{T, 1, R}(A, ordered=ordered)
 
-        @compat (::Type{$M{T}}){S, T, R}(A::$M{S, R}; ordered=_ordered(A)) =
+        @compat (::Type{$M{T}}){S, T, R}(A::$M{S, R}; ordered=_isordered(A)) =
             $A{T, 2, R}(A, ordered=ordered)
-        @compat (::Type{$M}){T, R}(A::$M{T, R}; ordered=_ordered(A)) =
+        @compat (::Type{$M}){T, R}(A::$M{T, R}; ordered=_isordered(A)) =
             $A{T, 2, R}(A, ordered=ordered)
 
 
@@ -188,7 +188,7 @@ end
             refs = convert(Array{R, N}, A.refs)
             pool = convert(CategoricalPool{T, R}, A.pool)
             ret = $A(refs, pool)
-            ordered!(ret, ordered(A))
+            ordered!(ret, isordered(A))
             ret
         end
         convert{S, T, N, R}(::Type{$A{T, N}}, A::$A{S, N, R}) =
@@ -209,7 +209,7 @@ end
         ## Other methods
 
         similar{S, T, M, N, R}(A::$A{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) =
-            $A{T, N, R}(dims; ordered=ordered(A))
+            $A{T, N, R}(dims; ordered=isordered(A))
 
         function compact{T, N}(A::$A{T, N})
             R = reftype(length(index(A.pool)))
@@ -217,11 +217,11 @@ end
         end
 
         function vcat(A::$A...)
-            newlevels, isordered = mergelevels(map(levels, A)...)
+            newlevels, ordered = mergelevels(map(levels, A)...)
 
             refs = [indexin(index(a.pool), newlevels)[a.refs] for a in A]
             $A(DefaultRefType[refs...;],
-               CategoricalPool(newlevels, isordered && all(ordered, A)))
+               CategoricalPool(newlevels, ordered && all(isordered, A)))
         end
     end
 end
@@ -304,7 +304,7 @@ function droplevels!(A::CatArray)
     levels!(A, intersect(levels(A.pool), index(A.pool)[found]))
 end
 
-ordered(A::CatArray) = ordered(A.pool)
+isordered(A::CatArray) = isordered(A.pool)
 ordered!(A::CatArray, ordered) = ordered!(A.pool, ordered)
 
 function Base.push!(A::CatArray, item)
@@ -363,13 +363,13 @@ levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 function mergelevels(levels...)
     T = Base.promote_eltype(levels...)
     res = Array{T}(0)
-    isordered = true
+    ordered = true
 
     for l in levels
         levelsmap = indexin(l, res)
 
-        isordered &= issorted(levelsmap[levelsmap.!=0])
-        if !isordered
+        ordered &= issorted(levelsmap[levelsmap.!=0])
+        if !ordered
             # Give up attempt to order res
             append!(res, l[levelsmap.==0])
         else
@@ -384,5 +384,5 @@ function mergelevels(levels...)
         end
     end
 
-    res, isordered
+    res, ordered
 end

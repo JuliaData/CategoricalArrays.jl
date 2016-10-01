@@ -58,13 +58,13 @@ end
     NullableCategoricalArray{T}((m, n); ordered=ordered)
 
 @compat (::Type{NullableCategoricalArray}){T<:Nullable}(A::AbstractArray{T};
-                                                        ordered=_ordered(A)) =
+                                                        ordered=_isordered(A)) =
     NullableCategoricalArray{eltype(T)}(A, ordered=ordered)
 @compat (::Type{NullableCategoricalVector}){T<:Nullable}(A::AbstractVector{T};
-                                                         ordered=_ordered(A)) =
+                                                         ordered=_isordered(A)) =
     NullableCategoricalVector{eltype(T)}(A, ordered=ordered)
 @compat (::Type{NullableCategoricalMatrix}){T<:Nullable}(A::AbstractMatrix{T};
-                                                         ordered=_ordered(A)) =
+                                                         ordered=_isordered(A)) =
     NullableCategoricalMatrix{eltype(T)}(A, ordered=ordered)
 
 function NullableCategoricalArray{T, N}(A::AbstractArray{T, N},

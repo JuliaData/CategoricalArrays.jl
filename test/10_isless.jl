@@ -49,7 +49,7 @@ module TestIsLess
     @test_throws Exception v3 >= v3
 
     @test ordered!(pool, true) === true
-    @test ordered(pool) === true
+    @test isordered(pool) === true
 
     @test (v1 < v1) === false
     @test (v1 < v2) === true
@@ -134,7 +134,7 @@ module TestIsLess
     @test (v3 >= v3) === true
 
     @test ordered!(pool, false) === false
-    @test ordered(pool) === false
+    @test isordered(pool) === false
 
     @test_throws Exception v1 < v1
     @test_throws Exception v1 < v2

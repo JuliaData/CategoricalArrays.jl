@@ -24,7 +24,7 @@ Base.convert{S, T}(::Type{S}, x::CategoricalValue{T}) = convert(S, index(x.pool)
 function Base.show{T}(io::IO, x::CategoricalValue{T})
     if @compat(get(io, :compact, false))
         print(io, repr(index(x.pool)[x.level]))
-    elseif ordered(x.pool)
+    elseif isordered(x.pool)
         @printf(io, "%s %s (%i/%i)",
                 typeof(x),
                 repr(index(x.pool)[x.level]),
@@ -65,7 +65,7 @@ end
 function Base.isless{T}(x::CategoricalValue{T}, y::CategoricalValue{T})
     if x.pool !== y.pool
         error("CategoricalValue objects with different pools cannot be tested for order")
-    elseif !ordered(x.pool) # !ordered(y.pool) is implied by x.pool === y.pool
+    elseif !isordered(x.pool) # !isordered(y.pool) is implied by x.pool === y.pool
         error("Unordered CategoricalValue objects cannot be tested for order; use the ordered! function on the parent array to change this")
     else
         return isless(order(x.pool)[x.level], order(y.pool)[y.level])
