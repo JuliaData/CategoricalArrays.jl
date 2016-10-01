@@ -290,7 +290,21 @@ function droplevels!(A::CatArray)
     levels!(A, intersect(levels(A.pool), index(A.pool)[found]))
 end
 
+"""
+    isordered(A::CategoricalArray)
+
+Test whether entries in `A` can be compared using `<`, `>` and similar operators,
+using the ordering of levels.
+"""
 isordered(A::CatArray) = isordered(A.pool)
+
+"""
+    ordered!(A::CategoricalArray, ordered::Bool)
+
+Set whether entries in `A` can be compared using `<`, `>` and similar operators,
+using the ordering of levels.
+Returns the modified `A`.
+"""
 ordered!(A::CatArray, ordered) = (ordered!(A.pool, ordered); return A)
 
 function Base.push!(A::CatArray, item)
