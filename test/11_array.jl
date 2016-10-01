@@ -107,12 +107,13 @@ for ordered in (false, true)
         @test levels(x2) == levels(x)
 
         if !isordered(x)
-            @test ordered!(x, true) === true
+            @test ordered!(x, true) === x
+            @test isordered(x) === true
         end
         @test x[1] > x[2]
         @test x[3] > x[2]
 
-        @test ordered!(x, false) === false
+        @test ordered!(x, false) === x
         @test isordered(x) === false
         @test_throws Exception x[1] > x[2]
         @test_throws Exception x[3] > x[2]

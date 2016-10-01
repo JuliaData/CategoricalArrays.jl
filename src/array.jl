@@ -26,11 +26,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
 
         $A{T, N}(::Type{T}, dims::NTuple{N,Int}; ordered=false) =
             $A(zeros(DefaultRefType, dims), CategoricalPool{T}(ordered))
-        function $A{T}(::Type{T}, dims::Int...; ordered=false)
-            A = $A{T}(dims)
-            ordered!(A, ordered)
-            A
-        end
+        $A{T}(::Type{T}, dims::Int...; ordered=false) = ordered!($A{T}(dims), ordered)
         $A(dims::Int...; ordered=false) = $A{String}(dims, ordered=ordered)
 
         $A{T, N, R}(::Type{CategoricalValue{T, R}}, dims::NTuple{N,Int}) = $A{T, N, R}(dims)
@@ -92,20 +88,12 @@ end
         ## Constructors from arrays
 
         # This method is needed to ensure ordered!() only mutates a copy of A
-        @compat function (::Type{$A{T, N, R}}){T, N, R}(A::$A{T, N, R};
-                                                        ordered=_isordered(A))
-            ret = copy(A)
-            ordered!(ret, ordered)
-            ret
-        end
+        @compat (::Type{$A{T, N, R}}){T, N, R}(A::$A{T, N, R}; ordered=_isordered(A)) =
+            ordered!(copy(A), ordered)
 
         # Note this method is also used for CategoricalArrays when T, N or R don't match
-        @compat function (::Type{$A{T, N, R}}){T, N, R}(A::AbstractArray;
-                                                        ordered=_isordered(A))
-            ret = convert($A{T, N, R}, A)
-            ordered!(ret, ordered)
-            ret
-        end
+        @compat (::Type{$A{T, N, R}}){T, N, R}(A::AbstractArray; ordered=_isordered(A)) =
+            ordered!(convert($A{T, N, R}, A), ordered)
 
         @compat (::Type{$A{T, N, R}}){T<:CategoricalValue, N, R}(A::AbstractArray;
                                                                  ordered=_isordered(A)) =
@@ -187,9 +175,7 @@ end
         function convert{T, N, R}(::Type{$A{T, N, R}}, A::$A)
             refs = convert(Array{R, N}, A.refs)
             pool = convert(CategoricalPool{T, R}, A.pool)
-            ret = $A(refs, pool)
-            ordered!(ret, isordered(A))
-            ret
+            ordered!($A(refs, pool), isordered(A))
         end
         convert{S, T, N, R}(::Type{$A{T, N}}, A::$A{S, N, R}) =
             convert($A{T, N, R}, A)
@@ -305,7 +291,7 @@ function droplevels!(A::CatArray)
 end
 
 isordered(A::CatArray) = isordered(A.pool)
-ordered!(A::CatArray, ordered) = ordered!(A.pool, ordered)
+ordered!(A::CatArray, ordered) = (ordered!(A.pool, ordered); return A)
 
 function Base.push!(A::CatArray, item)
     resize!(A.refs, length(A.refs) + 1)

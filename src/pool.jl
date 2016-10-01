@@ -163,4 +163,4 @@ levels(pool::CategoricalPool) = pool.levels
 order(pool::CategoricalPool) = pool.order
 
 isordered(pool::CategoricalPool) = pool.ordered
-ordered!(pool::CategoricalPool, ordered) = pool.ordered = ordered
+ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
