@@ -32,7 +32,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     @test isa(cca2, CA{Int, 1, UInt8})
     @test isa(r, CA{Int, 1, CategoricalArrays.DefaultRefType})
     @test isa(vcat(cca1, ca2), CA{Int, 1, CategoricalArrays.DefaultRefType})
-    @test ordered(r) == false
+    @test isordered(r) == false
     @test levels(r) == collect(3:300)
 
     # Test vcat of multidimensional arrays
@@ -47,7 +47,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     r = vcat(cca1, cca2)
     @test r == A(vcat(a1, a2))
     @test isa(r, CA{Int, 4, CategoricalArrays.DefaultRefType})
-    @test ordered(r) == false
+    @test isordered(r) == false
     @test levels(r) == collect(3:length(a2)+10)
 
     # Test concatenation of mutually compatible levels
@@ -55,12 +55,12 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     a2 = ["Middle", "Old"]
     ca1 = CA(a1, ordered=true)
     ca2 = CA(a2, ordered=true)
-    levels!(ca1, ["Young", "Middle"])
-    levels!(ca2, ["Middle", "Old"])
+    @test levels!(ca1, ["Young", "Middle"]) === ca1
+    @test levels!(ca2, ["Middle", "Old"]) === ca2
     r = vcat(ca1, ca2)
     @test r == A(vcat(a1, a2))
     @test levels(r) == ["Young", "Middle", "Old"]
-    @test ordered(r) == true
+    @test isordered(r) == true
 
     # Test concatenation of conflicting ordering. This drops the ordering
     a1 = ["Old", "Young", "Young"]
@@ -72,7 +72,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     r = vcat(ca1, ca2)
     @test r == A(vcat(a1, a2))
     @test levels(r) == ["Young", "Middle", "Old"]
-    @test ordered(r) == false
+    @test isordered(r) == false
 end
 
 end

@@ -6,7 +6,7 @@ module CategoricalArrays
            AbstractNullableCategoricalMatrix,
            NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
 
-    export categorical, compact, droplevels!, levels, levels!, ordered, ordered!
+    export categorical, compact, droplevels!, levels, levels!, isordered, ordered!
 
     using Compat
 
@@ -19,6 +19,7 @@ module CategoricalArrays
 
     include("array.jl")
     include("nullablearray.jl")
+    include("deprecated.jl")
 
     if VERSION < v"0.5.0-dev"
         Base.convert{T,n,S}(::Type{Array{T}}, x::AbstractArray{S, n}) = convert(Array{T, n}, x)

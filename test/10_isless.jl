@@ -48,8 +48,8 @@ module TestIsLess
     @test_throws Exception v3 >= v2
     @test_throws Exception v3 >= v3
 
-    @test ordered!(pool, true) === true
-    @test ordered(pool) === true
+    @test ordered!(pool, true) === pool
+    @test isordered(pool) === true
 
     @test (v1 < v1) === false
     @test (v1 < v2) === true
@@ -91,7 +91,8 @@ module TestIsLess
     @test (v3 >= v2) === true
     @test (v3 >= v3) === true
 
-    levels!(pool, [2, 3, 1])
+    @test levels!(pool, [2, 3, 1]) === pool
+    @test levels(pool) == [2, 3, 1]
 
     @test (v1 < v1) === false
     @test (v1 < v2) === false
@@ -133,8 +134,8 @@ module TestIsLess
     @test (v3 >= v2) === true
     @test (v3 >= v3) === true
 
-    @test ordered!(pool, false) === false
-    @test ordered(pool) === false
+    @test ordered!(pool, false) === pool
+    @test isordered(pool) === false
 
     @test_throws Exception v1 < v1
     @test_throws Exception v1 < v2

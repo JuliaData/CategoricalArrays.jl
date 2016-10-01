@@ -155,12 +155,12 @@ function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
     for (i, x) in enumerate(pool.order)
         pool.levels[x] = pool.index[i]
     end
-    return newlevels
+    return pool
 end
 
 index(pool::CategoricalPool) = pool.index
 levels(pool::CategoricalPool) = pool.levels
 order(pool::CategoricalPool) = pool.order
 
-ordered(pool::CategoricalPool) = pool.ordered
-ordered!(pool::CategoricalPool, ordered) = pool.ordered = ordered
+isordered(pool::CategoricalPool) = pool.ordered
+ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
