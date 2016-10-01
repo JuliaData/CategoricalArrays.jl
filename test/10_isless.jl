@@ -91,7 +91,8 @@ module TestIsLess
     @test (v3 >= v2) === true
     @test (v3 >= v3) === true
 
-    levels!(pool, [2, 3, 1])
+    @test levels!(pool, [2, 3, 1]) === pool
+    @test levels(pool) == [2, 3, 1]
 
     @test (v1 < v1) === false
     @test (v1 < v2) === false

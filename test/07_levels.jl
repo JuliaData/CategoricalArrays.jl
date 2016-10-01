@@ -112,7 +112,8 @@ module TestLevels
         @test pool.valindex == [CategoricalValue(i, pool) for i in 1:5]
     end
 
-    @test levels!(pool, [1, 2, 3]) == [1, 2, 3]
+    @test levels!(pool, [1, 2, 3]) === pool
+    @test levels(pool) == [1, 2, 3]
 
     @test isa(pool.index, Vector{Int})
     @test length(pool) == 3
@@ -126,7 +127,8 @@ module TestLevels
     @test_throws KeyError get(pool, 10)
     @test pool.valindex == [CategoricalValue(i, pool) for i in 1:3]
 
-    @test levels!(pool, [1, 2, 4]) == [1, 2, 4]
+    @test levels!(pool, [1, 2, 4]) === pool
+    @test levels(pool) == [1, 2, 4]
 
     @test isa(pool.index, Vector{Int})
     @test length(pool) == 3
@@ -139,7 +141,8 @@ module TestLevels
     @test_throws KeyError get(pool, 3)
     @test pool.valindex == [CategoricalValue(i, pool) for i in 1:3]
 
-    @test levels!(pool, [6, 5, 4]) == [6, 5, 4]
+    @test levels!(pool, [6, 5, 4]) === pool
+    @test levels(pool) == [6, 5, 4]
 
     @test isa(pool.index, Vector{Int})
     @test length(pool) == 3
@@ -153,7 +156,8 @@ module TestLevels
     @test pool.valindex == [CategoricalValue(i, pool) for i in 1:3]
 
     # Changing order while preserving existing levels
-    @test levels!(pool, [5, 6, 4]) == [5, 6, 4]
+    @test levels!(pool, [5, 6, 4]) === pool
+    @test levels(pool) == [5, 6, 4]
 
     @test isa(pool.index, Vector{Int})
     @test length(pool) == 3
@@ -167,7 +171,8 @@ module TestLevels
     @test pool.valindex == [CategoricalValue(i, pool) for i in 1:3]
 
     # Adding levels while preserving existing ones
-    @test levels!(pool, [5, 2, 3, 6, 4]) == [5, 2, 3, 6, 4]
+    @test levels!(pool, [5, 2, 3, 6, 4]) === pool
+    @test levels(pool) == [5, 2, 3, 6, 4]
 
     @test isa(pool.index, Vector{Int})
     @test length(pool) == 5

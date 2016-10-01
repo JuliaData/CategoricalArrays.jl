@@ -279,7 +279,7 @@ function _levels!(A::CatArray, newlevels::Vector; nullok=false)
         end
     end
 
-    levels(A.pool)
+    A
 end
 
 function droplevels!(A::CatArray)

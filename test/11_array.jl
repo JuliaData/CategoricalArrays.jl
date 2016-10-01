@@ -143,13 +143,15 @@ for ordered in (false, true)
         @test x[3] === x.pool.valindex[1]
         @test levels(x) == ["a", "b", "c"]
 
-        droplevels!(x) == ["a", "b"]
+        @test droplevels!(x) === x
+        @test levels(x) == ["a", "b"]
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[2]
         @test levels(x) == ["a", "b"]
 
-        levels!(x, ["b", "a"]) == ["b", "a"]
+        @test levels!(x, ["b", "a"]) === x
+        @test levels(x) == ["b", "a"]
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[2]
@@ -159,7 +161,8 @@ for ordered in (false, true)
         @test_throws ArgumentError levels!(x, ["e", "b"])
         @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
 
-        @test levels!(x, ["e", "a", "b"]) == ["e", "a", "b"]
+        @test levels!(x, ["e", "a", "b"]) === x
+        @test levels(x) == ["e", "a", "b"]
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[2]

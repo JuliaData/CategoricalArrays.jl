@@ -55,8 +55,8 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     a2 = ["Middle", "Old"]
     ca1 = CA(a1, ordered=true)
     ca2 = CA(a2, ordered=true)
-    levels!(ca1, ["Young", "Middle"])
-    levels!(ca2, ["Middle", "Old"])
+    @test levels!(ca1, ["Young", "Middle"]) === ca1
+    @test levels!(ca2, ["Middle", "Old"]) === ca2
     r = vcat(ca1, ca2)
     @test r == A(vcat(a1, a2))
     @test levels(r) == ["Young", "Middle", "Old"]

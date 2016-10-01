@@ -158,13 +158,15 @@ for ordered in (false, true)
             @test x[3] === Nullable(x.pool.valindex[1])
             @test levels(x) == ["a", "b", "c"]
 
-            droplevels!(x) == ["a", "b"]
+            @test droplevels!(x) === x
+            @test levels(x) == ["a", "b"]
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
             @test x[3] === Nullable(x.pool.valindex[2])
             @test levels(x) == ["a", "b"]
 
-            levels!(x, ["b", "a"]) == ["b", "a"]
+            @test levels!(x, ["b", "a"]) === x
+            @test levels(x) == ["b", "a"]
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
             @test x[3] === Nullable(x.pool.valindex[2])
@@ -174,7 +176,8 @@ for ordered in (false, true)
             @test_throws ArgumentError levels!(x, ["e", "b"])
             @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
 
-            @test levels!(x, ["e", "a", "b"]) == ["e", "a", "b"]
+            @test levels!(x, ["e", "a", "b"]) === x
+            @test levels(x) == ["e", "a", "b"]
             @test x[1] === Nullable(x.pool.valindex[1])
             @test x[2] === Nullable(x.pool.valindex[2])
             @test x[3] === Nullable(x.pool.valindex[2])
@@ -187,7 +190,8 @@ for ordered in (false, true)
             @test levels(x) == ["e", "a", "b", "c"]
 
             @test_throws ArgumentError levels!(x, ["e", "c"])
-            @test levels!(x, ["e", "c"], nullok=true) == ["e", "c"]
+            @test levels!(x, ["e", "c"], nullok=true) === x
+            @test levels(x) == ["e", "c"]
             @test x[1] === Nullable(x.pool.valindex[2])
             @test x[2] === eltype(x)()
             @test x[3] === eltype(x)()
