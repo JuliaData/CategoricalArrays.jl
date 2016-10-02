@@ -22,6 +22,114 @@ end
 for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
                   (:NullableCategoricalArray, :NullableCategoricalVector, :NullableCategoricalMatrix))
     @eval begin
+        As = $(string(A))
+        Vs = $(string(V))
+        Ms = $(string(M))
+
+        @doc """
+            $As{T}(dims::Dims; ordered::Bool=false)
+            $As{T}(dims::Int...; ordered::Bool=false)
+
+        Construct an uninitialized `$As` with levels of type `T` and dimensions `dim`.
+        The `ordered` keyword argument determines whether the array values can be compared
+        according to the ordering of levels or not (see [`isordered`](@ref)).
+
+            $As{T, N, R}(dims::Dims; ordered::Bool=false)
+            $As{T, N, R}(dims::Int...; ordered::Bool=false)
+
+        Similar to definition above, but uses reference type `R` instead of the default type
+        (`$DefaultRefType`).
+
+            $As(A::AbstractArray; ordered::Bool=false)
+
+        Construct a `$As` with the values from `A` and the same element type.
+
+        If the element type supports it, levels are sorted in ascending order;
+        else, they are kept in their order of appearance in `A`. The `ordered` keyword
+        argument determines whether the array values can be compared according to the
+        ordering of levels or not (see [`isordered`](@ref)).
+
+            $As(A::CategoricalArray; ordered::Bool=false)
+            $As(A::NullableCategoricalArray; ordered::Bool=false)
+
+        If `A` is already a `CategoricalArray` or a `NullableCategoricalArray`, its levels
+        and their order are preserved. The reference type is also preserved unless `compact`
+        is provided. On the contrary, the `ordered` keyword argument takes precedence over
+        the corresponding property of the input array, even when not provided.
+        
+        In all cases, a copy of `A` is made: use `convert` to avoid making copies when
+        unnecessary.
+        """ ->
+        function $A end
+
+        @doc """
+            $Vs{T}(m::Int; ordered::Bool=false)
+
+        Construct an uninitialized `$Vs` with levels of type `T` and dimensions `dim`.
+        The `ordered` keyword argument determines whether the array values can be compared
+        according to the ordering of levels or not (see [`isordered`](@ref)).
+
+            $Vs{T, R}(m::Int; ordered::Bool=false)
+
+        Similar to definition above, but uses reference type `R` instead of the default type
+        (`$DefaultRefType`).
+
+            $Vs(A::AbstractVector; ordered::Bool=false)
+
+        Construct a `$Vs` with the values from `A` and the same element type.
+
+        If the element type supports it, levels are sorted in ascending order;
+        else, they are kept in their order of appearance in `A`. The `ordered` keyword
+        argument determines whether the array values can be compared according to the
+        ordering of levels or not (see [`isordered`](@ref)).
+
+            $Vs(A::CategoricalVector; ordered::Bool=false)
+            $Vs(A::NullableCategoricalVector; ordered::Bool=false)
+
+        If `A` is already a `CategoricalVector` or a `NullableCategoricalVector`, its levels
+        and their order are preserved. The reference type is also preserved unless `compact`
+        is provided. On the contrary, the `ordered` keyword argument takes precedence over
+        the corresponding property of the input array, even when not provided.
+        
+        In all cases, a copy of `A` is made: use `convert` to avoid making copies when
+        unnecessary.
+        """ ->
+        function $V end
+
+        @doc """
+            $Ms{T}(m::Int, n::Int; ordered::Bool=false)
+
+        Construct an uninitialized `$Ms` with levels of type `T` and dimensions `dim`.
+        The `ordered` keyword argument determines whether the array values can be compared
+        according to the ordering of levels or not (see [`isordered`](@ref)).
+
+            $Ms{T, R}(m::Int, n::Int; ordered::Bool=false)
+
+        Similar to definition above, but uses reference type `R` instead of the default type
+        (`$DefaultRefType`).
+
+            $Ms(A::AbstractVector; ordered::Bool=false)
+
+        Construct a `$Ms` with the values from `A` and the same element type.
+
+        If the element type supports it, levels are sorted in ascending order;
+        else, they are kept in their order of appearance in `A`. The `ordered` keyword
+        argument determines whether the array values can be compared according to the
+        ordering of levels or not (see [`isordered`](@ref)).
+
+            $Ms(A::CategoricalMatrix; ordered::Bool=false)
+            $Ms(A::NullableCategoricalMatrix; ordered::Bool=false)
+
+        If `A` is already a `CategoricalMatrix` or a `NullableCategoricalMatrix`, its levels
+        and their order are preserved. The reference type is also preserved unless `compact`
+        is provided. On the contrary, the `ordered` keyword argument takes precedence over
+        the corresponding property of the input array, even when not provided.
+        
+        In all cases, a copy of `A` is made: use `convert` to avoid making copies when
+        unnecessary.
+        """ ->
+        function $M end
+
         # Uninitialized array constructors
 
         $A{T, N}(::Type{T}, dims::NTuple{N,Int}; ordered=false) =
@@ -190,25 +298,6 @@ end
         convert{T, N}(::Type{$A{T, N}}, A::$A{T, N}) = A
         convert{T}(::Type{$A{T}}, A::$A{T}) = A
         convert(::Type{$A}, A::$A) = A
-
-
-        ## Other methods
-
-        similar{S, T, M, N, R}(A::$A{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) =
-            $A{T, N, R}(dims; ordered=isordered(A))
-
-        function compact{T, N}(A::$A{T, N})
-            R = reftype(length(index(A.pool)))
-            convert($A{T, N, R}, A)
-        end
-
-        function vcat(A::$A...)
-            newlevels, ordered = mergelevels(map(levels, A)...)
-
-            refs = [indexin(index(a.pool), newlevels)[a.refs] for a in A]
-            $A(DefaultRefType[refs...;],
-               CategoricalPool(newlevels, ordered && all(isordered, A)))
-        end
     end
 end
 
@@ -242,9 +331,56 @@ setindex!{T}(A::CatArray, v::CategoricalValue{T}, i::Int) =
 # Method preserving levels and more efficient than AbstractArray one
 copy(A::CatArray) = deepcopy(A)
 
+arraytype{T<:CategoricalArray}(::Type{T}) = CategoricalArray
+arraytype{T<:NullableCategoricalArray}(::Type{T}) = NullableCategoricalArray
+
+"""
+    similar(A::CategoricalArray, element_type=eltype(A), dims=size(A))
+    similar(A::NullableCategoricalArray,element_type=eltype(A), dims=size(A))
+
+For `CategoricalArray` and `NullableCategoricalArray`, preserves the ordered property
+of `A` (see [`isordered`](@ref)).
+"""
+similar{S, T, M, N, R}(A::CatArray{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) =
+    arraytype(typeof(A)){T, N, R}(dims; ordered=isordered(A))
+
+"""
+    compact(A::CategoricalArray)
+    compact(A::NullableCategoricalArray)
+
+Return a copy of categorical array `A` using the smallest reference type able to hold the
+number of [`levels`](@ref) of `A`.
+
+While this will reduce memory use, this function is type-unstable, which can affect
+performance inside the function where the call is made. Therefore, use it with caution.
+"""
+function compact{T, N}(A::CatArray{T, N})
+    R = reftype(length(index(A.pool)))
+    convert(arraytype(typeof(A)){T, N, R}, A)
+end
+
+arraytype(A::CategoricalArray...) = CategoricalArray
+arraytype(A::CatArray...) = NullableCategoricalArray
+
+function vcat(A::CatArray...)
+    newlevels, ordered = mergelevels(map(levels, A)...)
+
+    refs = [indexin(index(a.pool), newlevels)[a.refs] for a in A]
+    T = arraytype(A...)
+    T(DefaultRefType[refs...;],
+      CategoricalPool(newlevels, ordered && all(isordered, A)))
+end
+
 
 ## Categorical-specific methods
 
+"""
+    levels(A::CategoricalArray)
+    levels(A::NullableCategoricalArray)
+
+Return the levels of categorical array `A`. This may include levels which do not actually appear
+in the data (see [`droplevels!`](@ref)).
+"""
 levels(A::CatArray) = levels(A.pool)
 
 function _levels!(A::CatArray, newlevels::Vector; nullok=false)
@@ -282,6 +418,13 @@ function _levels!(A::CatArray, newlevels::Vector; nullok=false)
     A
 end
 
+"""
+    droplevels!(A::CategoricalArray)
+    droplevels!(A::NullableCategoricalArray)
+
+Drop levels which do not appear in categorical array `A` (so that they will no longer be
+returned by [`levels`](@ref)).
+"""
 function droplevels!(A::CatArray)
     found = fill(false, length(index(A.pool)))
     @inbounds for i in A.refs
@@ -292,6 +435,7 @@ end
 
 """
     isordered(A::CategoricalArray)
+    isordered(A::NullableCategoricalArray)
 
 Test whether entries in `A` can be compared using `<`, `>` and similar operators,
 using the ordering of levels.
@@ -300,10 +444,10 @@ isordered(A::CatArray) = isordered(A.pool)
 
 """
     ordered!(A::CategoricalArray, ordered::Bool)
+    ordered!(A::NullableCategoricalArray, ordered::Bool)
 
 Set whether entries in `A` can be compared using `<`, `>` and similar operators,
-using the ordering of levels.
-Returns the modified `A`.
+using the ordering of levels. Return the modified `A`.
 """
 ordered!(A::CatArray, ordered) = (ordered!(A.pool, ordered); return A)
 
@@ -325,6 +469,36 @@ function Base.append!(A::CatArray, B::CatArray)
 end
 
 Base.empty!(A::CatArray) = (empty!(A.refs); return A)
+
+"""
+    categorical{T}(A::AbstractArray{T}[, compact::Bool]; ordered::Bool=false)
+
+Construct a categorical array with the values from `A`. If `T<:Nullable`, return a
+`NullableCategoricalArray{T}`; else, return a `CategoricalArray{T}`.
+
+If the element type supports it, levels are sorted in ascending order;
+else, they are kept in their order of appearance in `A`. The `ordered` keyword
+argument determines whether the array values can be compared according to the
+ordering of levels or not (see [`isordered`](@ref)).
+
+If `compact` is provided and set to `true`, the smallest reference type able to hold the
+number of unique values in `A` will be used. While this will reduce memory use, passing
+this parameter will also introduce a type instability which can affect performance inside
+the function where the call is made. Therefore, use this option with caution (the
+one-argument version does not suffer from this problem).
+
+    categorical{T}(A::CategoricalArray{T}[, compact::Bool]; ordered::Bool=false)
+    categorical{T}(A::NullableCategoricalArray{T}[, compact::Bool]; ordered::Bool=false)
+
+If `A` is already a `CategoricalArray` or a `NullableCategoricalArray`, its levels
+are preserved. The reference type is also preserved unless `compact` is provided.
+On the contrary, the `ordered` keyword argument takes precedence over the
+corresponding property of the input array, even when not provided.
+
+In all cases, a copy of `A` is made: use `convert` to avoid making copies when
+unnecessary.
+"""
+function categorical end
 
 categorical(A::AbstractArray; ordered=false) = CategoricalArray(A, ordered=ordered)
 categorical{T<:Nullable}(A::AbstractArray{T}; ordered=false) =
@@ -357,6 +531,22 @@ function getindex(A::CategoricalArray, i::Int)
     j > 0 || throw(UndefRefError())
     A.pool[j]
 end
+
+"""
+    levels!(A::CategoricalArray, newlevels::Vector)
+    levels!(A::NullableCategoricalArray, newlevels::Vector; nullok::Bool=false)
+
+Set the levels categorical array `A`. The order of appearance of levels will be respected
+by [`levels`](@ref), which may affect display of results in some operations; if `A` is
+ordered (see [`isordered`](@ref)), it will also be used for order comparisons
+using `<`, `>` and similar operators. Reordering levels will never affect the values
+of entries in the array.
+
+If `A` is a `CategoricalArray`, `newlevels` must include all levels which appear in the data.
+The same applies if `A` is a `NullableCategoricalArray`, unless `nullok=false` is passed: in
+that case, entries corresponding to missing levels will be set to null.
+"""
+function levels! end
 
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 

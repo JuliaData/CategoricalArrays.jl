@@ -58,4 +58,4 @@ typealias NullableCategoricalMatrix{T, R} NullableCategoricalArray{T, 2, R}
 
 ## Type Aliases
 
-typealias CatArray Union{CategoricalArray, NullableCategoricalArray}
+typealias CatArray{T, N, R} Union{CategoricalArray{T, N, R}, NullableCategoricalArray{T, N, R}}
