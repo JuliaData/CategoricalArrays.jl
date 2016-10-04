@@ -8,12 +8,21 @@ _isordered(x::AbstractCategoricalArray) = isordered(x)
 _isordered(x::AbstractNullableCategoricalArray) = isordered(x)
 _isordered(x::Any) = false
 
-function reftype(sz::Int)
-    if sz <= typemax(UInt8)
+"""
+    reftype(A::AbstractCategoricalArray)
+    reftype(ncat::Integer)
+
+Get an integral type used to store the references to categories in `A`,
+or the default type for referencing `ncat` categories.
+"""
+reftype{T,N,R}(A::AbstractCategoricalArray{T,N,R}) = R
+
+function reftype(ncat::Integer)
+    if ncat <= typemax(UInt8)
         return UInt8
-    elseif sz <= typemax(UInt16)
+    elseif ncat <= typemax(UInt16)
         return UInt16
-    elseif sz <= typemax(UInt32)
+    elseif ncat <= typemax(UInt32)
         return UInt32
     else
         return UInt64

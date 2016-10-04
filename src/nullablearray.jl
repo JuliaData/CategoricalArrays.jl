@@ -132,6 +132,8 @@ end
     end
 end
 
+reftype{T,N,R}(x::AbstractNullableCategoricalArray{T,N,R}) = R
+
 levels!(A::NullableCategoricalArray, newlevels::Vector; nullok=false) = _levels!(A, newlevels, nullok=nullok)
 
 droplevels!(A::NullableCategoricalArray) = levels!(A, _unique(Array, A.refs, A.pool))
