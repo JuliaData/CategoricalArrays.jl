@@ -132,6 +132,8 @@ end
     end
 end
 
+@inline Base.isnull(A::NullableCategoricalArray, inds...) = getindex(A.refs, inds...) .== zero(reftype(A))
+
 reftype{T,N,R}(x::AbstractNullableCategoricalArray{T,N,R}) = R
 
 levels!(A::NullableCategoricalArray, newlevels::Vector; nullok=false) = _levels!(A, newlevels, nullok=nullok)
