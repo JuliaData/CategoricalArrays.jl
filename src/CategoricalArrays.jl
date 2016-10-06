@@ -21,6 +21,8 @@ module CategoricalArrays
     include("nullablearray.jl")
     include("deprecated.jl")
 
+    include("subarray.jl")
+
     if VERSION < v"0.5.0-dev"
         Base.convert{T,n,S}(::Type{Array{T}}, x::AbstractArray{S, n}) = convert(Array{T, n}, x)
         Base.convert{T,n,S}(::Type{Array{T,n}}, x::AbstractArray{S,n}) = copy!(Array{T}(size(x)), x)
