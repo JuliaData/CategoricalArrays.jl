@@ -8,7 +8,7 @@ for order in [true, false]
     for inds in [1:2, :, 1, []]
         v = view(x, inds)
         @test levels(v) == levels(x)
-        @test ordered(v) == ordered(x)
+        @test isordered(v) == isordered(x)
     end
 end
 
