@@ -67,8 +67,15 @@ end
                                                          ordered=_isordered(A)) =
     NullableCategoricalMatrix{eltype(T)}(A, ordered=ordered)
 
+"""
+    NullableCategoricalArray(A::AbstractArray, missing::AbstractArray{Bool};
+                             ordered::Bool=false)
+
+Similar to definition above, but marks as null entries for which the corresponding entry
+in `missing` is `true`.
+"""
 function NullableCategoricalArray{T, N}(A::AbstractArray{T, N},
-                                        missing::AbstractArray{Bool};
+                                        missing::AbstractArray{Bool, N};
                                         ordered=false)
     res = NullableCategoricalArray{T, N}(size(A); ordered=ordered)
     @inbounds for (i, x, m) in zip(eachindex(res), A, missing)
@@ -83,10 +90,25 @@ function NullableCategoricalArray{T, N}(A::AbstractArray{T, N},
 end
 
 if VERSION >= v"0.5.0-dev"
+    """
+        NullableCategoricalVector(A::AbstractVector, missing::AbstractVector{Bool};
+                                  ordered::Bool=false)
+
+    Similar to definition above, but marks as null entries for which the corresponding entry
+    in `missing` is `true`.
+    """
     NullableCategoricalVector{T}(A::AbstractVector{T},
                                  missing::AbstractVector{Bool};
                                  ordered=false) =
         NullableCategoricalArray(A, missing; ordered=ordered)
+
+    """
+        NullableCategoricalMatrix(A::AbstractMatrix, missing::AbstractMatrix{Bool};
+                                  ordered::Bool=false)
+
+    Similar to definition above, but marks as null entries for which the corresponding entry
+    in `missing` is `true`.
+    """
     NullableCategoricalMatrix{T}(A::AbstractMatrix{T},
                                  missing::AbstractMatrix{Bool};
                                  ordered=false) =
