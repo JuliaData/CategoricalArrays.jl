@@ -19,6 +19,8 @@ module CategoricalArrays
 
     include("array.jl")
     include("nullablearray.jl")
+    include("subarray.jl")
+
     include("deprecated.jl")
 
     if VERSION < v"0.5.0-dev"
