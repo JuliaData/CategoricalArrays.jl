@@ -2,6 +2,6 @@
 
 for f in [:levels, :isordered]
     @eval begin
-        $f{T,N,P<:CatArray,I,L}(sa::SubArray{T,N,P,I,L}) = $f(parent(sa))
+        $f{T,N,P<:CatArray}(sa::SubArray{T,N,P}) = $f(parent(sa))
     end
 end
