@@ -1,4 +1,5 @@
 import Base: convert, getindex, setindex!, similar
+using NullableArrays: NullableArray
 
 ## Constructors and converters
 ## (special methods for AbstractArray{Nullable}, to avoid wrapping Nullable inside Nullable)
@@ -130,3 +131,7 @@ function setindex!(A::NullableCategoricalArray, v::Nullable, i::Int)
 end
 
 levels!(A::NullableCategoricalArray, newlevels::Vector; nullok=false) = _levels!(A, newlevels, nullok=nullok)
+
+droplevels!(A::NullableCategoricalArray) = levels!(A, _unique(Array, A.refs, A.pool))
+
+unique(A::NullableCategoricalArray) = _unique(NullableArray, A.refs, A.pool)

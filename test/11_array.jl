@@ -584,4 +584,32 @@ for ordered in (false, true)
     end
 end
 
+# Test unique() and levels()
+
+x = CategoricalArray(["Old", "Young", "Middle", "Young"])
+@test levels!(x, ["Young", "Middle", "Old"]) === x
+@test levels(x) == ["Young", "Middle", "Old"]
+@test unique(x) == levels(x) == ["Young", "Middle", "Old"]
+@test levels!(x, ["Young", "Middle", "Old", "Unused"]) === x
+@test levels(x) == ["Young", "Middle", "Old", "Unused"]
+@test unique(x) == ["Young", "Middle", "Old"]
+@test levels!(x, ["Unused1", "Young", "Middle", "Old", "Unused2"]) === x
+@test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
+@test unique(x) == ["Young", "Middle", "Old"]
+
+x = CategoricalArray(String[])
+@test isa(levels(x), Vector{String}) && isempty(levels(x))
+@test isa(unique(x), Vector{String}) && isempty(unique(x))
+@test levels!(x, ["Young", "Middle", "Old"]) === x
+@test levels(x) == ["Young", "Middle", "Old"]
+@test isa(unique(x), Vector{String}) && isempty(unique(x))
+
+# To test short-circuit after 1000 elements
+x = CategoricalArray(repeat(1:1500, inner=10))
+@test levels(x) == collect(1:1500)
+@test unique(x) == collect(1:1500)
+@test levels!(x, [1600:-1:1; 2000]) === x
+@test levels(x) == [1600:-1:1; 2000]
+@test unique(x) == collect(1500:-1:1)
+
 end
