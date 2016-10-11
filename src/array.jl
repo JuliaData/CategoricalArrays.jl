@@ -365,7 +365,11 @@ arraytype(A::CatArray...) = NullableCategoricalArray
 function vcat(A::CatArray...)
     newlevels, ordered = mergelevels(map(levels, A)...)
 
-    refs = [indexin(index(a.pool), newlevels)[a.refs] for a in A]
+    refs = map(A) do a
+        ii = indexin(index(a.pool), newlevels)
+        [x==0 ? 0 : ii[x] for x in a.refs]
+    end
+
     T = arraytype(A...)
     T(DefaultRefType[refs...;],
       CategoricalPool(newlevels, ordered && all(isordered, A)))
