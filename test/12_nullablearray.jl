@@ -971,6 +971,7 @@ for ordered in (false, true)
 end
 
 # Test vcat with nulls
+
 @test vcat(NullableCategoricalArray(["a", "b"], [false, true]),
            NullableCategoricalArray(["b", "a"], [true, false])) ==
            NullableCategoricalArray(["a", "", "", "a"], [false, true, true, false])
@@ -1007,5 +1008,37 @@ r = vcat(ca1, ca2)
 ordered!(ca2,true)
 r = vcat(ca1, ca2)
 @test isordered(r)
+
+
+# Test unique() and levels()
+
+x = NullableCategoricalArray(["Old", "Young", "Middle", Nullable(), "Young"])
+@test levels(x) == ["Middle", "Old", "Young"]
+@test unique(x) == NullableArray(["Middle", "Old", "Young", Nullable()])
+@test levels!(x, ["Young", "Middle", "Old"]) === x
+@test levels(x) == ["Young", "Middle", "Old"]
+@test unique(x) == NullableArray(["Young", "Middle", "Old", Nullable()])
+@test levels!(x, ["Young", "Middle", "Old", "Unused"]) === x
+@test levels(x) == ["Young", "Middle", "Old", "Unused"]
+@test unique(x) == NullableArray(["Young", "Middle", "Old", Nullable()])
+@test levels!(x, ["Unused1", "Young", "Middle", "Old", "Unused2"]) === x
+@test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
+@test unique(x) == NullableArray(["Young", "Middle", "Old", Nullable()])
+
+x = NullableCategoricalArray([Nullable{String}()])
+@test isa(levels(x), Vector{String}) && isempty(levels(x))
+@test unique(x) == NullableArray{String}(1)
+@test levels!(x, ["Young", "Middle", "Old"]) === x
+@test levels(x) == ["Young", "Middle", "Old"]
+@test unique(x) == NullableArray{String}(1)
+
+# To test short-circuit after 1000 elements
+x = NullableCategoricalArray(repeat(1:1500, inner=10))
+@test levels(x) == collect(1:1500)
+@test unique(x) == NullableArray(1:1500)
+@test levels!(x, [1600:-1:1; 2000]) === x
+x[3] = Nullable()
+@test levels(x) == [1600:-1:1; 2000]
+@test unique(x) == NullableArray([1500:-1:3; 2; 1; Nullable()])
 
 end

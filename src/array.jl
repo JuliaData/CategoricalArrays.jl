@@ -1,6 +1,6 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
-import Base: convert, copy, getindex, setindex!, similar, size, linearindexing, vcat
+import Base: convert, copy, getindex, setindex!, similar, size, linearindexing, unique, vcat
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -400,7 +400,7 @@ function _levels!(A::CatArray, newlevels::Vector; nullok=false)
         @inbounds for (i, x) in enumerate(A.refs)
             if isa(A, CategoricalArray) && deleted[x]
                 throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i. Convert array to a Nullable$(typeof(A).name.name) if you want to transform some levels to missing values."))
-            elseif isa(A, NullableCategoricalArray) && !nullok && deleted[x]
+            elseif isa(A, NullableCategoricalArray) && !nullok && x > 0 && deleted[x]
                 throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i and nullok=false."))
             end
         end
@@ -422,6 +422,41 @@ function _levels!(A::CatArray, newlevels::Vector; nullok=false)
     A
 end
 
+function _unique{S<:AbstractArray, T<:Integer}(::Type{S},
+                                               refs::AbstractArray{T},
+                                               pool::CategoricalPool)
+    seen = fill(false, length(index(pool))+1)
+    tracknulls = eltype(S) <: Nullable
+    # If we don't track nulls, short-circuit even if none has been seen
+    seen[1] = !tracknulls
+    batch = 0
+    @inbounds for i in refs
+        seen[i + 1] = true
+        # Only do a costly short-circuit check periodically
+        batch += 1
+        if batch > 1000
+            all(seen) && break
+            batch = 0
+        end
+    end
+    seennull = shift!(seen)
+    res = S(index(pool)[seen][sortperm(pool.order[seen])])
+    if tracknulls && seennull
+        push!(res, Nullable{eltype(index(pool))}())
+    end
+    res
+end
+
+"""
+    unique(A::CategoricalArray)
+    unique(A::NullableCategoricalArray)
+
+Return levels which appear in `A`, in the same order as [`levels`](@ref)
+(and not in their order of appearance). This function is significantly slower than
+[`levels`](@ref) since it needs to check whether levels are used or not.
+"""
+function unique end
+
 """
     droplevels!(A::CategoricalArray)
     droplevels!(A::NullableCategoricalArray)
@@ -429,13 +464,7 @@ end
 Drop levels which do not appear in categorical array `A` (so that they will no longer be
 returned by [`levels`](@ref)).
 """
-function droplevels!(A::CatArray)
-    found = fill(false, length(index(A.pool)))
-    @inbounds for i in A.refs
-        i > 0 && (found[i] = true)
-    end
-    levels!(A, intersect(levels(A.pool), index(A.pool)[found]))
-end
+function droplevels end
 
 """
     isordered(A::CategoricalArray)
@@ -554,6 +583,8 @@ function levels! end
 
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 
+droplevels!(A::CategoricalArray) = levels!(A, unique(A))
+
 function mergelevels(levels...)
     T = Base.promote_eltype(levels...)
     res = Array{T}(0)
@@ -580,3 +611,5 @@ function mergelevels(levels...)
 
     res, ordered
 end
+
+unique(A::CategoricalArray) = _unique(Array, A.refs, A.pool)
