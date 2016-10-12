@@ -101,6 +101,7 @@ for ordered in (false, true)
         @test levels(x2) == levels(x)
 
         x2 = copy(x)
+        copy!(x2, x)
         @test x2 == x
         @test typeof(x2) === typeof(x)
         @test isordered(x2) === isordered(x)
