@@ -1,6 +1,6 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
-import Base: convert, copy, getindex, setindex!, similar, size, linearindexing, unique, vcat
+import Base: convert, copy, copy!, getindex, setindex!, similar, size, linearindexing, unique, vcat
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -56,7 +56,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
         and their order are preserved. The reference type is also preserved unless `compact`
         is provided. On the contrary, the `ordered` keyword argument takes precedence over
         the corresponding property of the input array, even when not provided.
-        
+
         In all cases, a copy of `A` is made: use `convert` to avoid making copies when
         unnecessary.
         """ ->
@@ -90,7 +90,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
         and their order are preserved. The reference type is also preserved unless `compact`
         is provided. On the contrary, the `ordered` keyword argument takes precedence over
         the corresponding property of the input array, even when not provided.
-        
+
         In all cases, a copy of `A` is made: use `convert` to avoid making copies when
         unnecessary.
         """ ->
@@ -124,7 +124,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
         and their order are preserved. The reference type is also preserved unless `compact`
         is provided. On the contrary, the `ordered` keyword argument takes precedence over
         the corresponding property of the input array, even when not provided.
-        
+
         In all cases, a copy of `A` is made: use `convert` to avoid making copies when
         unnecessary.
         """ ->
@@ -330,6 +330,12 @@ setindex!{T}(A::CatArray, v::CategoricalValue{T}, i::Int) =
 
 # Method preserving levels and more efficient than AbstractArray one
 copy(A::CatArray) = deepcopy(A)
+
+function copy!(A::CatArray, B::CatArray)
+    levels!(A, levels(B))
+    copy!(A.refs, B.refs)
+    A
+end
 
 arraytype{T<:CategoricalArray}(::Type{T}) = CategoricalArray
 arraytype{T<:NullableCategoricalArray}(::Type{T}) = NullableCategoricalArray
