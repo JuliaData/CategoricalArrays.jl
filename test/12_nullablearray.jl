@@ -971,10 +971,18 @@ for ordered in (false, true)
 end
 
 # Test vcat with nulls
-
-@test vcat(NullableCategoricalArray(["a", "b"], [false, true]),
-           NullableCategoricalArray(["b", "a"], [true, false])) ==
-           NullableCategoricalArray(["a", "", "", "a"], [false, true, true, false])
+ca1 = NullableCategoricalArray(["a", "b"], [false, true])
+ca2 = NullableCategoricalArray(["b", "a"], [true, false])
+r = vcat(ca1, ca2)
+@test r == NullableCategoricalArray(["a", "", "", "a"], [false, true, true, false])
+@test levels(r) == ["a"]
+@test !isordered(r)
+ordered!(ca1,true)
+@test !isordered(vcat(ca1, ca2))
+ordered!(ca2,true)
+@test isordered(vcat(ca1, ca2))
+ordered!(ca1,false)
+@test !isordered(vcat(ca1, ca2))
 
 # vcat with all nulls
 ca1 = NullableCategoricalArray(["a", "b"], [false, true])
@@ -1018,7 +1026,7 @@ ca2 = NullableCategoricalArray{String}(2)
 ordered!(ca1, true)
 @test isempty(levels(ca2))
 r = vcat(ca1, ca2)
-@test isequal(r, NullableCategoricalArray(["a", "", "", ""],[false, true, true, true]))
+@test isequal(r, NullableCategoricalArray(["a", "", "", ""], [false, true, true, true]))
 @test isordered(r)
 
 
