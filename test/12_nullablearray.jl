@@ -971,10 +971,18 @@ for ordered in (false, true)
 end
 
 # Test vcat with nulls
-
-@test vcat(NullableCategoricalArray(["a", "b"], [false, true]),
-           NullableCategoricalArray(["b", "a"], [true, false])) ==
-           NullableCategoricalArray(["a", "", "", "a"], [false, true, true, false])
+ca1 = NullableCategoricalArray(["a", "b"], [false, true])
+ca2 = NullableCategoricalArray(["b", "a"], [true, false])
+r = vcat(ca1, ca2)
+@test r == NullableCategoricalArray(["a", "", "", "a"], [false, true, true, false])
+@test levels(r) == ["a"]
+@test !isordered(r)
+ordered!(ca1,true)
+@test !isordered(vcat(ca1, ca2))
+ordered!(ca2,true)
+@test isordered(vcat(ca1, ca2))
+ordered!(ca1,false)
+@test !isordered(vcat(ca1, ca2))
 
 # vcat with all nulls
 ca1 = NullableCategoricalArray(["a", "b"], [false, true])
@@ -983,6 +991,14 @@ r = vcat(ca1, ca2)
 @test isequal(r, NullableCategoricalArray(["a", "", "", ""], [false, true, true, true]))
 @test levels(r) == ["a"]
 @test !isordered(r)
+
+# vcat with all nulls preserves isordered
+# needed for instance when expanding an array with nulls
+# such as vcat of DataFrame with missing columns
+ordered!(ca1, true)
+@test isempty(levels(ca2))
+r = vcat(ca1, ca2)
+@test isordered(r)
 
 # vcat with all empty array
 ca1 = NullableCategoricalArray(0)
@@ -1000,13 +1016,17 @@ r = vcat(ca1, ca2)
 @test levels(r) == String[]
 @test !isordered(r)
 
-ordered!(ca1,true)
-ordered!(ca2,false)
+ordered!(ca1, true)
+@test isempty(levels(ca2))
 r = vcat(ca1, ca2)
-@test !isordered(r)
+@test isordered(r)
 
-ordered!(ca2,true)
+ca1 = NullableCategoricalArray(["a", "b"], [false, true])
+ca2 = NullableCategoricalArray{String}(2)
+ordered!(ca1, true)
+@test isempty(levels(ca2))
 r = vcat(ca1, ca2)
+@test isequal(r, NullableCategoricalArray(["a", "", "", ""], [false, true, true, true]))
 @test isordered(r)
 
 
