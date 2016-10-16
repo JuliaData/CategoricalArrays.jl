@@ -364,8 +364,7 @@ arraytype(A::CatArray...) = NullableCategoricalArray
 
 function vcat(A::CatArray...)
     newlevels, ordered = mergelevels(map(levels, A)...)
-    ordered &= any(isordered, A)
-    ordered &= all(a->isordered(a) || isempty(levels(a)), A)
+    ordered = ordered && any(isordered, A) && all(a->isordered(a) || isempty(levels(a)), A)
 
     refs = map(A) do a
         ii = indexin(index(a.pool), newlevels)
@@ -594,7 +593,8 @@ function mergelevels(levels...)
     for l in levels
         levelsmap = indexin(l, res)
 
-        ordered &= issorted(levelsmap[levelsmap.!=0])
+        ordered = ordered && issorted(levelsmap[levelsmap.!=0])
+
         if !ordered
             # Give up attempt to order res
             append!(res, l[levelsmap.==0])
