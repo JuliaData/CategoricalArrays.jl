@@ -116,17 +116,30 @@ if VERSION >= v"0.5.0-dev"
         NullableCategoricalArray(A, missing; ordered=ordered)
 end
 
-function getindex(A::NullableCategoricalArray, i::Int)
-    j = A.refs[i]
-    S = eltype(eltype(A))
-    j > 0 ? Nullable{S}(A.pool[j]) : Nullable{S}()
+@inline function getindex(A::NullableCategoricalArray, I...)
+    @boundscheck checkbounds(A, I...)
+    # Let Array indexing code handle everything
+    @inbounds r = A.refs[I...]
+
+    if isa(r, Array)
+        res = arraytype(A)(r, deepcopy(A.pool))
+        return ordered!(res, isordered(A))
+    else
+        S = eltype(eltype(A))
+        if r > 0
+            @inbounds return Nullable{S}(A.pool[r])
+        else
+            return Nullable{S}()
+        end
+    end
 end
 
-function setindex!(A::NullableCategoricalArray, v::Nullable, i::Int)
+@inline function setindex!(A::NullableCategoricalArray, v::Nullable, I::Real...)
+    @boundscheck checkbounds(A, I...)
     if isnull(v)
-        A.refs[i] = 0
+        @inbounds A.refs[I...] = 0
     else
-        A[i] = get(v)
+        @inbounds A[I...] = get(v)
     end
 end
 

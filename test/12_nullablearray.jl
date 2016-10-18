@@ -138,8 +138,34 @@ for ordered in (false, true)
             @test x[3] === Nullable(x.pool.valindex[1])
             @test_throws BoundsError x[4]
 
-            @test x[1:2] == Nullable{String}["b", "a"]
-            @test typeof(x[1:2]) === typeof(x)
+            x2 = x[:]
+            @test typeof(x2) === typeof(x)
+            @test x2 == x
+            @test x2 !== x
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[2:3]
+            @test typeof(x2) === typeof(x)
+            @test x2 == Nullable{String}["a", "b"]
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[1:1]
+            @test typeof(x2) === typeof(x)
+            @test x2 == Nullable{String}["b"]
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[2:1]
+            @test typeof(x2) === typeof(x)
+            @test isempty(x2)
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
 
             x[1] = x[2]
             @test x[1] === Nullable(x.pool.valindex[2])
@@ -339,11 +365,34 @@ for ordered in (false, true)
             @test x[3] === eltype(x)()
             @test_throws BoundsError x[4]
 
-            @test x[1:2] == Nullable{String}["a", "b"]
-            @test typeof(x[1:2]) === typeof(x)
+            x2 = x[:]
+            @test typeof(x2) === typeof(x)
+            @test x2 == x
+            @test x2 !== x
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
 
-            @test x[2:3] == Nullable{String}["b", Nullable()]
-            @test typeof(x[2:3]) === typeof(x)
+            x2 = x[2:3]
+            @test typeof(x2) === typeof(x)
+            @test x2 == Nullable{String}["b", Nullable()]
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[1:1]
+            @test typeof(x2) === typeof(x)
+            @test x2 == Nullable{String}["a"]
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[2:1]
+            @test typeof(x2) === typeof(x)
+            @test isempty(x2)
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
 
             x[1] = "b"
             @test x[1] === Nullable(x.pool.valindex[2])
@@ -496,8 +545,34 @@ for ordered in (false, true)
         @test x[4] === Nullable(x.pool.valindex[4])
         @test_throws BoundsError x[5]
 
-        @test x[1:2] == Nullable{Float64}[0.0, 0.5]
-        @test typeof(x[1:2]) === typeof(x)
+        x2 = x[:]
+        @test typeof(x2) === typeof(x)
+        @test x2 == x
+        @test x2 !== x
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:2]
+        @test typeof(x2) === typeof(x)
+        @test x2 == Nullable{Float64}[0.0, 0.5]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:1]
+        @test typeof(x2) === typeof(x)
+        @test x2 == Nullable{Float64}[0.0]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[2:1]
+        @test typeof(x2) === typeof(x)
+        @test isempty(x2)
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
 
         x[2] = 1
         @test x[1] === Nullable(x.pool.valindex[1])
@@ -820,10 +895,37 @@ for ordered in (false, true)
             @test_throws BoundsError x[4,1]
             @test_throws BoundsError x[4,4]
 
-            @test x[1:2,:] == x
-            @test typeof(x[1:2,:]) === typeof(x)
-            @test x[1:2,1] == Nullable{String}["a", "b"]
-            @test typeof(x[1:2,1]) === NullableCategoricalVector{String, R}
+            x2 = x[1:2,:]
+            @test typeof(x2) === typeof(x)
+            @test x2 == x
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[:,[1, 3]]
+            @test typeof(x2) === typeof(x)
+            @test x2 == Nullable{String}["a" "c"; "b" Nullable()]
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[1:1,2]
+            @test isa(x2, NullableCategoricalVector{String, R})
+            @test x2 == [Nullable()]
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            x2 = x[1:0,:]
+            @test typeof(x2) === typeof(x)
+            @test size(x2) == (0,3)
+            @test levels(x2) == levels(x)
+            @test levels(x2) !== levels(x)
+            @test isordered(x2) == isordered(x)
+
+            @test_throws BoundsError x[1:4, :]
+            @test_throws BoundsError x[1:1, -1:1]
+            @test_throws BoundsError x[4, :]
 
             x[1] = "z"
             @test x[1] === Nullable(x.pool.valindex[4])
@@ -879,6 +981,23 @@ for ordered in (false, true)
             @test x[6] === eltype(x)()
             @test levels(x) == ["a", "b", "c", "z"]
 
+            x[1,2] = Nullable("a")
+            @test x[1] === eltype(x)()
+            @test x[2] === Nullable(x.pool.valindex[2])
+            @test x[3] === Nullable(x.pool.valindex[1])
+            @test x[4] === eltype(x)()
+            @test x[5] === Nullable(x.pool.valindex[1])
+            @test x[6] === eltype(x)()
+            @test levels(x) == ["a", "b", "c", "z"]
+
+            x[2,1] = Nullable()
+            @test x[1] === eltype(x)()
+            @test x[2] === eltype(x)()
+            @test x[3] === Nullable(x.pool.valindex[1])
+            @test x[4] === eltype(x)()
+            @test x[5] === Nullable(x.pool.valindex[1])
+            @test x[6] === eltype(x)()
+            @test levels(x) == ["a", "b", "c", "z"]
 
             # Constructor with values plus missingness array
             x = NullableCategoricalArray(1:3, [true, false, true], ordered=ordered)
