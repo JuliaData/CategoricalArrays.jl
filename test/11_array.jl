@@ -123,8 +123,34 @@ for ordered in (false, true)
         @test x[3] === x.pool.valindex[1]
         @test_throws BoundsError x[4]
 
-        @test x[1:2] == ["b", "a"]
-        @test typeof(x[1:2]) === typeof(x)
+        x2 = x[:]
+        @test typeof(x2) === typeof(x)
+        @test x2 == x
+        @test x2 !== x
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:2]
+        @test typeof(x2) === typeof(x)
+        @test x2 == ["b", "a"]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:1]
+        @test typeof(x2) === typeof(x)
+        @test x2 == ["b"]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[2:1]
+        @test typeof(x2) === typeof(x)
+        @test isempty(x2)
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
 
         x[1] = x[2]
         @test x[1] === x.pool.valindex[2]
@@ -318,8 +344,33 @@ for ordered in (false, true)
         @test x[4] === x.pool.valindex[4]
         @test_throws BoundsError x[5]
 
-        @test x[1:2] == [0.0, 0.5]
-        @test typeof(x[1:2]) === typeof(x)
+        x2 = x[:]
+        @test typeof(x2) === typeof(x)
+        @test x2 == x
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:2]
+        @test typeof(x2) === typeof(x)
+        @test x2 == [0.0, 0.5]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:1]
+        @test typeof(x2) === typeof(x)
+        @test x2 == [0.0]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[2:1]
+        @test typeof(x2) === typeof(x)
+        @test isempty(x2)
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
 
         x[2] = 1
         @test x[1] === x.pool.valindex[1]
@@ -481,10 +532,37 @@ for ordered in (false, true)
         @test_throws BoundsError x[4,1]
         @test_throws BoundsError x[4,4]
 
-        @test x[1:2,:] == x
-        @test typeof(x[1:2,:]) === typeof(x)
-        @test x[1:2,1] == ["a", "b"]
-        @test typeof(x[1:2,1]) === CategoricalVector{String, R}
+        x2 = x[1:2,:]
+        @test typeof(x2) === typeof(x)
+        @test x2 == x
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[:,[1, 3]]
+        @test typeof(x2) === typeof(x)
+        @test x2 == ["a" "c"; "b" "c"]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:1,2]
+        @test isa(x2, CategoricalVector{String, R})
+        @test x2 == ["b"]
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        x2 = x[1:0,:]
+        @test typeof(x2) === typeof(x)
+        @test size(x2) == (0,3)
+        @test levels(x2) == levels(x)
+        @test levels(x2) !== levels(x)
+        @test isordered(x2) == isordered(x)
+
+        @test_throws BoundsError x[1:4, :]
+        @test_throws BoundsError x[1:1, -1:1]
+        @test_throws BoundsError x[4, :]
 
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
@@ -508,6 +586,15 @@ for ordered in (false, true)
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[4]
+        @test x[4] === x.pool.valindex[1]
+        @test x[5] === x.pool.valindex[1]
+        @test x[6] === x.pool.valindex[3]
+        @test levels(x) == ["a", "b", "c", "z"]
+
+        x[1,2] = "b"
+        @test x[1] === x.pool.valindex[4]
+        @test x[2] === x.pool.valindex[2]
+        @test x[3] === x.pool.valindex[2]
         @test x[4] === x.pool.valindex[1]
         @test x[5] === x.pool.valindex[1]
         @test x[6] === x.pool.valindex[3]

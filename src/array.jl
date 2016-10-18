@@ -324,9 +324,15 @@ end
 size(A::CatArray) = size(A.refs)
 linearindexing{T <: CatArray}(::Type{T}) = Base.LinearFast()
 
-setindex!(A::CatArray, v::Any, i::Int) = A.refs[i] = get!(A.pool, v)
-setindex!{T}(A::CatArray, v::CategoricalValue{T}, i::Int) =
-    A.refs[i] = get!(A.pool, convert(T, v))
+@inline function setindex!(A::CatArray, v::Any, I::Real...)
+    @boundscheck checkbounds(A, I...)
+    @inbounds A.refs[I...] = get!(A.pool, v)
+end
+
+@inline function setindex!{T}(A::CatArray, v::CategoricalValue{T}, I::Real...)
+    @boundscheck checkbounds(A, I...)
+    @inbounds A.refs[I...] = get!(A.pool, convert(T, v))
+end
 
 # Method preserving levels and more efficient than AbstractArray one
 copy(A::CatArray) = deepcopy(A)
@@ -377,6 +383,21 @@ end
 
 
 ## Categorical-specific methods
+
+@inline function getindex(A::CatArray, I...)
+    @boundscheck checkbounds(A, I...)
+    # Let Array indexing code handle everything
+    @inbounds r = A.refs[I...]
+
+    if isa(r, Array)
+        res = arraytype(A)(r, deepcopy(A.pool))
+        return ordered!(res, isordered(A))
+    else
+        r > 0 || throw(UndefRefError())
+        @inbounds res = A.pool[r]
+        return res
+    end
+end
 
 """
     levels(A::CategoricalArray)
@@ -558,12 +579,6 @@ end
 
 
 ## Code specific to CategoricalArray
-
-function getindex(A::CategoricalArray, i::Int)
-    j = A.refs[i]
-    j > 0 || throw(UndefRefError())
-    A.pool[j]
-end
 
 """
     levels!(A::CategoricalArray, newlevels::Vector)
