@@ -73,6 +73,28 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     @test r == A(vcat(a1, a2))
     @test levels(r) == ["Young", "Middle", "Old"]
     @test isordered(r) == false
+
+
+    # Test similar()
+    x = CA(["Old", "Young", "Middle", "Young"])
+    y = similar(x)
+    @test typeof(x) === typeof(y)
+    @test size(y) == size(x)
+
+    x = CA(["Old", "Young", "Middle", "Young"])
+    y = similar(x, 3)
+    @test typeof(x) === typeof(y)
+    @test size(y) == (3,)
+
+    x = CA{String, 1, UInt8}(["Old", "Young", "Middle", "Young"])
+    y = similar(x, Int)
+    @test isa(y, CA{Int, 1, UInt8})
+    @test size(y) == size(x)
+
+    x = CA(["Old", "Young", "Middle", "Young"])
+    y = similar(x, Int, 3, 2)
+    @test isa(y, CA{Int, 2, CategoricalArrays.DefaultRefType})
+    @test size(y) == (3, 2)
 end
 
 end
