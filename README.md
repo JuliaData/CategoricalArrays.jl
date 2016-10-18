@@ -5,8 +5,8 @@ CategoricalArrays.jl
 [![Build Status](https://ci.appveyor.com/api/projects/status/jq64i3656pwi18pg?svg=true)](https://ci.appveyor.com/project/nalimilan/categoricalarrays-jl)
 [![Julia 0.5 Status](http://pkg.julialang.org/badges/CategoricalArrays_0.5.svg)](http://pkg.julialang.org/?pkg=CategoricalArrays&ver=0.5)
 [![Julia 0.6 Status](http://pkg.julialang.org/badges/CategoricalArrays_0.6.svg)](http://pkg.julialang.org/?pkg=CategoricalArrays&ver=0.6)
-[![Coveralls](https://coveralls.io/repos/github/nalimilan/CategoricalArrays.jl/badge.svg)](https://coveralls.io/github/JuliaData/CategoricalArrays.jl)
-[![Codecov](https://codecov.io/gh/nalimilan/CategoricalArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaData/CategoricalArrays.jl)
+[![Coveralls](https://coveralls.io/repos/github/JuliaData/CategoricalArrays.jl/badge.svg)](https://coveralls.io/github/JuliaData/CategoricalArrays.jl)
+[![Codecov](https://codecov.io/gh/JuliaData/CategoricalArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaData/CategoricalArrays.jl)
 
 Tools for working with categorical variables, both with unordered (nominal variables)
 and ordered categories (ordinal variables). This package provides a replacement for
