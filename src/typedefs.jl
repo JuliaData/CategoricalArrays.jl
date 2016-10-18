@@ -23,6 +23,10 @@ type CategoricalPool{T, R <: Integer, V}
     end
 end
 
+immutable LevelsException{T, R} <: Exception
+    levels::Vector{T}
+end
+
 ## Values
 
 immutable CategoricalValue{T, R <: Integer}

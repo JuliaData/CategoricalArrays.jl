@@ -282,6 +282,10 @@ end
 
         # From CategoricalArray (preserve R)
         function convert{T, N, R}(::Type{$A{T, N, R}}, A::$A)
+            if length(A.pool) > typemax(R)
+                throw(LevelsException{T, R}(levels(A)[typemax(R)+1:end]))
+            end
+
             refs = convert(Array{R, N}, A.refs)
             pool = convert(CategoricalPool{T, R}, A.pool)
             ordered!($A(refs, pool), isordered(A))

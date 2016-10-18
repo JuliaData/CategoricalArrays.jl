@@ -6,7 +6,11 @@ function buildindex{S, R <: Integer}(invindex::Dict{S, R})
     return index
 end
 
-function buildinvindex{T}(index::Vector{T}, R=DefaultRefType)
+function buildinvindex{T, R}(index::Vector{T}, ::Type{R}=DefaultRefType)
+    if length(index) > typemax(R)
+        throw(LevelsException{T, R}(index[typemax(R)+1:end]))
+    end
+
     invindex = Dict{T, R}()
     for (i, v) in enumerate(index)
         invindex[v] = i

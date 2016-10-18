@@ -5,6 +5,7 @@ module CategoricalArrays
     export AbstractNullableCategoricalArray, AbstractNullableCategoricalVector,
            AbstractNullableCategoricalMatrix,
            NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
+    export LevelsException
 
     export categorical, compact, droplevels!, levels, levels!, isordered, ordered!
 
