@@ -369,8 +369,8 @@ arraytype(A::CategoricalArray...) = CategoricalArray
 arraytype(A::CatArray...) = NullableCategoricalArray
 
 function vcat(A::CatArray...)
-    newlevels, ordered = mergelevels(map(levels, A)...)
-    ordered = ordered && any(isordered, A) && all(a->isordered(a) || isempty(levels(a)), A)
+    ordered = any(isordered, A) && all(a->isordered(a) || isempty(levels(a)), A)
+    newlevels, ordered = mergelevels(ordered, map(levels, A)...)
 
     refs = map(A) do a
         ii = indexin(index(a.pool), newlevels)
@@ -600,32 +600,51 @@ levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 
 droplevels!(A::CategoricalArray) = levels!(A, unique(A))
 
-function mergelevels(levels...)
+function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
     res = Array{T}(0)
-    ordered = true
+
+    # Fast path in case all levels are equal
+    if all(l -> l == levels[1], levels[2:end])
+        return levels[1], ordered
+    elseif sum(l -> !isempty(l), levels) == 1
+        return levels[findfirst(l -> !isempty(l), levels)], ordered
+    end
 
     for l in levels
         levelsmap = indexin(l, res)
 
-        ordered = ordered && issorted(levelsmap[levelsmap.!=0])
-
-        if !ordered
-            # Give up attempt to order res
-            append!(res, l[levelsmap.==0])
-        else
-            i = length(res)+1
-            for j = length(l):-1:1
-                if levelsmap[j] == 0
-                    insert!(res, i, l[j])
-                else
-                    i = levelsmap[j]
-                end
+        i = length(res)+1
+        for j = length(l):-1:1
+            if levelsmap[j] == 0
+                insert!(res, i, l[j])
+            else
+                i = levelsmap[j]
             end
         end
     end
 
-    res, ordered
+    # Check that result is ordered
+    if ordered
+        levelsmaps = [indexin(res, l) for l in levels]
+
+        # Check that each original order is preserved
+        for m in levelsmaps
+            issorted(m[m .!= 0]) || return res, false
+        end
+
+        # Check that all order relations between pairs of subsequent elements
+        # are defined in at least one set of original levels
+        pairs = fill(false, length(res)-1)
+        for m in levelsmaps
+            @inbounds for i in eachindex(pairs)
+                pairs[i] |= (m[i] != 0) & (m[i+1] != 0)
+            end
+            all(pairs) && return res, true
+        end
+    end
+
+    res, false
 end
 
 unique(A::CategoricalArray) = _unique(Array, A.refs, A.pool)

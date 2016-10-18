@@ -12,11 +12,62 @@ typealias String Compat.ASCIIString
 (==) = isequal
 
 
-# Tests of vcat of CategoricalArray and NullableCategoricalArray
+# Test that mergelevels handles mutually compatible orderings
+@test CategoricalArrays.mergelevels(true, [6, 2, 4, 8], [2, 3, 5, 4], [2, 4, 8]) ==
+    ([6, 2, 3, 5, 4, 8], true)
+@test CategoricalArrays.mergelevels(true, ["A", "B", "D"], ["C", "D", "E", "F"], ["B", "C", "E"]) ==
+    (["A", "B", "C", "D", "E", "F"], true)
+@test CategoricalArrays.mergelevels(true, ["A", "B", "D"], ["C", "D", "E", "F"], ["A", "B", "C", "F"]) ==
+    (["A", "B", "C", "D", "E", "F"], true)
+@test CategoricalArrays.mergelevels(true, ["B", "C", "D"], ["A", "B"]) ==
+    (["A", "B", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, ["B", "C", "D"], []) ==
+    (["B", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, [], ["A", "C"]) ==
+    (["A", "C"], true)
+@test CategoricalArrays.mergelevels(true, [], []) ==
+    ([], true)
+@test CategoricalArrays.mergelevels(true, ["A", "B", "C"], [], ["A", "C", "D"]) ==
+    (["A", "B", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, [], ["A", "B", "C"], ["A", "C", "D"]) ==
+    (["A", "B", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, ["A", "C", "D"], ["A", "B", "C"], []) ==
+    (["A", "B", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, [], ["A", "C", "D"], []) ==
+    (["A", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, ["A", "C", "D"], [], []) ==
+    (["A", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, [], [], ["A", "C", "D"]) ==
+    (["A", "C", "D"], true)
+@test CategoricalArrays.mergelevels(true, [], [], []) ==
+    ([], true)
+@test CategoricalArrays.mergelevels(true, ["A", "C", "D"], ["A", "B", "C"], ["A", "D", "E"], ["C", "D"]) ==
+    (["A", "B", "C", "D", "E"], true)
 
-# Test that mergelevels handles mutually compatible ordering
-@test CategoricalArrays.mergelevels([6, 3, 4, 7], [2, 3, 5, 4], [2, 4, 8]) == ([6, 2, 3, 5, 4, 7, 8], true)
-@test CategoricalArrays.mergelevels([6, 3, 4, 7], [2, 3, 6, 5, 4], [2, 4, 8]) == ([6, 3, 4, 7, 2, 5, 8], false)
+# Test that mergelevels handles mutually incompatible orderings
+@test CategoricalArrays.mergelevels(true, [6, 3, 4, 7], [2, 3, 6, 5, 4], [2, 4, 8]) ==
+    ([6, 2, 3, 5, 4, 7, 8], false)
+@test CategoricalArrays.mergelevels(true, ["A", "C", "D"], ["D", "C"], []) ==
+    (["A", "C", "D"], false)
+@test CategoricalArrays.mergelevels(true, ["A", "D", "C"], ["A", "B", "C"], ["A", "D", "E"], ["C", "D"]) ==
+    (["A", "D", "B", "C", "E"], false)
+
+# Test that mergelevels handles incomplete orderings
+@test CategoricalArrays.mergelevels(true, ["B", "C", "D"], ["A", "C"]) ==
+    (["B", "A", "C", "D"], false)
+@test CategoricalArrays.mergelevels(true, ["A", "B", "D"], ["C", "D", "E", "F"]) ==
+    (["A", "B", "C", "D", "E", "F"], false)
+@test CategoricalArrays.mergelevels(true, ["A", "B", "E", "G"], ["C", "D", "E", "F"]) ==
+    (["A", "B", "C", "D", "E", "G", "F"], false)
+@test CategoricalArrays.mergelevels(true, ["A", "B", "D"], ["C", "D", "E", "F"], ["A", "B", "D", "F"]) ==
+    (["A", "B", "C", "D", "E", "F"], false)
+
+# Test with ordered=false (simpler, almost a subset of code paths tested above)
+@test CategoricalArrays.mergelevels(false, ["A", "B", "E", "G"], ["C", "D", "E", "F"]) ==
+    (["A", "B", "C", "D", "E", "G", "F"], false)
+
+
+# Tests of vcat of CategoricalArray and NullableCategoricalArray
 
 for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableArray))
     # Test that vcat of compact arrays uses a reftype that doesn't overflow
