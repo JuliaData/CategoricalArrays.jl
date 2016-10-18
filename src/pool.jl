@@ -65,6 +65,10 @@ Base.convert{T, R}(::Type{CategoricalPool}, pool::CategoricalPool{T, R}) =
     convert(CategoricalPool{T, R}, pool)
 
 function Base.convert{S, R}(::Type{CategoricalPool{S, R}}, pool::CategoricalPool)
+    if length(levels(pool)) > typemax(R)
+        throw(LevelsException{S, R}(levels(pool)[typemax(R)+1:end]))
+    end
+
     indexS = convert(Vector{S}, pool.index)
     invindexS = convert(Dict{S, R}, pool.invindex)
     order = convert(Vector{R}, pool.order)
@@ -85,7 +89,12 @@ Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 
 function Base.get!{T, R, V}(pool::CategoricalPool{T, R, V}, level)
     get!(pool.invindex, level) do
-        i = length(pool) + 1
+        n = length(pool)
+        if n >= typemax(R)
+            throw(LevelsException{T, R}([level]))
+        end
+
+        i = R(n + 1)
         push!(pool.index, level)
         push!(pool.order, i)
         push!(pool.levels, level)
@@ -134,6 +143,10 @@ function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
 
     n = length(newlevels)
 
+    if n > typemax(R)
+        throw(LevelsException{S, R}(setdiff(newlevels, levels(pool))[typemax(R)-length(levels(pool))+1:end]))
+    end
+
     # No deletions: can preserve position of existing levels
     if issubset(pool.index, newlevels)
         append!(pool, setdiff(newlevels, pool.index))
@@ -164,3 +177,10 @@ order(pool::CategoricalPool) = pool.order
 
 isordered(pool::CategoricalPool) = pool.ordered
 ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
+
+
+# LevelsException
+function Base.showerror{T, R}(io::IO, err::LevelsException{T, R})
+    levs = join(repr.(err.levels), ", ", " and ")
+    print(io, "cannot store level(s) $levs since reference type $R can only hold $(typemax(R)) levels. Convert categorical array to a larger reference type to add more levels.")
+end
