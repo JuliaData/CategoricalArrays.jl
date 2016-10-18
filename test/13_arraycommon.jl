@@ -67,9 +67,9 @@ typealias String Compat.ASCIIString
     (["A", "B", "C", "D", "E", "G", "F"], false)
 
 
-# Tests of vcat of CategoricalArray and NullableCategoricalArray
-
 for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableArray))
+    # Test vcat()
+
     # Test that vcat of compact arrays uses a reftype that doesn't overflow
     a1 = 3:200
     a2 = 300:-1:100
@@ -127,6 +127,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
 
 
     # Test similar()
+
     x = CA(["Old", "Young", "Middle", "Young"])
     y = similar(x)
     @test typeof(x) === typeof(y)
@@ -146,6 +147,92 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     y = similar(x, Int, 3, 2)
     @test isa(y, CA{Int, 2, CategoricalArrays.DefaultRefType})
     @test size(y) == (3, 2)
+
+
+    # Test copy!()
+
+    x = CA(["Old", "Young", "Middle", "Young"])
+    levels!(x, ["Young", "Middle", "Old"])
+    ordered!(x, true)
+    y = CA(["X", "Z", "Y", "X"])
+    @test copy!(x, y) === x
+    @test x == y
+    @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+    @test !isordered(x)
+
+    x = CA(["Old", "Young", "Middle", "Young"])
+    levels!(x, ["Young", "Middle", "Old"])
+    ordered!(x, true)
+    y = CA(["X", "Z", "Y", "X"])
+    a = A(["Z", "Y", "X", "Young"])
+    # Test with null values
+    if CA === NullableCategoricalArray
+        x[3] = Nullable()
+        y[3] = a[2] = Nullable()
+    end
+    @test copy!(x, 1, y, 2) === x
+    @test x == a
+    @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+    @test !isordered(x)
+
+    # Test that no corruption happens in case of bounds error
+    @test_throws BoundsError copy!(x, 10, y, 2)
+    @test x == a
+    @test_throws BoundsError copy!(x, 1, y, 10)
+    @test x == a
+    @test_throws BoundsError copy!(x, 10, y, 20)
+    @test x == a
+    @test_throws BoundsError copy!(x, 10, y, 2)
+    @test x == a
+    @test_throws BoundsError copy!(x, 1, y, 2, 10)
+    @test x == a
+    @test_throws BoundsError copy!(x, 4, y, 1, 2)
+    @test x == a
+    @test_throws BoundsError copy!(x, 1, y, 4, 2)
+    @test x == a
+
+    for (sstart, dstart, n) in ((1, 1, 4), (1, 2, 3))
+        # Conflicting orders: check that the destination wins and that result is not ordered
+        x = CA(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
+        ordered!(x, true)
+        y = CA(["Middle", "Middle", "Old", "Young"])
+        levels!(y, ["Old", "Middle", "Young"])
+        ordered!(x, true)
+        @test copy!(x, y) === x
+        @test levels(x) == ["Young", "Middle", "Old"]
+        @test !isordered(x)
+
+        # Destination ordered, but not origin: check that destination wins
+        x = CA(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
+        ordered!(x, true)
+        y = CA(["Middle", "Middle", "Old", "Young"])
+        levels!(y, ["Young", "Middle", "Old"])
+        @test copy!(x, y) === x
+        @test levels(x) == ["Young", "Middle", "Old"]
+        @test isordered(x)
+
+        # Origin ordered, but not destination: check that destination wins
+        x = CA(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
+        y = CA(["Middle", "Middle", "Old", "Young"])
+        ordered!(y, true)
+        levels!(y, ["Young", "Middle", "Old"])
+        @test copy!(x, y) === x
+        @test levels(x) == ["Young", "Middle", "Old"]
+        @test !isordered(x)
+
+        # Destination ordered, but not origin, and new levels: check that result is unordered
+        x = CA(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
+        ordered!(x, true)
+        y = CA(["Middle", "Middle", "Old", "Young"])
+        levels!(y, ["X", "Young", "Middle", "Old"])
+        @test copy!(x, y) === x
+        @test levels(x) == ["X", "Young", "Middle", "Old"]
+        @test !isordered(x)
+    end
 end
 
 end

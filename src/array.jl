@@ -1,6 +1,7 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
-import Base: convert, copy, getindex, setindex!, similar, size, linearindexing, unique, vcat
+import Base: convert, copy, copy!, getindex, setindex!, similar, size,
+             linearindexing, unique, vcat
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -334,8 +335,101 @@ end
     @inbounds A.refs[I...] = get!(A.pool, convert(T, v))
 end
 
-# Method preserving levels and more efficient than AbstractArray one
+function mergelevels(ordered, levels...)
+    T = Base.promote_eltype(levels...)
+    res = Array{T}(0)
+
+    # Fast path in case all levels are equal
+    if all(l -> l == levels[1], levels[2:end])
+        return copy(levels[1]), ordered
+    elseif sum(l -> !isempty(l), levels) == 1
+        return copy(levels[findfirst(l -> !isempty(l), levels)]), ordered
+    end
+
+    for l in levels
+        levelsmap = indexin(l, res)
+
+        i = length(res)+1
+        for j = length(l):-1:1
+            if levelsmap[j] == 0
+                insert!(res, i, l[j])
+            else
+                i = levelsmap[j]
+            end
+        end
+    end
+
+    # Check that result is ordered
+    if ordered
+        levelsmaps = [indexin(res, l) for l in levels]
+
+        # Check that each original order is preserved
+        for m in levelsmaps
+            issorted(m[m .!= 0]) || return res, false
+        end
+
+        # Check that all order relations between pairs of subsequent elements
+        # are defined in at least one set of original levels
+        pairs = fill(false, length(res)-1)
+        for m in levelsmaps
+            @inbounds for i in eachindex(pairs)
+                pairs[i] |= (m[i] != 0) & (m[i+1] != 0)
+            end
+            all(pairs) && return res, true
+        end
+    end
+
+    res, false
+end
+
+# Methods preserving levels and more efficient than AbstractArray fallbacks
 copy(A::CatArray) = deepcopy(A)
+
+function copy!{T, N}(dest::CatArray{T, N}, dstart::Integer,
+                     src::CatArray{T, N}, sstart::Integer, n::Integer=length(src)-sstart+1)
+    destinds, srcinds = linearindices(dest), linearindices(src)
+    (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
+    (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
+    n == 0 && return dest
+    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
+
+    drefs = dest.refs
+    srefs = src.refs
+
+    newlevels, ordered = mergelevels(isordered(dest), levels(dest), levels(src))
+    # Orderedness cannot be preserved if the source was unordered and new levels
+    # need to be added: new comparisons would only be based on the source's order
+    # (this is consistent with what happens when adding a new level via setindex!)
+    ordered &= isordered(src) | length(newlevels) == length(levels(dest))
+    ordered!(dest, ordered)
+
+    # Simple case: replace all values
+    if dstart == dstart == 1 && n == length(dest) == length(src)
+        # Set index to reflect refs
+        levels!(dest.pool, T[]) # Needed in case src and dest share some levels
+        levels!(dest.pool, index(src.pool))
+
+        # Set final levels in their visible order
+        levels!(dest.pool, newlevels)
+
+        copy!(drefs, srefs)
+    else # More work to do: preserve some values (and therefore index)
+        levels!(dest.pool, newlevels)
+
+        indexmap = indexin(index(src.pool), index(dest.pool))
+
+        @inbounds for i = 0:(n-1)
+            x = srefs[sstart+i]
+            drefs[dstart+i] = x > 0 ? indexmap[x] : 0
+        end
+
+    end
+
+    dest
+end
+
+copy!{T,N}(dest::CatArray{T, N}, src::CatArray{T, N}) =
+    copy!(dest, 1, src, 1, length(src))
 
 arraytype{T<:CategoricalArray}(::Type{T}) = CategoricalArray
 arraytype{T<:NullableCategoricalArray}(::Type{T}) = NullableCategoricalArray
@@ -599,52 +693,5 @@ function levels! end
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 
 droplevels!(A::CategoricalArray) = levels!(A, unique(A))
-
-function mergelevels(ordered, levels...)
-    T = Base.promote_eltype(levels...)
-    res = Array{T}(0)
-
-    # Fast path in case all levels are equal
-    if all(l -> l == levels[1], levels[2:end])
-        return levels[1], ordered
-    elseif sum(l -> !isempty(l), levels) == 1
-        return levels[findfirst(l -> !isempty(l), levels)], ordered
-    end
-
-    for l in levels
-        levelsmap = indexin(l, res)
-
-        i = length(res)+1
-        for j = length(l):-1:1
-            if levelsmap[j] == 0
-                insert!(res, i, l[j])
-            else
-                i = levelsmap[j]
-            end
-        end
-    end
-
-    # Check that result is ordered
-    if ordered
-        levelsmaps = [indexin(res, l) for l in levels]
-
-        # Check that each original order is preserved
-        for m in levelsmaps
-            issorted(m[m .!= 0]) || return res, false
-        end
-
-        # Check that all order relations between pairs of subsequent elements
-        # are defined in at least one set of original levels
-        pairs = fill(false, length(res)-1)
-        for m in levelsmaps
-            @inbounds for i in eachindex(pairs)
-                pairs[i] |= (m[i] != 0) & (m[i+1] != 0)
-            end
-            all(pairs) && return res, true
-        end
-    end
-
-    res, false
-end
 
 unique(A::CategoricalArray) = _unique(Array, A.refs, A.pool)
