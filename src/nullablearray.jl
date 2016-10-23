@@ -122,8 +122,8 @@ end
     @inbounds r = A.refs[I...]
 
     if isa(r, Array)
-        res = arraytype(A)(r, deepcopy(A.pool))
-        return ordered!(res, isordered(A))
+        return ordered!(arraytype(A)(r, deepcopy(A.pool)),
+                        isordered(A))
     else
         S = eltype(eltype(A))
         if r > 0
