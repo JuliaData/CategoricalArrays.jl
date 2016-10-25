@@ -26,7 +26,8 @@ module TestCategoricalArrays
         "12_nullablearray.jl",
         "13_arraycommon.jl",
         "14_view.jl",
-        "15_extras.jl"
+        "15_extras.jl",
+        "16_recode.jl"
     ]
 
     println("Running tests:")
