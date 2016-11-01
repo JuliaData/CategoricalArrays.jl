@@ -463,6 +463,21 @@ function compact{T, N}(A::CatArray{T, N})
     convert(arraytype(typeof(A)){T, N, R}, A)
 end
 
+"""
+    uncompact(A::CategoricalArray)
+    uncompact(A::NullableCategoricalArray)
+
+Return a copy of categorical array `A` using the default reference type. If `A` is using
+a small reference type (such as UInt8 or UInt16) the uncompact array will have room for
+more levels.
+
+Avoid using compact to avoid having to call uncompact.
+"""
+uncompact{T, N}(A::CatArray{T, N}) =
+    convert(arraytype(typeof(A)){T, N, DefaultRefType}, A)
+uncompact{T}(P::CategoricalPool{T}) =
+    convert(CategoricalPool{T, DefaultRefType}, P)
+
 arraytype(A::CategoricalArray...) = CategoricalArray
 arraytype(A::CatArray...) = NullableCategoricalArray
 

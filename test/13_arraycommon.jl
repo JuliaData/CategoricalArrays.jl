@@ -239,41 +239,43 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
 
     res = @test_throws LevelsException{Int, UInt8} CA{Int, 1, UInt8}(256:-1:1)
     @test res.value.levels == [1]
-    @test sprint(showerror, res.value) == "cannot store level(s) 1 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) 1 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels (see uncompact)."
 
     x = CA{Int, 1, UInt8}(254:-1:1)
     x[1] = 1000
     res = @test_throws LevelsException{Int, UInt8} x[1] = 1001
     @test res.value.levels == [1001]
-    @test sprint(showerror, res.value) == "cannot store level(s) 1001 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) 1001 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels (see uncompact)."
     @test x == A(vcat(1000, 253:-1:1))
     @test levels(x) == vcat(1:254, 1000)
 
     x = CA{Int, 1, UInt8}(1:254)
     res = @test_throws LevelsException{Int, UInt8} x[1:2] = 1000:1001
     @test res.value.levels == [1001]
-    @test sprint(showerror, res.value) == "cannot store level(s) 1001 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) 1001 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels (see uncompact)."
     @test x == A(vcat(1000, 2:254))
     @test levels(x) == vcat(1:254, 1000)
 
     x = CA{Int, 1, UInt8}([1, 3, 256])
     res = @test_throws LevelsException{Int, UInt8} levels!(x, collect(1:256))
     @test res.value.levels == [255]
-    @test sprint(showerror, res.value) == "cannot store level(s) 255 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) 255 since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels (see uncompact)."
 
     x = CA(30:2:131115)
     res = @test_throws LevelsException{Int, UInt16} CategoricalVector{Int, UInt16}(x)
     @test res.value.levels == collect(131100:2:131114)
-    @test sprint(showerror, res.value) == "cannot store level(s) 131100, 131102, 131104, 131106, 131108, 131110, 131112 and 131114 since reference type UInt16 can only hold 65535 levels. Convert categorical array to a larger reference type to add more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) 131100, 131102, 131104, 131106, 131108, 131110, 131112 and 131114 since reference type UInt16 can only hold 65535 levels. Convert categorical array to a larger reference type to add more levels (see uncompact)."
 
     x = CA{String, 1, UInt8}(string.(Char.(65:318)))
     res = @test_throws LevelsException{String, UInt8} levels!(x, vcat(levels(x), "az", "bz", "cz"))
     @test res.value.levels == ["bz", "cz"]
-    @test sprint(showerror, res.value) == "cannot store level(s) \"bz\" and \"cz\" since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) \"bz\" and \"cz\" since reference type UInt8 can only hold 255 levels. Convert categorical array to a larger reference type to add more levels (see uncompact)."
     @test x == A(string.(Char.(65:318)))
     lev = copy(levels(x))
     levels!(x, vcat(lev, "az"))
     @test levels(x) == vcat(lev, "az")
+    x2 = uncompact(x)
+    levels!(x2, vcat(levels(x2), "bz", "cz"))
 end
 
 end
