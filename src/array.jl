@@ -467,16 +467,15 @@ end
     uncompact(A::CategoricalArray)
     uncompact(A::NullableCategoricalArray)
 
-Return a copy of categorical array `A` using the default reference type. If `A` is using
-a small reference type (such as UInt8 or UInt16) the uncompact array will have room for
-more levels.
+Return a copy of categorical array `A` using the default reference type ($DefaultRefType).
+If `A` is using a small reference type (such as `UInt8` or `UInt16`) the uncompacted array
+will have room for more levels.
 
-Avoid using compact to avoid having to call uncompact.
+To avoid the need to call uncompact, ensure [`compact`](@ref) is not called when creating
+the categorical array.
 """
 uncompact{T, N}(A::CatArray{T, N}) =
     convert(arraytype(typeof(A)){T, N, DefaultRefType}, A)
-uncompact{T}(P::CategoricalPool{T}) =
-    convert(CategoricalPool{T, DefaultRefType}, P)
 
 arraytype(A::CategoricalArray...) = CategoricalArray
 arraytype(A::CatArray...) = NullableCategoricalArray
