@@ -182,5 +182,5 @@ ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
 # LevelsException
 function Base.showerror{T, R}(io::IO, err::LevelsException{T, R})
     levs = join(repr.(err.levels), ", ", " and ")
-    print(io, "cannot store level(s) $levs since reference type $R can only hold $(typemax(R)) levels. Convert categorical array to a larger reference type to add more levels.")
+    print(io, "cannot store level(s) $levs since reference type $R can only hold $(typemax(R)) levels. Use the uncompact function to make room for more levels.")
 end
