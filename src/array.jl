@@ -1,7 +1,7 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
 import Base: convert, copy, copy!, getindex, setindex!, similar, size,
-             linearindexing, unique, vcat
+             linearindexing, unique, vcat, promote_rule
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -337,6 +337,14 @@ end
 @inline function setindex!{T}(A::CatArray, v::CategoricalValue{T}, I::Real...)
     @boundscheck checkbounds(A, I...)
     @inbounds A.refs[I...] = get!(A.pool, convert(T, v))
+end
+
+@inline function promote_rule{T,N,R,T2}(::Type{CatArray{T,N,R}}, ::Type{Array{T2}})
+    CatArray{promote_type(T, T2), N, R}
+end
+
+@inline function promote_rule{T,N,R,T2<:Nullable}(::Type{CatArray{T,N,R}}, ::Type{Array{T2}})
+    NullableCategoricalArray{promote_type(T, eltype(T2)), N, R}
 end
 
 function mergelevels(ordered, levels...)

@@ -280,6 +280,9 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     @test x == ux
     @test typeof(x) == CA{Int, 1, UInt8}
     @test typeof(ux) == CA{Int, 1, CategoricalArrays.DefaultRefType}
+
+    @test promote_type(typeof(CA([3,2,1])), typeof([1,2])) == CA{Int,1,DefaultRefType}
+    @test promote_type(typeof(CA([3,2,1])), typeof(NullableArray([1,3]))) == NullableCategoricalArray{Int,1,DefaultRefType}
 end
 
 end
