@@ -79,16 +79,16 @@ for ordered in (false, true)
         @test CategoricalVector{String, DefaultRefType}(a, ordered=ordered) == x
         @test CategoricalVector{String, UInt8}(a, ordered=ordered) == x
 
-        for (y, R1, R2, compact) in ((a, DefaultRefType, UInt8, true),
-                                     (a, DefaultRefType, DefaultRefType, false),
-                                     (x, R, UInt8, true),
-                                     (x, R, R, false))
+        for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
+                                  (a, DefaultRefType, DefaultRefType, false),
+                                  (x, R, UInt8, true),
+                                  (x, R, R, false))
             x2 = categorical(y, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalVector{String, R1})
             @test isordered(x2) === ordered
 
-            x2 = categorical(y, compact, ordered=ordered)
+            x2 = categorical(y, comp, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalVector{String, R2})
             @test isordered(x2) === ordered
@@ -317,16 +317,16 @@ for ordered in (false, true)
         @test CategoricalVector{Float64, DefaultRefType}(a, ordered=ordered) == x
         @test CategoricalVector{Float32, DefaultRefType}(a, ordered=ordered) == x
 
-        for (y, R1, R2, compact) in ((a, DefaultRefType, UInt8, true),
-                                     (a, DefaultRefType, DefaultRefType, false),
-                                     (x, R, UInt8, true),
-                                     (x, R, R, false))
+        for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
+                                  (a, DefaultRefType, DefaultRefType, false),
+                                  (x, R, UInt8, true),
+                                  (x, R, R, false))
             x2 = categorical(y, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalVector{Float64, R1})
             @test isordered(x2) === ordered
 
-            x2 = categorical(y, compact, ordered=ordered)
+            x2 = categorical(y, comp, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalVector{Float64, R2})
             @test isordered(x2) === ordered
@@ -487,16 +487,16 @@ for ordered in (false, true)
         @test CategoricalMatrix{String, DefaultRefType}(a, ordered=ordered) == x
         @test CategoricalMatrix{String, UInt8}(a, ordered=ordered) == x
 
-        for (y, R1, R2, compact) in ((a, DefaultRefType, UInt8, true),
-                                     (a, DefaultRefType, DefaultRefType, false),
-                                     (x, R, UInt8, true),
-                                     (x, R, R, false))
+        for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
+                                  (a, DefaultRefType, DefaultRefType, false),
+                                  (x, R, UInt8, true),
+                                  (x, R, R, false))
             x2 = categorical(y, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalMatrix{String, R1})
             @test isordered(x2) === ordered
 
-            x2 = categorical(y, compact, ordered=ordered)
+            x2 = categorical(y, comp, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalMatrix{String, R2})
             @test isordered(x2) === ordered
