@@ -404,7 +404,7 @@ function copy!{T, N}(dest::CatArray{T, N}, dstart::Integer,
     # Orderedness cannot be preserved if the source was unordered and new levels
     # need to be added: new comparisons would only be based on the source's order
     # (this is consistent with what happens when adding a new level via setindex!)
-    ordered &= isordered(src) | length(newlevels) == length(levels(dest))
+    ordered &= isordered(src) | (length(newlevels) == length(levels(dest)))
     ordered!(dest, ordered)
 
     # Simple case: replace all values

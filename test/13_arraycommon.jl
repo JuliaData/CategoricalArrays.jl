@@ -223,6 +223,16 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
         @test levels(x) == ["Young", "Middle", "Old"]
         @test !isordered(x)
 
+        # Origin ordered, destination ordered with no levels: check that result is ordered
+        y = CA(["Middle", "Middle", "Old", "Young"])
+        ordered!(y, true)
+        levels!(y, ["Young", "Middle", "Old"])
+        x = similar(x)
+        ordered!(x, true)
+        @test copy!(x, y) === x
+        @test levels(x) == ["Young", "Middle", "Old"]
+        @test isordered(x)
+
         # Destination ordered, but not origin, and new levels: check that result is unordered
         x = CA(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
