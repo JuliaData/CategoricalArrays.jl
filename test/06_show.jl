@@ -1,5 +1,6 @@
 module TestShow
     using Base.Test
+    using Compat
     using CategoricalArrays
 
     pool = CategoricalPool(["c", "b", "a"])
@@ -40,16 +41,16 @@ module TestShow
 
     b = IOBuffer()
     showcompact(b, nv1)
-    @test takebuf_string(b) == "\"c\""
+    @test String(take!(b)) == "\"c\""
     showcompact(b, nv2)
-    @test takebuf_string(b) == "\"b\""
+    @test String(take!(b)) == "\"b\""
     showcompact(b, nv3)
-    @test takebuf_string(b) == "\"a\""
+    @test String(take!(b)) == "\"a\""
 
     showcompact(b, ov1)
-    @test takebuf_string(b) == "\"c\""
+    @test String(take!(b)) == "\"c\""
     showcompact(b, ov2)
-    @test takebuf_string(b) == "\"b\""
+    @test String(take!(b)) == "\"b\""
     showcompact(b, ov3)
-    @test takebuf_string(b) == "\"a\""
+    @test String(take!(b)) == "\"a\""
 end
