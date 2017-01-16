@@ -109,7 +109,7 @@ for ordered in (false, true)
                 @test isordered(x2) === ordered
             end
 
-            x2 = compact(x)
+            x2 = compress(x)
             @test x2 == x
             @test isa(x2, NullableCategoricalVector{String, UInt8})
             @test isordered(x2) === isordered(x)
@@ -350,7 +350,7 @@ for ordered in (false, true)
                 @test isordered(x2) === ordered
             end
 
-            x2 = compact(x)
+            x2 = compress(x)
             @test x2 == x
             @test isa(x2, NullableCategoricalVector{String, UInt8})
             @test levels(x2) == levels(x)
@@ -527,7 +527,7 @@ for ordered in (false, true)
             @test isordered(x2) === ordered
         end
 
-        x2 = compact(x)
+        x2 = compress(x)
         @test x2 == x
         @test isordered(x2) === isordered(x)
         @test isa(x2, NullableCategoricalVector{Float64, UInt8})
@@ -715,7 +715,7 @@ for ordered in (false, true)
             @test isordered(x2) === ordered
             end
 
-            x2 = compact(x)
+            x2 = compress(x)
             @test x2 == x
             @test isa(x2, NullableCategoricalMatrix{String, UInt8})
             @test isordered(x2) === isordered(x)
@@ -865,7 +865,7 @@ for ordered in (false, true)
                 @test isordered(x2) === ordered
             end
 
-            x2 = compact(x)
+            x2 = compress(x)
             @test x2 == x
             @test isa(x2, NullableCategoricalMatrix{String, UInt8})
             @test isordered(x2) === isordered(x)
@@ -1050,7 +1050,7 @@ for ordered in (false, true)
             @test isnull(x[2])
             @test levels(x) == []
 
-            x2 = compact(x)
+            x2 = compress(x)
             @test x2 == x
             if VERSION >= v"0.5.0-dev"
                 @test isa(x2, NullableCategoricalArray{String, ndims(x), UInt8})

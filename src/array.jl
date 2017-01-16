@@ -54,7 +54,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             $As(A::NullableCategoricalArray; ordered::Bool=false)
 
         If `A` is already a `CategoricalArray` or a `NullableCategoricalArray`, its levels
-        and their order are preserved. The reference type is also preserved unless `compact`
+        and their order are preserved. The reference type is also preserved unless `compress`
         is provided. On the contrary, the `ordered` keyword argument takes precedence over
         the corresponding property of the input array, even when not provided.
         
@@ -88,7 +88,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             $Vs(A::NullableCategoricalVector; ordered::Bool=false)
 
         If `A` is already a `CategoricalVector` or a `NullableCategoricalVector`, its levels
-        and their order are preserved. The reference type is also preserved unless `compact`
+        and their order are preserved. The reference type is also preserved unless `compress`
         is provided. On the contrary, the `ordered` keyword argument takes precedence over
         the corresponding property of the input array, even when not provided.
         
@@ -122,7 +122,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             $Ms(A::NullableCategoricalMatrix; ordered::Bool=false)
 
         If `A` is already a `CategoricalMatrix` or a `NullableCategoricalMatrix`, its levels
-        and their order are preserved. The reference type is also preserved unless `compact`
+        and their order are preserved. The reference type is also preserved unless `compress`
         is provided. On the contrary, the `ordered` keyword argument takes precedence over
         the corresponding property of the input array, even when not provided.
         
@@ -449,8 +449,8 @@ similar{S, T, M, N, R}(A::CatArray{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) =
     arraytype(typeof(A)){T, N, R}(dims; ordered=isordered(A))
 
 """
-    compact(A::CategoricalArray)
-    compact(A::NullableCategoricalArray)
+    compress(A::CategoricalArray)
+    compress(A::NullableCategoricalArray)
 
 Return a copy of categorical array `A` using the smallest reference type able to hold the
 number of [`levels`](@ref) of `A`.
@@ -458,23 +458,23 @@ number of [`levels`](@ref) of `A`.
 While this will reduce memory use, this function is type-unstable, which can affect
 performance inside the function where the call is made. Therefore, use it with caution.
 """
-function compact{T, N}(A::CatArray{T, N})
+function compress{T, N}(A::CatArray{T, N})
     R = reftype(length(index(A.pool)))
     convert(arraytype(typeof(A)){T, N, R}, A)
 end
 
 """
-    uncompact(A::CategoricalArray)
-    uncompact(A::NullableCategoricalArray)
+    decompress(A::CategoricalArray)
+    decompress(A::NullableCategoricalArray)
 
 Return a copy of categorical array `A` using the default reference type ($DefaultRefType).
-If `A` is using a small reference type (such as `UInt8` or `UInt16`) the uncompacted array
+If `A` is using a small reference type (such as `UInt8` or `UInt16`) the decompressed array
 will have room for more levels.
 
-To avoid the need to call uncompact, ensure [`compact`](@ref) is not called when creating
+To avoid the need to call decompress, ensure [`compress`](@ref) is not called when creating
 the categorical array.
 """
-uncompact{T, N}(A::CatArray{T, N}) =
+decompress{T, N}(A::CatArray{T, N}) =
     convert(arraytype(typeof(A)){T, N, DefaultRefType}, A)
 
 arraytype(A::CategoricalArray...) = CategoricalArray
@@ -637,7 +637,7 @@ end
 Base.empty!(A::CatArray) = (empty!(A.refs); return A)
 
 """
-    categorical{T}(A::AbstractArray{T}[, compact::Bool]; ordered::Bool=false)
+    categorical{T}(A::AbstractArray{T}[, compress::Bool]; ordered::Bool=false)
 
 Construct a categorical array with the values from `A`. If `T<:Nullable`, return a
 `NullableCategoricalArray{T}`; else, return a `CategoricalArray{T}`.
@@ -647,17 +647,17 @@ else, they are kept in their order of appearance in `A`. The `ordered` keyword
 argument determines whether the array values can be compared according to the
 ordering of levels or not (see [`isordered`](@ref)).
 
-If `compact` is provided and set to `true`, the smallest reference type able to hold the
+If `compress` is provided and set to `true`, the smallest reference type able to hold the
 number of unique values in `A` will be used. While this will reduce memory use, passing
 this parameter will also introduce a type instability which can affect performance inside
 the function where the call is made. Therefore, use this option with caution (the
 one-argument version does not suffer from this problem).
 
-    categorical{T}(A::CategoricalArray{T}[, compact::Bool]; ordered::Bool=false)
-    categorical{T}(A::NullableCategoricalArray{T}[, compact::Bool]; ordered::Bool=false)
+    categorical{T}(A::CategoricalArray{T}[, compress::Bool]; ordered::Bool=false)
+    categorical{T}(A::NullableCategoricalArray{T}[, compress::Bool]; ordered::Bool=false)
 
 If `A` is already a `CategoricalArray` or a `NullableCategoricalArray`, its levels
-are preserved. The reference type is also preserved unless `compact` is provided.
+are preserved. The reference type is also preserved unless `compress` is provided.
 On the contrary, the `ordered` keyword argument takes precedence over the
 corresponding property of the input array, even when not provided.
 
@@ -671,20 +671,20 @@ categorical{T<:Nullable}(A::AbstractArray{T}; ordered=false) =
     NullableCategoricalArray(A, ordered=ordered)
 
 # Type-unstable methods
-function categorical{T, N}(A::AbstractArray{T, N}, compact; ordered=false)
-    RefType = compact ? reftype(length(unique(A))) : DefaultRefType
+function categorical{T, N}(A::AbstractArray{T, N}, compress; ordered=false)
+    RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical{T<:Nullable, N}(A::AbstractArray{T, N}, compact; ordered=false)
-    RefType = compact ? reftype(length(unique(A))) : DefaultRefType
+function categorical{T<:Nullable, N}(A::AbstractArray{T, N}, compress; ordered=false)
+    RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical{T, N, R}(A::CategoricalArray{T, N, R}, compact; ordered=false)
-    RefType = compact ? reftype(length(levels(A))) : R
+function categorical{T, N, R}(A::CategoricalArray{T, N, R}, compress; ordered=false)
+    RefType = compress ? reftype(length(levels(A))) : R
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical{T, N, R}(A::NullableCategoricalArray{T, N, R}, compact; ordered=false)
-    RefType = compact ? reftype(length(levels(A))) : R
+function categorical{T, N, R}(A::NullableCategoricalArray{T, N, R}, compress; ordered=false)
+    RefType = compress ? reftype(length(levels(A))) : R
     NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
 

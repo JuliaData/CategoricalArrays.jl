@@ -207,17 +207,17 @@ module TestLevels
 
     res = @test_throws LevelsException{Int, UInt8} CategoricalPool{Int, UInt8}(collect(256:-1:1))
     @test res.value.levels == [1]
-    @test sprint(showerror, res.value) == "cannot store level(s) 1 since reference type UInt8 can only hold 255 levels. Use the uncompact function to make room for more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) 1 since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
 
     pool = CategoricalPool(collect(30:288))
     res = @test_throws LevelsException{Int, UInt8} convert(CategoricalPool{Int, UInt8}, pool)
     @test res.value.levels == collect(285:288)
-    @test sprint(showerror, res.value) == "cannot store level(s) 285, 286, 287 and 288 since reference type UInt8 can only hold 255 levels. Use the uncompact function to make room for more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) 285, 286, 287 and 288 since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
 
     pool = CategoricalPool{String, UInt8}(string.(318:-1:65))
     res = @test_throws LevelsException{String, UInt8} levels!(pool, vcat("az", levels(pool), "bz", "cz"))
     @test res.value.levels == ["bz", "cz"]
-    @test sprint(showerror, res.value) == "cannot store level(s) \"bz\" and \"cz\" since reference type UInt8 can only hold 255 levels. Use the uncompact function to make room for more levels."
+    @test sprint(showerror, res.value) == "cannot store level(s) \"bz\" and \"cz\" since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
     lev = copy(levels(pool))
     levels!(pool, vcat(lev, "az"))
     @test levels(pool) == vcat(lev, "az")
