@@ -148,6 +148,10 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             $A{T, N, DefaultRefType}(dims, ordered=ordered)
         @compat (::Type{$A{T}}){T, N}(dims::NTuple{N,Int}; ordered=false) =
             $A{T, N}(dims, ordered=ordered)
+        @compat (::Type{$A{T, 1}}){T}(m::Int; ordered=false) =
+            $A{T, 1}((m,), ordered=ordered)
+        @compat (::Type{$A{T, 2}}){T}(m::Int, n::Int; ordered=false) =
+            $A{T, 2}((m, n), ordered=ordered)
         @compat (::Type{$A{T, 1, R}}){T, R}(m::Int; ordered=false) =
             $A{T, 1, R}((m,), ordered=ordered)
         # R <: Integer is required to prevent default constructor from being called instead
@@ -248,9 +252,8 @@ end
         ## Conversion methods
 
         # From AbstractArray
-        convert{T, N}(::Type{$A{T, N}}, A::AbstractArray{T, N}) =
+        convert{S, T, N}(::Type{$A{T, N}}, A::AbstractArray{S, N}) =
             convert($A{T, N, DefaultRefType}, A)
-        convert{T, N}(::Type{$A{T}}, A::AbstractArray{T, N}) = convert($A{T, N}, A)
         convert{S, T, N}(::Type{$A{T}}, A::AbstractArray{S, N}) = convert($A{T, N}, A)
         convert{T, N}(::Type{$A}, A::AbstractArray{T, N}) = convert($A{T, N}, A)
 
