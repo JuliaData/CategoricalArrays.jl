@@ -639,6 +639,12 @@ end
 
 Base.empty!(A::CatArray) = (empty!(A.refs); return A)
 
+function Base.reshape{T, N, R}(A::CatArray{T, N, R}, dims::Dims)
+    x = reshape(A.refs, dims)
+    res = arraytype(A){T, ndims(x), R}(x, A.pool)
+    ordered!(res, isordered(res))
+end
+
 """
     categorical{T}(A::AbstractArray{T}[, compress::Bool]; ordered::Bool=false)
 

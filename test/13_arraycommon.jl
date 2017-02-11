@@ -290,6 +290,33 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     @test x == ux
     @test typeof(x) == CA{Int, 1, UInt8}
     @test typeof(ux) == CA{Int, 1, CategoricalArrays.DefaultRefType}
+
+    # Test reshape()
+    x = CA(["Old", "Young", "Middle", "Young"])
+    levels!(x, ["Young", "Middle", "Old"])
+    ordered!(x, true)
+
+    y = reshape(x, 1, 4)
+    @test isa(y, CA{String, 2, CategoricalArrays.DefaultRefType})
+    @test y == A(["Old" "Young" "Middle" "Young"])
+    @test levels(x) == levels(y)
+    @test isordered(x)
+
+    y = reshape(x, 2, 2)
+    @test isa(y, CA{String, 2, CategoricalArrays.DefaultRefType})
+    @test y == A(["Old"  "Middle"; "Young" "Young"])
+    @test levels(x) == levels(y)
+    @test isordered(x)
+
+    # Test with null values
+    if CA === NullableCategoricalArray
+        x[3] = Nullable()
+        y = reshape(x, 1, 4)
+        @test isa(y, CA{String, 2, CategoricalArrays.DefaultRefType})
+        @test y == A(["Old" "Young" Nullable() "Young"])
+        @test levels(x) == levels(y)
+        @test isordered(x)
+    end
 end
 
 end
