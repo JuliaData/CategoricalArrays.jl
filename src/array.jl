@@ -284,7 +284,7 @@ end
         end
 
         # From CategoricalArray (preserve R)
-        function convert{T, N, R}(::Type{$A{T, N, R}}, A::$A)
+        function convert{S, T, N, R}(::Type{$A{T, N, R}}, A::$A{S, N})
             if length(A.pool) > typemax(R)
                 throw(LevelsException{T, R}(levels(A)[typemax(R)+1:end]))
             end
