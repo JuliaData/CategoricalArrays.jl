@@ -16,7 +16,7 @@ module TestUpdateOrder
         )
     )
 
-    order = Array(DefaultRefType, length(pool.index))
+    order = Vector{DefaultRefType}(length(pool.index))
 
     CategoricalArrays.buildorder!(order, pool.invindex, ["b", "a", "c"])
 
