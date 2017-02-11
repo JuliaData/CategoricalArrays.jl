@@ -19,7 +19,7 @@ Base.convert{T}(::Type{Nullable{CategoricalValue{Nullable{T}}}},
     Nullable(x)
 Base.convert{T}(::Type{Ref}, x::CategoricalValue{T}) = RefValue{T}(x)
 
-Base.convert{S, T}(::Type{S}, x::CategoricalValue{T}) = convert(S, index(x.pool)[x.level])
+Base.convert{S, T, R}(::Type{S}, x::CategoricalValue{T, R}) = convert(S, index(x.pool)[x.level])
 
 function Base.show{T}(io::IO, x::CategoricalValue{T})
     if @compat(get(io, :compact, false))
