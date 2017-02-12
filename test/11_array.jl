@@ -603,27 +603,19 @@ for ordered in (false, true)
 
         # Uninitialized array
         v = Any[CategoricalArray(2, ordered=ordered),
-                CategoricalArray(String, 2, ordered=ordered),
                 CategoricalArray{String}(2, ordered=ordered),
                 CategoricalArray{String, 1}(2, ordered=ordered),
                 CategoricalArray{String, 1, R}(2, ordered=ordered),
+                CategoricalVector(2, ordered=ordered),
                 CategoricalVector{String}(2, ordered=ordered),
                 CategoricalVector{String, R}(2, ordered=ordered),
                 CategoricalArray(2, 3, ordered=ordered),
-                CategoricalArray(String, 2, 3, ordered=ordered),
                 CategoricalArray{String}(2, 3, ordered=ordered),
                 CategoricalArray{String, 2}(2, 3, ordered=ordered),
                 CategoricalArray{String, 2, R}(2, 3, ordered=ordered),
+                CategoricalMatrix(2, 3, ordered=ordered),
                 CategoricalMatrix{String}(2, 3, ordered=ordered),
                 CategoricalMatrix{String, R}(2, 3, ordered=ordered)]
-
-        # See conditional definition of constructors in array.jl
-        if VERSION >= v"0.5.0-dev"
-            push!(v, CategoricalVector(2, ordered=ordered),
-                     CategoricalVector(String, 2, ordered=ordered),
-                     CategoricalMatrix(2, 3, ordered=ordered),
-                     CategoricalMatrix(String, 2, 3, ordered=ordered))
-        end
 
         for x in v
             @test !isassigned(x, 1) && isdefined(x, 1)

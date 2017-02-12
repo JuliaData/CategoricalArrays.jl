@@ -44,17 +44,8 @@ NullableCategoricalArray{T}(::Type{Nullable{T}}, dims::Int...; ordered=false) =
 #                                                                            ordered=false) =
 #     NullableCategoricalArray{String, N}(dims; ordered=ordered)
 
-if VERSION >= v"0.5.0-dev"
-    NullableCategoricalVector{T}(::Type{Nullable{T}}, m::Integer; ordered=false) =
-      NullableCategoricalArray{T}((m,); ordered=ordered)
-end
 @compat (::Type{NullableCategoricalVector{Nullable{T}}}){T}(m::Int; ordered=false) =
     NullableCategoricalArray{T}((n,); ordered=ordered)
-
-if VERSION >= v"0.5.0-dev"
-    NullableCategoricalMatrix{T}(::Type{Nullable{T}}, m::Int, n::Int; ordered=false) =
-      NullableCategoricalArray{T}((m, n); ordered=ordered)
-end
 @compat (::Type{NullableCategoricalMatrix{Nullable{T}}}){T}(m::Int, n::Int; ordered=false) =
     NullableCategoricalArray{T}((m, n); ordered=ordered)
 

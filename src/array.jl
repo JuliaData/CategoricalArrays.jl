@@ -133,14 +133,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
 
         # Uninitialized array constructors
 
-        $A{T, N}(::Type{T}, dims::NTuple{N,Int}; ordered=false) =
-            $A(zeros(DefaultRefType, dims), CategoricalPool{T}(ordered))
-        $A{T}(::Type{T}, dims::Int...; ordered=false) = ordered!($A{T}(dims), ordered)
         $A(dims::Int...; ordered=false) = $A{String}(dims, ordered=ordered)
-
-        $A{T, N, R}(::Type{CategoricalValue{T, R}}, dims::NTuple{N,Int}) = $A{T, N, R}(dims)
-        $A{T, N}(::Type{CategoricalValue{T}}, dims::NTuple{N,Int}) = $A{T, N}(dims)
-#        $A{N}(::Type{CategoricalValue}, dims::NTuple{N,Int}) = $A{String, N}(dims)
 
         @compat (::Type{$A{T, N, R}}){T, N, R}(dims::NTuple{N,Int}; ordered=false) =
             $A{T, N, R}(zeros(R, dims), CategoricalPool{T, R}(ordered))
@@ -185,16 +178,10 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
 #                                                  ordered=false) =
 #            $A{String, N}(dims, ordered=ordered)
 
-if VERSION >= v"0.5.0-dev"
-        $V{T}(::Type{T}, m::Integer; ordered=false) = $A{T}((m,), ordered=ordered)
         $V(m::Integer; ordered=false) = $A(m, ordered=ordered)
-end
         @compat (::Type{$V{T}}){T}(m::Int; ordered=false) = $A{T}((m,), ordered=ordered)
 
-if VERSION >= v"0.5.0-dev"
-        $M{T}(::Type{T}, m::Int, n::Int; ordered=false) = $A{T}((m, n), ordered=ordered)
         $M(m::Int, n::Int; ordered=false) = $A(m, n, ordered=ordered)
-end
         @compat (::Type{$M{T}}){T}(m::Int, n::Int; ordered=false) = $A{T}((m, n), ordered=ordered)
 
 
