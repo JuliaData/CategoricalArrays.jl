@@ -1005,18 +1005,16 @@ for ordered in (false, true)
             @test isordered(x) == ordered
             @test levels(x) == [2]
 
-            if VERSION >= v"0.5.0-dev"
-                x = NullableCategoricalVector(1:3, [true, false, true], ordered=ordered)
-                @test x == Nullable{Int}[Nullable(), 2, Nullable()]
-                @test isordered(x) === ordered
-                @test levels(x) == [2]
+            x = NullableCategoricalVector(1:3, [true, false, true], ordered=ordered)
+            @test x == Nullable{Int}[Nullable(), 2, Nullable()]
+            @test isordered(x) === ordered
+            @test levels(x) == [2]
 
-                x = NullableCategoricalMatrix([1 2; 3 4], [true false; false true],
-                                              ordered=ordered)
-                @test x == Nullable{Int}[Nullable() 2; 3 Nullable()]
-                @test isordered(x) === ordered
-                @test levels(x) == [2, 3]
-            end
+            x = NullableCategoricalMatrix([1 2; 3 4], [true false; false true],
+                                          ordered=ordered)
+            @test x == Nullable{Int}[Nullable() 2; 3 Nullable()]
+            @test isordered(x) === ordered
+            @test levels(x) == [2, 3]
         end
 
 
@@ -1044,11 +1042,7 @@ for ordered in (false, true)
 
             x2 = compress(x)
             @test x2 == x
-            if VERSION >= v"0.5.0-dev"
-                @test isa(x2, NullableCategoricalArray{String, ndims(x), UInt8})
-            else
-                @test isa(x2, NullableCategoricalArray{typeof(x).parameters[1], ndims(x), UInt8})
-            end
+            @test isa(x2, NullableCategoricalArray{String, ndims(x), UInt8})
             @test isordered(x2) === isordered(x)
             @test levels(x2) == []
 

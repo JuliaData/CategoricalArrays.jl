@@ -626,11 +626,7 @@ for ordered in (false, true)
             @test levels(x) == []
 
             x2 = compress(x)
-            if VERSION >= v"0.5.0-dev"
-                @test isa(x2, CategoricalArray{String, ndims(x), UInt8})
-            else
-                @test isa(x2, CategoricalArray{typeof(x).parameters[1], ndims(x), UInt8})
-            end
+            @test isa(x2, CategoricalArray{String, ndims(x), UInt8})
             @test !isassigned(x2, 1) && isdefined(x2, 1)
             @test !isassigned(x2, 2) && isdefined(x2, 2)
             @test_throws UndefRefError x2[1]

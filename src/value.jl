@@ -36,11 +36,6 @@ function Base.show{T}(io::IO, x::CategoricalValue{T})
     end
 end
 
-if VERSION < v"0.5.0-dev+1936"
-    Base.showcompact{T}(io::IO, x::CategoricalValue{T}) =
-        print(io, repr(index(x.pool)[x.level]))
-end
-
 @compat Base.:(==)(x::CategoricalValue, y::CategoricalValue) =
     index(x.pool)[x.level] == index(y.pool)[y.level]
 

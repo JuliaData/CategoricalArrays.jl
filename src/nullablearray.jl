@@ -81,31 +81,29 @@ function NullableCategoricalArray{T, N}(A::AbstractArray{T, N},
     res
 end
 
-if VERSION >= v"0.5.0-dev"
-    """
-        NullableCategoricalVector(A::AbstractVector, missing::AbstractVector{Bool};
-                                  ordered::Bool=false)
+"""
+    NullableCategoricalVector(A::AbstractVector, missing::AbstractVector{Bool};
+                              ordered::Bool=false)
 
-    Similar to definition above, but marks as null entries for which the corresponding entry
-    in `missing` is `true`.
-    """
-    NullableCategoricalVector{T}(A::AbstractVector{T},
-                                 missing::AbstractVector{Bool};
-                                 ordered=false) =
-        NullableCategoricalArray(A, missing; ordered=ordered)
+Similar to definition above, but marks as null entries for which the corresponding entry
+in `missing` is `true`.
+"""
+NullableCategoricalVector{T}(A::AbstractVector{T},
+                             missing::AbstractVector{Bool};
+                             ordered=false) =
+    NullableCategoricalArray(A, missing; ordered=ordered)
 
-    """
-        NullableCategoricalMatrix(A::AbstractMatrix, missing::AbstractMatrix{Bool};
-                                  ordered::Bool=false)
+"""
+    NullableCategoricalMatrix(A::AbstractMatrix, missing::AbstractMatrix{Bool};
+                              ordered::Bool=false)
 
-    Similar to definition above, but marks as null entries for which the corresponding entry
-    in `missing` is `true`.
-    """
-    NullableCategoricalMatrix{T}(A::AbstractMatrix{T},
-                                 missing::AbstractMatrix{Bool};
-                                 ordered=false) =
-        NullableCategoricalArray(A, missing; ordered=ordered)
-end
+Similar to definition above, but marks as null entries for which the corresponding entry
+in `missing` is `true`.
+"""
+NullableCategoricalMatrix{T}(A::AbstractMatrix{T},
+                             missing::AbstractMatrix{Bool};
+                             ordered=false) =
+    NullableCategoricalArray(A, missing; ordered=ordered)
 
 @inline function getindex(A::NullableCategoricalArray, I...)
     @boundscheck checkbounds(A, I...)
