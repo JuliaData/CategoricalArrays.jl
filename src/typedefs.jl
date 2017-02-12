@@ -36,7 +36,7 @@ end
 
 ## Arrays
 
-abstract AbstractCategoricalArray{T, N, R} <: AbstractArray{CategoricalValue{T, R}, N}
+@compat abstract type AbstractCategoricalArray{T, N, R} <: AbstractArray{CategoricalValue{T, R}, N} end
 typealias AbstractCategoricalVector{T, R} AbstractCategoricalArray{T, 1, R}
 typealias AbstractCategoricalMatrix{T, R} AbstractCategoricalArray{T, 2, R}
 
@@ -49,7 +49,7 @@ typealias CategoricalMatrix{T, R} CategoricalArray{T, 2, R}
 
 ## Nullable Arrays
 
-abstract AbstractNullableCategoricalArray{T, N, R} <: AbstractArray{Nullable{CategoricalValue{T, R}}, N}
+@compat abstract type AbstractNullableCategoricalArray{T, N, R} <: AbstractArray{Nullable{CategoricalValue{T, R}}, N} end
 typealias AbstractNullableCategoricalVector{T, R} AbstractNullableCategoricalArray{T, 1, R}
 typealias AbstractNullableCategoricalMatrix{T, R} AbstractNullableCategoricalArray{T, 2, R}
 
