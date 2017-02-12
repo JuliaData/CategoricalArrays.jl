@@ -1022,27 +1022,19 @@ for ordered in (false, true)
 
         # Uninitialized array
         v = Any[NullableCategoricalArray(2, ordered=ordered),
-                NullableCategoricalArray(String, 2, ordered=ordered),
                 NullableCategoricalArray{String}(2, ordered=ordered),
                 NullableCategoricalArray{String, 1}(2, ordered=ordered),
                 NullableCategoricalArray{String, 1, R}(2, ordered=ordered),
+                NullableCategoricalVector(2, ordered=ordered),
                 NullableCategoricalVector{String}(2, ordered=ordered),
                 NullableCategoricalVector{String, R}(2, ordered=ordered),
                 NullableCategoricalArray(2, 3, ordered=ordered),
-                NullableCategoricalArray(String, 2, 3, ordered=ordered),
                 NullableCategoricalArray{String}(2, 3, ordered=ordered),
                 NullableCategoricalArray{String, 2}(2, 3, ordered=ordered),
                 NullableCategoricalArray{String, 2, R}(2, 3, ordered=ordered),
+                NullableCategoricalMatrix(2, 3, ordered=ordered),
                 NullableCategoricalMatrix{String}(2, 3, ordered=ordered),
                 NullableCategoricalMatrix{String, R}(2, 3, ordered=ordered)]
-
-        # See conditional definition of constructors in array.jl and nullablearray.jl
-        if VERSION >= v"0.5.0-dev"
-            push!(v, NullableCategoricalVector(2, ordered=ordered),
-                     NullableCategoricalVector(String, 2, ordered=ordered),
-                     NullableCategoricalMatrix(2, 3, ordered=ordered),
-                     NullableCategoricalMatrix(String, 2, 3, ordered=ordered))
-        end
 
         for x in v
             @test isordered(x) === ordered
