@@ -40,7 +40,7 @@ end
 typealias AbstractCategoricalVector{T, R} AbstractCategoricalArray{T, 1, R}
 typealias AbstractCategoricalMatrix{T, R} AbstractCategoricalArray{T, 2, R}
 
-type CategoricalArray{T, N, R <: Integer} <: AbstractCategoricalArray{T, N, R}
+immutable CategoricalArray{T, N, R <: Integer} <: AbstractCategoricalArray{T, N, R}
     refs::Array{R, N}
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
@@ -53,7 +53,7 @@ typealias CategoricalMatrix{T, R} CategoricalArray{T, 2, R}
 typealias AbstractNullableCategoricalVector{T, R} AbstractNullableCategoricalArray{T, 1, R}
 typealias AbstractNullableCategoricalMatrix{T, R} AbstractNullableCategoricalArray{T, 2, R}
 
-type NullableCategoricalArray{T, N, R <: Integer} <: AbstractNullableCategoricalArray{T, N, R}
+immutable NullableCategoricalArray{T, N, R <: Integer} <: AbstractNullableCategoricalArray{T, N, R}
     refs::Array{R, N}
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
