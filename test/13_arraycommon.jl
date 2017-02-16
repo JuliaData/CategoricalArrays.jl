@@ -6,8 +6,6 @@ using NullableArrays
 using CategoricalArrays: DefaultRefType
 using Compat
 
-typealias String Compat.ASCIIString
-
 # == currently throws an error for Nullables
 (==) = isequal
 
