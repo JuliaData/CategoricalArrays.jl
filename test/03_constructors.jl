@@ -4,8 +4,6 @@ module TestConstructors
     using CategoricalArrays: DefaultRefType
     using Compat
 
-    typealias String Compat.ASCIIString
-
     pool = CategoricalPool{String}()
 
     @test isa(pool, CategoricalPool{String})

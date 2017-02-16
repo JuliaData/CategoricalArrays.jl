@@ -5,8 +5,6 @@ using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 using Compat
 
-typealias String Compat.ASCIIString
-
 for ordered in (false, true)
     for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         # Vector
