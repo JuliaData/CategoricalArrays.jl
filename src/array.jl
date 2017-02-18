@@ -317,7 +317,7 @@ function @compat(Base.:(==))(A::CatArray, B::CatArray)
 end
 
 size(A::CatArray) = size(A.refs)
-linearindexing{T <: CatArray}(::Type{T}) = Base.LinearFast()
+@compat Base.IndexStyle(::Type{<:CatArray}) = IndexLinear()
 
 @inline function setindex!(A::CatArray, v::Any, I::Real...)
     @boundscheck checkbounds(A, I...)
