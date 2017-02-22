@@ -36,8 +36,13 @@ function Base.show{T}(io::IO, x::CategoricalValue{T})
     end
 end
 
-@compat Base.:(==)(x::CategoricalValue, y::CategoricalValue) =
-    index(x.pool)[x.level] == index(y.pool)[y.level]
+@inline function Base.:(==)(x::CategoricalValue, y::CategoricalValue)
+    if x.pool === y.pool
+        return x.level == y.level
+    else
+        return index(x.pool)[x.level] == index(y.pool)[y.level]
+    end
+end
 
 # To fix ambiguities with Base
 @compat Base.:(==)(x::CategoricalValue, y::WeakRef) = index(x.pool)[x.level] == y
@@ -46,8 +51,14 @@ end
 @compat Base.:(==)(x::CategoricalValue, y::Any) = index(x.pool)[x.level] == y
 @compat Base.:(==)(x::Any, y::CategoricalValue) = y == x
 
-Base.isequal(x::CategoricalValue, y::CategoricalValue) =
-    isequal(index(x.pool)[x.level], index(y.pool)[y.level])
+@inline function Base.isequal(x::CategoricalValue, y::CategoricalValue)
+    if x.pool === y.pool
+        return x.level == y.level
+    else
+        return isequal(index(x.pool)[x.level], index(y.pool)[y.level])
+    end
+end
+
 Base.isequal(x::CategoricalValue, y::Any) = isequal(index(x.pool)[x.level], y)
 Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
 
