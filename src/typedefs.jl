@@ -87,3 +87,4 @@ end
 ## Type Aliases
 
 @compat CatArray{T, N, R} = Union{CategoricalArray{T, N, R}, NullableCategoricalArray{T, N, R}}
+@compat CatVector{T, R} = Union{CategoricalVector{T, R}, NullableCategoricalVector{T, R}}
