@@ -607,13 +607,22 @@ using the ordering of levels. Return the modified `A`.
 """
 ordered!(A::CatArray, ordered) = (ordered!(A.pool, ordered); return A)
 
-function Base.push!(A::CatArray, item)
+function Base.resize!(A::CatVector, n::Integer)
+    n_orig = length(A)
+    resize!(A.refs, n)
+    if n > n_orig
+        A.refs[n_orig+1:end] = 0
+    end
+    A
+end
+
+function Base.push!(A::CatVector, item)
     resize!(A.refs, length(A.refs) + 1)
     A[end] = item
     return A
 end
 
-function Base.append!(A::CatArray, B::CatArray)
+function Base.append!(A::CatVector, B::CatArray)
     levels!(A, union(levels(A), levels(B)))
     len = length(A.refs)
     len2 = length(B.refs)

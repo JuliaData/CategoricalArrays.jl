@@ -189,6 +189,18 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     @test_throws BoundsError copy!(x, 1, y, 4, 2)
     @test x == a
 
+    # Test resize!()
+    x = CA(["Old", "Young", "Middle", "Young"])
+    @test resize!(x, 3) === x
+    @test x == A(["Old", "Young", "Middle"])
+    @test resize!(x, 4) === x
+    if CA === NullableCategoricalArray
+        @test x == A(["Old", "Young", "Middle", Nullable()])
+    else
+        @test x[1:3] == A(["Old", "Young", "Middle"])
+        @test !isassigned(x, 4)
+    end
+
     for (sstart, dstart, n) in ((1, 1, 4), (1, 2, 3))
         # Conflicting orders: check that the destination wins and that result is not ordered
         x = CA(["Old", "Young", "Middle", "Young"])
