@@ -327,6 +327,15 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
         @test levels(x) == levels(y)
         @test isordered(x)
     end
+
+    # Test sort() on both unordered and ordered arrays
+    x = CA(["Old", "Young", "Middle", "Young"])
+    levels!(x, ["Young", "Middle", "Old"])
+    @test sort(x) == A(["Young", "Young", "Middle", "Old"])
+    ordered!(x, true)
+    @test sort(x) == A(["Young", "Young", "Middle", "Old"])
+    @test sort!(x) === x
+    @test x == A(["Young", "Young", "Middle", "Old"])
 end
 
 end
