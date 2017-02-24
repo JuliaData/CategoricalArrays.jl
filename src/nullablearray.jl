@@ -136,4 +136,4 @@ levels!(A::NullableCategoricalArray, newlevels::Vector; nullok=false) = _levels!
 
 droplevels!(A::NullableCategoricalArray) = levels!(A, _unique(Array, A.refs, A.pool))
 
-unique{T}(A::NullableCategoricalArray{T}) = _unique(NullableArray{T}, A.refs, A.pool)
+unique{T}(A::NullableCategoricalArray{T}) = _unique(Array{Nullable{T}}, A.refs, A.pool)
