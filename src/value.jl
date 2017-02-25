@@ -54,13 +54,13 @@ Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
 Base.hash(x::CategoricalValue, h::UInt) = hash(index(x.pool)[x.level], h)
 
 function Base.isless{S, T}(x::CategoricalValue{S}, y::CategoricalValue{T})
-    error("CategoricalValue objects with different pools cannot be tested for order")
+    throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
 end
 
 # Method defined even on unordered values so that sort() works
 function Base.isless{T}(x::CategoricalValue{T}, y::CategoricalValue{T})
     if x.pool !== y.pool
-        error("CategoricalValue objects with different pools cannot be tested for order")
+        throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
     else
         return order(x.pool)[x.level] < order(y.pool)[y.level]
     end
@@ -68,9 +68,9 @@ end
 
 function Base.:<{T}(x::CategoricalValue{T}, y::CategoricalValue{T})
     if x.pool !== y.pool
-        error("CategoricalValue objects with different pools cannot be tested for order")
+        throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
     elseif !isordered(x.pool) # !isordered(y.pool) is implied by x.pool === y.pool
-        error("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this")
+        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
         return order(x.pool)[x.level] < order(y.pool)[y.level]
     end
