@@ -715,6 +715,14 @@ function levels! end
 
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 
+# copied from just before droplevels docs...
+"""
+    droplevels!(A::CategoricalArray)
+    droplevels!(A::NullableCategoricalArray)
+
+Drop levels which do not appear in categorical array `A` (so that they will no longer be
+returned by [`levels`](@ref)).
+"""
 droplevels!(A::CategoricalArray) = levels!(A, unique(A))
 
 unique(A::CategoricalArray) = _unique(Array, A.refs, A.pool)
