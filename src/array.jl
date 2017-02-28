@@ -580,7 +580,14 @@ Return levels which appear in `A`, in the same order as [`levels`](@ref)
 """
 function unique end
 
-function droplevels end
+"""
+    droplevels!(A::CategoricalArray)
+    droplevels!(A::NullableCategoricalArray)
+
+Drop levels which do not appear in categorical array `A` (so that they will no longer be
+returned by [`levels`](@ref)).
+"""
+function droplevels! end
 
 """
     isordered(A::CategoricalArray)
@@ -707,14 +714,6 @@ that case, entries corresponding to missing levels will be set to null.
 function levels! end
 
 levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
-
-"""
-    droplevels!(A::CategoricalArray)
-    droplevels!(A::NullableCategoricalArray)
-
-Drop levels which do not appear in categorical array `A` (so that they will no longer be
-returned by [`levels`](@ref)).
-"""
 
 droplevels!(A::CategoricalArray) = levels!(A, unique(A))
 
