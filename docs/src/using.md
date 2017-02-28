@@ -207,7 +207,7 @@ julia> y
 
 `categorical(A)` - Construct a categorical array with values from `A`
 
-`compress(A)` - Return a copy of categorical array `A` using the smallest reference type
+`compress(A)` - Return a copy of categorical array `A` using the smallest possible reference type
 
 `cut(x)` - Cut a numeric array into intervals and return an ordered `CategoricalArray`
 

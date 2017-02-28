@@ -14,4 +14,6 @@ Documentation:
 
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliadata.github.io/CategoricalArrays.jl/latest)
 
-This package provides tools for working with categorical variables, both with unordered (nominal variables) and ordered categories (ordinal variables).
+This package provides tools for working with categorical variables, both with unordered (nominal variables) and ordered categories (ordinal variables). The package provides a replacement for [DataArrays.jl](https://github.com/JuliaStats/DataArrays.jl)'s `PooledDataArray` type.
+
+It offers better performance by getting rid of type instability thanks to the `Nullable` type, which is used to represent missing data. It is also based on a simpler design by only supporting categorical data, which allows offering more specialized features (like ordering of categories). See the [IndirectArrays.jl](https://github.com/JuliaArrays/IndirectArrays.jl) package for a simpler array type storing data with a small number of values.
