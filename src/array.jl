@@ -587,7 +587,7 @@ function unique end
 Drop levels which do not appear in categorical array `A` (so that they will no longer be
 returned by [`levels`](@ref)).
 """
-function droplevels end
+function droplevels! end
 
 """
     isordered(A::CategoricalArray)
