@@ -18,5 +18,5 @@ after_success:
   # push coverage results to Codecov
   - julia -e 'cd(Pkg.dir("CategoricalArrays")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
   # build documentation
-- julia -e 'Pkg.add("Documenter")'
-- julia -e 'cd(Pkg.dir("CategoricalArrays")); include(joinpath("docs", "make.jl"))'
+  - julia -e 'Pkg.add("Documenter")'
+  - julia -e 'cd(Pkg.dir("CategoricalArrays")); include(joinpath("docs", "make.jl"))'
