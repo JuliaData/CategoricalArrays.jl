@@ -5,7 +5,7 @@ makedocs(
     format = :html,
     sitename = "CategoricalArrays",
     pages = Any[
-        "Overview" => "overview.md",
+        "Overview" => "index.md",
         "Using CategoricalArrays" => "using.md",
         "Implementation details" => "implementation.md",
         "Index" => "functionindex.md"
