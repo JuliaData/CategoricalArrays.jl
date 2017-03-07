@@ -63,6 +63,8 @@ Base.isequal(x::CategoricalValue, y::Any) = isequal(index(x.pool)[x.level], y)
 Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
 
 Base.hash(x::CategoricalValue, h::UInt) = hash(index(x.pool)[x.level], h)
+# When h=zero(UInt) we do not need to recompute the hash
+Base.hash(x::CategoricalValue) = x.pool.hashindex[x.level]
 
 function Base.isless{S, T}(x::CategoricalValue{S}, y::CategoricalValue{T})
     throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))

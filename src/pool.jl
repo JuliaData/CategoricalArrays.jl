@@ -135,6 +135,8 @@ function Base.delete!{S, R, V}(pool::CategoricalPool{S, R, V}, levels...)
     return pool
 end
 
+hash_level(pool::CategoricalPool, i::Integer) = pool.hashindex[i]
+
 function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
     if !allunique(newlevels)
         throw(ArgumentError(string("duplicated levels found in newlevels: ",

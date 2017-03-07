@@ -13,14 +13,15 @@ if VERSION >= v"0.6.0-dev.2643"
             order::Vector{R}
             levels::Vector{T}
             valindex::Vector{V}
+            hashindex::Vector{UInt}
             ordered::Bool
 
             function CategoricalPool{T, R, V}(index::Vector{T},
                                               invindex::Dict{T, R},
                                               order::Vector{R},
                                               ordered::Bool) where {T, R, V}
-                pool = new(index, invindex, order, index[order], V[], ordered)
-                buildvalues!(pool)
+                pool = new(index, invindex, order, index[order], V[], UInt[], ordered)
+                buildcaches!(pool)
                 return pool
             end
         end
@@ -33,14 +34,15 @@ else
             order::Vector{R}
             levels::Vector{T}
             valindex::Vector{V}
+            hashindex::Vector{UInt}
             ordered::Bool
 
             function CategoricalPool{T, R}(index::Vector{T},
                                            invindex::Dict{T, R},
                                            order::Vector{R},
                                            ordered::Bool)
-                pool = new(index, invindex, order, index[order], V[], ordered)
-                buildvalues!(pool)
+                pool = new(index, invindex, order, index[order], V[], UInt[], ordered)
+                buildcaches!(pool)
                 return pool
             end
         end
