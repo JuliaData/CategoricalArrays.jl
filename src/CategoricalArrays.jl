@@ -11,7 +11,12 @@ module CategoricalArrays
     export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!, reftype
     export cut, recode, recode!
 
-    using Compat
+    using Compat, NullableArrays
+
+    import NullableArrays: unsafe_getindex_notnull, unsafe_getvalue_notnull
+
+    using NullableArrays
+    import NullableArrays: unsafe_getindex_notnull, unsafe_getvalue_notnull
 
     include("typedefs.jl")
 
