@@ -72,7 +72,7 @@ function Base.convert{S, R}(::Type{CategoricalPool{S, R}}, pool::CategoricalPool
     indexS = convert(Vector{S}, pool.index)
     invindexS = convert(Dict{S, R}, pool.invindex)
     order = convert(Vector{R}, pool.order)
-    return CategoricalPool(indexS, invindexS, order)
+    return CategoricalPool(indexS, invindexS, order, pool.ordered)
 end
 
 function Base.show{T, R}(io::IO, pool::CategoricalPool{T, R})

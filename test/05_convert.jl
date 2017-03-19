@@ -29,4 +29,8 @@ module TestConvert
     @test promote(1, v1) === (1, 1)
     @test promote(1.0, v1) === (1.0, 1.0)
     @test promote(0x1, v1) === (1, 1)
+
+    # Test that ordered property is preserved
+    pool = CategoricalPool([1, 2, 3], true)
+    @test convert(CategoricalPool{Float64, UInt8}, pool).ordered === true
 end
