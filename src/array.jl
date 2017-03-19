@@ -275,7 +275,7 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
 
             refs = convert(Array{R, N}, A.refs)
             pool = convert(CategoricalPool{T, R}, A.pool)
-            ordered!($A(refs, pool), isordered(A))
+            $A(refs, pool)
         end
         convert{S, T, N, R}(::Type{$A{T, N}}, A::CatArray{S, N, R}) =
             convert($A{T, N, R}, A)
