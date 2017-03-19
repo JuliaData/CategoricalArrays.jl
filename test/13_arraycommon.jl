@@ -3,7 +3,7 @@ module TestArrayCommon
 using Base.Test
 using CategoricalArrays
 using NullableArrays
-using CategoricalArrays: DefaultRefType
+using CategoricalArrays: DefaultRefType, index
 using Compat
 
 # == currently throws an error for Nullables
@@ -336,6 +336,111 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     @test sort(x) == A(["Young", "Young", "Middle", "Old"])
     @test sort!(x) === x
     @test x == A(["Young", "Young", "Middle", "Old"])
+
+    # Test constructors and convert() between categorical arrays:
+    # check that they preserve levels and ordering by default even across types,
+    # do not modify original array when changing ordering, and make copies
+    # only when necessary (though for construcors the pool is always copied because of ordered)
+    for ordered_orig in (true, false),
+        ordered in (true, false),
+        R in (DefaultRefType, UInt8, UInt, Int8, Int),
+        (A2, CA2, CVM2, N) in ((Array, CategoricalArray, CategoricalVector, 1),
+                               (Array, CategoricalArray, CategoricalMatrix, 2),
+                               (NullableArray, NullableCategoricalArray, NullableCategoricalVector, 1),
+                               (NullableArray, NullableCategoricalArray, NullableCategoricalMatrix, 2))
+        if CVM2 <: AbstractVector
+            x = CA{String, 1, R}(["A", "B"], ordered=ordered_orig)
+        else
+            x = CA{String, 2, R}(["A" "B"], ordered=ordered_orig)
+        end
+        # Do not use lexicographic order in order to catch bugs about order preservation
+        levels!(x, ["B", "A"])
+
+        for y in (CA2(x),
+                  CA2{String}(x),
+                  CA2{String, N}(x),
+                  CA2{String, N, R}(x),
+                  CA2{String, N, DefaultRefType}(x),
+                  CA2{String, N, UInt8}(x),
+                  CA2(x),
+                  CA2{String}(x),
+                  CVM2{String, R}(x),
+                  CVM2{String, DefaultRefType}(x),
+                  CVM2{String, UInt8}(x))
+            @test isa(y, CVM2{String})
+            @test isordered(y) === isordered(x)
+            @test isordered(x) === ordered_orig
+            @test y.refs == x.refs
+            @test index(y.pool) == index(x.pool)
+            @test levels(y) == levels(x)
+            @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+            @test y.pool !== x.pool
+        end
+        for y in (categorical(x),
+                  categorical(x, false),
+                  categorical(x, true))
+            @test isa(y, CA{String})
+            @test isordered(y) === isordered(x)
+            @test isordered(x) === ordered_orig
+            @test y.refs == x.refs
+            @test index(y.pool) == index(x.pool)
+            @test levels(y) == levels(x)
+            @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+            @test y.pool !== x.pool
+        end
+        for y in (CA2(x, ordered=ordered),
+                  CA2{String}(x, ordered=ordered),
+                  CA2{String, N}(x, ordered=ordered),
+                  CA2{String, N, R}(x, ordered=ordered),
+                  CA2{String, N, DefaultRefType}(x, ordered=ordered),
+                  CA2{String, N, UInt8}(x, ordered=ordered),
+                  CVM2(x, ordered=ordered),
+                  CVM2{String}(x, ordered=ordered),
+                  CVM2{String, R}(x, ordered=ordered),
+                  CVM2{String, DefaultRefType}(x, ordered=ordered),
+                  CVM2{String, UInt8}(x, ordered=ordered))
+            @test isa(y, CVM2{String})
+            @test isordered(y) === ordered
+            @test isordered(x) === ordered_orig
+            @test y.refs == x.refs
+            @test index(y.pool) == index(x.pool)
+            @test levels(y) == levels(x)
+            @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+            @test y.pool !== x.pool
+        end
+        for y in (categorical(x, ordered=ordered),
+                  categorical(x, false, ordered=ordered),
+                  categorical(x, true, ordered=ordered))
+            @test isa(y, CA{String})
+            @test isordered(y) === ordered
+            @test isordered(x) === ordered_orig
+            @test y.refs == x.refs
+            @test index(y.pool) == index(x.pool)
+            @test levels(y) == levels(x)
+            @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+            @test y.pool !== x.pool
+        end
+        for y in (convert(CA2, x),
+                  convert(CA2{String}, x),
+                  convert(CA2{String, N}, x),
+                  convert(CA2{String, N, R}, x),
+                  convert(CA2{String, N, DefaultRefType}, x),
+                  convert(CA2{String, N, UInt8}, x))
+            @test isa(y, CVM2{String})
+            @test isordered(y) === isordered(x)
+            @test isordered(x) === ordered_orig
+            @test y.refs == x.refs
+            @test index(y.pool) == index(x.pool)
+            @test levels(y) == levels(x)
+            @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+            @test (y.pool === x.pool) == (eltype(x.refs) === eltype(y.refs))
+        end
+    end
 end
+
+# Check that converting from NullableCategoricalArray to CategoricalArray fails with nulls
+x = NullableCategoricalArray(1)
+@test_throws NullException CategoricalArray(x)
+@test_throws NullException convert(CategoricalArray, x)
 
 end

@@ -54,12 +54,8 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             $As(A::NullableCategoricalArray; ordered::Bool=false)
 
         If `A` is already a `CategoricalArray` or a `NullableCategoricalArray`, its levels
-        and their order are preserved. The reference type is also preserved unless `compress`
-        is provided. On the contrary, the `ordered` keyword argument takes precedence over
-        the corresponding property of the input array, even when not provided.
-        
-        In all cases, a copy of `A` is made: use `convert` to avoid making copies when
-        unnecessary.
+        are preserved; the same applies to the ordered property and the reference type unless
+        explicitly overriden.
         """ ->
         function $A end
 
@@ -88,12 +84,8 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             $Vs(A::NullableCategoricalVector; ordered::Bool=false)
 
         If `A` is already a `CategoricalVector` or a `NullableCategoricalVector`, its levels
-        and their order are preserved. The reference type is also preserved unless `compress`
-        is provided. On the contrary, the `ordered` keyword argument takes precedence over
-        the corresponding property of the input array, even when not provided.
-        
-        In all cases, a copy of `A` is made: use `convert` to avoid making copies when
-        unnecessary.
+        are preserved; the same applies to the ordered property and the reference type unless
+        explicitly overriden.
         """ ->
         function $V end
 
@@ -118,16 +110,12 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
         argument determines whether the array values can be compared according to the
         ordering of levels or not (see [`isordered`](@ref)).
 
-            $Ms(A::CategoricalMatrix; ordered::Bool=false)
-            $Ms(A::NullableCategoricalMatrix; ordered::Bool=false)
+            $Ms(A::CategoricalMatrix; ordered::Bool=isordered(A))
+            $Ms(A::NullableCategoricalMatrix; ordered::Bool=isordered(A))
 
         If `A` is already a `CategoricalMatrix` or a `NullableCategoricalMatrix`, its levels
-        and their order are preserved. The reference type is also preserved unless `compress`
-        is provided. On the contrary, the `ordered` keyword argument takes precedence over
-        the corresponding property of the input array, even when not provided.
-        
-        In all cases, a copy of `A` is made: use `convert` to avoid making copies when
-        unnecessary.
+        are preserved; the same applies to the ordered property and the reference type unless
+        explicitly overriden.
         """ ->
         function $M end
 
@@ -187,11 +175,16 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
 
         ## Constructors from arrays
 
-        # This method is needed to ensure ordered!() only mutates a copy of A
-        @compat (::Type{$A{T, N, R}}){T, N, R}(A::$A{T, N, R}; ordered=_isordered(A)) =
-            ordered!(copy(A), ordered)
+        # This method is needed to ensure that a copy of the pool is always made
+        # so that ordered!() does not affect the original array
+        @compat function (::Type{$A{T, N, R}}){S, T, N, Q, R}(A::CatArray{S, N, Q}; ordered=_isordered(A))
+            res = convert($A{T, N, R}, A)
+            if res.pool === A.pool # convert() only makes a copy when necessary
+                res = $A{T, N, R}(res.refs, deepcopy(res.pool))
+            end
+            ordered!(res, ordered)
+        end
 
-        # Note this method is also used for CategoricalArrays when T, N or R don't match
         @compat (::Type{$A{T, N, R}}){T, N, R}(A::AbstractArray; ordered=_isordered(A)) =
             ordered!(convert($A{T, N, R}, A), ordered)
 
@@ -218,21 +211,21 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             $A{T, 2}(A, ordered=ordered)
 
         # From CategoricalArray (preserve R)
-        @compat (::Type{$A{T, N}}){S, T, N, R}(A::$A{S, N, R}; ordered=_isordered(A)) =
+        @compat (::Type{$A{T, N}}){S, T, N, R}(A::CatArray{S, N, R}; ordered=_isordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
-        @compat (::Type{$A{T}}){S, T, N, R}(A::$A{S, N, R}; ordered=_isordered(A)) =
+        @compat (::Type{$A{T}}){S, T, N, R}(A::CatArray{S, N, R}; ordered=_isordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
-        @compat (::Type{$A}){T, N, R}(A::$A{T, N, R}; ordered=_isordered(A)) =
+        @compat (::Type{$A}){T, N, R}(A::CatArray{T, N, R}; ordered=_isordered(A)) =
             $A{T, N, R}(A, ordered=ordered)
 
-        @compat (::Type{$V{T}}){S, T, R}(A::$V{S, R}; ordered=_isordered(A)) =
+        @compat (::Type{$V{T}}){S, T, R}(A::CatArray{S, 1, R}; ordered=_isordered(A)) =
             $A{T, 1, R}(A, ordered=ordered)
-        @compat (::Type{$V}){T, R}(A::$V{T, R}; ordered=_isordered(A)) =
+        @compat (::Type{$V}){T, R}(A::CatArray{T, 1, R}; ordered=_isordered(A)) =
             $A{T, 1, R}(A, ordered=ordered)
 
-        @compat (::Type{$M{T}}){S, T, R}(A::$M{S, R}; ordered=_isordered(A)) =
+        @compat (::Type{$M{T}}){S, T, R}(A::CatArray{S, 2, R}; ordered=_isordered(A)) =
             $A{T, 2, R}(A, ordered=ordered)
-        @compat (::Type{$M}){T, R}(A::$M{T, R}; ordered=_isordered(A)) =
+        @compat (::Type{$M}){T, R}(A::CatArray{T, 2, R}; ordered=_isordered(A)) =
             $A{T, 2, R}(A, ordered=ordered)
 
 
@@ -270,21 +263,25 @@ for (A, V, M) in ((:CategoricalArray, :CategoricalVector, :CategoricalMatrix),
             res
         end
 
-        # From CategoricalArray (preserve R)
-        function convert{S, T, N, R}(::Type{$A{T, N, R}}, A::$A{S, N})
+        # From CategoricalArray (preserve levels, ordering and R)
+        function convert{S, T, N, R}(::Type{$A{T, N, R}}, A::CatArray{S, N})
             if length(A.pool) > typemax(R)
                 throw(LevelsException{T, R}(levels(A)[typemax(R)+1:end]))
+            end
+
+            if $A <: CategoricalArray && isa(A, NullableCategoricalArray)
+                any(x -> x == 0, A.refs) && throw(NullException())
             end
 
             refs = convert(Array{R, N}, A.refs)
             pool = convert(CategoricalPool{T, R}, A.pool)
             ordered!($A(refs, pool), isordered(A))
         end
-        convert{S, T, N, R}(::Type{$A{T, N}}, A::$A{S, N, R}) =
+        convert{S, T, N, R}(::Type{$A{T, N}}, A::CatArray{S, N, R}) =
             convert($A{T, N, R}, A)
-        convert{S, T, N, R}(::Type{$A{T}}, A::$A{S, N, R}) =
+        convert{S, T, N, R}(::Type{$A{T}}, A::CatArray{S, N, R}) =
             convert($A{T, N, R}, A)
-        convert{T, N, R}(::Type{$A}, A::$A{T, N, R}) =
+        convert{T, N, R}(::Type{$A}, A::CatArray{T, N, R}) =
             convert($A{T, N, R}, A)
 
         # R<:Integer is needed for this method to be considered more specific
@@ -658,37 +655,33 @@ this parameter will also introduce a type instability which can affect performan
 the function where the call is made. Therefore, use this option with caution (the
 one-argument version does not suffer from this problem).
 
-    categorical{T}(A::CategoricalArray{T}[, compress::Bool]; ordered::Bool=false)
-    categorical{T}(A::NullableCategoricalArray{T}[, compress::Bool]; ordered::Bool=false)
+    categorical{T}(A::CategoricalArray{T}[, compress::Bool]; ordered::Bool=isordered(A))
+    categorical{T}(A::NullableCategoricalArray{T}[, compress::Bool]; ordered::Bool=isordered(A))
 
 If `A` is already a `CategoricalArray` or a `NullableCategoricalArray`, its levels
-are preserved. The reference type is also preserved unless `compress` is provided.
-On the contrary, the `ordered` keyword argument takes precedence over the
-corresponding property of the input array, even when not provided.
-
-In all cases, a copy of `A` is made: use `convert` to avoid making copies when
-unnecessary.
+are preserved; the same applies to the ordered property, and to the reference type
+unless `compress` is passed.
 """
 function categorical end
 
-categorical(A::AbstractArray; ordered=false) = CategoricalArray(A, ordered=ordered)
-categorical{T<:Nullable}(A::AbstractArray{T}; ordered=false) =
+categorical(A::AbstractArray; ordered=_isordered(A)) = CategoricalArray(A, ordered=ordered)
+categorical{T<:Nullable}(A::AbstractArray{T}; ordered=_isordered(A)) =
     NullableCategoricalArray(A, ordered=ordered)
 
 # Type-unstable methods
-function categorical{T, N}(A::AbstractArray{T, N}, compress; ordered=false)
+function categorical{T, N}(A::AbstractArray{T, N}, compress; ordered=_isordered(A))
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical{T<:Nullable, N}(A::AbstractArray{T, N}, compress; ordered=false)
+function categorical{T<:Nullable, N}(A::AbstractArray{T, N}, compress; ordered=_isordered(A))
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical{T, N, R}(A::CategoricalArray{T, N, R}, compress; ordered=false)
+function categorical{T, N, R}(A::CategoricalArray{T, N, R}, compress; ordered=_isordered(A))
     RefType = compress ? reftype(length(levels(A))) : R
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical{T, N, R}(A::NullableCategoricalArray{T, N, R}, compress; ordered=false)
+function categorical{T, N, R}(A::NullableCategoricalArray{T, N, R}, compress; ordered=_isordered(A))
     RefType = compress ? reftype(length(levels(A))) : R
     NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
 end

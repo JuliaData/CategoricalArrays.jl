@@ -30,28 +30,6 @@ for ordered in (false, true)
         @test convert(CategoricalVector{String, DefaultRefType}, x) == x
         @test convert(CategoricalVector{String, UInt8}, x) == x
 
-        for y in (CategoricalArray(x, ordered=ordered),
-                  CategoricalArray{String}(x, ordered=ordered),
-                  CategoricalArray{String, 1}(x, ordered=ordered),
-                  CategoricalArray{String, 1, R}(x, ordered=ordered),
-                  CategoricalArray{String, 1, DefaultRefType}(x, ordered=ordered),
-                  CategoricalArray{String, 1, UInt8}(x, ordered=ordered),
-                  CategoricalVector(x, ordered=ordered),
-                  CategoricalVector{String}(x, ordered=ordered),
-                  CategoricalVector{String, R}(x, ordered=ordered),
-                  CategoricalVector{String, DefaultRefType}(x, ordered=ordered),
-                  CategoricalVector{String, UInt8}(x, ordered=ordered),
-                  categorical(x, ordered=ordered),
-                  categorical(x, false, ordered=ordered),
-                  categorical(x, true, ordered=ordered))
-            @test isa(y, CategoricalVector{String})
-            @test isordered(y) === ordered
-            @test y == x
-            @test y !== x
-            @test y.refs !== x.refs
-            @test y.pool !== x.pool
-        end
-
         @test convert(CategoricalArray, a) == x
         @test convert(CategoricalArray{String}, a) == x
         @test convert(CategoricalArray{String, 1}, a) == x
@@ -254,28 +232,6 @@ for ordered in (false, true)
         @test convert(CategoricalVector{Float64, DefaultRefType}, x) == x
         @test convert(CategoricalVector{Float64, UInt8}, x) == x
 
-        for y in (CategoricalArray(x, ordered=ordered),
-                  CategoricalArray{Float64}(x, ordered=ordered),
-                  CategoricalArray{Float64, 1}(x, ordered=ordered),
-                  CategoricalArray{Float64, 1, R}(x, ordered=ordered),
-                  CategoricalArray{Float64, 1, DefaultRefType}(x, ordered=ordered),
-                  CategoricalArray{Float64, 1, UInt8}(x, ordered=ordered),
-                  CategoricalVector(x, ordered=ordered),
-                  CategoricalVector{Float64}(x, ordered=ordered),
-                  CategoricalVector{Float64, R}(x, ordered=ordered),
-                  CategoricalVector{Float64, DefaultRefType}(x, ordered=ordered),
-                  CategoricalVector{Float64, UInt8}(x, ordered=ordered),
-                  categorical(x, ordered=ordered),
-                  categorical(x, false, ordered=ordered),
-                  categorical(x, true, ordered=ordered))
-            @test isa(y, CategoricalVector{Float64})
-            @test isordered(y) === ordered
-            @test y == x
-            @test y !== x
-            @test y.refs !== x.refs
-            @test y.pool !== x.pool
-        end
-
         @test convert(CategoricalArray, a) == x
         @test convert(CategoricalArray{Float64}, a) == x
         @test convert(CategoricalArray{Float32}, a) == x
@@ -437,28 +393,6 @@ for ordered in (false, true)
         @test convert(CategoricalMatrix{String, R}, x) === x
         @test convert(CategoricalMatrix{String, DefaultRefType}, x) == x
         @test convert(CategoricalMatrix{String, UInt8}, x) == x
-
-        for y in (CategoricalArray(x, ordered=ordered),
-                  CategoricalArray{String}(x, ordered=ordered),
-                  CategoricalArray{String, 2}(x, ordered=ordered),
-                  CategoricalArray{String, 2, R}(x, ordered=ordered),
-                  CategoricalArray{String, 2, DefaultRefType}(x, ordered=ordered),
-                  CategoricalArray{String, 2, UInt8}(x, ordered=ordered),
-                  CategoricalMatrix(x, ordered=ordered),
-                  CategoricalMatrix{String}(x, ordered=ordered),
-                  CategoricalMatrix{String, R}(x, ordered=ordered),
-                  CategoricalMatrix{String, DefaultRefType}(x, ordered=ordered),
-                  CategoricalMatrix{String, UInt8}(x, ordered=ordered),
-                  categorical(x, ordered=ordered),
-                  categorical(x, false, ordered=ordered),
-                  categorical(x, true, ordered=ordered))
-            @test isa(y, CategoricalMatrix{String})
-            @test isordered(y) === ordered
-            @test y == x
-            @test y !== x
-            @test y.refs !== x.refs
-            @test y.pool !== x.pool
-        end
 
         @test convert(CategoricalArray, a) == x
         @test convert(CategoricalArray{String}, a) == x
