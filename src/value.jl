@@ -62,6 +62,9 @@ end
 Base.isequal(x::CategoricalValue, y::Any) = isequal(index(x.pool)[x.level], y)
 Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
 
+Base.in(x::CategoricalValue, y::Any) = index(x.pool)[x.level] in y
+Base.in{T<:Integer}(x::CategoricalValue, y::Range{T}) = index(x.pool)[x.level] in y
+
 Base.hash(x::CategoricalValue, h::UInt) = hash(index(x.pool)[x.level], h)
 
 function Base.isless{S, T}(x::CategoricalValue{S}, y::CategoricalValue{T})

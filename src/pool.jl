@@ -86,6 +86,7 @@ Base.length(pool::CategoricalPool) = length(pool.index)
 
 Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
+Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
 function Base.get!{T, R, V}(pool::CategoricalPool{T, R, V}, level)
     get!(pool.invindex, level) do

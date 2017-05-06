@@ -443,4 +443,29 @@ x = NullableCategoricalArray(1)
 @test_throws NullException CategoricalArray(x)
 @test_throws NullException convert(CategoricalArray, x)
 
+
+# Test in()
+ca1 = CategoricalArray([1, 2, 3])
+ca2 = CategoricalArray([4, 3, 2])
+
+@test (ca1[1] in ca1) === true
+@test (ca2[2] in ca1) === true
+@test (ca2[1] in ca1) === false
+
+@test (1 in ca1) === true
+@test (5 in ca1) === false
+
+nca1 = NullableCategoricalArray([1, 2, 3])
+nca2 = NullableCategoricalArray([4, 3, 2])
+
+@test (ca1[1] in nca1) === false
+@test (1 in nca1) === false
+
+@test (nca1[1] in nca1) === true
+@test (nca2[2] in nca1) === true
+@test (nca2[1] in nca1) === false
+
+@test (Nullable(1) in nca1) === true
+@test (Nullable(5) in nca1) === false
+
 end
