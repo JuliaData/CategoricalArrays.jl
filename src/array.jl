@@ -1,7 +1,7 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
 import Base: convert, copy, copy!, getindex, setindex!, similar, size,
-             linearindexing, unique, vcat
+             linearindexing, unique, vcat, in
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -711,3 +711,17 @@ levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 droplevels!(A::CategoricalArray) = levels!(A, unique(A))
 
 unique(A::CategoricalArray) = _unique(Array, A.refs, A.pool)
+
+function in{T, N, R}(x::Any, y::CategoricalArray{T, N, R})
+    ref = get(y.pool, x, zero(R))
+    ref != 0 ? ref in y.refs : false
+end
+
+function in{T, N, R}(x::CategoricalValue, y::CategoricalArray{T, N, R})
+    if x.pool === y.pool
+        return x.level in y.refs
+    else
+        ref = get(y.pool, index(x.pool)[x.level], zero(R))
+        return ref != 0 ? ref in y.refs : false
+    end
+end

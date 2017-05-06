@@ -142,4 +142,13 @@ module TestEquality
     @test (ov2b == nv2a) === false
     @test (ov2b == nv1b) === false
     @test (ov2b == nv2b) === true
+
+    # Check in()
+    pool = CategoricalPool([5, 1, 3])
+    nv = CategoricalValue(2, pool)
+
+    @test (nv in 1:3) === true
+    @test (nv in [1, 2, 3]) === true
+    @test (nv in 2:3) === false
+    @test (nv in [2, 3]) === false
 end

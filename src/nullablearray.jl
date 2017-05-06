@@ -1,4 +1,4 @@
-import Base: convert, getindex, setindex!, similar
+import Base: convert, getindex, setindex!, similar, in
 using NullableArrays: NullableArray
 
 ## Constructors and converters
@@ -137,3 +137,21 @@ levels!(A::NullableCategoricalArray, newlevels::Vector; nullok=false) = _levels!
 droplevels!(A::NullableCategoricalArray) = levels!(A, _unique(Array, A.refs, A.pool))
 
 unique{T}(A::NullableCategoricalArray{T}) = _unique(NullableArray{T}, A.refs, A.pool)
+
+function in{T, N, R}(x::Nullable, y::NullableCategoricalArray{T, N, R})
+    ref = get(y.pool, get(x), zero(R))
+    ref != 0 ? ref in y.refs : false
+end
+
+function in{S<:CategoricalValue, T, N, R}(x::Nullable{S}, y::NullableCategoricalArray{T, N, R})
+    v = get(x)
+    if v.pool === y.pool
+        return v.level in y.refs
+    else
+        ref = get(y.pool, index(v.pool)[v.level], zero(R))
+        return ref != 0 ? ref in y.refs : false
+    end
+end
+
+in{T, N, R}(x::Any, y::NullableCategoricalArray{T, N, R}) = false
+in{T, N, R}(x::CategoricalValue, y::NullableCategoricalArray{T, N, R}) = false
