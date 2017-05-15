@@ -1,7 +1,7 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
 import Base: convert, copy, copy!, getindex, setindex!, similar, size,
-             linearindexing, unique, vcat, in
+             unique, vcat, in
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
