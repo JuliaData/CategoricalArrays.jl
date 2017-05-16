@@ -90,15 +90,16 @@ Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, l
 
 function Base.get!{T, R, V}(pool::CategoricalPool{T, R, V}, level)
     get!(pool.invindex, level) do
+        x = convert(T, level)
         n = length(pool)
         if n >= typemax(R)
             throw(LevelsException{T, R}([level]))
         end
 
         i = R(n + 1)
-        push!(pool.index, level)
+        push!(pool.index, x)
         push!(pool.order, i)
-        push!(pool.levels, level)
+        push!(pool.levels, x)
         push!(pool.valindex, V(i, pool))
         i
     end
@@ -137,20 +138,21 @@ function Base.delete!{S, R, V}(pool::CategoricalPool{S, R, V}, levels...)
 end
 
 function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
-    if !allunique(newlevels)
-        throw(ArgumentError(string("duplicated levels found in newlevels: ",
-                                   join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
+    levs = convert(Vector{S}, newlevels)
+    if !allunique(levs)
+        throw(ArgumentError(string("duplicated levels found in levs: ",
+                                   join(unique(filter(x->sum(levs.==x)>1, levs)), ", "))))
     end
 
-    n = length(newlevels)
+    n = length(levs)
 
     if n > typemax(R)
-        throw(LevelsException{S, R}(setdiff(newlevels, levels(pool))[typemax(R)-length(levels(pool))+1:end]))
+        throw(LevelsException{S, R}(setdiff(levs, levels(pool))[typemax(R)-length(levels(pool))+1:end]))
     end
 
     # No deletions: can preserve position of existing levels
-    if issubset(pool.index, newlevels)
-        append!(pool, setdiff(newlevels, pool.index))
+    if issubset(pool.index, levs)
+        append!(pool, setdiff(levs, pool.index))
     else
         empty!(pool.invindex)
         resize!(pool.index, n)
@@ -158,14 +160,14 @@ function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
         resize!(pool.order, n)
         resize!(pool.levels, n)
         for i in 1:n
-            v = newlevels[i]
+            v = levs[i]
             pool.index[i] = v
             pool.invindex[v] = i
             pool.valindex[i] = V(i, pool)
         end
     end
 
-    buildorder!(pool.order, pool.invindex, newlevels)
+    buildorder!(pool.order, pool.invindex, levs)
     for (i, x) in enumerate(pool.order)
         pool.levels[x] = pool.index[i]
     end
