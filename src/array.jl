@@ -321,11 +321,6 @@ size(A::CatArray) = size(A.refs)
     @inbounds A.refs[I...] = get!(A.pool, v)
 end
 
-@inline function setindex!{T}(A::CatArray, v::CategoricalValue{T}, I::Real...)
-    @boundscheck checkbounds(A, I...)
-    @inbounds A.refs[I...] = get!(A.pool, convert(T, v))
-end
-
 function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
     res = Array{T}(0)
