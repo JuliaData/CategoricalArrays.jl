@@ -1,7 +1,7 @@
 module TestLevels
     using Base.Test
     using CategoricalArrays
-    using CategoricalArrays: DefaultRefType
+    using CategoricalArrays: DefaultRefType, levels!
 
     pool = CategoricalPool([2, 1, 3])
 

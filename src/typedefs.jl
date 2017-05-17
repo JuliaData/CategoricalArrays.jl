@@ -1,3 +1,5 @@
+using Nulls
+
 @compat const DefaultRefType = UInt32
 
 ## Pools
@@ -49,7 +51,7 @@ end
 
 ## Nullable Arrays
 
-@compat abstract type AbstractNullableCategoricalArray{T, N, R} <: AbstractArray{Nullable{CategoricalValue{T, R}}, N} end
+@compat abstract type AbstractNullableCategoricalArray{T, N, R} <: AbstractArray{Union{CategoricalValue{T, R}, Null}, N} end
 @compat AbstractNullableCategoricalVector{T, R} = AbstractNullableCategoricalArray{T, 1, R}
 @compat AbstractNullableCategoricalMatrix{T, R} = AbstractNullableCategoricalArray{T, 2, R}
 

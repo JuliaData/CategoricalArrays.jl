@@ -6,23 +6,27 @@ Base.convert{T, R <: Integer}(::Type{CategoricalValue{T, R}}, x::CategoricalValu
 Base.convert{T}(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) = x
 Base.convert(::Type{CategoricalValue}, x::CategoricalValue) = x
 
+Base.convert{T, R <: Integer}(::Type{Union{CategoricalValue{T, R}, Null}}, x::CategoricalValue{T, R}) = x
+Base.convert{T}(::Type{Union{CategoricalValue{T}, Null}}, x::CategoricalValue{T}) = x
+Base.convert(::Type{Union{CategoricalValue, Null}}, x::CategoricalValue) = x
+
 Base.promote_rule{S, T, R}(::Type{CategoricalValue{S, R}}, ::Type{T}) = promote_type(S, T)
 Base.promote_rule{S, T}(::Type{CategoricalValue{S}}, ::Type{T}) = promote_type(S, T)
 Base.promote_rule{T}(::Type{CategoricalValue}, ::Type{T}) = T
 
 # To fix ambiguities with definitions from Base
-Base.convert{S}(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) =
+Base.convert(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) where {S} =
     convert(Nullable{S}, index(x.pool)[x.level])
-Base.convert{S}(::Type{Nullable}, x::CategoricalValue{S}) = convert(Nullable{S}, x)
-Base.convert{T}(::Type{Nullable{CategoricalValue{Nullable{T}}}},
-                x::CategoricalValue{Nullable{T}}) =
+Base.convert(::Type{Nullable}, x::CategoricalValue{S}) where {S} = convert(Nullable{S}, x)
+Base.convert(::Type{Nullable{CategoricalValue{Nullable{T}}}},
+             x::CategoricalValue{Nullable{T}}) where {T} =
     Nullable(x)
-Base.convert{T}(::Type{Ref}, x::CategoricalValue{T}) = RefValue{T}(x)
+Base.convert(::Type{Ref}, x::CategoricalValue{T}) where {T} = RefValue{T}(x)
 Base.convert(::Type{Any}, x::CategoricalArrays.CategoricalValue) = x
 
-Base.convert{S}(::Type{S}, x::CategoricalValue) = convert(S, index(x.pool)[x.level])
+Base.convert(::Type{S}, x::CategoricalValue) where {S} = convert(S, index(x.pool)[x.level])
 
-function Base.show{T}(io::IO, x::CategoricalValue{T})
+function Base.show(io::IO, x::CategoricalValue{T}) where {T}
     if @compat(get(io, :compact, false))
         print(io, repr(index(x.pool)[x.level]))
     elseif isordered(x.pool)

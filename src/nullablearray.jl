@@ -1,63 +1,63 @@
 import Base: convert, getindex, setindex!, similar, in
-using NullableArrays: NullableArray
+using Nulls
 
 ## Constructors and converters
-## (special methods for AbstractArray{Nullable}, to avoid wrapping Nullable inside Nullable)
+## (special methods for AbstractArray{Union{T, Null}}, to avoid wrapping nulls inside CategoricalValues)
 
-NullableCategoricalArray{T, N}(::Type{Nullable{T}}, dims::NTuple{N,Int}; ordered=false) =
+NullableCategoricalArray{T, N}(::Type{Union{T, Null}}, dims::NTuple{N,Int}; ordered=false) =
     NullableCategoricalArray{T, N}(zeros(DefaultRefType, dims), CategoricalPool(ordered))
-NullableCategoricalArray{T}(::Type{Nullable{T}}, dims::Int...; ordered=false) =
+NullableCategoricalArray{T}(::Type{Union{T, Null}}, dims::Int...; ordered=false) =
     NullableCategoricalArray(T, dims; ordered=ordered)
 
-@compat (::Type{NullableCategoricalArray{Nullable{T}, N, R}}){T, N, R}(dims::NTuple{N,Int};
-                                                                       ordered=false) =
+@compat (::Type{NullableCategoricalArray{Union{T, Null}, N, R}}){T, N, R}(dims::NTuple{N,Int};
+                                                                          ordered=false) =
     NullableCategoricalArray(zeros(R, dims), CategoricalPool{T, R}(ordered))
-@compat (::Type{NullableCategoricalArray{Nullable{T}, N}}){T, N}(dims::NTuple{N,Int};
-                                                                 ordered=false) =
+@compat (::Type{NullableCategoricalArray{Union{T, Null}, N}}){T, N}(dims::NTuple{N,Int};
+                                                                    ordered=false) =
     NullableCategoricalArray{T}(dims; ordered=ordered)
-@compat (::Type{NullableCategoricalArray{Nullable{T}}}){T}(m::Int;
-                                                           ordered=false) =
+@compat (::Type{NullableCategoricalArray{Union{T, Null}}}){T}(m::Int;
+                                                              ordered=false) =
     NullableCategoricalArray{T}((m,); ordered=ordered)
-@compat (::Type{NullableCategoricalArray{Nullable{T}}}){T}(m::Int, n::Int;
-                                                           ordered=false) =
+@compat (::Type{NullableCategoricalArray{Union{T, Null}}}){T}(m::Int, n::Int;
+                                                              ordered=false) =
     NullableCategoricalArray{T}((m, n); ordered=ordered)
-@compat (::Type{NullableCategoricalArray{Nullable{T}}}){T}(m::Int, n::Int, o::Int;
-                                                           ordered=false) =
+@compat (::Type{NullableCategoricalArray{Union{T, Null}}}){T}(m::Int, n::Int, o::Int;
+                                                              ordered=false) =
     NullableCategoricalArray{T}((m, n, o); ordered=ordered)
 
-@compat (::Type{NullableCategoricalArray{Nullable{CategoricalValue{T, R}}, N, R}}){T, N, R}(dims::NTuple{N,Int};
+@compat (::Type{NullableCategoricalArray{Union{CategoricalValue{T, R}, Null}, N, R}}){T, N, R}(dims::NTuple{N,Int};
+                                                                                               ordered=false) =
+    NullableCategoricalArray{T, N, R}(dims; ordered=ordered)
+@compat (::Type{NullableCategoricalArray{Union{CategoricalValue{T}, Null}, N, R}}){T, N, R}(dims::NTuple{N,Int};
                                                                                             ordered=false) =
     NullableCategoricalArray{T, N, R}(dims; ordered=ordered)
-@compat (::Type{NullableCategoricalArray{Nullable{CategoricalValue{T}}, N, R}}){T, N, R}(dims::NTuple{N,Int};
-                                                                                         ordered=false) =
+@compat (::Type{NullableCategoricalArray{Union{CategoricalValue{T, R}, Null}, N}}){T, N, R}(dims::NTuple{N,Int};
+                                                                                            ordered=false) =
     NullableCategoricalArray{T, N, R}(dims; ordered=ordered)
-@compat (::Type{NullableCategoricalArray{Nullable{CategoricalValue{T, R}}, N}}){T, N, R}(dims::NTuple{N,Int};
-                                                                                         ordered=false) =
-    NullableCategoricalArray{T, N, R}(dims; ordered=ordered)
-@compat (::Type{NullableCategoricalArray{Nullable{CategoricalValue{T}}, N}}){T, N}(dims::NTuple{N,Int};
-                                                                                   ordered=false) =
+@compat (::Type{NullableCategoricalArray{Union{CategoricalValue{T}, Null}, N}}){T, N}(dims::NTuple{N,Int};
+                                                                                      ordered=false) =
     NullableCategoricalArray{T, N}(dims; ordered=ordered)
-# @compat (::Type{NullableCategoricalArray{Nullable{CategoricalValue}, N}}){N}(dims::NTuple{N,Int};
-#                                                                               ordered=false) =
+# @compat (::Type{NullableCategoricalArray{Union{CategoricalValue, Null}, N}}){N}(dims::NTuple{N,Int};
+#                                                                                 ordered=false) =
 #     NullableCategoricalArray{String, N}(dims; ordered=ordered)
-# @compat (::Type{NullableCategoricalArray{Nullable{CategoricalValue}}}){N}(dims::NTuple{N,Int};
-#                                                                            ordered=false) =
+# @compat (::Type{NullableCategoricalArray{Union{CategoricalValue, Null}}}){N}(dims::NTuple{N,Int};
+#                                                                              ordered=false) =
 #     NullableCategoricalArray{String, N}(dims; ordered=ordered)
 
-@compat (::Type{NullableCategoricalVector{Nullable{T}}}){T}(m::Int; ordered=false) =
+@compat (::Type{NullableCategoricalVector{Union{T, Null}}}){T}(m::Int; ordered=false) =
     NullableCategoricalArray{T}((n,); ordered=ordered)
-@compat (::Type{NullableCategoricalMatrix{Nullable{T}}}){T}(m::Int, n::Int; ordered=false) =
+@compat (::Type{NullableCategoricalMatrix{Union{T, Null}}}){T}(m::Int, n::Int; ordered=false) =
     NullableCategoricalArray{T}((m, n); ordered=ordered)
 
-@compat (::Type{NullableCategoricalArray}){T<:Nullable}(A::AbstractArray{T};
-                                                        ordered=_isordered(A)) =
-    NullableCategoricalArray{eltype(T)}(A, ordered=ordered)
-@compat (::Type{NullableCategoricalVector}){T<:Nullable}(A::AbstractVector{T};
+@compat (::Type{NullableCategoricalArray}){T}(A::AbstractArray{Union{T, Null}};
+                                              ordered=_isordered(A)) =
+    NullableCategoricalArray{T}(A, ordered=ordered)
+@compat (::Type{NullableCategoricalVector}){T}(A::AbstractVector{Union{T, Null}};
                                                          ordered=_isordered(A)) =
-    NullableCategoricalVector{eltype(T)}(A, ordered=ordered)
-@compat (::Type{NullableCategoricalMatrix}){T<:Nullable}(A::AbstractMatrix{T};
-                                                         ordered=_isordered(A)) =
-    NullableCategoricalMatrix{eltype(T)}(A, ordered=ordered)
+    NullableCategoricalVector{T}(A, ordered=ordered)
+@compat (::Type{NullableCategoricalMatrix}){T}(A::AbstractMatrix{Union{T, Null}};
+                                               ordered=_isordered(A)) =
+    NullableCategoricalMatrix{T}(A, ordered=ordered)
 
 """
     NullableCategoricalArray(A::AbstractArray, missing::AbstractArray{Bool};
@@ -71,7 +71,7 @@ function NullableCategoricalArray{T, N}(A::AbstractArray{T, N},
                                         ordered=false)
     res = NullableCategoricalArray{T, N}(size(A); ordered=ordered)
     @inbounds for (i, x, m) in zip(eachindex(res), A, missing)
-        res[i] = ifelse(m, Nullable{T}(), x)
+        res[i] = ifelse(m, null, x)
     end
 
     if method_exists(isless, (T, T))
@@ -105,6 +105,17 @@ NullableCategoricalMatrix{T}(A::AbstractMatrix{T},
                              ordered=false) =
     NullableCategoricalArray(A, missing; ordered=ordered)
 
+function convert{S, T, N, R}(::Type{NullableCategoricalArray{Union{T, Null}, N, R}}, A::AbstractArray{S, N})
+    res = NullableCategoricalArray{T, N, R}(size(A))
+    copy!(res, A)
+
+    if method_exists(isless, (T, T))
+        levels!(res, sort(levels(res)))
+    end
+
+    res
+end
+
 @inline function getindex(A::NullableCategoricalArray, I...)
     @boundscheck checkbounds(A, I...)
     # Let Array indexing code handle everything
@@ -114,44 +125,23 @@ NullableCategoricalMatrix{T}(A::AbstractMatrix{T},
         return ordered!(arraytype(A)(r, deepcopy(A.pool)),
                         isordered(A))
     else
-        S = eltype(eltype(A))
         if r > 0
-            @inbounds return Nullable{S}(A.pool[r])
+            @inbounds return A.pool[r]
         else
-            return Nullable{S}()
+            return null
         end
     end
 end
 
-@inline function setindex!(A::NullableCategoricalArray, v::Nullable, I::Real...)
+@inline function setindex!(A::NullableCategoricalArray, v::Null, I::Real...)
     @boundscheck checkbounds(A, I...)
-    if isnull(v)
-        @inbounds A.refs[I...] = 0
-    else
-        @inbounds A[I...] = get(v)
-    end
+    @inbounds A.refs[I...] = 0
 end
 
 levels!(A::NullableCategoricalArray, newlevels::Vector; nullok=false) = _levels!(A, newlevels, nullok=nullok)
 
-droplevels!(A::NullableCategoricalArray) = levels!(A, _unique(Array, A.refs, A.pool))
+droplevels!{T}(A::NullableCategoricalArray{T}) = levels!(A, _unique(T, A.refs, A.pool))
 
-unique{T}(A::NullableCategoricalArray{T}) = _unique(NullableArray{T}, A.refs, A.pool)
+unique{T}(A::NullableCategoricalArray{T}) = _unique(Union{T, Null}, A.refs, A.pool)
 
-function in{T, N, R}(x::Nullable, y::NullableCategoricalArray{T, N, R})
-    ref = get(y.pool, get(x), zero(R))
-    ref != 0 ? ref in y.refs : false
-end
-
-function in{S<:CategoricalValue, T, N, R}(x::Nullable{S}, y::NullableCategoricalArray{T, N, R})
-    v = get(x)
-    if v.pool === y.pool
-        return v.level in y.refs
-    else
-        ref = get(y.pool, index(v.pool)[v.level], zero(R))
-        return ref != 0 ? ref in y.refs : false
-    end
-end
-
-in{T, N, R}(x::Any, y::NullableCategoricalArray{T, N, R}) = false
-in{T, N, R}(x::CategoricalValue, y::NullableCategoricalArray{T, N, R}) = false
+in(x::Null, y::NullableCategoricalArray) = !all(v -> v > 0, y.refs)
