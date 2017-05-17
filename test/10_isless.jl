@@ -111,7 +111,7 @@ module TestIsLess
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
-    @test levels!(pool, [2, 3, 1]) === pool
+    @test CategoricalArrays.levels!(pool, [2, 3, 1]) === pool
     @test levels(pool) == [2, 3, 1]
 
     @test (v1 < v1) === false

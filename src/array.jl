@@ -1,5 +1,6 @@
 ## Common code for CategoricalArray and NullableCategoricalArray
 
+using Nulls
 import Base: convert, copy, copy!, getindex, setindex!, similar, size,
              unique, vcat, in
 
@@ -537,11 +538,11 @@ function _levels!(A::CatArray, newlevels::Vector; nullok=false)
     A
 end
 
-function _unique{S<:AbstractArray, T<:Integer}(::Type{S},
-                                               refs::AbstractArray{T},
-                                               pool::CategoricalPool)
+function _unique{S, T<:Integer}(::Type{S},
+                                refs::AbstractArray{T},
+                                pool::CategoricalPool)
     seen = fill(false, length(index(pool))+1)
-    tracknulls = eltype(S) <: Nullable
+    tracknulls = S >: Null
     # If we don't track nulls, short-circuit even if none has been seen
     seen[1] = !tracknulls
     batch = 0
@@ -555,9 +556,9 @@ function _unique{S<:AbstractArray, T<:Integer}(::Type{S},
         end
     end
     seennull = shift!(seen)
-    res = S(index(pool)[seen][sortperm(pool.order[seen])])
+    res = convert(Vector{S}, index(pool)[seen][sortperm(pool.order[seen])])
     if tracknulls && seennull
-        push!(res, Nullable{eltype(index(pool))}())
+        push!(res, null)
     end
     res
 end
@@ -660,7 +661,7 @@ unless `compress` is passed.
 function categorical end
 
 categorical(A::AbstractArray; ordered=_isordered(A)) = CategoricalArray(A, ordered=ordered)
-categorical{T<:Nullable}(A::AbstractArray{T}; ordered=_isordered(A)) =
+categorical{T}(A::AbstractArray{Union{T, Null}}; ordered=_isordered(A)) =
     NullableCategoricalArray(A, ordered=ordered)
 
 # Type-unstable methods
@@ -668,7 +669,7 @@ function categorical{T, N}(A::AbstractArray{T, N}, compress; ordered=_isordered(
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical{T<:Nullable, N}(A::AbstractArray{T, N}, compress; ordered=_isordered(A))
+function categorical{T, N}(A::AbstractArray{Union{T, Null}, N}, compress; ordered=_isordered(A))
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
@@ -681,6 +682,20 @@ function categorical{T, N, R}(A::NullableCategoricalArray{T, N, R}, compress; or
     NullableCategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
 
+
+function in{T, N, R}(x::Any, y::CatArray{T, N, R})
+    ref = get(y.pool, x, zero(R))
+    ref != 0 ? ref in y.refs : false
+end
+
+function in{T, N, R}(x::CategoricalValue, y::CatArray{T, N, R})
+    if x.pool === y.pool
+        return x.level in y.refs
+    else
+        ref = get(y.pool, index(x.pool)[x.level], zero(R))
+        return ref != 0 ? ref in y.refs : false
+    end
+end
 
 
 ## Code specific to CategoricalArray
@@ -705,18 +720,6 @@ levels!(A::CategoricalArray, newlevels::Vector) = _levels!(A, newlevels)
 
 droplevels!(A::CategoricalArray) = levels!(A, unique(A))
 
-unique(A::CategoricalArray) = _unique(Array, A.refs, A.pool)
+unique{T}(A::CategoricalArray{T}) = _unique(T, A.refs, A.pool)
 
-function in{T, N, R}(x::Any, y::CategoricalArray{T, N, R})
-    ref = get(y.pool, x, zero(R))
-    ref != 0 ? ref in y.refs : false
-end
-
-function in{T, N, R}(x::CategoricalValue, y::CategoricalArray{T, N, R})
-    if x.pool === y.pool
-        return x.level in y.refs
-    else
-        ref = get(y.pool, index(x.pool)[x.level], zero(R))
-        return ref != 0 ? ref in y.refs : false
-    end
-end
+in(::Null, y::CategoricalArray) = false
