@@ -5,45 +5,21 @@
 # V is always set to CategoricalValue{T}
 # This workaround is needed since this type not defined yet
 # See JuliaLang/julia#269
-if VERSION >= v"0.6.0-dev.2643"
-    include_string("""
-        type CategoricalPool{T, R <: Integer, V}
-            index::Vector{T}
-            invindex::Dict{T, R}
-            order::Vector{R}
-            levels::Vector{T}
-            valindex::Vector{V}
-            ordered::Bool
+type CategoricalPool{T, R <: Integer, V}
+    index::Vector{T}
+    invindex::Dict{T, R}
+    order::Vector{R}
+    levels::Vector{T}
+    valindex::Vector{V}
+    ordered::Bool
 
-            function CategoricalPool{T, R, V}(index::Vector{T},
-                                              invindex::Dict{T, R},
-                                              order::Vector{R},
-                                              ordered::Bool) where {T, R, V}
-                pool = new(index, invindex, order, index[order], V[], ordered)
-                buildvalues!(pool)
-                return pool
-            end
-        end
-    """)
-else
-    @eval begin
-        type CategoricalPool{T, R <: Integer, V}
-            index::Vector{T}
-            invindex::Dict{T, R}
-            order::Vector{R}
-            levels::Vector{T}
-            valindex::Vector{V}
-            ordered::Bool
-
-            function CategoricalPool{T, R}(index::Vector{T},
-                                           invindex::Dict{T, R},
-                                           order::Vector{R},
-                                           ordered::Bool)
-                pool = new(index, invindex, order, index[order], V[], ordered)
-                buildvalues!(pool)
-                return pool
-            end
-        end
+    function CategoricalPool{T, R, V}(index::Vector{T},
+                                      invindex::Dict{T, R},
+                                      order::Vector{R},
+                                      ordered::Bool) where {T, R, V}
+        pool = new(index, invindex, order, index[order], V[], ordered)
+        buildvalues!(pool)
+        return pool
     end
 end
 
