@@ -2,13 +2,9 @@ module TestArrayCommon
 
 using Base.Test
 using CategoricalArrays
-using NullableArrays
+using Nulls
 using CategoricalArrays: DefaultRefType, index
 using Compat
-
-# == currently throws an error for Nullables
-(==) = isequal
-
 
 # Test that mergelevels handles mutually compatible orderings
 @test CategoricalArrays.mergelevels(true, [6, 2, 4, 8], [2, 3, 5, 4], [2, 4, 8]) ==
@@ -65,7 +61,7 @@ using Compat
     (["A", "B", "C", "D", "E", "G", "F"], false)
 
 
-for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableArray))
+for CA in (CategoricalArray, NullableCategoricalArray)
     # Test vcat()
 
     # Test that vcat of compress arrays uses a reftype that doesn't overflow
@@ -76,7 +72,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     cca1 = compress(ca1)
     cca2 = compress(ca2)
     r = vcat(cca1, cca2)
-    @test r == A(vcat(a1, a2))
+    @test r == vcat(a1, a2)
     @test isa(cca1, CA{Int, 1, UInt8})
     @test isa(cca2, CA{Int, 1, UInt8})
     @test isa(r, CA{Int, 1, CategoricalArrays.DefaultRefType})
@@ -94,7 +90,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     cca1 = compress(ca1)
     cca2 = compress(ca2)
     r = vcat(cca1, cca2)
-    @test r == A(vcat(a1, a2))
+    @test r == vcat(a1, a2)
     @test isa(r, CA{Int, 4, CategoricalArrays.DefaultRefType})
     @test isordered(r) == false
     @test levels(r) == collect(3:length(a2)+10)
@@ -107,7 +103,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     @test levels!(ca1, ["Young", "Middle"]) === ca1
     @test levels!(ca2, ["Middle", "Old"]) === ca2
     r = vcat(ca1, ca2)
-    @test r == A(vcat(a1, a2))
+    @test r == vcat(a1, a2)
     @test levels(r) == ["Young", "Middle", "Old"]
     @test isordered(r) == true
 
@@ -119,7 +115,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     levels!(ca1, ["Young", "Middle", "Old"])
     # ca2 has another order
     r = vcat(ca1, ca2)
-    @test r == A(vcat(a1, a2))
+    @test r == vcat(a1, a2)
     @test levels(r) == ["Young", "Middle", "Old"]
     @test isordered(r) == false
 
@@ -162,11 +158,11 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     levels!(x, ["Young", "Middle", "Old"])
     ordered!(x, true)
     y = CA(["X", "Z", "Y", "X"])
-    a = A(["Z", "Y", "X", "Young"])
+    a = Union{String, Null}["Z", "Y", "X", "Young"]
     # Test with null values
     if CA === NullableCategoricalArray
-        x[3] = Nullable()
-        y[3] = a[2] = Nullable()
+        x[3] = null
+        y[3] = a[2] = null
     end
     @test copy!(x, 1, y, 2) === x
     @test x == a
@@ -192,12 +188,12 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     # Test resize!()
     x = CA(["Old", "Young", "Middle", "Young"])
     @test resize!(x, 3) === x
-    @test x == A(["Old", "Young", "Middle"])
+    @test x == ["Old", "Young", "Middle"]
     @test resize!(x, 4) === x
     if CA === NullableCategoricalArray
-        @test x == A(["Old", "Young", "Middle", Nullable()])
+        @test x == ["Old", "Young", "Middle", null]
     else
-        @test x[1:3] == A(["Old", "Young", "Middle"])
+        @test x[1:3] == ["Old", "Young", "Middle"]
         @test !isassigned(x, 4)
     end
 
@@ -266,14 +262,14 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     res = @test_throws LevelsException{Int, UInt8} x[1] = 1001
     @test res.value.levels == [1001]
     @test sprint(showerror, res.value) == "cannot store level(s) 1001 since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
-    @test x == A(vcat(1000, 253:-1:1))
+    @test x == vcat(1000, 253:-1:1)
     @test levels(x) == vcat(1:254, 1000)
 
     x = CA{Int, 1, UInt8}(1:254)
     res = @test_throws LevelsException{Int, UInt8} x[1:2] = 1000:1001
     @test res.value.levels == [1001]
     @test sprint(showerror, res.value) == "cannot store level(s) 1001 since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
-    @test x == A(vcat(1000, 2:254))
+    @test x == vcat(1000, 2:254)
     @test levels(x) == vcat(1:254, 1000)
 
     x = CA{Int, 1, UInt8}([1, 3, 256])
@@ -290,7 +286,7 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     res = @test_throws LevelsException{String, UInt8} levels!(x, vcat(levels(x), "az", "bz", "cz"))
     @test res.value.levels == ["bz", "cz"]
     @test sprint(showerror, res.value) == "cannot store level(s) \"bz\" and \"cz\" since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
-    @test x == A(string.(Char.(65:318)))
+    @test x == string.(Char.(65:318))
     lev = copy(levels(x))
     levels!(x, vcat(lev, "az"))
     @test levels(x) == vcat(lev, "az")
@@ -308,22 +304,22 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
 
     y = reshape(x, 1, 4)
     @test isa(y, CA{String, 2, CategoricalArrays.DefaultRefType})
-    @test y == A(["Old" "Young" "Middle" "Young"])
+    @test y == ["Old" "Young" "Middle" "Young"]
     @test levels(x) == levels(y)
     @test isordered(x)
 
     y = reshape(x, 2, 2)
     @test isa(y, CA{String, 2, CategoricalArrays.DefaultRefType})
-    @test y == A(["Old"  "Middle"; "Young" "Young"])
+    @test y == ["Old"  "Middle"; "Young" "Young"]
     @test levels(x) == levels(y)
     @test isordered(x)
 
     # Test with null values
     if CA === NullableCategoricalArray
-        x[3] = Nullable()
+        x[3] = null
         y = reshape(x, 1, 4)
         @test isa(y, CA{String, 2, CategoricalArrays.DefaultRefType})
-        @test y == A(["Old" "Young" Nullable() "Young"])
+        @test y == ["Old" "Young" null "Young"]
         @test levels(x) == levels(y)
         @test isordered(x)
     end
@@ -331,11 +327,11 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     # Test sort() on both unordered and ordered arrays
     x = CA(["Old", "Young", "Middle", "Young"])
     levels!(x, ["Young", "Middle", "Old"])
-    @test sort(x) == A(["Young", "Young", "Middle", "Old"])
+    @test sort(x) == ["Young", "Young", "Middle", "Old"]
     ordered!(x, true)
-    @test sort(x) == A(["Young", "Young", "Middle", "Old"])
+    @test sort(x) == ["Young", "Young", "Middle", "Old"]
     @test sort!(x) === x
-    @test x == A(["Young", "Young", "Middle", "Old"])
+    @test x == ["Young", "Young", "Middle", "Old"]
 
     # Test constructors and convert() between categorical arrays:
     # check that they preserve levels and ordering by default even across types,
@@ -344,10 +340,10 @@ for (CA, A) in ((CategoricalArray, Array), (NullableCategoricalArray, NullableAr
     for ordered_orig in (true, false),
         ordered in (true, false),
         R in (DefaultRefType, UInt8, UInt, Int8, Int),
-        (A2, CA2, CVM2, N) in ((Array, CategoricalArray, CategoricalVector, 1),
-                               (Array, CategoricalArray, CategoricalMatrix, 2),
-                               (NullableArray, NullableCategoricalArray, NullableCategoricalVector, 1),
-                               (NullableArray, NullableCategoricalArray, NullableCategoricalMatrix, 2))
+        (CA2, CVM2, N) in ((CategoricalArray, CategoricalVector, 1),
+                           (CategoricalArray, CategoricalMatrix, 2),
+                           (NullableCategoricalArray, NullableCategoricalVector, 1),
+                           (NullableCategoricalArray, NullableCategoricalMatrix, 2))
         if CVM2 <: AbstractVector
             x = CA{String, 1, R}(["A", "B"], ordered=ordered_orig)
         else
@@ -456,16 +452,17 @@ ca2 = CategoricalArray([4, 3, 2])
 @test (5 in ca1) === false
 
 nca1 = NullableCategoricalArray([1, 2, 3])
-nca2 = NullableCategoricalArray([4, 3, 2])
+nca2 = NullableCategoricalArray([4, 3, null])
 
-@test (ca1[1] in nca1) === false
-@test (1 in nca1) === false
+@test (ca1[1] in nca1) === true
+@test (1 in nca1) === true
 
 @test (nca1[1] in nca1) === true
 @test (nca2[2] in nca1) === true
 @test (nca2[1] in nca1) === false
 
-@test (Nullable(1) in nca1) === true
-@test (Nullable(5) in nca1) === false
+@test (null in nca1) === false
+@test (null in nca2) === true
+@test (null in ca1) === false
 
 end

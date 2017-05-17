@@ -17,8 +17,8 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
     end
 end
 
-function fill_refs!{T<:Nullable}(refs::AbstractArray, X::AbstractArray{T},
-                                  breaks::AbstractVector, extend::Bool, nullok::Bool)
+function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Null},
+                    breaks::AbstractVector, extend::Bool, nullok::Bool)
     n = length(breaks)
     lower = first(breaks)
     upper = last(breaks)
@@ -39,36 +39,6 @@ function fill_refs!{T<:Nullable}(refs::AbstractArray, X::AbstractArray{T},
     end
 end
 
-function fill_refs!(refs::AbstractArray, X::NullableArray,
-                    breaks::AbstractVector, extend::Bool, nullok::Bool)
-    n = length(breaks)
-    lower = first(breaks)
-    upper = last(breaks)
-
-    @inbounds for i in eachindex(X)
-        X.isnull[i] && continue
-
-        x = X.values[i]
-
-        if extend && x == upper
-            refs[i] = n-1
-        elseif !extend && !(lower <= x < upper)
-            nullok || throw(ArgumentError("value $x (at index $i) does not fall inside the breaks: adapt them manually, or pass extend=true or nullok=true"))
-            refs[i] = 0
-        else
-            refs[i] = searchsortedlast(breaks, x)
-        end
-    end
-end
-
-
-_extrema(X::Any) = extrema(X)
-# NullableArrays provide a more efficient version with higher precedence
-_extrema{T<:Nullable}(X::AbstractArray{T}) = (minimum(X), maximum(X))
-
-unwrap(x::Any) = x
-unwrap(x::Nullable) = x.value
-
 """
     cut(x::AbstractArray, breaks::AbstractVector;
         extend::Bool=false, labels::AbstractVector=[])
@@ -85,7 +55,7 @@ i.e. the lower bound is included and the upper bound is excluded.
   intervals; if empty, default labels are used.
 
 
-    cut(x::AbstractArray{<:Nullable}, breaks::AbstractVector;
+    cut(x::AbstractArray{>:Null}, breaks::AbstractVector;
         extend::Bool=false, labels::AbstractVector=[]), nullok::Bool=false)
 
 For nullable arrays, return a `NullableCategoricalArray`. If `nullok=true`, values outside
@@ -99,12 +69,12 @@ function cut{T, N, U<:AbstractString}(x::AbstractArray{T, N}, breaks::AbstractVe
     end
 
     if extend
-        min_x, max_x = _extrema(x)
-        if !isnull(min_x) && breaks[1] > unwrap(min_x)
-            unshift!(breaks, unwrap(min_x))
+        min_x, max_x = extrema(x)
+        if !isnull(min_x) && breaks[1] > min_x
+            unshift!(breaks, min_x)
         end
-        if !isnull(max_x) && breaks[end] < unwrap(max_x)
-            push!(breaks, unwrap(max_x))
+        if !isnull(max_x) && breaks[end] < max_x
+            push!(breaks, max_x)
         end
     end
 
@@ -140,7 +110,7 @@ function cut{T, N, U<:AbstractString}(x::AbstractArray{T, N}, breaks::AbstractVe
     end
 
     pool = CategoricalPool(levs, true)
-    if T <: Nullable
+    if T >: Null
         NullableCategoricalArray{String, N, DefaultRefType}(refs, pool)
     else
         CategoricalArray{String, N, DefaultRefType}(refs, pool)
