@@ -38,31 +38,21 @@ end
 
 ## Arrays
 
-@compat abstract type AbstractCategoricalArray{T, N, R} <: AbstractArray{CategoricalValue{T, R}, N} end
-@compat AbstractCategoricalVector{T, R} = AbstractCategoricalArray{T, 1, R}
-@compat AbstractCategoricalMatrix{T, R} = AbstractCategoricalArray{T, 2, R}
+@compat abstract type AbstractCategoricalArray{T, N, R, V, U} <: AbstractArray{Union{CategoricalValue{V, R}, U}, N} end
+@compat AbstractCategoricalVector{T, R, V, U} = AbstractCategoricalArray{T, 1, R, V, U}
+@compat AbstractCategoricalMatrix{T, R, V, U} = AbstractCategoricalArray{T, 2, R, V, U}
 
-immutable CategoricalArray{T, N, R <: Integer} <: AbstractCategoricalArray{T, N, R}
+immutable CategoricalArray{T, N, R <: Integer, V, U} <: AbstractCategoricalArray{T, N, R, V, U}
     refs::Array{R, N}
-    pool::CategoricalPool{T, R, CategoricalValue{T, R}}
+    pool::CategoricalPool{V, R, CategoricalValue{V, R}}
+
+    function (::Type{CategoricalArray{T, N, R}})(refs::Array{R, N},
+                                                 pool::CategoricalPool{V, R, CategoricalValue{V, R}}) where
+                                                 {T, N, R <: Integer, V}
+        T === V || T == Union{V, Null} || throw(ArgumentError("T ($T) must be equal to $V or Union{$V, Null}"))
+        U = T >: Null ? Null : Union{}
+        new{T, N, R, V, U}(refs, pool)
+    end
 end
-@compat CategoricalVector{T, R} = CategoricalArray{T, 1, R}
-@compat CategoricalMatrix{T, R} = CategoricalArray{T, 2, R}
-
-## Nullable Arrays
-
-@compat abstract type AbstractNullableCategoricalArray{T, N, R} <: AbstractArray{Union{CategoricalValue{T, R}, Null}, N} end
-@compat AbstractNullableCategoricalVector{T, R} = AbstractNullableCategoricalArray{T, 1, R}
-@compat AbstractNullableCategoricalMatrix{T, R} = AbstractNullableCategoricalArray{T, 2, R}
-
-immutable NullableCategoricalArray{T, N, R <: Integer} <: AbstractNullableCategoricalArray{T, N, R}
-    refs::Array{R, N}
-    pool::CategoricalPool{T, R, CategoricalValue{T, R}}
-end
-@compat NullableCategoricalVector{T, R} = NullableCategoricalArray{T, 1, R}
-@compat NullableCategoricalMatrix{T, R} = NullableCategoricalArray{T, 2, R}
-
-## Type Aliases
-
-@compat CatArray{T, N, R} = Union{CategoricalArray{T, N, R}, NullableCategoricalArray{T, N, R}}
-@compat CatVector{T, R} = Union{CategoricalVector{T, R}, NullableCategoricalVector{T, R}}
+@compat CategoricalVector{T, R, V, U} = CategoricalArray{T, 1, V, U}
+@compat CategoricalMatrix{T, R, V, U} = CategoricalArray{T, 2, V, U}
