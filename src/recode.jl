@@ -23,9 +23,6 @@ function recode! end
 
 recode!(dest::AbstractArray, src::AbstractArray, pairs::Pair...) =
     recode!(dest, src, nothing, pairs...)
-# To fix ambiguity
-recode!(dest::CatArray, src::AbstractArray, pairs::Pair...) =
-    recode!(dest, src, nothing, pairs...)
 
 function recode!{T}(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...)
     if length(dest) != length(src)
@@ -66,13 +63,12 @@ function recode!{T}(dest::AbstractArray{T}, src::AbstractArray, default::Any, pa
     dest
 end
 
-function recode!{T}(dest::CatArray{T}, src::AbstractArray, default::Any, pairs::Pair...)
+function recode!{T}(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pairs::Pair...)
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
 
-    U = isa(dest, NullableCategoricalArray) ? ?T : T
-    vals = U[p.second for p in pairs]
+    vals = T[p.second for p in pairs]
     default !== nothing && push!(vals, default)
 
     levels!(dest.pool, filter!(!isnull, unique(vals)))
@@ -127,13 +123,12 @@ function recode!{T}(dest::CatArray{T}, src::AbstractArray, default::Any, pairs::
     dest
 end
 
-function recode!{T}(dest::CatArray{T}, src::CatArray, default::Any, pairs::Pair...)
+function recode!{T}(dest::CategoricalArray{T}, src::CategoricalArray, default::Any, pairs::Pair...)
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
 
-    U = isa(dest, NullableCategoricalArray) ? ?T : T
-    vals = U[p.second for p in pairs]
+    vals = T[p.second for p in pairs]
     if default === nothing
         srclevels = levels(src)
 
@@ -302,8 +297,6 @@ julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>null)
 function recode end
 
 recode(a::AbstractArray, pairs::Pair...) = recode(a, nothing, pairs...)
-# To fix ambiguity
-recode(a::CatArray, pairs::Pair...) = recode(a, nothing, pairs...)
 
 function recode(a::AbstractArray, default::Any, pairs::Pair...)
     V = promote_valuetype(pairs...)
@@ -313,8 +306,7 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     T = default === nothing ? V : promote_type(typeof(default), V)
     # Exception: if original array was nullable and null does not appear
     # in one of the pairs' LHS, result must be nullable
-    if (T >: Null && T !== Any) || default === null ||
-        (eltype(a) >: Null && !keytype_hasnull(pairs...))
+    if T >: Null || default === null || (eltype(a) >: Null && !keytype_hasnull(pairs...))
         dest = Array{?T}(size(a))
     else
         dest = Array{Nulls.T(T)}(size(a))
@@ -322,7 +314,7 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     recode!(dest, a, default, pairs...)
 end
 
-function recode{S, N, R}(a::CatArray{S, N, R}, default::Any, pairs::Pair...)
+function recode{S, N, R}(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...)
     V = promote_valuetype(pairs...)
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
@@ -330,9 +322,8 @@ function recode{S, N, R}(a::CatArray{S, N, R}, default::Any, pairs::Pair...)
     T = default === nothing ? V : promote_type(typeof(default), V)
     # Exception: if original array was nullable and null does not appear
     # in one of the pairs' LHS, result must be nullable
-    if (T >: Null && T !== Any) || default === null ||
-       (eltype(a) >: Null && !keytype_hasnull(pairs...))
-        dest = NullableCategoricalArray{Nulls.T(T), N, R}(size(a))
+    if T >: Null || default === null || (eltype(a) >: Null && !keytype_hasnull(pairs...))
+        dest = CategoricalArray{?T, N, R}(size(a))
     else
         dest = CategoricalArray{Nulls.T(T), N, R}(size(a))
     end

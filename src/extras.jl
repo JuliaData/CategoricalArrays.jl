@@ -41,11 +41,13 @@ end
 
 """
     cut(x::AbstractArray, breaks::AbstractVector;
-        extend::Bool=false, labels::AbstractVector=[])
+        extend::Bool=false, labels::AbstractVector=[], nullok::Bool=false)
 
 Cut a numeric array into intervals and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
 i.e. the lower bound is included and the upper bound is excluded.
+
+If `x` is nullable (i.e. `eltype(x) >: Null`), a nullable `CategoricalArray` is returned.
 
 # Arguments
 * `extend::Bool=false`: when `false`, an error is raised if some values in `x` fall
@@ -53,13 +55,8 @@ i.e. the lower bound is included and the upper bound is excluded.
   values in `x`, and the upper bound is included in the last interval.
 * `labels::AbstractVector=[]`: a vector of strings giving the names to use for the
   intervals; if empty, default labels are used.
-
-
-    cut(x::AbstractArray{>:Null}, breaks::AbstractVector;
-        extend::Bool=false, labels::AbstractVector=[]), nullok::Bool=false)
-
-For nullable arrays, return a `NullableCategoricalArray`. If `nullok=true`, values outside
-of breaks result in null values.
+* `nullok::Bool=true`: when `true`, values outside of breaks result in null values.
+  only supported when `x` is nullable.
 """
 function cut{T, N, U<:AbstractString}(x::AbstractArray{T, N}, breaks::AbstractVector;
                                       extend::Bool=false, labels::AbstractVector{U}=String[],
@@ -106,15 +103,13 @@ function cut{T, N, U<:AbstractString}(x::AbstractArray{T, N}, breaks::AbstractVe
         end
     else
         length(labels) == n-1 || throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
-        levs = copy(labels)
+        # Levels must have element type String for type stability of the result
+        levs::Vector{String} = copy(labels)
     end
 
     pool = CategoricalPool(levs, true)
-    if T >: Null
-        NullableCategoricalArray{String, N, DefaultRefType}(refs, pool)
-    else
-        CategoricalArray{String, N, DefaultRefType}(refs, pool)
-    end
+    S = T >: Null ? ?String : String
+    CategoricalArray{S, N, DefaultRefType}(refs, pool)
 end
 
 """
