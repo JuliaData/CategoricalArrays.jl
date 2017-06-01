@@ -18,4 +18,18 @@ for T in (Union{}, Null)
     end
 end
 
+# Test ==
+ca1 = CategoricalArray([1, 2, 3])
+ca2 = CategoricalArray{?Int}([1, 2, 3])
+ca3 = CategoricalArray([1, 2, null])
+ca4 = CategoricalArray([4, 3, 2])
+ca5 = CategoricalArray([1 2; 3 4])
+
+@test view(ca1, 1:2) == view(ca1, 1:2)
+@test view(ca2, 1:2) == view(ca2, 1:2)
+@test view(ca1, 1:2) == view(ca2, 1:2)
+@test view(ca1, 1:2) == view(ca3, 1:2)
+@test view(ca1, 1:2) != view(ca2, 1:3)
+@test view(ca1, 1:2) != view(ca5, 1:2, 1:1)
+
 end
