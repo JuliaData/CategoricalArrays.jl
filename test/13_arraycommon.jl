@@ -452,4 +452,21 @@ for T in (Int, ?Int)
     @test (5 in ca1) === false
 end
 
+# Test ==
+ca1 = CategoricalArray([1, 2, 3])
+ca2 = CategoricalArray{?Int}([1, 2, 3])
+ca3 = CategoricalArray([1, 2, null])
+ca4 = CategoricalArray([4, 3, 2])
+ca5 = CategoricalArray([1 2; 3 4])
+
+@test ca1 == copy(ca1)
+@test ca2 == copy(ca2)
+@test ca3 == copy(ca3)
+@test ca4 == copy(ca4)
+@test ca5 == copy(ca5)
+@test ca1 == ca2
+@test ca1 != ca3
+@test ca1 != ca4
+@test ca1 != ca5
+
 end
