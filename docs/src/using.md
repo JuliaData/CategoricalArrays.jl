@@ -8,7 +8,7 @@ Suppose that you have data about four individuals, with three different age grou
 julia> using CategoricalArrays
 
 julia> x = CategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
  "Old"   
  "Young" 
  "Middle"
@@ -26,10 +26,11 @@ julia> levels(x)
  "Young" 
 
 julia> levels!(x, ["Young", "Middle", "Old"])
-3-element Array{String,1}:
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
+ "Old"   
  "Young" 
  "Middle"
- "Old"   
+ "Young" 
 
 ```
 
@@ -73,9 +74,11 @@ julia> levels(x)
  "Old"   
 
 julia> droplevels!(x)
-2-element Array{String,1}:
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
+ "Young" 
  "Young" 
  "Middle"
+ "Young" 
 
 julia> levels(x)
 2-element Array{String,1}:
@@ -87,13 +90,12 @@ julia> levels(x)
 Another solution would have been to call `levels!(x, ["Young", "Middle"])` manually. This command is safe too, since it will raise an error when trying to remove levels that are currently used:
 
 ```julia
-julia> levels!(x, ["Young", "Midle"]) # Note the typo in "Middle"
-ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 1. Convert array to a NullableCategoricalArray if you want to transform some levels to missing values.
- in #_levels!#5(::Bool, ::Function, ::CategoricalArrays.CategoricalArray{String,1,UInt32}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:132
- in levels!(::CategoricalArrays.CategoricalArray{String,1,UInt32}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:164
- in eval(::Module, ::Any) at ./boot.jl:225
- in macro expansion at ./REPL.jl:92 [inlined]
- in (::Base.REPL.##1#2{Base.REPL.REPLBackend})() at ./event.jl:46
+julia> levels!(x, ["Young", "Midle"]) 
+ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. Change the array element type to ?String using convert if you want to transform some levels to missing values.
+Stacktrace:
+ [1] #levels!#58(::Bool, ::Function, ::CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:532
+ [2] levels!(::CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:518
+
 ```
 
 ```@docs
@@ -102,15 +104,15 @@ levels
 levels!
 ```
 
-## Handling Missing Values: NullableCategoricalArray
+## Handling Missing Values
 
-The examples above assumed that the data contained no missing values. This is generally not the case in real data. This is where `NullableCategoricalArray` comes into play. It is essentially the categorical-data equivalent of [NullableArrays](https://github.com/JuliaStats/NullableArrays.jl). It behaves exactly the same as `CategoricalArray` , except that it returns `Nullable{CategoricalValue}` elements when indexed. See [the Julia manual](http://docs.julialang.org/en/stable/manual/types/?highlight=nullable#nullable-types-representing-missing-values) for more information on the `Nullable` type.
+The examples above assumed that the data contained no missing values. This is generally not the case in real data. This is where `CategoricalArray{?T}` comes into play. It is essentially the categorical-data equivalent of `Array{?T}`. It behaves exactly the same as `CategoricalArray{T}` , except that when indexed it returns either a `CategoricalValue{T}`, or `null` if a value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
 
-Let's adapt the example developed above to support missing values. At first sight, not much changes: 
+Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold eithera `String` or `null`. Here, `?String` is a shorthand for `Union{Null, String}`:
 
 ```julia
-julia> y = NullableCategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
+julia> y = CategoricalArray{?String}(["Old", "Young", "Middle", "Young"], ordered=true)
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
  "Old"   
  "Young" 
  "Middle"
@@ -128,51 +130,36 @@ julia> levels(y)
  "Young" 
 
 julia> levels!(y, ["Young", "Middle", "Old"])
-3-element Array{String,1}:
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+ "Old"   
  "Young" 
  "Middle"
- "Old"   
+ "Young" 
  
 ```
 
-A first difference from the previous example is that indexing the array returns a `Nullable` value: 
+At this point, indexing into the array gives exactly the same result
 
 ```julia
 julia> y[1]
-Nullable{CategoricalArrays.CategoricalValue{String,UInt32}}("Old")
-
-julia> get(y[1])
 CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
-```
-
-`Nullable` objects currently require the [NullableArrays](https://github.com/JuliaStats/NullableArrays.jl) package to be compared: 
-
-```julia
-julia> using NullableArrays
-
-julia> get(y[2] == y[4])
-true
-
-julia> get(y[2] > y[4])
-false
-
 ```
 
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:
 
 ```julia
-julia> y[1] = Nullable()
-Nullable{Union{}}()
+julia> y[1] = null
+null
 
 julia> y
-4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
- #NULL   
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+ null    
  "Young" 
  "Middle"
  "Young" 
 
 julia> y[1]
-Nullable{CategoricalArrays.CategoricalValue{String,UInt32}}()
+null
 
 ```
 
@@ -183,20 +170,15 @@ julia> y[1] = "Old"
 "Old"
 
 julia> y
-4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
  "Old"   
  "Young" 
  "Middle"
  "Young" 
 
 julia> levels!(y, ["Young", "Middle"]; nullok=true)
-2-element Array{String,1}:
- "Young" 
- "Middle"
-
-julia> y
-4-element CategoricalArrays.NullableCategoricalArray{String,1,UInt32}:
- #NULL   
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+ null    
  "Young" 
  "Middle"
  "Young" 
