@@ -1,5 +1,6 @@
 using PkgBenchmark
 using CategoricalArrays
+using Nulls
 
 @benchgroup "isequal(A, v::String)" begin
     function sumequals(A::AbstractArray, v::Any)
@@ -11,9 +12,9 @@ using CategoricalArrays
     end
 
     ca = CategoricalArray(repeat(string.('A':'J'), outer=1000))
-    nca = NullableCategoricalArray(repeat([Nullable(); string.('A':'J')], outer=1000))
-    @bench "CategoricalArray" sumequals(ca, "D")
-    @bench "NullableCategoricalArray" sumequals(nca, Nullable("D"))
+    nca = CategoricalArray(repeat([null; string.('A':'J')], outer=1000))
+    @bench "CategoricalArray{String}" sumequals(ca, "D")
+    @bench "CategoricalArray{?String}" sumequals(nca, "D")
 end
 
 @benchgroup "isequal(A, v::CategoricalValue)" begin
@@ -26,7 +27,7 @@ end
     end
 
     ca = CategoricalArray(repeat(string.('A':'J'), outer=1000))
-    nca = NullableCategoricalArray(repeat([Nullable(); string.('A':'J')], outer=1000))
-    @bench "CategoricalArray" sumequals(ca, ca[1])
-    @bench "NullableCategoricalArray" sumequals(nca, nca[1])
+    nca = CategoricalArray(repeat([null; string.('A':'J')], outer=1000))
+    @bench "CategoricalArray{String}" sumequals(ca, ca[1])
+    @bench "CategoricalArray{?String}" sumequals(nca, nca[1])
 end
