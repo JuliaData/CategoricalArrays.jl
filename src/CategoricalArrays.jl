@@ -8,7 +8,7 @@ module CategoricalArrays
     export LevelsException
 
     export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!
-    export cut
+    export cut, recode, recode!
 
     using Compat
 
@@ -24,6 +24,7 @@ module CategoricalArrays
     include("subarray.jl")
 
     include("extras.jl")
+    include("recode.jl")
 
     include("deprecated.jl")
 end
