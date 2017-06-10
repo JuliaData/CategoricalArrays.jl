@@ -4,7 +4,7 @@
 
 Suppose that you have data about four individuals, with three different age groups. Since this variable is clearly ordinal, we mark the array as such via the `ordered` argument.
 
-```julia
+```jldoctest using
 julia> using CategoricalArrays
 
 julia> x = CategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
@@ -18,7 +18,7 @@ julia> x = CategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
 
 By default, the levels are lexically sorted, which is clearly not correct in our case and would give incorrect results when testing for order. This is easily fixed using the `levels!` function to reorder levels:
 
-```julia
+```jldoctest using
 julia> levels(x)
 3-element Array{String,1}:
  "Middle"
@@ -36,7 +36,7 @@ julia> levels!(x, ["Young", "Middle", "Old"])
 
 Thanks to this order, we can not only test for equality between two values, but also compare the ages of e.g. individuals 1 and 2:
 
-```julia
+```jldoctest using
 julia> x[1]
 CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
 
@@ -53,7 +53,7 @@ true
 
 Now let us imagine the first individual is actually in the "Young" group. Let's fix this (notice how the string `"Young"` is automatically converted to a `CategoricalValue`): 
 
-```julia
+```jldoctest using
 julia> x[1] = "Young"
 "Young"
 
@@ -66,7 +66,7 @@ The `CategoricalArray` still considers `"Old"` as a possible level even if it is
 
 To get rid of the `"Old"` group, just call the `droplevels!` function:
 
-```julia
+```jldoctest using
 julia> levels(x)
 3-element Array{String,1}:
  "Young" 
@@ -89,12 +89,10 @@ julia> levels(x)
 
 Another solution would have been to call `levels!(x, ["Young", "Middle"])` manually. This command is safe too, since it will raise an error when trying to remove levels that are currently used:
 
-```julia
+```jldoctest using
 julia> levels!(x, ["Young", "Midle"]) 
 ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. Change the array element type to ?String using convert if you want to transform some levels to missing values.
-Stacktrace:
- [1] #levels!#58(::Bool, ::Function, ::CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:532
- [2] levels!(::CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}, ::Array{String,1}) at ~/.julia/CategoricalArrays/src/array.jl:518
+[...]
 
 ```
 
@@ -110,7 +108,9 @@ The examples above assumed that the data contained no missing values. This is ge
 
 Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold eithera `String` or `null`. Here, `?String` is a shorthand for `Union{Null, String}`:
 
-```julia
+```jldoctest using
+julia> using Nulls
+
 julia> y = CategoricalArray{?String}(["Old", "Young", "Middle", "Young"], ordered=true)
 4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
  "Old"   
@@ -122,7 +122,7 @@ julia> y = CategoricalArray{?String}(["Old", "Young", "Middle", "Young"], ordere
 
 Levels still need to be reordered manually:
 
-```julia
+```jldoctest using
 julia> levels(y)
 3-element Array{String,1}:
  "Middle"
@@ -140,14 +140,14 @@ julia> levels!(y, ["Young", "Middle", "Old"])
 
 At this point, indexing into the array gives exactly the same result
 
-```julia
+```jldoctest using
 julia> y[1]
 CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
 ```
 
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:
 
-```julia
+```jldoctest using
 julia> y[1] = null
 null
 
@@ -165,7 +165,7 @@ null
 
 It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the `"Old"` group. Let's first restore the original value for the first element, and then set it to missing again using the `nullok` argument to `levels!`:
 
-```julia
+```jldoctest using
 julia> y[1] = "Old"
 "Old"
 
@@ -199,6 +199,10 @@ julia> levels!(y, ["Young", "Middle"]; nullok=true)
 
 `ordered!(A)` - Set whether entries in `A` can be compared using `<`, `>` and similar operators
 
+`recode(a[, default], pairs...)` - Return a copy of `a` after replacing one or more values
+
+`recode!(a[, default], pairs...)` - Replace one or more values in `a` in-place
+
 ```@docs
 categorical
 compress
@@ -206,4 +210,6 @@ cut
 decompress
 isordered
 ordered!
+recode
+recode!
 ```
