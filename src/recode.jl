@@ -216,8 +216,12 @@ Convenience function for in-place recoding, equivalent to `recode!(a, a, ...)`.
 
 # Examples
 ```jldoctest
+julia> using CategoricalArrays
+
 julia> x = collect(1:10);
+
 julia> recode!(x, 1=>100, 2:4=>0, [5; 9:10]=>-1);
+
 julia> x
 10-element Array{Int64,1}:
  100
@@ -230,7 +234,7 @@ julia> x
    8
   -1
   -1
- ```
+```
 """
 recode!(a::AbstractArray, default::Any, pairs::Pair...) = recode!(a, a, default, pairs...)
 recode!(a::AbstractArray, pairs::Pair...) = recode!(a, a, nothing, pairs...)
@@ -244,8 +248,8 @@ keytype_hasnull{K}(x::Pair{K}, y::Pair...) = K === Null || keytype_hasnull(y...)
 """
     recode(a::AbstractArray[, default::Any], pairs::Pair...)
 
-Return a new categorical array with elements from `a`, replacing elements matching a key
-of `pairs` with the corresponding value. The type of the array is chosen so that it can
+Return a copy of `a`, replacing elements matching a key of `pairs` with the corresponding value.
+The type of the array is chosen so that it can
 hold all recoded elements (but not necessarily original elements from `a`).
 
 For each `Pair` in `pairs`, if the element is equal to (according to `==`) or `in` the key
@@ -256,19 +260,22 @@ If an element matches more than one key, the first match is used.
 
 # Examples
 ```jldoctest
+julia> using CategoricalArrays
+
 julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1)
 10-element Array{Int64,1}:
  100
-  0  
-  0  
-  0  
- -1 
-  6  
-  7  
-  8  
- -1 
- -1 
- ```
+   0
+   0
+   0
+  -1
+   6
+   7
+   8
+  -1
+  -1
+
+```
 
      recode(a::AbstractArray{>:Null}[, default::Any], pairs::Pair...)
 
@@ -278,7 +285,7 @@ will be nullable.
 
 # Examples
 ```jldoctest
-julia> using Nulls
+julia> using CategoricalArrays, Nulls
 
 julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>null)
 10-element Array{Union{Int64, Nulls.Null},1}:
@@ -292,7 +299,8 @@ julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>null)
    8    
   -1    
   -1    
- ```
+
+```
 """
 function recode end
 
