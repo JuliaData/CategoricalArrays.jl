@@ -15,7 +15,7 @@ makedocs(
 deploydocs(
     repo = "github.com/JuliaData/CategoricalArrays.jl.git",
     target = "build",
-    julia  = "0.5",
+    julia  = "nightly",
     osname = "linux",
     deps = nothing,
     make = nothing
