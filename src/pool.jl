@@ -57,14 +57,12 @@ end
 
 Base.convert(::Type{CategoricalPool}, pool::CategoricalPool) = pool
 Base.convert{T}(::Type{CategoricalPool{T}}, pool::CategoricalPool{T}) = pool
-Base.convert{T, R}(::Type{CategoricalPool{T, R}}, pool::CategoricalPool{T, R}) = pool
+Base.convert{T, R <: Integer}(::Type{CategoricalPool{T, R}}, pool::CategoricalPool{T, R}) = pool
 
-Base.convert{S, T, R}(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) =
+Base.convert{S, T, R <: Integer}(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) =
     convert(CategoricalPool{S, R}, pool)
-Base.convert{T, R}(::Type{CategoricalPool}, pool::CategoricalPool{T, R}) =
-    convert(CategoricalPool{T, R}, pool)
 
-function Base.convert{S, R}(::Type{CategoricalPool{S, R}}, pool::CategoricalPool)
+function Base.convert{S, R <: Integer}(::Type{CategoricalPool{S, R}}, pool::CategoricalPool)
     if length(levels(pool)) > typemax(R)
         throw(LevelsException{S, R}(levels(pool)[typemax(R)+1:end]))
     end
