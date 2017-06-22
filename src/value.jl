@@ -2,7 +2,7 @@ function CategoricalValue{T, R}(level::Integer, pool::CategoricalPool{T, R})
     return CategoricalValue(convert(R, level), pool)
 end
 
-Base.convert{T, R}(::Type{CategoricalValue{T, R}}, x::CategoricalValue{T, R}) = x
+Base.convert{T, R <: Integer}(::Type{CategoricalValue{T, R}}, x::CategoricalValue{T, R}) = x
 Base.convert{T}(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) = x
 Base.convert(::Type{CategoricalValue}, x::CategoricalValue) = x
 
@@ -18,8 +18,9 @@ Base.convert{T}(::Type{Nullable{CategoricalValue{Nullable{T}}}},
                 x::CategoricalValue{Nullable{T}}) =
     Nullable(x)
 Base.convert{T}(::Type{Ref}, x::CategoricalValue{T}) = RefValue{T}(x)
+Base.convert(::Type{Any}, x::CategoricalArrays.CategoricalValue) = x
 
-Base.convert{S, T, R}(::Type{S}, x::CategoricalValue{T, R}) = convert(S, index(x.pool)[x.level])
+Base.convert{S}(::Type{S}, x::CategoricalValue) = convert(S, index(x.pool)[x.level])
 
 function Base.show{T}(io::IO, x::CategoricalValue{T})
     if @compat(get(io, :compact, false))

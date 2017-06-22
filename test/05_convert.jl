@@ -14,13 +14,18 @@ module TestConvert
     v2 = CategoricalValue(2, pool)
     v3 = CategoricalValue(3, pool)
 
-    convert(Int32, v1)
-    convert(Int32, v2)
-    convert(Int32, v3)
+    @test convert(Int32, v1) === Int32(1)
+    @test convert(Int32, v2) === Int32(2)
+    @test convert(Int32, v3) === Int32(3)
 
-    convert(UInt8, v1)
-    convert(UInt8, v2)
-    convert(UInt8, v3)
+    @test convert(UInt8, v1) === 0x01
+    @test convert(UInt8, v2) === 0x02
+    @test convert(UInt8, v3) === 0x03
+
+    @test convert(CategoricalValue, v1) === v1
+    @test convert(CategoricalValue{Int}, v1) === v1
+    @test convert(CategoricalValue{Int, CategoricalArrays.DefaultRefType}, v1) === v1
+    @test convert(Any, v1) === v1
 
     @test get(v1) === 1
     @test get(v2) === 2
