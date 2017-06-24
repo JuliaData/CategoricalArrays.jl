@@ -18,13 +18,14 @@ function buildinvindex{T, R}(index::Vector{T}, ::Type{R}=DefaultRefType)
     return invindex
 end
 
-function buildvalues!{T, R, V}(pool::CategoricalPool{T, R, V})
+function buildcaches!{T, R, V}(pool::CategoricalPool{T, R, V})
     n = length(levels(pool))
     resize!(pool.valindex, n)
+    resize!(pool.hashindex, n)
     for i in 1:n
         pool.valindex[i] = V(i, pool)
+        pool.hashindex[i] = hash(pool.index[i])
     end
-    return pool.valindex
 end
 
 function buildorder!{S, R <: Integer}(order::Array{R},
