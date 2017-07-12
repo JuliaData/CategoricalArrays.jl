@@ -123,6 +123,20 @@ NullableCategoricalMatrix{T}(A::AbstractMatrix{T},
     end
 end
 
+@inline NullableArrays.unsafe_getvalue_notnull(A::NullableCategoricalArray, I...) =
+    getindex(A.pool, getindex(A.refs, I...))
+
+@inline function NullableArrays.unsafe_getindex_notnull(A::NullableCategoricalArray, I::Real...)
+    @boundscheck checkbounds(A, I...)
+    @inbounds r = A.refs[I...]
+
+    if isa(r, Array)
+        @inbounds return ordered!(arraytype(A)(r, deepcopy(A.pool)), isordered(A))
+    else
+        @inbounds return Nullable{eltype(eltype(A))}(A.pool[r])
+    end
+end
+
 @inline function setindex!(A::NullableCategoricalArray, v::Nullable, I::Real...)
     @boundscheck checkbounds(A, I...)
     if isnull(v)
@@ -131,6 +145,10 @@ end
         @inbounds A[I...] = get(v)
     end
 end
+
+@inline Base.isnull(A::NullableCategoricalArray, inds...) = getindex(A.refs, inds...) .== zero(reftype(A))
+
+reftype{T,N,R}(x::AbstractNullableCategoricalArray{T,N,R}) = R
 
 levels!(A::NullableCategoricalArray, newlevels::Vector; nullok=false) = _levels!(A, newlevels, nullok=nullok)
 
