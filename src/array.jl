@@ -20,6 +20,10 @@ function reftype(sz::Int)
     end
 end
 
+unwrap_catvalue_type{T}(::Type{<: CategoricalValue{T}}) = T
+unwrap_catvalue_type{T, V <: CategoricalValue{T}}(::Type{Union{V, Null}}) = Union{T, Null}
+unwrap_catvalue_type{T}(::Type{T}) = T
+
 """
     CategoricalArray{T}(dims::Dims; ordered::Bool=false)
     CategoricalArray{T}(dims::Int...; ordered::Bool=false)
@@ -170,9 +174,10 @@ CategoricalMatrix(m::Int, n::Int; ordered=false) = CategoricalArray(m, n, ordere
 # so that ordered!() does not affect the original array
 function (::Type{CategoricalArray{T, N, R}}){S, T, N, Q, R}(A::CategoricalArray{S, N, Q};
                                                             ordered=_isordered(A))
-    res = convert(CategoricalArray{T, N, R}, A)
+    U = unwrap_catvalue_type(T)
+    res = convert(CategoricalArray{U, N, R}, A)
     if res.pool === A.pool # convert() only makes a copy when necessary
-        res = CategoricalArray{T, N, R}(res.refs, deepcopy(res.pool))
+        res = CategoricalArray{U, N, R}(res.refs, deepcopy(res.pool))
     end
     ordered!(res, ordered)
 end
@@ -281,9 +286,9 @@ function convert{S, T, N, R}(::Type{CategoricalArray{T, N, R}}, A::CategoricalAr
         S >: Null && any(iszero, A.refs) && throw(NullException())
     end
 
-    pool = convert(CategoricalPool{U, R}, A.pool)
+    pool = convert(CategoricalPool{unwrap_catvalue_type(U), R}, A.pool)
     refs = convert(Array{R, N}, A.refs)
-    CategoricalArray{T, N, R}(refs, pool)
+    CategoricalArray{unwrap_catvalue_type(T), N, R}(refs, pool)
 end
 convert{S, T, N, R}(::Type{CategoricalArray{T, N}}, A::CategoricalArray{S, N, R}) =
     convert(CategoricalArray{T, N, R}, A)
