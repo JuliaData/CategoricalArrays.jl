@@ -1,4 +1,4 @@
-function buildindex{S, R <: Integer}(invindex::Dict{S, R})
+function buildindex(invindex::Dict{S, R}) where {S, R <: Integer}
     index = Vector{S}(length(invindex))
     for (v, i) in invindex
         index[i] = v
@@ -6,7 +6,7 @@ function buildindex{S, R <: Integer}(invindex::Dict{S, R})
     return index
 end
 
-function buildinvindex{T, R}(index::Vector{T}, ::Type{R}=DefaultRefType)
+function buildinvindex(index::Vector{T}, ::Type{R}=DefaultRefType) where {T, R}
     if length(index) > typemax(R)
         throw(LevelsException{T, R}(index[typemax(R)+1:end]))
     end
@@ -18,7 +18,7 @@ function buildinvindex{T, R}(index::Vector{T}, ::Type{R}=DefaultRefType)
     return invindex
 end
 
-function buildvalues!{T, R, V}(pool::CategoricalPool{T, R, V})
+function buildvalues!(pool::CategoricalPool{T, R, V}) where {T, R, V}
     n = length(levels(pool))
     resize!(pool.valindex, n)
     for i in 1:n
@@ -27,16 +27,16 @@ function buildvalues!{T, R, V}(pool::CategoricalPool{T, R, V})
     return pool.valindex
 end
 
-function buildorder!{S, R <: Integer}(order::Array{R},
-                                      invindex::Dict{S, R},
-                                      levels::Vector{S})
+function buildorder!(order::Array{R},
+                     invindex::Dict{S, R},
+                     levels::Vector{S}) where {S, R <: Integer}
     for (i, v) in enumerate(levels)
         order[invindex[convert(S, v)]] = i
     end
     return order
 end
 
-function buildorder{S, R <: Integer}(invindex::Dict{S, R}, levels::Vector)
+function buildorder(invindex::Dict{S, R}, levels::Vector) where {S, R <: Integer}
     order = Vector{R}(length(invindex))
     return buildorder!(order, invindex, levels)
 end

@@ -11,9 +11,9 @@ module TestRecode
     # (since for CategoricalVectors possible bugs can happen when working in-place)
 
     # Recoding from Int to Int
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
         @test y === z
         @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -24,9 +24,9 @@ module TestRecode
     end
 
     # Recoding from Int to Int with duplicate recoded values
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, 1=>100, 2:4=>100, [5; 9:10]=>-1)
         @test y === z
         @test y == [100, 100, 100, 100, -1, 6, 7, 8, -1, -1]
@@ -37,9 +37,9 @@ module TestRecode
     end
 
     # Recoding from Int to Int with unused level
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1, 100=>1)
         @test y === z
         @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -50,9 +50,9 @@ module TestRecode
     end
 
     # Recoding from Int to Int with duplicate default
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, 100, 1=>100, 2:4=>100, [5; 9:10]=>-1)
         @test y === z
         @test y == [100, 100, 100, 100, -1, 100, 100, 100, -1, -1]
@@ -63,9 +63,9 @@ module TestRecode
     end
 
     # Recoding from Int to Int, with default
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, -10, 1=>100, 2:4=>0, [5; 9:10]=>-1)
         @test y === z
         @test y == [100, 0, 0, 0, -1, -10, -10, -10, -1, -1]
@@ -76,9 +76,9 @@ module TestRecode
     end
 
     # Recoding from Int to Int, with a first value being Float64
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, 1.0=>100, 2:4=>0, [5; 9:10]=>-1)
         @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
         if isa(y, CategoricalArray)
@@ -88,9 +88,9 @@ module TestRecode
     end
 
     # Recoding from Int to Int with overlapping pairs
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1, 1:10=>0)
         @test y === z
         @test y == [100, 0, 0, 0, -1, 0, 0, 0, -1, -1]
@@ -101,9 +101,9 @@ module TestRecode
     end
 
     # Recoding from Int to Int, with changes to levels order
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10)),
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10)),
         y in (similar(x), Array{Int}(size(x)),
-              CategoricalArray{Int}(size(x)), CategoricalArray{?Int}(size(x)), x)
+              CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)), x)
         z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
         @test y === z
         @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -124,8 +124,8 @@ module TestRecode
 
     # Recoding nullable array with null value and default
     for x in (["a", null, "c", "d"], CategoricalArray(["a", null, "c", "d"])),
-        y in (similar(x), Array{?String}(size(x)),
-              CategoricalArray{?String}(size(x)), x)
+        y in (similar(x), Array{Union{String, Null}}(size(x)),
+              CategoricalArray{Union{String, Null}}(size(x)), x)
         z = @inferred recode!(y, x, "a", "c"=>"b")
         @test y === z
         @test y == ["a", null, "b", "a"]
@@ -137,8 +137,8 @@ module TestRecode
 
     # Recoding nullable array with null value and no default
     for x in (["a", null, "c", "d"], CategoricalArray(["a", null, "c", "d"])),
-        y in (similar(x), Array{?String}(size(x)),
-              CategoricalArray{?String}(size(x)), x)
+        y in (similar(x), Array{Union{String, Null}}(size(x)),
+              CategoricalArray{Union{String, Null}}(size(x)), x)
         z = @inferred recode!(y, x, "c"=>"b")
         @test y === z
         @test y == ["a", null, "b", "d"]
@@ -150,8 +150,8 @@ module TestRecode
 
     # Recoding nullable array with null value, no default and with null as a key pair
     for x in (["a", null, "c", "d"], CategoricalArray(["a", null, "c", "d"])),
-        y in (similar(x), Array{?String}(size(x)),
-              CategoricalArray{?String}(size(x)), x)
+        y in (similar(x), Array{Union{String, Null}}(size(x)),
+              CategoricalArray{Union{String, Null}}(size(x)), x)
         z = @inferred recode!(y, x, "a", "c"=>"b", null=>"d")
         @test y === z
         @test y == ["a", "d", "b", "a"]
@@ -163,8 +163,8 @@ module TestRecode
 
     # Recoding nullable array with null value, no default and with null as a key pair
     for x in (["a", null, "c", "d"], CategoricalArray(["a", null, "c", "d"])),
-        y in (similar(x), Array{?String}(size(x)),
-              CategoricalArray{?String}(size(x)), x)
+        y in (similar(x), Array{Union{String, Null}}(size(x)),
+              CategoricalArray{Union{String, Null}}(size(x)), x)
         z = @inferred recode!(y, x, "c"=>"b", null=>"d")
         @test y === z
         @test y == ["a", "d", "b", "d"]
@@ -176,8 +176,8 @@ module TestRecode
 
     # Recoding into array with incompatible size
     for x in (["a", null, "c", "d"], CategoricalArray(["a", null, "c", "d"])),
-        y in (similar(x, 0), Array{?String}(0),
-              CategoricalArray{?String}(0))
+        y in (similar(x, 0), Array{Union{String, Null}}(0),
+              CategoricalArray{Union{String, Null}}(0))
         @test_throws DimensionMismatch recode!(y, x, "c"=>"b", null=>"d")
     end
 
@@ -186,8 +186,8 @@ module TestRecode
         y in (similar(x, String), Array{String}(size(x)), CategoricalArray{String}(size(x)))
         @test_throws ArgumentError recode!(y, x, 1=>"a", 2:4=>"b", [5; 9:10]=>"c")
     end
-    for x in ((?Int)[1:10;], CategoricalArray{?Int}(1:10)),
-        y in (similar(x), Array{?Int}(size(x)), CategoricalArray{?Int}(size(x)))
+    for x in ((Union{Int, Null})[1:10;], CategoricalArray{Union{Int, Null}}(1:10)),
+        y in (similar(x), Array{Union{Int, Null}}(size(x)), CategoricalArray{Union{Int, Null}}(size(x)))
         res = @test_throws MethodError recode!(y, x, 1=>"a", 2:4=>"b", [5; 9:10]=>"c")
     end
 
@@ -195,7 +195,7 @@ module TestRecode
     ## Test in-place recode!()
 
     # Recoding from Int to Int without default
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10))
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10))
         z = @inferred recode!(x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
         @test x === z
         @test x == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -206,7 +206,7 @@ module TestRecode
     end
 
     # Recoding from Int to Int with default
-    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10))
+    for x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10))
         z = @inferred recode!(x, 1, 1=>100, 2:4=>0, [5; 9:10]=>-1)
         @test x === z
         @test x == [100, 0, 0, 0, -1, 1, 1, 1, -1, -1]
@@ -219,7 +219,7 @@ module TestRecode
 
     ## Test recode() promotion
 
-    for x in (1:10, [1:10;], CategoricalArray(1:10), CategoricalArray{?Int}(1:10))
+    for x in (1:10, [1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Null}}(1:10))
         T = eltype(x) >: Null ? Null : Union{}
 
         # Recoding from Int to Float64 due to a second value being Float64
@@ -298,26 +298,26 @@ module TestRecode
             "This will happen with recode() when not all original levels are recoded " *
             "(i.e. some are preserved) and their type is incompatible with that of recoded levels."
 
-        # Recoding from Int to ?Int with null default
+        # Recoding from Int to Union{Int, Null} with null default
         y = @inferred recode(x, null, 1=>100, 2:4=>0, [5; 9:10]=>-1)
         @test y == [100, 0, 0, 0, -1, null, null, null, -1, -1]
         if isa(x, CategoricalArray)
-            @test isa(y, CategoricalVector{?Int, DefaultRefType})
+            @test isa(y, CategoricalVector{Union{Int, Null}, DefaultRefType})
             @test levels(y) == [100, 0, -1]
             @test !isordered(y)
         else
-            @test typeof(y) === Vector{?Int}
+            @test typeof(y) === Vector{Union{Int, Null}}
         end
 
-        # Recoding from Int to ?Int with null RHS
+        # Recoding from Int to Union{Int, Null} with null RHS
         y = @inferred recode(x, 1=>null, 2:4=>0, [5; 9:10]=>-1)
         @test y == [null, 0, 0, 0, -1, 6, 7, 8, -1, -1]
         if isa(x, CategoricalArray)
-            @test isa(y, CategoricalVector{?Int, DefaultRefType})
+            @test isa(y, CategoricalVector{Union{Int, Null}, DefaultRefType})
             @test levels(y) == [6, 7, 8, 0, -1]
             @test !isordered(y)
         else
-            @test typeof(y) === Vector{?Int}
+            @test typeof(y) === Vector{Union{Int, Null}}
         end
     end
 
@@ -434,20 +434,20 @@ module TestRecode
     @test !isordered(y)
 
     # Recoding nullable CategoricalArray with null values and no default
-    x = CategoricalArray{?String}(["a", "b", "c", "d"])
+    x = CategoricalArray{Union{String, Null}}(["a", "b", "c", "d"])
     x[2] = null
     y = @inferred recode(x, "c"=>"b")
     @test y == ["a", null, "b", "d"]
-    @test isa(y, CategoricalVector{?String, DefaultRefType})
+    @test isa(y, CategoricalVector{Union{String, Null}, DefaultRefType})
     @test levels(y) == ["a", "b", "d"]
     @test !isordered(y)
 
     # Recoding nullable CategoricalArray with null values and non-null default
-    x = CategoricalArray{?String}(["a", "b", "c", "d"])
+    x = CategoricalArray{Union{String, Null}}(["a", "b", "c", "d"])
     x[2] = null
     y = @inferred recode(x, "a", "c"=>"b")
     @test y == ["a", null, "b", "a"]
-    @test isa(y, CategoricalVector{?String, DefaultRefType})
+    @test isa(y, CategoricalVector{Union{String, Null}, DefaultRefType})
     @test levels(y) == ["b", "a"]
     @test !isordered(y)
 end

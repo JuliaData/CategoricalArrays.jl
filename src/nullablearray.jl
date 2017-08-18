@@ -4,42 +4,42 @@ using Nulls
 ## Constructors and converters
 ## (special methods for AbstractArray{Union{T, Null}}, to avoid wrapping nulls inside CategoricalValues)
 
-(::Type{CategoricalArray{Union{T, Null}, N, R}}){T, N, R}(dims::NTuple{N,Int}; ordered=false) =
-    CategoricalArray{?T, N, R}(zeros(R, dims), CategoricalPool{T, R}(ordered))
+CategoricalArray{Union{T, Null}, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R} =
+    CategoricalArray{Union{T, Null}, N, R}(zeros(R, dims), CategoricalPool{T, R}(ordered))
 
-(::Type{CategoricalArray{Union{CategoricalValue{T, R}, Null}, N, R}}){T, N, R}(dims::NTuple{N,Int};
-                                                                               ordered=false) =
-    CategoricalArray{?T, N, R}(dims; ordered=ordered)
-(::Type{CategoricalArray{Union{CategoricalValue{T}, Null}, N, R}}){T, N, R}(dims::NTuple{N,Int};
-                                                                            ordered=false) =
-    CategoricalArray{?T, N, R}(dims; ordered=ordered)
-(::Type{CategoricalArray{Union{CategoricalValue{T, R}, Null}, N}}){T, N, R}(dims::NTuple{N,Int};
-                                                                            ordered=false) =
-    CategoricalArray{?T, N, R}(dims; ordered=ordered)
-(::Type{CategoricalArray{Union{CategoricalValue{T}, Null}, N}}){T, N}(dims::NTuple{N,Int};
-                                                                      ordered=false) =
-    CategoricalArray{?T, N}(dims; ordered=ordered)
-# (::Type{CategoricalArray{Union{CategoricalValue, Null}, N}}){N}(dims::NTuple{N,Int};
+CategoricalArray{Union{CategoricalValue{T, R}, Null}, N, R}(dims::NTuple{N,Int};
+                                                                      ordered=false) where {T, N, R} =
+    CategoricalArray{Union{T, Null}, N, R}(dims; ordered=ordered)
+CategoricalArray{Union{CategoricalValue{T}, Null}, N, R}(dims::NTuple{N,Int};
+                                                                   ordered=false) where {T, N, R} =
+    CategoricalArray{Union{T, Null}, N, R}(dims; ordered=ordered)
+CategoricalArray{Union{CategoricalValue{T, R}, Null}, N}(dims::NTuple{N,Int};
+                                                                   ordered=false) where {T, N, R} =
+    CategoricalArray{Union{T, Null}, N, R}(dims; ordered=ordered)
+CategoricalArray{Union{CategoricalValue{T}, Null}, N}(dims::NTuple{N,Int};
+                                                                ordered=false) where {T, N} =
+    CategoricalArray{Union{T, Null}, N}(dims; ordered=ordered)
+# CategoricalArray{Union{CategoricalValue, Null}, N}}){N}(dims::NTuple{N,Int};
 #                                                                 ordered=false) =
-#     CategoricalArray{?String, N}(dims; ordered=ordered)
-# (::Type{CategoricalArray{Union{CategoricalValue, Null}}}){N}(dims::NTuple{N,Int};
+#     CategoricalArray{Union{String, Null}, N}(dims; ordered=ordered)
+# CategoricalArray{Union{CategoricalValue, Null}}}){N}(dims::NTuple{N,Int};
 #                                                              ordered=false) =
-#     CategoricalArray{?String, N}(dims; ordered=ordered)
+#     CategoricalArray{Union{String, Null}, N}(dims; ordered=ordered)
 
-(::Type{CategoricalVector{Union{T, Null}}}){T}(m::Int; ordered=false) =
-    CategoricalArray{?T}((m,); ordered=ordered)
-(::Type{CategoricalMatrix{Union{T, Null}}}){T}(m::Int, n::Int; ordered=false) =
-    CategoricalArray{?T}((m, n); ordered=ordered)
+CategoricalVector{T}(m::Int; ordered=false) where {T>:Null} =
+    CategoricalArray{T}((m,); ordered=ordered)
+CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T>:Null} =
+    CategoricalArray{T}((m, n); ordered=ordered)
 
-(::Type{CategoricalArray}){T}(A::AbstractArray{Union{T, Null}}; ordered=_isordered(A)) =
-    CategoricalArray{?T}(A, ordered=ordered)
-(::Type{CategoricalVector}){T}(A::AbstractVector{Union{T, Null}}; ordered=_isordered(A)) =
-    CategoricalVector{?T}(A, ordered=ordered)
-(::Type{CategoricalMatrix}){T}(A::AbstractMatrix{Union{T, Null}}; ordered=_isordered(A)) =
-    CategoricalMatrix{?T}(A, ordered=ordered)
+CategoricalArray(A::AbstractArray{T}; ordered=_isordered(A)) where {T>:Null} =
+    CategoricalArray{T}(A, ordered=ordered)
+CategoricalVector(A::AbstractVector{T}; ordered=_isordered(A)) where {T>:Null} =
+    CategoricalVector{T}(A, ordered=ordered)
+CategoricalMatrix(A::AbstractMatrix{T}; ordered=_isordered(A)) where {T>:Null} =
+    CategoricalMatrix{T}(A, ordered=ordered)
 
-function convert{S, T, N, R}(::Type{CategoricalArray{Union{T, Null}, N, R}}, A::AbstractArray{S, N})
-    res = CategoricalArray{?T, N, R}(size(A))
+function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T>:Null, N, R}
+    res = CategoricalArray{T, N, R}(size(A))
     copy!(res, A)
 
     if method_exists(isless, Tuple{Nulls.T(T), Nulls.T(T)})
@@ -49,7 +49,7 @@ function convert{S, T, N, R}(::Type{CategoricalArray{Union{T, Null}, N, R}}, A::
     res
 end
 
-@inline function getindex{T>:Null}(A::CategoricalArray{T}, I...)
+@inline function getindex(A::CategoricalArray{T}, I...) where {T>:Null}
     @boundscheck checkbounds(A, I...)
     # Let Array indexing code handle everything
     @inbounds r = A.refs[I...]
@@ -72,4 +72,4 @@ end
 end
 
 in(x::Null, y::CategoricalArray) = false
-in(x::Null, y::CategoricalArray{<:Null}) = !all(v -> v > 0, y.refs)
+in(x::Null, y::CategoricalArray{>:Null}) = !all(v -> v > 0, y.refs)
