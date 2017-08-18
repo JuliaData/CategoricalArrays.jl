@@ -1,6 +1,5 @@
 module TestShow
     using Base.Test
-    using Compat
     using CategoricalArrays
 
     pool = CategoricalPool(["c", "b", "a"])

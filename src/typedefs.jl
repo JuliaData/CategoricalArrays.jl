@@ -7,7 +7,7 @@ using Nulls
 # V is always set to CategoricalValue{T}
 # This workaround is needed since this type not defined yet
 # See JuliaLang/julia#269
-type CategoricalPool{T, R <: Integer, V}
+mutable struct CategoricalPool{T, R <: Integer, V}
     index::Vector{T}
     invindex::Dict{T, R}
     order::Vector{R}
@@ -25,13 +25,13 @@ type CategoricalPool{T, R <: Integer, V}
     end
 end
 
-immutable LevelsException{T, R} <: Exception
+struct LevelsException{T, R} <: Exception
     levels::Vector{T}
 end
 
 ## Values
 
-immutable CategoricalValue{T, R <: Integer}
+struct CategoricalValue{T, R <: Integer}
     level::R
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
@@ -42,7 +42,7 @@ end
 @compat AbstractCategoricalVector{T, R, V, U} = AbstractCategoricalArray{T, 1, R, V, U}
 @compat AbstractCategoricalMatrix{T, R, V, U} = AbstractCategoricalArray{T, 2, R, V, U}
 
-immutable CategoricalArray{T, N, R <: Integer, V, U} <: AbstractCategoricalArray{T, N, R, V, U}
+struct CategoricalArray{T, N, R <: Integer, V, U} <: AbstractCategoricalArray{T, N, R, V, U}
     refs::Array{R, N}
     pool::CategoricalPool{V, R, CategoricalValue{V, R}}
 

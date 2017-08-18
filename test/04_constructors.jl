@@ -2,7 +2,6 @@ module TestConstructors
     using Base.Test
     using CategoricalArrays
     using CategoricalArrays: DefaultRefType
-    using Compat
 
     pool = CategoricalPool{String}()
 

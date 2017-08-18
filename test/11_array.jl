@@ -3,7 +3,6 @@ module TestArray
 using Base.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
-using Compat
 
 for ordered in (false, true)
     for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
