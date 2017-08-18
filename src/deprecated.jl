@@ -3,9 +3,9 @@
 @deprecate compact compress
 @deprecate uncompact decompress
 
-@deprecate CategoricalArray{T, N}(::Type{T}, dims::NTuple{N,Int}; ordered=false) CategoricalArray{T}(dims, ordered=ordered)
-@deprecate CategoricalArray{T}(::Type{T}, dims::Int...; ordered=false) CategoricalArray{T}(dims, ordered=ordered)
+@deprecate CategoricalArray(::Type{T}, dims::NTuple{N,Int}; ordered=false) where {T, N} CategoricalArray{T}(dims, ordered=ordered)
+@deprecate CategoricalArray(::Type{T}, dims::Int...; ordered=false) where {T} CategoricalArray{T}(dims, ordered=ordered)
 
-@deprecate CategoricalVector{T}(::Type{T}, m::Integer; ordered=false) CategoricalVector{T}(m, ordered=ordered)
+@deprecate CategoricalVector(::Type{T}, m::Integer; ordered=false) where {T} CategoricalVector{T}(m, ordered=ordered)
 
-@deprecate CategoricalMatrix{T}(::Type{T}, m::Int, n::Int; ordered=false) CategoricalMatrix{T}(m, n, ordered=ordered)
+@deprecate CategoricalMatrix(::Type{T}, m::Int, n::Int; ordered=false) where {T} CategoricalMatrix{T}(m, n, ordered=ordered)

@@ -1,18 +1,18 @@
-function CategoricalPool{S, T <: Integer, R <: Integer}(index::Vector{S},
-                                           invindex::Dict{S, T},
-                                           order::Vector{R},
-                                           ordered::Bool=false)
+function CategoricalPool(index::Vector{S},
+                         invindex::Dict{S, T},
+                         order::Vector{R},
+                         ordered::Bool=false) where {S, T <: Integer, R <: Integer}
     invindex = convert(Dict{S, R}, invindex)
     CategoricalPool{S, R, CategoricalValue{S, R}}(index, invindex, order, ordered)
 end
 
-@compat (::Type{CategoricalPool{T, R}}){T, R}(ordered::Bool=false) =
+@compat (::Type{CategoricalPool{T, R}})(ordered::Bool=false) where {T, R} =
     CategoricalPool(T[], Dict{T, R}(), R[], ordered)
-@compat (::Type{CategoricalPool{T}}){T}(ordered::Bool=false) =
+@compat (::Type{CategoricalPool{T}})(ordered::Bool=false) where {T} =
     CategoricalPool(T[], Dict{T, DefaultRefType}(), DefaultRefType[], ordered)
 
-@compat function (::Type{CategoricalPool{T, R}}){T, R}(index::Vector,
-                                                       ordered::Bool=false)
+@compat function (::Type{CategoricalPool{T, R}})(index::Vector,
+                                                 ordered::Bool=false) where {T, R}
     invindex = buildinvindex(index, R)
     order = Vector{R}(1:length(index))
     CategoricalPool(index, invindex, order, ordered)
@@ -24,45 +24,45 @@ function CategoricalPool(index::Vector, ordered::Bool=false)
     return CategoricalPool(index, invindex, order, ordered)
 end
 
-function CategoricalPool{S, R <: Integer}(invindex::Dict{S, R},
-                                          ordered::Bool=false)
+function CategoricalPool(invindex::Dict{S, R},
+                         ordered::Bool=false) where {S, R <: Integer}
     index = buildindex(invindex)
     order = Vector{DefaultRefType}(1:length(index))
     return CategoricalPool(index, invindex, order, ordered)
 end
 
 # TODO: Add tests for this
-function CategoricalPool{S, R <: Integer}(index::Vector{S},
-                                          invindex::Dict{S, R},
-                                          ordered::Bool=false)
+function CategoricalPool(index::Vector{S},
+                         invindex::Dict{S, R},
+                         ordered::Bool=false) where {S, R <: Integer}
     order = Vector{DefaultRefType}(1:length(index))
     return CategoricalPool(index, invindex, order, ordered)
 end
 
-function CategoricalPool{T}(index::Vector{T},
-                            levels::Vector{T},
-                            ordered::Bool=false)
+function CategoricalPool(index::Vector{T},
+                         levels::Vector{T},
+                         ordered::Bool=false) where {T}
     invindex = buildinvindex(index)
     order = buildorder(invindex, levels)
     return CategoricalPool(index, invindex, order, ordered)
 end
 
-function CategoricalPool{S, R <: Integer}(invindex::Dict{S, R},
-                                          levels::Vector{S},
-                                          ordered::Bool=false)
+function CategoricalPool(invindex::Dict{S, R},
+                         levels::Vector{S},
+                         ordered::Bool=false) where {S, R <: Integer}
     index = buildindex(invindex)
     order = buildorder(invindex, levels)
     return CategoricalPool(index, invindex, order, ordered)
 end
 
 Base.convert(::Type{CategoricalPool}, pool::CategoricalPool) = pool
-Base.convert{T}(::Type{CategoricalPool{T}}, pool::CategoricalPool{T}) = pool
-Base.convert{T, R <: Integer}(::Type{CategoricalPool{T, R}}, pool::CategoricalPool{T, R}) = pool
+Base.convert(::Type{CategoricalPool{T}}, pool::CategoricalPool{T}) where {T} = pool
+Base.convert(::Type{CategoricalPool{T, R}}, pool::CategoricalPool{T, R}) where {T, R <: Integer} = pool
 
-Base.convert{S, T, R <: Integer}(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) =
+Base.convert(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) where {S, T, R <: Integer} =
     convert(CategoricalPool{S, R}, pool)
 
-function Base.convert{S, R <: Integer}(::Type{CategoricalPool{S, R}}, pool::CategoricalPool)
+function Base.convert(::Type{CategoricalPool{S, R}}, pool::CategoricalPool) where {S, R <: Integer}
     if length(levels(pool)) > typemax(R)
         throw(LevelsException{S, R}(levels(pool)[typemax(R)+1:end]))
     end
@@ -73,7 +73,7 @@ function Base.convert{S, R <: Integer}(::Type{CategoricalPool{S, R}}, pool::Cate
     return CategoricalPool(indexS, invindexS, order, pool.ordered)
 end
 
-function Base.show{T, R}(io::IO, pool::CategoricalPool{T, R})
+function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
     @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
                 join(map(repr, levels(pool)), ","))
 
@@ -86,7 +86,7 @@ Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
-function Base.get!{T, R, V}(pool::CategoricalPool{T, R, V}, level)
+function Base.get!(pool::CategoricalPool{T, R, V}, level) where {T, R, V}
     get!(pool.invindex, level) do
         x = convert(T, level)
         n = length(pool)
@@ -113,7 +113,7 @@ function Base.append!(pool::CategoricalPool, levels)
     return pool
 end
 
-function Base.delete!{S, R, V}(pool::CategoricalPool{S, R, V}, levels...)
+function Base.delete!(pool::CategoricalPool{S, R, V}, levels...) where {S, R, V}
     for level in levels
         levelS = convert(S, level)
         if haskey(pool.invindex, levelS)
@@ -135,7 +135,7 @@ function Base.delete!{S, R, V}(pool::CategoricalPool{S, R, V}, levels...)
     return pool
 end
 
-function levels!{S, R, V}(pool::CategoricalPool{S, R, V}, newlevels::Vector)
+function levels!(pool::CategoricalPool{S, R, V}, newlevels::Vector) where {S, R, V}
     levs = convert(Vector{S}, newlevels)
     if !allunique(levs)
         throw(ArgumentError(string("duplicated levels found in levs: ",
@@ -181,7 +181,7 @@ ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
 
 
 # LevelsException
-function Base.showerror{T, R}(io::IO, err::LevelsException{T, R})
+function Base.showerror(io::IO, err::LevelsException{T, R}) where {T, R}
     levs = join(repr.(err.levels), ", ", " and ")
     print(io, "cannot store level(s) $levs since reference type $R can only hold $(typemax(R)) levels. Use the decompress function to make room for more levels.")
 end

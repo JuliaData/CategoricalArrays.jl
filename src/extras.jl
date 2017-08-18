@@ -58,9 +58,9 @@ If `x` is nullable (i.e. `eltype(x) >: Null`), a nullable `CategoricalArray` is 
 * `nullok::Bool=true`: when `true`, values outside of breaks result in null values.
   only supported when `x` is nullable.
 """
-function cut{T, N, U<:AbstractString}(x::AbstractArray{T, N}, breaks::AbstractVector;
+function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
                                       extend::Bool=false, labels::AbstractVector{U}=String[],
-                                      nullok::Bool=false)
+                                      nullok::Bool=false) where {T, N, U<:AbstractString}
     if !issorted(breaks)
         breaks = sort(breaks)
     end
@@ -108,7 +108,7 @@ function cut{T, N, U<:AbstractString}(x::AbstractArray{T, N}, breaks::AbstractVe
     end
 
     pool = CategoricalPool(levs, true)
-    S = T >: Null ? ?String : String
+    S = T >: Null ? Union{String, Null} : String
     CategoricalArray{S, N, DefaultRefType}(refs, pool)
 end
 
@@ -119,6 +119,6 @@ end
 Cut a numeric array into `ngroups` quantiles, determined using
 [`quantile`](@ref).
 """
-cut{U<:AbstractString}(x::AbstractArray, ngroups::Integer;
-                       labels::AbstractVector{U}=String[]) =
+cut(x::AbstractArray, ngroups::Integer;
+                       labels::AbstractVector{U}=String[]) where {U<:AbstractString} =
     cut(x, quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)

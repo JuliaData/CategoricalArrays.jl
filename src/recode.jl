@@ -24,7 +24,7 @@ function recode! end
 recode!(dest::AbstractArray, src::AbstractArray, pairs::Pair...) =
     recode!(dest, src, nothing, pairs...)
 
-function recode!{T}(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...)
+function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
@@ -63,7 +63,7 @@ function recode!{T}(dest::AbstractArray{T}, src::AbstractArray, default::Any, pa
     dest
 end
 
-function recode!{T}(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pairs::Pair...)
+function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
@@ -123,7 +123,7 @@ function recode!{T}(dest::CategoricalArray{T}, src::AbstractArray, default::Any,
     dest
 end
 
-function recode!{T}(dest::CategoricalArray{T}, src::CategoricalArray, default::Any, pairs::Pair...)
+function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any, pairs::Pair...) where {T}
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
@@ -239,11 +239,11 @@ julia> x
 recode!(a::AbstractArray, default::Any, pairs::Pair...) = recode!(a, a, default, pairs...)
 recode!(a::AbstractArray, pairs::Pair...) = recode!(a, a, nothing, pairs...)
 
-promote_valuetype{K, V}(x::Pair{K, V}) = V
-promote_valuetype{K, V}(x::Pair{K, V}, y::Pair...) = promote_type(V, promote_valuetype(y...))
+promote_valuetype(x::Pair{K, V}) where {K, V} = V
+promote_valuetype(x::Pair{K, V}, y::Pair...) where {K, V} = promote_type(V, promote_valuetype(y...))
 
-keytype_hasnull{K}(x::Pair{K}) = K === Null
-keytype_hasnull{K}(x::Pair{K}, y::Pair...) = K === Null || keytype_hasnull(y...)
+keytype_hasnull(x::Pair{K}) where {K} = K === Null
+keytype_hasnull(x::Pair{K}, y::Pair...) where {K} = K === Null || keytype_hasnull(y...)
 
 """
     recode(a::AbstractArray[, default::Any], pairs::Pair...)
@@ -315,14 +315,14 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     # Exception: if original array was nullable and null does not appear
     # in one of the pairs' LHS, result must be nullable
     if T >: Null || default === null || (eltype(a) >: Null && !keytype_hasnull(pairs...))
-        dest = Array{?T}(size(a))
+        dest = Array{Union{T, Null}}(size(a))
     else
         dest = Array{Nulls.T(T)}(size(a))
     end
     recode!(dest, a, default, pairs...)
 end
 
-function recode{S, N, R}(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...)
+function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) where {S, N, R}
     V = promote_valuetype(pairs...)
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
@@ -331,7 +331,7 @@ function recode{S, N, R}(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair
     # Exception: if original array was nullable and null does not appear
     # in one of the pairs' LHS, result must be nullable
     if T >: Null || default === null || (eltype(a) >: Null && !keytype_hasnull(pairs...))
-        dest = CategoricalArray{?T, N, R}(size(a))
+        dest = CategoricalArray{Union{T, Null}, N, R}(size(a))
     else
         dest = CategoricalArray{Nulls.T(T), N, R}(size(a))
     end
