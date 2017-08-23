@@ -4,58 +4,61 @@ using Base.Test
 using Nulls
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
-using Compat
 
 for ordered in (false, true)
     for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         # Vector with no null values
         for a in (["b", "a", "b"],
                   Union{String, Null}["b", "a", "b"])
-            x = CategoricalVector{?String, R}(a, ordered=ordered)
+            x = CategoricalVector{Union{String, Null}, R}(a, ordered=ordered)
 
             @test x == a
             @test isordered(x) === ordered
-            @test levels(x) == sort(unique(a))
+            if ordered
+                @test levels(x) == sort(unique(a))
+            else
+                @test levels(x) == unique(a)
+            end
             @test size(x) === (3,)
             @test length(x) === 3
 
             @test convert(CategoricalArray, x) === x
-            @test convert(CategoricalArray{?String}, x) === x
-            @test convert(CategoricalArray{?String, 1}, x) === x
-            @test convert(CategoricalArray{?String, 1, R}, x) === x
-            @test convert(CategoricalArray{?String, 1, DefaultRefType}, x) == x
-            @test convert(CategoricalArray{?String, 1, UInt8}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 1}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 1, R}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, x) == x
 
             @test convert(CategoricalVector, x) === x
-            @test convert(CategoricalVector{?String}, x) === x
-            @test convert(CategoricalVector{?String, R}, x) === x
-            @test convert(CategoricalVector{?String, DefaultRefType}, x) == x
-            @test convert(CategoricalVector{?String, UInt8}, x) == x
+            @test convert(CategoricalVector{Union{String, Null}}, x) === x
+            @test convert(CategoricalVector{Union{String, Null}, R}, x) === x
+            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, x) == x
+            @test convert(CategoricalVector{Union{String, Null}, UInt8}, x) == x
 
             @test convert(CategoricalArray, a) == x
-            @test convert(CategoricalArray{?String}, a) == x
-            @test convert(CategoricalArray{?String, 1}, a) == x
-            @test convert(CategoricalArray{?String, 1, R}, a) == x
-            @test convert(CategoricalArray{?String, 1, DefaultRefType}, a) == x
-            @test convert(CategoricalArray{?String, 1, UInt8}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, R}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, a) == x
 
             @test convert(CategoricalVector, a) == x
-            @test convert(CategoricalVector{?String}, a) == x
-            @test convert(CategoricalVector{?String, R}, a) == x
-            @test convert(CategoricalVector{?String, DefaultRefType}, a) == x
-            @test convert(CategoricalVector{?String, UInt8}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}, R}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}, UInt8}, a) == x
 
-            @test CategoricalArray{?String}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1, R}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1, UInt8}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1, R}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1, UInt8}(a, ordered=ordered) == x
 
             @test CategoricalVector(a, ordered=ordered) == x
-            @test CategoricalVector{?String}(a, ordered=ordered) == x
-            @test CategoricalVector{?String, R}(a, ordered=ordered) == x
-            @test CategoricalVector{?String, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalVector{?String, UInt8}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}, R}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}, UInt8}(a, ordered=ordered) == x
 
             for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
                                       (a, DefaultRefType, DefaultRefType, false),
@@ -64,7 +67,7 @@ for ordered in (false, true)
                 x2 = categorical(y, ordered=ordered)
                 @test x2 == y
                 if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{?String, R1})
+                    @test isa(x2, CategoricalVector{Union{String, Null}, R1})
                 else
                     @test isa(x2, CategoricalVector{String, R1})
                 end
@@ -73,7 +76,7 @@ for ordered in (false, true)
                 x2 = categorical(y, comp, ordered=ordered)
                 @test x2 == y
                 if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{?String, R2})
+                    @test isa(x2, CategoricalVector{Union{String, Null}, R2})
                 else
                     @test isa(x2, CategoricalVector{String, R2})
                 end
@@ -82,7 +85,7 @@ for ordered in (false, true)
 
             x2 = compress(x)
             @test x2 == x
-            @test isa(x2, CategoricalVector{?String, UInt8})
+            @test isa(x2, CategoricalVector{Union{String, Null}, UInt8})
             @test isordered(x2) === isordered(x)
             @test levels(x2) == levels(x)
 
@@ -221,7 +224,7 @@ for ordered in (false, true)
             @test length(x) == 14
 
             b = ["z","y","x"]
-            y = CategoricalVector{?String, R}(b)
+            y = CategoricalVector{Union{String, Null}, R}(b)
             append!(x, y)
             @test length(x) == 17
             @test isordered(x) === false
@@ -237,7 +240,7 @@ for ordered in (false, true)
 
         # Vector with null values
         let a = ["a", "b", null],
-            x = CategoricalVector{?String, R}(a, ordered=ordered)
+            x = CategoricalVector{Union{String, Null}, R}(a, ordered=ordered)
 
             @test x == a
             @test levels(x) == filter(x->!isnull(x), unique(a))
@@ -245,42 +248,42 @@ for ordered in (false, true)
             @test length(x) === 3
 
             @test convert(CategoricalArray, x) === x
-            @test convert(CategoricalArray{?String}, x) === x
-            @test convert(CategoricalArray{?String, 1}, x) === x
-            @test convert(CategoricalArray{?String, 1, R}, x) === x
-            @test convert(CategoricalArray{?String, 1, DefaultRefType}, x) == x
-            @test convert(CategoricalArray{?String, 1, UInt8}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 1}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 1, R}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, x) == x
 
             @test convert(CategoricalVector, x) === x
-            @test convert(CategoricalVector{?String}, x) === x
-            @test convert(CategoricalVector{?String, R}, x) === x
-            @test convert(CategoricalVector{?String, DefaultRefType}, x) == x
-            @test convert(CategoricalVector{?String, UInt8}, x) == x
+            @test convert(CategoricalVector{Union{String, Null}}, x) === x
+            @test convert(CategoricalVector{Union{String, Null}, R}, x) === x
+            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, x) == x
+            @test convert(CategoricalVector{Union{String, Null}, UInt8}, x) == x
 
             @test convert(CategoricalArray, a) == x
-            @test convert(CategoricalArray{?String}, a) == x
-            @test convert(CategoricalArray{?String, 1}, a) == x
-            @test convert(CategoricalArray{?String, 1, R}, a) == x
-            @test convert(CategoricalArray{?String, 1, DefaultRefType}, a) == x
-            @test convert(CategoricalArray{?String, 1, UInt8}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, R}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, a) == x
 
             @test convert(CategoricalVector, a) == x
-            @test convert(CategoricalVector{?String}, a) == x
-            @test convert(CategoricalVector{?String, R}, a) == x
-            @test convert(CategoricalVector{?String, DefaultRefType}, a) == x
-            @test convert(CategoricalVector{?String, UInt8}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}, R}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, a) == x
+            @test convert(CategoricalVector{Union{String, Null}, UInt8}, a) == x
 
-            @test CategoricalArray{?String}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1, R}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 1, UInt8}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1, R}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 1, UInt8}(a, ordered=ordered) == x
 
             @test CategoricalVector(a, ordered=ordered) == x
-            @test CategoricalVector{?String}(a, ordered=ordered) == x
-            @test CategoricalVector{?String, R}(a, ordered=ordered) == x
-            @test CategoricalVector{?String, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalVector{?String, UInt8}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}, R}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalVector{Union{String, Null}, UInt8}(a, ordered=ordered) == x
 
             for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
                                       (a, DefaultRefType, DefaultRefType, false),
@@ -289,7 +292,7 @@ for ordered in (false, true)
                 x2 = categorical(y, ordered=ordered)
                 @test x2 == y
                 if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{?String, R1})
+                    @test isa(x2, CategoricalVector{Union{String, Null}, R1})
                 else
                     @test isa(x2, CategoricalVector{String, R1})
                 end
@@ -298,7 +301,7 @@ for ordered in (false, true)
                 x2 = categorical(y, comp, ordered=ordered)
                 @test x2 == y
                 if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{?String, R2})
+                    @test isa(x2, CategoricalVector{Union{String, Null}, R2})
                 else
                     @test isa(x2, CategoricalVector{String, R2})
                 end
@@ -307,7 +310,7 @@ for ordered in (false, true)
 
             x2 = compress(x)
             @test x2 == x
-            @test isa(x2, CategoricalVector{?String, UInt8})
+            @test isa(x2, CategoricalVector{Union{String, Null}, UInt8})
             @test levels(x2) == levels(x)
 
             x2 = copy(x)
@@ -377,7 +380,7 @@ for ordered in (false, true)
         # Vector created from range (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
         a = 0.0:0.5:1.5
-        x = CategoricalVector{?Float64, R}(a, ordered=ordered)
+        x = CategoricalVector{Union{Float64, Null}, R}(a, ordered=ordered)
 
         @test x == collect(a)
         @test isordered(x) === ordered
@@ -386,56 +389,56 @@ for ordered in (false, true)
         @test length(x) === 4
 
         @test convert(CategoricalArray, x) === x
-        @test convert(CategoricalArray{?Float64}, x) === x
-        @test convert(CategoricalArray{?Float64, 1}, x) === x
-        @test convert(CategoricalArray{?Float64, 1, R}, x) === x
-        @test convert(CategoricalArray{?Float64, 1, DefaultRefType}, x) == x
-        @test convert(CategoricalArray{?Float64, 1, UInt8}, x) == x
+        @test convert(CategoricalArray{Union{Float64, Null}}, x) === x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1}, x) === x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1, R}, x) === x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1, UInt8}, x) == x
 
         @test convert(CategoricalVector, x) === x
-        @test convert(CategoricalVector{?Float64}, x) === x
-        @test convert(CategoricalVector{?Float64, R}, x) === x
-        @test convert(CategoricalVector{?Float64, DefaultRefType}, x) == x
-        @test convert(CategoricalVector{?Float64, UInt8}, x) == x
+        @test convert(CategoricalVector{Union{Float64, Null}}, x) === x
+        @test convert(CategoricalVector{Union{Float64, Null}, R}, x) === x
+        @test convert(CategoricalVector{Union{Float64, Null}, DefaultRefType}, x) == x
+        @test convert(CategoricalVector{Union{Float64, Null}, UInt8}, x) == x
 
         @test convert(CategoricalArray, a) == x
-        @test convert(CategoricalArray{?Float64}, a) == x
-        @test convert(CategoricalArray{?Float32}, a) == x
-        @test convert(CategoricalArray{?Float64, 1}, a) == x
-        @test convert(CategoricalArray{?Float32, 1}, a) == x
-        @test convert(CategoricalArray{?Float64, 1, R}, a) == x
-        @test convert(CategoricalArray{?Float32, 1, R}, a) == x
-        @test convert(CategoricalArray{?Float64, 1, DefaultRefType}, a) == x
-        @test convert(CategoricalArray{?Float32, 1, DefaultRefType}, a) == x
-        @test convert(CategoricalArray{?Float64, 1, UInt8}, a) == x
-        @test convert(CategoricalArray{?Float32, 1, UInt8}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Null}}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Null}}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Null}, 1}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1, R}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Null}, 1, R}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Null}, 1, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Null}, 1, UInt8}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Null}, 1, UInt8}, a) == x
 
         @test convert(CategoricalVector, a) == x
-        @test convert(CategoricalVector{?Float64}, a) == x
-        @test convert(CategoricalVector{?Float32}, a) == x
-        @test convert(CategoricalVector{?Float64, R}, a) == x
-        @test convert(CategoricalVector{?Float32, R}, a) == x
-        @test convert(CategoricalVector{?Float64, DefaultRefType}, a) == x
-        @test convert(CategoricalVector{?Float32, DefaultRefType}, a) == x
-        @test convert(CategoricalVector{?Float64, UInt8}, a) == x
-        @test convert(CategoricalVector{?Float32, UInt8}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Null}}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Null}}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Null}, R}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Null}, R}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Null}, DefaultRefType}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Null}, DefaultRefType}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Null}, UInt8}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Null}, UInt8}, a) == x
 
-        @test CategoricalArray{?Float64}(a, ordered=ordered) == x
-        @test CategoricalArray{?Float32}(a, ordered=ordered) == x
-        @test CategoricalArray{?Float64, 1}(a, ordered=ordered) == x
-        @test CategoricalArray{?Float32, 1}(a, ordered=ordered) == x
-        @test CategoricalArray{?Float64, 1, R}(a, ordered=ordered) == x
-        @test CategoricalArray{?Float32, 1, R}(a, ordered=ordered) == x
-        @test CategoricalArray{?Float64, 1, DefaultRefType}(a, ordered=ordered) == x
-        @test CategoricalArray{?Float32, 1, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Null}}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Null}}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Null}, 1}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Null}, 1}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Null}, 1, R}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Null}, 1, R}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
 
         @test CategoricalVector(a, ordered=ordered) == x
-        @test CategoricalVector{?Float64}(a, ordered=ordered) == x
-        @test CategoricalVector{?Float32}(a, ordered=ordered) == x
-        @test CategoricalVector{?Float64, R}(a, ordered=ordered) == x
-        @test CategoricalVector{?Float32, R}(a, ordered=ordered) == x
-        @test CategoricalVector{?Float64, DefaultRefType}(a, ordered=ordered) == x
-        @test CategoricalVector{?Float32, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float64, Null}}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float32, Null}}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float64, Null}, R}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float32, Null}, R}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float64, Null}, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float32, Null}, DefaultRefType}(a, ordered=ordered) == x
 
         for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
                                   (a, DefaultRefType, DefaultRefType, false),
@@ -444,7 +447,7 @@ for ordered in (false, true)
             x2 = categorical(y, ordered=ordered)
             @test x2 == collect(y)
             if eltype(y) >: Null
-                @test isa(x2, CategoricalVector{?Float64, R1})
+                @test isa(x2, CategoricalVector{Union{Float64, Null}, R1})
             else
                 @test isa(x2, CategoricalVector{Float64, R1})
             end
@@ -453,7 +456,7 @@ for ordered in (false, true)
             x2 = categorical(y, comp, ordered=ordered)
             @test x2 == collect(y)
             if eltype(y) >: Null
-                @test isa(x2, CategoricalVector{?Float64, R2})
+                @test isa(x2, CategoricalVector{Union{Float64, Null}, R2})
             else
                 @test isa(x2, CategoricalVector{Float64, R2})
             end
@@ -463,7 +466,7 @@ for ordered in (false, true)
         x2 = compress(x)
         @test x2 == x
         @test isordered(x2) === isordered(x)
-        @test isa(x2, CategoricalVector{?Float64, UInt8})
+        @test isa(x2, CategoricalVector{Union{Float64, Null}, UInt8})
         @test levels(x2) == levels(x)
 
         x2 = copy(x)
@@ -540,7 +543,7 @@ for ordered in (false, true)
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
         b = [2.5, 3.0, -3.5]
-        y = CategoricalVector{?Float64, R}(b)
+        y = CategoricalVector{Union{Float64, Null}, R}(b)
         append!(x, y)
         @test length(x) == 15
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
@@ -554,7 +557,7 @@ for ordered in (false, true)
 
         # Matrix with no null values
         for a in (["a" "b" "c"; "b" "a" "c"], Union{String, Null}["a" "b" "c"; "b" "a" "c"])
-            x = CategoricalMatrix{?String, R}(a, ordered=ordered)
+            x = CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered)
 
             @test x == a
             @test isordered(x) === ordered
@@ -563,42 +566,42 @@ for ordered in (false, true)
             @test length(x) === 6
 
             @test convert(CategoricalArray, x) === x
-            @test convert(CategoricalArray{?String}, x) === x
-            @test convert(CategoricalArray{?String, 2}, x) === x
-            @test convert(CategoricalArray{?String, 2, R}, x) === x
-            @test convert(CategoricalArray{?String, 2, DefaultRefType}, x) == x
-            @test convert(CategoricalArray{?String, 2, UInt8}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 2}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 2, R}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, x) == x
 
             @test convert(CategoricalMatrix, x) === x
-            @test convert(CategoricalMatrix{?String}, x) === x
-            @test convert(CategoricalMatrix{?String, R}, x) === x
-            @test convert(CategoricalMatrix{?String, DefaultRefType}, x) == x
-            @test convert(CategoricalMatrix{?String, UInt8}, x) == x
+            @test convert(CategoricalMatrix{Union{String, Null}}, x) === x
+            @test convert(CategoricalMatrix{Union{String, Null}, R}, x) === x
+            @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, x) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, x) == x
 
             @test convert(CategoricalArray, a) == x
-            @test convert(CategoricalArray{?String}, a) == x
-            @test convert(CategoricalArray{?String, 2, R}, a) == x
-            @test convert(CategoricalArray{?String, 2, DefaultRefType}, a) == x
-            @test convert(CategoricalArray{?String, 2, UInt8}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, R}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, a) == x
 
             @test convert(CategoricalMatrix, a) == x
-            @test convert(CategoricalMatrix{?String}, a) == x
-            @test convert(CategoricalMatrix{?String, R}, a) == x
-            @test convert(CategoricalMatrix{?String, DefaultRefType}, a) == x
-            @test convert(CategoricalMatrix{?String, UInt8}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, R}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, a) == x
 
-            @test CategoricalArray{?String}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2, R}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2, UInt8}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2, R}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2, UInt8}(a, ordered=ordered) == x
 
             @test CategoricalMatrix(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String}(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String, R}(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String, UInt8}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}, UInt8}(a, ordered=ordered) == x
 
             for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
                                       (a, DefaultRefType, DefaultRefType, false),
@@ -607,7 +610,7 @@ for ordered in (false, true)
             x2 = categorical(y, ordered=ordered)
             @test x2 == y
             if eltype(y) >: Null
-                @test isa(x2, CategoricalMatrix{?String, R1})
+                @test isa(x2, CategoricalMatrix{Union{String, Null}, R1})
             else
                 @test isa(x2, CategoricalMatrix{String, R1})
             end
@@ -616,7 +619,7 @@ for ordered in (false, true)
             x2 = categorical(y, comp, ordered=ordered)
             @test x2 == y
             if eltype(y) >: Null
-                @test isa(x2, CategoricalMatrix{?String, R2})
+                @test isa(x2, CategoricalMatrix{Union{String, Null}, R2})
             else
                 @test isa(x2, CategoricalMatrix{String, R2})
             end
@@ -625,7 +628,7 @@ for ordered in (false, true)
 
             x2 = compress(x)
             @test x2 == x
-            @test isa(x2, CategoricalMatrix{?String, UInt8})
+            @test isa(x2, CategoricalMatrix{Union{String, Null}, UInt8})
             @test isordered(x2) === isordered(x)
             @test levels(x2) == levels(x)
 
@@ -656,7 +659,7 @@ for ordered in (false, true)
             @test x[1:2,:] == x
             @test typeof(x[1:2,:]) === typeof(x)
             @test x[1:2,1] == ["a", "b"]
-            @test isa(x[1:2,1], CategoricalVector{?String, R})
+            @test isa(x[1:2,1], CategoricalVector{Union{String, Null}, R})
 
             x[1] = "z"
             @test x[1] === x.pool.valindex[4]
@@ -689,7 +692,7 @@ for ordered in (false, true)
 
         # Matrix with null values
         let a = ["a" null "c"; "b" "a" null]
-            x = CategoricalMatrix{?String, R}(a, ordered=ordered)
+            x = CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered)
 
             @test x == a
             @test isordered(x) === ordered
@@ -698,42 +701,42 @@ for ordered in (false, true)
             @test length(x) === 6
 
             @test convert(CategoricalArray, x) === x
-            @test convert(CategoricalArray{?String}, x) === x
-            @test convert(CategoricalArray{?String, 2}, x) === x
-            @test convert(CategoricalArray{?String, 2, R}, x) === x
-            @test convert(CategoricalArray{?String, 2, DefaultRefType}, x) == x
-            @test convert(CategoricalArray{?String, 2, UInt8}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 2}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 2, R}, x) === x
+            @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, x) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, x) == x
 
             @test convert(CategoricalMatrix, x) === x
-            @test convert(CategoricalMatrix{?String}, x) === x
-            @test convert(CategoricalMatrix{?String, R}, x) === x
-            @test convert(CategoricalMatrix{?String, DefaultRefType}, x) == x
-            @test convert(CategoricalMatrix{?String, UInt8}, x) == x
+            @test convert(CategoricalMatrix{Union{String, Null}}, x) === x
+            @test convert(CategoricalMatrix{Union{String, Null}, R}, x) === x
+            @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, x) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, x) == x
 
             @test convert(CategoricalArray, a) == x
-            @test convert(CategoricalArray{?String}, a) == x
-            @test convert(CategoricalArray{?String, 2, R}, a) == x
-            @test convert(CategoricalArray{?String, 2, DefaultRefType}, a) == x
-            @test convert(CategoricalArray{?String, 2, UInt8}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, R}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, a) == x
+            @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, a) == x
 
             @test convert(CategoricalMatrix, a) == x
-            @test convert(CategoricalMatrix{?String}, a) == x
-            @test convert(CategoricalMatrix{?String, R}, a) == x
-            @test convert(CategoricalMatrix{?String, DefaultRefType}, a) == x
-            @test convert(CategoricalMatrix{?String, UInt8}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, R}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, a) == x
+            @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, a) == x
 
-            @test CategoricalArray{?String}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2, R}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalArray{?String, 2, UInt8}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2, R}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalArray{Union{String, Null}, 2, UInt8}(a, ordered=ordered) == x
 
             @test CategoricalMatrix(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String}(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String, R}(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalMatrix{?String, UInt8}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
+            @test CategoricalMatrix{Union{String, Null}, UInt8}(a, ordered=ordered) == x
 
             for (y, R1, R2, comp) in ((a, DefaultRefType, UInt8, true),
                                       (a, DefaultRefType, DefaultRefType, false),
@@ -741,18 +744,18 @@ for ordered in (false, true)
                                       (x, R, R, false))
                 x2 = categorical(y, ordered=ordered)
                 @test x2 == y
-                @test isa(x2, CategoricalMatrix{?String, R1})
+                @test isa(x2, CategoricalMatrix{Union{String, Null}, R1})
                 @test isordered(x2) === ordered
 
                 x2 = categorical(y, comp, ordered=ordered)
                 @test x2 == y
-                @test isa(x2, CategoricalMatrix{?String, R2})
+                @test isa(x2, CategoricalMatrix{Union{String, Null}, R2})
                 @test isordered(x2) === ordered
             end
 
             x2 = compress(x)
             @test x2 == x
-            @test isa(x2, CategoricalMatrix{?String, UInt8})
+            @test isa(x2, CategoricalMatrix{Union{String, Null}, UInt8})
             @test isordered(x2) === isordered(x)
             @test levels(x2) == levels(x)
 
@@ -795,7 +798,7 @@ for ordered in (false, true)
             @test isordered(x2) == isordered(x)
 
             x2 = x[1:1,2]
-            @test isa(x2, CategoricalVector{?String, R})
+            @test isa(x2, CategoricalVector{Union{String, Null}, R})
             @test x2 == [null]
             @test levels(x2) == levels(x)
             @test levels(x2) !== levels(x)
@@ -887,16 +890,16 @@ for ordered in (false, true)
 
 
         # Uninitialized array
-        v = Any[CategoricalArray{?String}(2, ordered=ordered),
-                CategoricalArray{?String, 1}(2, ordered=ordered),
-                CategoricalArray{?String, 1, R}(2, ordered=ordered),
-                CategoricalVector{?String}(2, ordered=ordered),
-                CategoricalVector{?String, R}(2, ordered=ordered),
-                CategoricalArray{?String}(2, 3, ordered=ordered),
-                CategoricalArray{?String, 2}(2, 3, ordered=ordered),
-                CategoricalArray{?String, 2, R}(2, 3, ordered=ordered),
-                CategoricalMatrix{?String}(2, 3, ordered=ordered),
-                CategoricalMatrix{?String, R}(2, 3, ordered=ordered)]
+        v = Any[CategoricalArray{Union{String, Null}}(2, ordered=ordered),
+                CategoricalArray{Union{String, Null}, 1}(2, ordered=ordered),
+                CategoricalArray{Union{String, Null}, 1, R}(2, ordered=ordered),
+                CategoricalVector{Union{String, Null}}(2, ordered=ordered),
+                CategoricalVector{Union{String, Null}, R}(2, ordered=ordered),
+                CategoricalArray{Union{String, Null}}(2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Null}, 2}(2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Null}, 2, R}(2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Null}}(2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Null}, R}(2, 3, ordered=ordered)]
 
         for x in v
             @test isordered(x) === ordered
@@ -906,7 +909,7 @@ for ordered in (false, true)
 
             x2 = compress(x)
             @test x2 == x
-            @test isa(x2, CategoricalArray{?String, ndims(x), UInt8})
+            @test isa(x2, CategoricalArray{Union{String, Null}, ndims(x), UInt8})
             @test isordered(x2) === isordered(x)
             @test levels(x2) == []
 
@@ -991,7 +994,7 @@ r = vcat(ca1, ca2)
 @test isordered(r)
 
 ca1 = CategoricalArray(["a", null])
-ca2 = CategoricalArray{?String}(2)
+ca2 = CategoricalArray{Union{String, Null}}(2)
 ordered!(ca1, true)
 @test isempty(levels(ca2))
 r = vcat(ca1, ca2)
@@ -1014,7 +1017,7 @@ x = CategoricalArray(["Old", "Young", "Middle", null, "Young"])
 @test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
 @test unique(x) == ["Young", "Middle", "Old", null]
 
-x = CategoricalArray((?String)[null])
+x = CategoricalArray((Union{String, Null})[null])
 @test isa(levels(x), Vector{String}) && isempty(levels(x))
 @test unique(x) == [null]
 @test levels!(x, ["Young", "Middle", "Old"]) === x
@@ -1022,12 +1025,20 @@ x = CategoricalArray((?String)[null])
 @test unique(x) == [null]
 
 # To test short-circuit after 1000 elements
-x = CategoricalArray{?Int}(repeat(1:1500, inner=10))
+x = CategoricalArray{Union{Int, Null}}(repeat(1:1500, inner=10))
 @test levels(x) == collect(1:1500)
 @test unique(x) == collect(1:1500)
 @test levels!(x, [1600:-1:1; 2000]) === x
 x[3] = null
 @test levels(x) == [1600:-1:1; 2000]
 @test unique(x) == [1500:-1:3; 2; 1; null]
+
+# in
+x = CategoricalArray{Int}(repeat(1:1500, inner=10))
+@test !(null in x)
+
+x = CategoricalArray{Union{Int, Null}}(repeat(1:1500, inner=10))
+x[1] = null
+@test null in x
 
 end

@@ -14,7 +14,7 @@ module TestCategoricalArrays
         "01_typedef.jl",
         "02_buildorder.jl",
         "03_buildfields.jl",
-        "03_constructors.jl",
+        "04_constructors.jl",
         "05_convert.jl",
         "06_show.jl",
         "06_length.jl",

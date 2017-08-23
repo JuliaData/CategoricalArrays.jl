@@ -4,7 +4,6 @@ using Base.Test
 using CategoricalArrays
 using Nulls
 using CategoricalArrays: DefaultRefType, index
-using Compat
 
 # Test that mergelevels handles mutually compatible orderings
 @test CategoricalArrays.mergelevels(true, [6, 2, 4, 8], [2, 3, 5, 4], [2, 4, 8]) ==
@@ -158,7 +157,7 @@ for T in (Union{}, Null)
     levels!(x, ["Young", "Middle", "Old"])
     ordered!(x, true)
     y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
-    a = (?String)["Z", "Y", "X", "Young"]
+    a = (Union{String, Null})["Z", "Y", "X", "Young"]
     # Test with null values
     if T === Null
         x[3] = null
@@ -340,7 +339,7 @@ for T in (Union{}, Null)
     for ordered_orig in (true, false),
         ordered in (true, false),
         R in (DefaultRefType, UInt8, UInt, Int8, Int),
-        T in (String, ?String),
+        T in (String, Union{String, Null}),
         (CVM2, N) in ((CategoricalVector, 1), (CategoricalMatrix, 2))
         if CVM2 <: AbstractVector
             x = CategoricalArray{T, N, R}(["A", "B"], ordered=ordered_orig)
@@ -434,13 +433,13 @@ for T in (Union{}, Null)
 end
 
 # Check that converting from nullable to non-nullable CategoricalArray fails with nulls
-x = CategoricalArray{?String}(1)
+x = CategoricalArray{Union{String, Null}}(1)
 @test_throws NullException CategoricalArray{String}(x)
 @test_throws NullException convert(CategoricalArray{String}, x)
 
 
 # Test in()
-for T in (Int, ?Int)
+for T in (Int, Union{Int, Null})
     ca1 = CategoricalArray{T}([1, 2, 3])
     ca2 = CategoricalArray{T}([4, 3, 2])
 
@@ -454,7 +453,7 @@ end
 
 # Test ==
 ca1 = CategoricalArray([1, 2, 3])
-ca2 = CategoricalArray{?Int}([1, 2, 3])
+ca2 = CategoricalArray{Union{Int, Null}}([1, 2, 3])
 ca3 = CategoricalArray([1, 2, null])
 ca4 = CategoricalArray([4, 3, 2])
 ca5 = CategoricalArray([1 2; 3 4])

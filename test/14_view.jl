@@ -20,7 +20,7 @@ end
 
 # Test ==
 ca1 = CategoricalArray([1, 2, 3])
-ca2 = CategoricalArray{?Int}([1, 2, 3])
+ca2 = CategoricalArray{Union{Int, Null}}([1, 2, 3])
 ca3 = CategoricalArray([1, 2, null])
 ca4 = CategoricalArray([4, 3, 2])
 ca5 = CategoricalArray([1 2; 3 4])

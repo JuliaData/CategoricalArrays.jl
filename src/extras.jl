@@ -59,8 +59,8 @@ If `x` is nullable (i.e. `eltype(x) >: Null`), a nullable `CategoricalArray` is 
   only supported when `x` is nullable.
 """
 function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
-                                      extend::Bool=false, labels::AbstractVector{U}=String[],
-                                      nullok::Bool=false) where {T, N, U<:AbstractString}
+             extend::Bool=false, labels::AbstractVector{U}=String[],
+             nullok::Bool=false) where {T, N, U<:AbstractString}
     if !issorted(breaks)
         breaks = sort(breaks)
     end
@@ -120,5 +120,5 @@ Cut a numeric array into `ngroups` quantiles, determined using
 [`quantile`](@ref).
 """
 cut(x::AbstractArray, ngroups::Integer;
-                       labels::AbstractVector{U}=String[]) where {U<:AbstractString} =
+    labels::AbstractVector{U}=String[]) where {U<:AbstractString} =
     cut(x, quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)

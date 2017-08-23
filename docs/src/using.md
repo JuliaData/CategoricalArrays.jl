@@ -91,7 +91,7 @@ Another solution would have been to call `levels!(x, ["Young", "Middle"])` manua
 
 ```jldoctest using
 julia> levels!(x, ["Young", "Midle"]) 
-ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. Change the array element type to ?String using convert if you want to transform some levels to missing values.
+ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. Change the array element type to Union{String, Null} using convert if you want to transform some levels to missing values.
 [...]
 
 ```
@@ -104,7 +104,7 @@ levels!
 
 ## Handling Missing Values
 
-The examples above assumed that the data contained no missing values. This is generally not the case in real data. This is where `CategoricalArray{?T}` comes into play. It is essentially the categorical-data equivalent of `Array{?T}`. It behaves exactly the same as `CategoricalArray{T}` , except that when indexed it returns either a `CategoricalValue{T}`, or `null` if a value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
+The examples above assumed that the data contained no missing values. This is generally not the case in real data. This is where `CategoricalArray{Union{T, Null}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Null}}`. It behaves exactly the same as `CategoricalArray{T}` , except that when indexed it returns either a `CategoricalValue{T}`, or `null` if a value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
 
 Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold eithera `String` or `null`. Here, `?String` is a shorthand for `Union{Null, String}`:
 
