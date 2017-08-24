@@ -14,11 +14,8 @@ for ordered in (false, true)
 
             @test x == a
             @test isordered(x) === ordered
-            if ordered
-                @test levels(x) == sort(unique(a))
-            else
-                @test levels(x) == unique(a)
-            end
+            @test levels(x) == sort(unique(a))
+
             @test size(x) === (3,)
             @test length(x) === 3
 

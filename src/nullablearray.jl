@@ -42,7 +42,7 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) wher
     res = CategoricalArray{T, N, R}(size(A))
     copy!(res, A)
 
-    if method_exists(isless, (T, T))
+    if method_exists(isless, Tuple{Nulls.T(T), Nulls.T(T)})
         levels!(res, sort(levels(res)))
     end
 
