@@ -6,13 +6,13 @@ function CategoricalPool(index::Vector{S},
     CategoricalPool{S, R, CategoricalValue{S, R}}(index, invindex, order, ordered)
 end
 
-@compat (::Type{CategoricalPool{T, R}})(ordered::Bool=false) where {T, R} =
+CategoricalPool{T, R}(ordered::Bool=false) where {T, R} =
     CategoricalPool(T[], Dict{T, R}(), R[], ordered)
-@compat (::Type{CategoricalPool{T}})(ordered::Bool=false) where {T} =
+CategoricalPool{T}(ordered::Bool=false) where {T} =
     CategoricalPool(T[], Dict{T, DefaultRefType}(), DefaultRefType[], ordered)
 
-@compat function (::Type{CategoricalPool{T, R}})(index::Vector,
-                                                 ordered::Bool=false) where {T, R}
+function CategoricalPool{T, R}(index::Vector,
+                               ordered::Bool=false) where {T, R}
     invindex = buildinvindex(index, R)
     order = Vector{R}(1:length(index))
     CategoricalPool(index, invindex, order, ordered)
