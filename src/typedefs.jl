@@ -1,6 +1,6 @@
 using Nulls
 
-@compat const DefaultRefType = UInt32
+const DefaultRefType = UInt32
 
 ## Pools
 
@@ -38,21 +38,21 @@ end
 
 ## Arrays
 
-@compat abstract type AbstractCategoricalArray{T, N, R, V, U} <: AbstractArray{Union{CategoricalValue{V, R}, U}, N} end
-@compat AbstractCategoricalVector{T, R, V, U} = AbstractCategoricalArray{T, 1, R, V, U}
-@compat AbstractCategoricalMatrix{T, R, V, U} = AbstractCategoricalArray{T, 2, R, V, U}
+abstract type AbstractCategoricalArray{T, N, R, V, U} <: AbstractArray{Union{CategoricalValue{V, R}, U}, N} end
+AbstractCategoricalVector{T, R, V, U} = AbstractCategoricalArray{T, 1, R, V, U}
+AbstractCategoricalMatrix{T, R, V, U} = AbstractCategoricalArray{T, 2, R, V, U}
 
 struct CategoricalArray{T, N, R <: Integer, V, U} <: AbstractCategoricalArray{T, N, R, V, U}
     refs::Array{R, N}
     pool::CategoricalPool{V, R, CategoricalValue{V, R}}
 
-    function (::Type{CategoricalArray{T, N, R}})(refs::Array{R, N},
-                                                 pool::CategoricalPool{V, R, CategoricalValue{V, R}}) where
+    function CategoricalArray{T, N, R}(refs::Array{R, N},
+                                       pool::CategoricalPool{V, R, CategoricalValue{V, R}}) where
                                                  {T, N, R <: Integer, V}
         T === V || T == Union{V, Null} || throw(ArgumentError("T ($T) must be equal to $V or Union{$V, Null}"))
         U = T >: Null ? Null : Union{}
         new{T, N, R, V, U}(refs, pool)
     end
 end
-@compat CategoricalVector{T, R, V, U} = CategoricalArray{T, 1, V, U}
-@compat CategoricalMatrix{T, R, V, U} = CategoricalArray{T, 2, V, U}
+CategoricalVector{T, R, V, U} = CategoricalArray{T, 1, V, U}
+CategoricalMatrix{T, R, V, U} = CategoricalArray{T, 2, V, U}
