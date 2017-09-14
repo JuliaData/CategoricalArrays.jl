@@ -96,6 +96,26 @@ ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. 
 
 ```
 
+Note that entries in the `x` array can be treated as strings even though they are `CategoricalValue` objects:
+```jldoctest using
+julia> x[3] = lowercase(x[3])
+"middle"
+
+julia> x[3]
+CategoricalArrays.CategoricalValue{String,UInt32} "middle" (3/3)
+
+julia> droplevels!(x)
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
+ "Young" 
+ "Young" 
+ "middle"
+ "Young" 
+
+julia> x[3]
+CategoricalArrays.CategoricalValue{String,UInt32} "middle" (2/2)
+
+```
+
 ```@docs
 droplevels!
 levels

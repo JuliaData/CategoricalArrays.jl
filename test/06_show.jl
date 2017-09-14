@@ -14,42 +14,30 @@ module TestShow
     ov2 = CategoricalValue(2, opool)
     ov3 = CategoricalValue(3, opool)
 
-    if isdefined(Core, :String) && isdefined(Core, :AbstractString) # Julia >= 0.5
-        @test string(pool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"c\",\"b\",\"a\"])"
-        @test string(opool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"a\",\"b\",\"c\"]) with ordered levels"
+    @test sprint(show, pool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"c\",\"b\",\"a\"])"
+    @test sprint(show, opool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"a\",\"b\",\"c\"]) with ordered levels"
 
-        @test string(nv1) == "CategoricalArrays.CategoricalValue{String,UInt32} \"c\""
-        @test string(nv2) == "CategoricalArrays.CategoricalValue{String,UInt32} \"b\""
-        @test string(nv3) == "CategoricalArrays.CategoricalValue{String,UInt32} \"a\""
+    @test sprint(show, nv1) == "CategoricalArrays.CategoricalValue{String,UInt32} \"c\""
+    @test sprint(show, nv2) == "CategoricalArrays.CategoricalValue{String,UInt32} \"b\""
+    @test sprint(show, nv3) == "CategoricalArrays.CategoricalValue{String,UInt32} \"a\""
 
-        @test string(ov1) == "CategoricalArrays.CategoricalValue{String,UInt32} \"c\" (3/3)"
-        @test string(ov2) == "CategoricalArrays.CategoricalValue{String,UInt32} \"b\" (2/3)"
-        @test string(ov3) == "CategoricalArrays.CategoricalValue{String,UInt32} \"a\" (1/3)"
-    else
-        @test string(pool) == "CategoricalArrays.CategoricalPool{ASCIIString,UInt32}([\"c\",\"b\",\"a\"])"
-        @test string(opool) == "CategoricalArrays.CategoricalPool{ASCIIString,UInt32}([\"a\",\"b\",\"c\"]) with ordered levels"
+    @test sprint(show, ov1) == "CategoricalArrays.CategoricalValue{String,UInt32} \"c\" (3/3)"
+    @test sprint(show, ov2) == "CategoricalArrays.CategoricalValue{String,UInt32} \"b\" (2/3)"
+    @test sprint(show, ov3) == "CategoricalArrays.CategoricalValue{String,UInt32} \"a\" (1/3)"
 
-        @test string(nv1) == "CategoricalArrays.CategoricalValue{ASCIIString,UInt32} \"c\""
-        @test string(nv2) == "CategoricalArrays.CategoricalValue{ASCIIString,UInt32} \"b\""
-        @test string(nv3) == "CategoricalArrays.CategoricalValue{ASCIIString,UInt32} \"a\""
+    @test sprint(showcompact, nv1) == sprint(showcompact, ov1) == "\"c\""
+    @test sprint(showcompact, nv2) == sprint(showcompact, ov2) == "\"b\""
+    @test sprint(showcompact, nv3) == sprint(showcompact, ov3) == "\"a\""
 
-        @test string(ov1) == "CategoricalArrays.CategoricalValue{ASCIIString,UInt32} \"c\" (3/3)"
-        @test string(ov2) == "CategoricalArrays.CategoricalValue{ASCIIString,UInt32} \"b\" (2/3)"
-        @test string(ov3) == "CategoricalArrays.CategoricalValue{ASCIIString,UInt32} \"a\" (1/3)"
-    end
+    @test sprint(print, nv1) == sprint(print, ov1) == "c"
+    @test sprint(print, nv2) == sprint(print, ov2) == "b"
+    @test sprint(print, nv3) == sprint(print, ov3) == "a"
 
-    b = IOBuffer()
-    showcompact(b, nv1)
-    @test String(take!(b)) == "\"c\""
-    showcompact(b, nv2)
-    @test String(take!(b)) == "\"b\""
-    showcompact(b, nv3)
-    @test String(take!(b)) == "\"a\""
+    @test string(nv1) == string(ov1) == "c"
+    @test string(nv2) == string(ov2) == "b"
+    @test string(nv3) == string(ov3) == "a"
 
-    showcompact(b, ov1)
-    @test String(take!(b)) == "\"c\""
-    showcompact(b, ov2)
-    @test String(take!(b)) == "\"b\""
-    showcompact(b, ov3)
-    @test String(take!(b)) == "\"a\""
+    @test repr(nv1) == repr(ov1) == "\"c\""
+    @test repr(nv2) == repr(ov2) == "\"b\""
+    @test repr(nv3) == repr(ov3) == "\"a\""
 end

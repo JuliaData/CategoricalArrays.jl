@@ -31,7 +31,7 @@ end
 
 ## Values
 
-struct CategoricalValue{T, R <: Integer}
+struct CategoricalValue{T, R <: Integer} <: AbstractString
     level::R
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
