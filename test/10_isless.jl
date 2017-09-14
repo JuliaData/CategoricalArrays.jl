@@ -218,6 +218,65 @@ module TestIsLess
     @test isless(v3, v3) === false
 
 
+    # Test that ordering comparisons also fail for CategoricalValue{String}
+    # (since the AbstractString fallback could break this)
+    pool = CategoricalPool(["a", "b", "c"])
+
+    v1 = CategoricalValue(1, pool)
+    v2 = CategoricalValue(2, pool)
+    v3 = CategoricalValue(3, pool)
+
+    @test_throws ArgumentError v1 < v1
+    @test_throws ArgumentError v1 < v2
+    @test_throws ArgumentError v1 < v3
+    @test_throws ArgumentError v2 < v1
+    @test_throws ArgumentError v2 < v2
+    @test_throws ArgumentError v2 < v3
+    @test_throws ArgumentError v3 < v1
+    @test_throws ArgumentError v3 < v2
+    @test_throws ArgumentError v3 < v3
+
+    @test_throws ArgumentError v1 <= v1
+    @test_throws ArgumentError v1 <= v2
+    @test_throws ArgumentError v1 <= v3
+    @test_throws ArgumentError v2 <= v1
+    @test_throws ArgumentError v2 <= v2
+    @test_throws ArgumentError v2 <= v3
+    @test_throws ArgumentError v3 <= v1
+    @test_throws ArgumentError v3 <= v2
+    @test_throws ArgumentError v3 <= v3
+
+    @test_throws ArgumentError v1 > v1
+    @test_throws ArgumentError v1 > v2
+    @test_throws ArgumentError v1 > v3
+    @test_throws ArgumentError v2 > v1
+    @test_throws ArgumentError v2 > v2
+    @test_throws ArgumentError v2 > v3
+    @test_throws ArgumentError v3 > v1
+    @test_throws ArgumentError v3 > v2
+    @test_throws ArgumentError v3 > v3
+
+    @test_throws ArgumentError v1 >= v1
+    @test_throws ArgumentError v1 >= v2
+    @test_throws ArgumentError v1 >= v3
+    @test_throws ArgumentError v2 >= v1
+    @test_throws ArgumentError v2 >= v2
+    @test_throws ArgumentError v2 >= v3
+    @test_throws ArgumentError v3 >= v1
+    @test_throws ArgumentError v3 >= v2
+    @test_throws ArgumentError v3 >= v3
+
+    @test isless(v1, v1) === false
+    @test isless(v1, v2) === true
+    @test isless(v1, v3) === true
+    @test isless(v2, v1) === false
+    @test isless(v2, v2) === false
+    @test isless(v2, v3) === true
+    @test isless(v3, v1) === false
+    @test isless(v3, v2) === false
+    @test isless(v3, v3) === false
+
+
     # Test that ordering comparisons between pools fail
     ordered!(pool, true)
     pool2 = CategoricalPool([1, 2, 3])
