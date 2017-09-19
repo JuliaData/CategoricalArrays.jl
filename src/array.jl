@@ -2,7 +2,7 @@
 
 using Nulls
 import Base: convert, copy, copy!, getindex, setindex!, similar, size,
-             unique, vcat, in
+             unique, vcat, in, summary
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -698,3 +698,7 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
         return ref != 0 ? ref in y.refs : false
     end
 end
+
+# Override AbstractArray method to avoid printing useless type parameters
+summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
+    string(Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")

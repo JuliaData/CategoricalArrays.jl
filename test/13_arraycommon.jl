@@ -468,4 +468,12 @@ ca5 = CategoricalArray([1 2; 3 4])
 @test ca1 != ca4
 @test ca1 != ca5
 
+# Test summary()
+@test summary(CategoricalArray([1, 2, 3])) ==
+    "3-element CategoricalArrays.CategoricalArray{$Int,1,UInt32}"
+# Ordering changed in Julia 0.7
+@test summary(CategoricalArray{Union{Int, Null}}([1 2 3])) in
+    ("1×3 CategoricalArrays.CategoricalArray{Union{Nulls.Null, $Int},2,UInt32}",
+     "1×3 CategoricalArrays.CategoricalArray{Union{$Int, Nulls.Null},2,UInt32}")
+
 end
