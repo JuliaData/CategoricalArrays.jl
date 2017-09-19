@@ -8,7 +8,7 @@ Suppose that you have data about four individuals, with three different age grou
 julia> using CategoricalArrays
 
 julia> x = CategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -26,7 +26,7 @@ julia> levels(x)
  "Young" 
 
 julia> levels!(x, ["Young", "Middle", "Old"])
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -74,7 +74,7 @@ julia> levels(x)
  "Old"   
 
 julia> droplevels!(x)
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
  "Young" 
  "Young" 
  "Middle"
@@ -105,7 +105,7 @@ julia> x[3]
 CategoricalArrays.CategoricalValue{String,UInt32} "middle" (3/3)
 
 julia> droplevels!(x)
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32,String,Union{}}:
+4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
  "Young" 
  "Young" 
  "middle"
@@ -132,7 +132,7 @@ Let's adapt the example developed above to support missing values. Since there a
 julia> using Nulls
 
 julia> y = CategoricalArray{Union{Null, String}}(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -150,7 +150,7 @@ julia> levels(y)
  "Young" 
 
 julia> levels!(y, ["Young", "Middle", "Old"])
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -172,7 +172,7 @@ julia> y[1] = null
 null
 
 julia> y
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
  null    
  "Young" 
  "Middle"
@@ -190,14 +190,14 @@ julia> y[1] = "Old"
 "Old"
 
 julia> y
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
  "Young" 
 
 julia> levels!(y, ["Young", "Middle"]; nullok=true)
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32,String,Nulls.Null}:
+4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
  null    
  "Young" 
  "Middle"
