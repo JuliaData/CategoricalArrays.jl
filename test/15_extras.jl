@@ -4,6 +4,8 @@ using Base.Test
 using CategoricalArrays
 using Nulls
 
+const ≅ = isequal
+
 # Test cut
 
 for T in (Union{}, Null)
@@ -30,7 +32,7 @@ for T in (Union{}, Null)
 
     if T === Null
         x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], nullok=true)
-        @test x == ["[2, 5)", "[2, 5)", null]
+        @test x ≅ ["[2, 5)", "[2, 5)", null]
         @test isa(x, CategoricalVector{Union{String, T}})
         @test isordered(x)
         @test levels(x) == ["[2, 5)"]

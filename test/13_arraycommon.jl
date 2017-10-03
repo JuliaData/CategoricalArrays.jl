@@ -5,6 +5,9 @@ using CategoricalArrays
 using Nulls
 using CategoricalArrays: DefaultRefType, index
 
+const ≅ = isequal
+const ≇ = !isequal
+
 # Test that mergelevels handles mutually compatible orderings
 @test CategoricalArrays.mergelevels(true, [6, 2, 4, 8], [2, 3, 5, 4], [2, 4, 8]) ==
     ([6, 2, 3, 5, 4, 8], true)
@@ -164,25 +167,25 @@ for T in (Union{}, Null)
         y[3] = a[2] = null
     end
     @test copy!(x, 1, y, 2) === x
-    @test x == a
+    @test x ≅ a
     @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
     @test !isordered(x)
 
     # Test that no corruption happens in case of bounds error
     @test_throws BoundsError copy!(x, 10, y, 2)
-    @test x == a
+    @test x ≅ a
     @test_throws BoundsError copy!(x, 1, y, 10)
-    @test x == a
+    @test x ≅ a
     @test_throws BoundsError copy!(x, 10, y, 20)
-    @test x == a
+    @test x ≅ a
     @test_throws BoundsError copy!(x, 10, y, 2)
-    @test x == a
+    @test x ≅ a
     @test_throws BoundsError copy!(x, 1, y, 2, 10)
-    @test x == a
+    @test x ≅ a
     @test_throws BoundsError copy!(x, 4, y, 1, 2)
-    @test x == a
+    @test x ≅ a
     @test_throws BoundsError copy!(x, 1, y, 4, 2)
-    @test x == a
+    @test x ≅ a
 
     # Test resize!()
     x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
@@ -190,7 +193,7 @@ for T in (Union{}, Null)
     @test x == ["Old", "Young", "Middle"]
     @test resize!(x, 4) === x
     if T === Null
-        @test x == ["Old", "Young", "Middle", null]
+        @test x ≅ ["Old", "Young", "Middle", null]
     else
         @test x[1:3] == ["Old", "Young", "Middle"]
         @test !isassigned(x, 4)
@@ -318,7 +321,7 @@ for T in (Union{}, Null)
         x[3] = null
         y = reshape(x, 1, 4)
         @test isa(y, CategoricalArray{Union{T, String}, 2, CategoricalArrays.DefaultRefType})
-        @test y == ["Old" "Young" null "Young"]
+        @test y ≅ ["Old" "Young" null "Young"]
         @test levels(x) == levels(y)
         @test isordered(x)
     end
@@ -460,11 +463,11 @@ ca5 = CategoricalArray([1 2; 3 4])
 
 @test ca1 == copy(ca1)
 @test ca2 == copy(ca2)
-@test ca3 == copy(ca3)
+@test ca3 ≅ copy(ca3)
 @test ca4 == copy(ca4)
 @test ca5 == copy(ca5)
 @test ca1 == ca2
-@test ca1 != ca3
+@test ca1 ≇ ca3
 @test ca1 != ca4
 @test ca1 != ca5
 

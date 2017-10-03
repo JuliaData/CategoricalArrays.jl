@@ -1,6 +1,7 @@
 module TestEquality
     using Base.Test
     using CategoricalArrays
+    using Nulls
 
     pool1 = CategoricalPool([1, 2, 3])
     pool2 = CategoricalPool([2.0, 1.0, 3.0])
@@ -142,6 +143,17 @@ module TestEquality
     @test (ov2b == nv2a) === false
     @test (ov2b == nv1b) === false
     @test (ov2b == nv2b) === true
+
+    # Check non-equality with null
+    @test isnull(nv1a == null)
+    @test isnull(ov1a == null)
+    @test isnull(null == nv1a)
+    @test isnull(null == ov1a)
+
+    @test isequal(nv1a, null) == false
+    @test isequal(ov1a, null) == false
+    @test isequal(null, nv1a) == false
+    @test isequal(null, ov1a) == false
 
     # Check in()
     pool = CategoricalPool([5, 1, 3])

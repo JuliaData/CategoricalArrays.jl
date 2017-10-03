@@ -1,11 +1,14 @@
+const ≅ = isequal
+
 """
     recode!(dest::AbstractArray, src::AbstractArray[, default::Any], pairs::Pair...)
 
 Fill `dest` with elements from `src`, replacing those matching a key of `pairs`
 with the corresponding value.
 
-For each `Pair` in `pairs`, if the element is equal to (according to `==`) or `in` the key
-(first item of the pair), then the corresponding value (second item) is copied to `dest`.
+For each `Pair` in `pairs`, if the element is equal to (according to [`isequal`](@ref))
+or [`in`](@ref) the key (first item of the pair), then the corresponding value
+(second item) is copied to `dest`.
 If the element matches no key and `default` is not provided or `nothing`, it is copied as-is;
 if `default` is specified, it is used in place of the original element.
 `dest` and `src` must be of the same length, but not necessarily of the same type.
@@ -34,7 +37,7 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
 
         for j in 1:length(pairs)
             p = pairs[j]
-            if (!isa(p.first, Union{AbstractArray, Tuple}) && x == p.first) ||
+            if (!isa(p.first, Union{AbstractArray, Tuple}) && x ≅ p.first) ||
                (isa(p.first, Union{AbstractArray, Tuple}) && x in p.first)
                 dest[i] = p.second
                 @goto nextitem
@@ -84,7 +87,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
 
         for j in 1:length(pairs)
             p = pairs[j]
-            if (!isa(p.first, Union{AbstractArray, Tuple}) && x == p.first) ||
+            if (!isa(p.first, Union{AbstractArray, Tuple}) && x ≅ p.first) ||
                (isa(p.first, Union{AbstractArray, Tuple}) && x in p.first)
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
@@ -138,7 +141,8 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
         sizehint!(keptlevels, length(srclevels))
 
         for l in srclevels
-            if !(l in firsts || any(f -> isa(f, Union{AbstractArray, Tuple}) && l in f, firsts))
+            if !(any(x -> x ≅ l, firsts) ||
+                 any(f -> isa(f, Union{AbstractArray, Tuple}) && l in f, firsts))
                 try
                     push!(keptlevels, l)
                 catch err
@@ -181,7 +185,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     @inbounds for (i, l) in enumerate(srcindex)
         for j in 1:length(pairs)
             p = pairs[j]
-            if (!isa(p.first, Union{AbstractArray, Tuple}) && l == p.first) ||
+            if (!isa(p.first, Union{AbstractArray, Tuple}) && l ≅ p.first) ||
                (isa(p.first, Union{AbstractArray, Tuple}) && l in p.first)
                 indexmap[i+1] = pairmap[j]
                 @goto nextitem
@@ -252,8 +256,9 @@ Return a copy of `a`, replacing elements matching a key of `pairs` with the corr
 The type of the array is chosen so that it can
 hold all recoded elements (but not necessarily original elements from `a`).
 
-For each `Pair` in `pairs`, if the element is equal to (according to `==`) or `in` the key
-(first item of the pair), then the corresponding value (second item) is used.
+For each `Pair` in `pairs`, if the element is equal to (according to [`isequal`](@ref))
+or [`in`](@ref) the key (first item of the pair), then the corresponding value
+(second item) is used.
 If the element matches no key and `default` is not provided or `nothing`, it is copied as-is;
 if `default` is specified, it is used in place of the original element.
 If an element matches more than one key, the first match is used.
