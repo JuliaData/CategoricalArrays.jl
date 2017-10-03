@@ -66,6 +66,9 @@ Base.repr(x::CategoricalValue) = repr(get(x))
     end
 end
 
+Base.:(==)(::CategoricalValue, ::Null) = null
+Base.:(==)(::Null, ::CategoricalValue) = null
+
 # To fix ambiguities with Base
 Base.:(==)(x::CategoricalValue, y::WeakRef) = index(x.pool)[x.level] == y
 Base.:(==)(x::WeakRef, y::CategoricalValue) = y == x
@@ -86,6 +89,9 @@ end
 
 Base.isequal(x::CategoricalValue, y::Any) = isequal(index(x.pool)[x.level], y)
 Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
+
+Base.isequal(::CategoricalValue, ::Null) = false
+Base.isequal(::Null, ::CategoricalValue) = false
 
 Base.in(x::CategoricalValue, y::Any) = index(x.pool)[x.level] in y
 Base.in(x::CategoricalValue, y::Range{T}) where {T<:Integer} = index(x.pool)[x.level] in y

@@ -1,6 +1,7 @@
 module TestIsLess
     using Base.Test
     using CategoricalArrays
+    using Nulls
 
     pool = CategoricalPool([1, 2, 3])
 
@@ -58,6 +59,18 @@ module TestIsLess
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
+    # Check comparison with null
+    @test isless(v1, null)
+    @test !isless(null, v1)
+    @test isnull(v1 < null)
+    @test isnull(v1 <= null)
+    @test isnull(v1 > null)
+    @test isnull(v1 >= null)
+    @test isnull(null < v1)
+    @test isnull(null <= v1)
+    @test isnull(null > v1)
+    @test isnull(null >= v1)
+
     @test ordered!(pool, true) === pool
     @test isordered(pool) === true
 
@@ -110,6 +123,18 @@ module TestIsLess
     @test isless(v3, v1) === false
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
+
+    # Check comparison with null
+    @test isless(v1, null)
+    @test !isless(null, v1)
+    @test isnull(v1 < null)
+    @test isnull(v1 <= null)
+    @test isnull(v1 > null)
+    @test isnull(v1 >= null)
+    @test isnull(null < v1)
+    @test isnull(null <= v1)
+    @test isnull(null > v1)
+    @test isnull(null >= v1)
 
     @test CategoricalArrays.levels!(pool, [2, 3, 1]) === pool
     @test levels(pool) == [2, 3, 1]
@@ -275,7 +300,6 @@ module TestIsLess
     @test isless(v3, v1) === false
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
-
 
     # Test that ordering comparisons between pools fail
     ordered!(pool, true)

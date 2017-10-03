@@ -4,6 +4,7 @@ module TestRecode
     using CategoricalArrays: DefaultRefType
     using Nulls
 
+    const ≅ = isequal
 
     ## Test recode!, used by recode
 
@@ -128,7 +129,7 @@ module TestRecode
               CategoricalArray{Union{String, Null}}(size(x)), x)
         z = @inferred recode!(y, x, "a", "c"=>"b")
         @test y === z
-        @test y == ["a", null, "b", "a"]
+        @test y ≅ ["a", null, "b", "a"]
         if isa(y, CategoricalArray)
             @test levels(y) == ["b", "a"]
             @test !isordered(y)
@@ -141,7 +142,7 @@ module TestRecode
               CategoricalArray{Union{String, Null}}(size(x)), x)
         z = @inferred recode!(y, x, "c"=>"b")
         @test y === z
-        @test y == ["a", null, "b", "d"]
+        @test y ≅ ["a", null, "b", "d"]
         if isa(y, CategoricalArray)
             @test levels(y) == ["a", "d", "b"]
             @test !isordered(y)
@@ -300,7 +301,7 @@ module TestRecode
 
         # Recoding from Int to Union{Int, Null} with null default
         y = @inferred recode(x, null, 1=>100, 2:4=>0, [5; 9:10]=>-1)
-        @test y == [100, 0, 0, 0, -1, null, null, null, -1, -1]
+        @test y ≅ [100, 0, 0, 0, -1, null, null, null, -1, -1]
         if isa(x, CategoricalArray)
             @test isa(y, CategoricalVector{Union{Int, Null}, DefaultRefType})
             @test levels(y) == [100, 0, -1]
@@ -311,7 +312,7 @@ module TestRecode
 
         # Recoding from Int to Union{Int, Null} with null RHS
         y = @inferred recode(x, 1=>null, 2:4=>0, [5; 9:10]=>-1)
-        @test y == [null, 0, 0, 0, -1, 6, 7, 8, -1, -1]
+        @test y ≅ [null, 0, 0, 0, -1, 6, 7, 8, -1, -1]
         if isa(x, CategoricalArray)
             @test isa(y, CategoricalVector{Union{Int, Null}, DefaultRefType})
             @test levels(y) == [6, 7, 8, 0, -1]
@@ -437,7 +438,7 @@ module TestRecode
     x = CategoricalArray{Union{String, Null}}(["a", "b", "c", "d"])
     x[2] = null
     y = @inferred recode(x, "c"=>"b")
-    @test y == ["a", null, "b", "d"]
+    @test y ≅ ["a", null, "b", "d"]
     @test isa(y, CategoricalVector{Union{String, Null}, DefaultRefType})
     @test levels(y) == ["a", "b", "d"]
     @test !isordered(y)
@@ -446,7 +447,7 @@ module TestRecode
     x = CategoricalArray{Union{String, Null}}(["a", "b", "c", "d"])
     x[2] = null
     y = @inferred recode(x, "a", "c"=>"b")
-    @test y == ["a", null, "b", "a"]
+    @test y ≅ ["a", null, "b", "a"]
     @test isa(y, CategoricalVector{Union{String, Null}, DefaultRefType})
     @test levels(y) == ["b", "a"]
     @test !isordered(y)
