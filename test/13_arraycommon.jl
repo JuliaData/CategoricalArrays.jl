@@ -455,21 +455,55 @@ for T in (Int, Union{Int, Null})
 end
 
 # Test ==
-ca1 = CategoricalArray([1, 2, 3])
-ca2 = CategoricalArray{Union{Int, Null}}([1, 2, 3])
-ca3 = CategoricalArray([1, 2, null])
-ca4 = CategoricalArray([4, 3, 2])
-ca5 = CategoricalArray([1 2; 3 4])
+a1 = [1, 2, 3]
+a2 = Union{Int, Null}[1, 2, 3]
+a3 = [1, 2, null]
+a4 = [4, 3, 2]
+a5 = [1 2; 3 4]
+ca1 = CategoricalArray(a1)
+ca2 = CategoricalArray{Union{Int, Null}}(a2)
+ca2b = CategoricalArray{Union{Int, Null}, 1, UInt32}(ca2.refs, ca2.pool)
+ca3 = CategoricalArray(a3)
+ca3b = CategoricalArray{Union{Int, Null}, 1, UInt32}(ca3.refs, ca2.pool)
+ca4 = CategoricalArray(a4)
+ca5 = CategoricalArray(a5)
 
-@test ca1 == copy(ca1)
-@test ca2 == copy(ca2)
-@test ca3 ≅ copy(ca3)
-@test ca4 == copy(ca4)
-@test ca5 == copy(ca5)
-@test ca1 == ca2
-@test ca1 ≇ ca3
+@test ca1 == copy(ca1) == a1
+@test ca2 == copy(ca2) == a2
+@test isnull(ca3 == copy(ca3)) && isnull(ca3 == ca3b) && isnull(ca3 == a3)
+@test ca4 == copy(ca4) == a4
+@test ca5 == copy(ca5) == a5
+@test ca1 == ca2 == a2
+@test isnull(ca1 != ca3) && isnull(ca1 != a3)
 @test ca1 != ca4
+@test ca1 != a4
+@test a1 != ca4
 @test ca1 != ca5
+@test ca1 != a5
+@test a1 != ca5
+@test ca3 != ca4
+@test ca3 != a4
+@test a3 != ca4
+@test isnull(ca2b != ca3b)
+
+# Test isequal
+@test ca1 ≅ copy(ca1) ≅ a1
+@test ca2 ≅ copy(ca2) ≅ a2
+@test ca3 ≅ copy(ca3) ≅ ca3b ≅ a3
+@test ca4 ≅ copy(ca4) ≅ a4
+@test ca5 ≅ copy(ca5) ≅ a5
+@test ca1 ≅ ca2 ≅ a2
+@test ca1 ≇ ca3 && ca1 ≇ a3
+@test ca1 ≇ ca4
+@test ca1 ≇ a4
+@test a1 ≇ ca4
+@test ca1 ≇ ca5
+@test ca1 ≇ a5
+@test a1 ≇ ca5
+@test ca3 ≇ ca4
+@test ca3 ≇ a4
+@test a3 ≇ ca4
+@test ca2b ≇ ca3b
 
 # Test summary()
 @test summary(CategoricalArray([1, 2, 3])) ==
