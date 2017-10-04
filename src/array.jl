@@ -304,19 +304,45 @@ convert(::Type{CategoricalArray{T, N}}, A::CategoricalArray{T, N}) where {T, N} 
 convert(::Type{CategoricalArray{T}}, A::CategoricalArray{T}) where {T} = A
 convert(::Type{CategoricalArray}, A::CategoricalArray) = A
 
-function Base.:(==)(A::CategoricalArray, B::CategoricalArray)
+function Base.:(==)(A::CategoricalArray{S}, B::CategoricalArray{T}) where {S, T}
+    if size(A) != size(B)
+        return false
+    end
+    anynull = false
+    if A.pool === B.pool
+        @inbounds for (a, b) in zip(A.refs, B.refs)
+            if a == 0 || b == 0
+                (S >: Null || T >: Null) && (anynull = true)
+            elseif a != b
+                return false
+            end
+        end
+    else
+        @inbounds for (a, b) in zip(A, B)
+            eq = (a == b)
+            if eq === false
+                return false
+            elseif S >: Null || T >: Null
+                anynull |= isnull(eq)
+            end
+        end
+    end
+    return anynull ? null : true
+end
+
+function Base.isequal(A::CategoricalArray, B::CategoricalArray)
     if size(A) != size(B)
         return false
     end
     if A.pool === B.pool
-        for (a, b) in zip(A.refs, B.refs)
+        @inbounds for (a, b) in zip(A.refs, B.refs)
             if a != b
                 return false
             end
         end
     else
-        for (a, b) in zip(A, B)
-            if a != b
+        @inbounds for (a, b) in zip(A, B)
+            if !isequal(a, b)
                 return false
             end
         end
