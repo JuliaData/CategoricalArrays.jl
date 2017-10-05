@@ -21,6 +21,12 @@ Base.promote_rule(::Type{CategoricalValue{S}}, ::Type{T}) where {S, T <: Abstrac
 Base.promote_rule(::Type{CategoricalValue{S, R}}, ::Type{T}) where {S, T <: AbstractString, R <: Integer} =
     promote_type(S, T)
 
+Base.promote_rule(::Type{CategoricalValue}, ::Type{Null}) = Union{CategoricalValue, Null}
+Base.promote_rule(::Type{CategoricalValue{S}}, ::Type{Null}) where {S} =
+    Union{CategoricalValue{S}, Null}
+Base.promote_rule(::Type{CategoricalValue{S, R}}, ::Type{Null}) where {S, R <: Integer} =
+    Union{CategoricalValue{S, R}, Null}
+
 Base.convert(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) where {S} =
     convert(Nullable{S}, index(x.pool)[x.level])
 Base.convert(::Type{Nullable}, x::CategoricalValue{S}) where {S} = convert(Nullable{S}, x)

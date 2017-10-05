@@ -1,6 +1,7 @@
 module TestConvert
     using Base.Test
     using CategoricalArrays
+    using Nulls
 
     pool = CategoricalPool([1, 2, 3])
     @test convert(CategoricalPool{Int, CategoricalArrays.DefaultRefType}, pool) === pool
@@ -38,6 +39,11 @@ module TestConvert
     @test promote(1, v1) === (1, 1)
     @test promote(1.0, v1) === (1.0, 1.0)
     @test promote(0x1, v1) === (1, 1)
+
+    @test promote_type(CategoricalValue, Null) === Union{CategoricalValue, Null}
+    @test promote_type(CategoricalValue{Int}, Null) === Union{CategoricalValue{Int}, Null}
+    @test promote_type(CategoricalValue{Int, UInt32}, Null) ===
+        Union{CategoricalValue{Int, UInt32}, Null}
 
     # Test that ordered property is preserved
     pool = CategoricalPool([1, 2, 3], true)
