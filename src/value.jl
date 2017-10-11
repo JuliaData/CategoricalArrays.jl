@@ -94,6 +94,7 @@ Base.isequal(::CategoricalValue, ::Null) = false
 Base.isequal(::Null, ::CategoricalValue) = false
 
 Base.in(x::CategoricalValue, y::Any) = index(x.pool)[x.level] in y
+Base.in(x::CategoricalValue, y::Set) = index(x.pool)[x.level] in y
 Base.in(x::CategoricalValue, y::Range{T}) where {T<:Integer} = index(x.pool)[x.level] in y
 
 Base.hash(x::CategoricalValue, h::UInt) = hash(index(x.pool)[x.level], h)
