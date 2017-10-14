@@ -1,10 +1,7 @@
 # delegate methods for SubArrays to support view
 
-for f in [:levels, :isordered]
-    @eval begin
-        $f(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = $f(parent(sa))
-    end
-end
+Nulls.levels(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = levels(parent(sa))
+isordered(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = isordered(parent(sa))
 
 function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
     A = parent(sa)

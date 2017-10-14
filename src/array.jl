@@ -530,7 +530,7 @@ in the data (see [`droplevels!`](@ref)).
 As a special case, `null` is never included in the levels, even if
 the array contains missing values.
 """
-levels(A::CategoricalArray) = levels(A.pool)
+Nulls.levels(A::CategoricalArray) = levels(A.pool)
 
 """
     levels!(A::CategoricalArray, newlevels::Vector; nullok::Bool=false)
