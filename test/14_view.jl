@@ -2,7 +2,6 @@ module TestView
 
 using Base.Test
 using CategoricalArrays
-using Nulls
 
 for T in (Union{}, Null)
     for order in (true, false)

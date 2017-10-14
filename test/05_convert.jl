@@ -1,7 +1,6 @@
 module TestConvert
     using Base.Test
     using CategoricalArrays
-    using Nulls
 
     pool = CategoricalPool([1, 2, 3])
     @test convert(CategoricalPool{Int, CategoricalArrays.DefaultRefType}, pool) === pool

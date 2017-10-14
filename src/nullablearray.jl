@@ -1,5 +1,4 @@
 import Base: convert, getindex, setindex!, similar, in
-using Nulls
 
 ## Constructors and converters
 ## (special methods for AbstractArray{Union{T, Null}}, to avoid wrapping nulls inside CategoricalValues)

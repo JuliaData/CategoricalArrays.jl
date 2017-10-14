@@ -2,7 +2,6 @@ module TestRecode
     using Base.Test
     using CategoricalArrays
     using CategoricalArrays: DefaultRefType
-    using Nulls
 
     const ≅ = isequal
 

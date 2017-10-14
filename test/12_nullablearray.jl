@@ -1,7 +1,6 @@
 module TestNullableArray
 
 using Base.Test
-using Nulls
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 
