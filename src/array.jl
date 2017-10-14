@@ -1,6 +1,5 @@
 ## Code for CategoricalArray
 
-using Nulls
 import Base: convert, copy, copy!, getindex, setindex!, similar, size,
              unique, vcat, in, summary
 
@@ -526,9 +525,6 @@ end
 
 Return the levels of categorical array `A`. This may include levels which do not actually appear
 in the data (see [`droplevels!`](@ref)).
-
-As a special case, `null` is never included in the levels, even if
-the array contains missing values.
 """
 Nulls.levels(A::CategoricalArray) = levels(A.pool)
 

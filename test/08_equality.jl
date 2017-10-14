@@ -1,7 +1,6 @@
 module TestEquality
     using Base.Test
     using CategoricalArrays
-    using Nulls
 
     pool1 = CategoricalPool([1, 2, 3])
     pool2 = CategoricalPool([2.0, 1.0, 3.0])

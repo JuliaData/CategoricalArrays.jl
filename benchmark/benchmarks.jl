@@ -1,6 +1,5 @@
 using PkgBenchmark
 using CategoricalArrays
-using Nulls
 
 @benchgroup "isequal(A, v::String)" begin
     function sumequals(A::AbstractArray, v::Any)

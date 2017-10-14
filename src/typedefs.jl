@@ -1,5 +1,3 @@
-using Nulls
-
 const DefaultRefType = UInt32
 
 ## Pools

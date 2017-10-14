@@ -2,7 +2,6 @@ module TestArrayCommon
 
 using Base.Test
 using CategoricalArrays
-using Nulls
 using CategoricalArrays: DefaultRefType, index
 
 const ≅ = isequal

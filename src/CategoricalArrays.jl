@@ -12,6 +12,8 @@ module CategoricalArrays
     export cut, recode, recode!
 
     using Compat
+    using Reexport
+    @reexport using Nulls
 
     include("typedefs.jl")
 

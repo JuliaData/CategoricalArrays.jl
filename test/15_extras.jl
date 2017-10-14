@@ -2,7 +2,6 @@ module TestExtras
 
 using Base.Test
 using CategoricalArrays
-using Nulls
 
 const ≅ = isequal
 

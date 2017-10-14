@@ -129,8 +129,6 @@ The examples above assumed that the data contained no missing values. This is ge
 Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a `String` or `null`:
 
 ```jldoctest using
-julia> using Nulls
-
 julia> y = CategoricalArray{Union{Null, String}}(["Old", "Young", "Middle", "Young"], ordered=true)
 4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
  "Old"   
