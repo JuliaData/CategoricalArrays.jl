@@ -4,6 +4,9 @@ level(x::CategoricalValue) = x.level
 Base.get(x::CategoricalValue) = index(pool(x))[level(x)]
 order(x::CategoricalValue) = order(pool(x))[level(x)]
 
+reftype(::Type{CategoricalValue{T, R}}) where {T,R} = R
+reftype(v::CategoricalValue) = reftype(typeof(v))
+
 # extract the type of original value from categorical value type
 unwrap_catvalue_type(::Type{<: CategoricalValue{T}}) where {T} = T
 unwrap_catvalue_type(::Type{Union{V, Null}}) where {T, V <: CategoricalValue{T}} = Union{T, Null}
