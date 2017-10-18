@@ -3,21 +3,21 @@ import Base: convert, getindex, setindex!, similar, in
 ## Constructors and converters
 ## (special methods for AbstractArray{Union{T, Null}}, to avoid wrapping nulls inside CategoricalValues)
 
-CategoricalArray{Union{T, Null}, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R} =
+CategoricalArray{Union{T, Null}, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R<:Integer} =
     CategoricalArray{Union{T, Null}, N, R}(zeros(R, dims), CategoricalPool{T, R}(ordered))
 
-CategoricalArray{Union{CategoricalValue{T, R}, Null}, N, R}(dims::NTuple{N,Int};
-                                                                      ordered=false) where {T, N, R} =
-    CategoricalArray{Union{T, Null}, N, R}(dims; ordered=ordered)
-CategoricalArray{Union{CategoricalValue{T}, Null}, N, R}(dims::NTuple{N,Int};
-                                                                   ordered=false) where {T, N, R} =
-    CategoricalArray{Union{T, Null}, N, R}(dims; ordered=ordered)
-CategoricalArray{Union{CategoricalValue{T, R}, Null}, N}(dims::NTuple{N,Int};
-                                                                   ordered=false) where {T, N, R} =
-    CategoricalArray{Union{T, Null}, N, R}(dims; ordered=ordered)
-CategoricalArray{Union{CategoricalValue{T}, Null}, N}(dims::NTuple{N,Int};
-                                                                ordered=false) where {T, N} =
-    CategoricalArray{Union{T, Null}, N}(dims; ordered=ordered)
+function CategoricalArray{Union{T, Null}, N, R}(dims::NTuple{N,Int};
+                                                ordered=false) where {T<:CatValue, N, R<:Integer}
+    V = unwrap_catvalue_type(T)
+    CategoricalArray{Union{V, Null}, N, R}(zeros(R, dims), CategoricalPool{V, R, T}(ordered))
+end
+
+CategoricalArray{Union{T, Null}, N}(dims::NTuple{N,Int}; ordered=false) where {T<:CatValue, N} =
+    CategoricalArray{Union{T, Null}, N, reftype(T)}(dims, ordered=ordered)
+
+CategoricalArray{Union{T, Null}}(dims::NTuple{N,Int}; ordered=false) where {T<:CatValue, N} =
+    CategoricalArray{Union{T, Null}, N}(dims, ordered=ordered)
+
 # CategoricalArray{Union{CategoricalValue, Null}, N}}){N}(dims::NTuple{N,Int};
 #                                                                 ordered=false) =
 #     CategoricalArray{Union{String, Null}, N}(dims; ordered=ordered)

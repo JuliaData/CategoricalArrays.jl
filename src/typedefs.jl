@@ -5,9 +5,7 @@ const DefaultRefType = UInt32
 # Type params:
 # * `T` type of categorized values
 # * `R` integral type for referncing category levels
-# * `V` categorical value type, always set to CategoricalValue{T}
-#   This workaround is needed since this type not defined yet
-#   See JuliaLang/julia#269
+# * `V` categorical value type that implements "categorical value" concept
 mutable struct CategoricalPool{T, R <: Integer, V}
     index::Vector{T}        # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
@@ -34,10 +32,26 @@ end
 
 ## Values
 
-struct CategoricalValue{T, R <: Integer} <: AbstractString
+"""
+Default implementation of "categorical value" concept
+that references value of type `T`.
+"""
+struct CategoricalValue{T, R <: Integer}
     level::R
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
+
+"""
+`String` categorical value.
+Provides `AbstractString` interoperability.
+"""
+struct CategoricalString{R <: Integer} <: AbstractString
+    level::R
+    pool::CategoricalPool{String, R, CategoricalString{R}}
+end
+
+# alias for all implementations of categorical value concept
+const CatValue = Union{CategoricalValue, CategoricalString}
 
 ## Arrays
 
@@ -46,22 +60,23 @@ end
 # * `N` array dimension
 # * `R` integral type for referncing category levels
 # * `V` orignial type of non-nullable elements before categorization
+# * `C` categorical value type that implements "categorical value" concept
 # * `U` type of null value, `Union{}` if the data is non-nullable
-abstract type AbstractCategoricalArray{T, N, R, V, U} <: AbstractArray{Union{CategoricalValue{V, R}, U}, N} end
-AbstractCategoricalVector{T, R, V, U} = AbstractCategoricalArray{T, 1, R, V, U}
-AbstractCategoricalMatrix{T, R, V, U} = AbstractCategoricalArray{T, 2, R, V, U}
+abstract type AbstractCategoricalArray{T, N, R, V, C, U} <: AbstractArray{Union{C, U}, N} end
+AbstractCategoricalVector{T, R, V, C, U} = AbstractCategoricalArray{T, 1, R, V, C, U}
+AbstractCategoricalMatrix{T, R, V, C, U} = AbstractCategoricalArray{T, 2, R, V, C, U}
 
-struct CategoricalArray{T, N, R <: Integer, V, U} <: AbstractCategoricalArray{T, N, R, V, U}
+struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray{T, N, R, V, C, U}
     refs::Array{R, N}
-    pool::CategoricalPool{V, R, CategoricalValue{V, R}}
+    pool::CategoricalPool{V, R, C}
 
     function CategoricalArray{T, N, R}(refs::Array{R, N},
-                                       pool::CategoricalPool{V, R, CategoricalValue{V, R}}) where
-                                                 {T, N, R <: Integer, V}
+                                       pool::CategoricalPool{V, R, C}) where
+                                                 {T, N, R <: Integer, V, C}
         T === V || T == Union{V, Null} || throw(ArgumentError("T ($T) must be equal to $V or Union{$V, Null}"))
         U = T >: Null ? Null : Union{}
-        new{T, N, R, V, U}(refs, pool)
+        new{T, N, R, V, C, U}(refs, pool)
     end
 end
-CategoricalVector{T, R, V, U} = CategoricalArray{T, 1, V, U}
-CategoricalMatrix{T, R, V, U} = CategoricalArray{T, 2, V, U}
+CategoricalVector{T, R, V, C, U} = CategoricalArray{T, 1, V, C, U}
+CategoricalMatrix{T, R, V, C, U} = CategoricalArray{T, 2, V, C, U}

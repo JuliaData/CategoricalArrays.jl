@@ -39,7 +39,7 @@ module TestTypeDef
     for i in 1:3
         x = CategoricalValue(i, pool)
 
-        @test isa(x, CategoricalValue)
+        @test iscatvalue(x)
 
         @test isa(x.level, DefaultRefType)
         @test x.level === DefaultRefType(i)
@@ -89,7 +89,7 @@ module TestTypeDef
     for i in 1:3
         y = CategoricalValue(i, pool)
 
-        @test isa(y, CategoricalValue)
+        @test iscatvalue(y)
 
         @test isa(y.level, DefaultRefType)
         @test y.level === DefaultRefType(i)

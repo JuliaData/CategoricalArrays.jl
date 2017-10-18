@@ -18,11 +18,11 @@ function buildinvindex(index::Vector{T}, ::Type{R}=DefaultRefType) where {T, R}
     return invindex
 end
 
-function buildvalues!(pool::CategoricalPool{T, R, V}) where {T, R, V}
-    n = length(levels(pool))
-    resize!(pool.valindex, n)
-    for i in 1:n
-        pool.valindex[i] = V(i, pool)
+function buildvalues!(pool::CategoricalPool)
+    resize!(pool.valindex, length(levels(pool)))
+    for i in eachindex(pool.valindex)
+        v = CategoricalValue(i, pool)
+        @inbounds pool.valindex[i] = v
     end
     return pool.valindex
 end

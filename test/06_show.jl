@@ -17,13 +17,13 @@ module TestShow
     @test sprint(show, pool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"c\",\"b\",\"a\"])"
     @test sprint(show, opool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"a\",\"b\",\"c\"]) with ordered levels"
 
-    @test sprint(show, nv1) == "CategoricalArrays.CategoricalValue{String,UInt32} \"c\""
-    @test sprint(show, nv2) == "CategoricalArrays.CategoricalValue{String,UInt32} \"b\""
-    @test sprint(show, nv3) == "CategoricalArrays.CategoricalValue{String,UInt32} \"a\""
+    @test sprint(show, nv1) == "CategoricalArrays.CategoricalString{UInt32} \"c\""
+    @test sprint(show, nv2) == "CategoricalArrays.CategoricalString{UInt32} \"b\""
+    @test sprint(show, nv3) == "CategoricalArrays.CategoricalString{UInt32} \"a\""
 
-    @test sprint(show, ov1) == "CategoricalArrays.CategoricalValue{String,UInt32} \"c\" (3/3)"
-    @test sprint(show, ov2) == "CategoricalArrays.CategoricalValue{String,UInt32} \"b\" (2/3)"
-    @test sprint(show, ov3) == "CategoricalArrays.CategoricalValue{String,UInt32} \"a\" (1/3)"
+    @test sprint(show, ov1) == "CategoricalArrays.CategoricalString{UInt32} \"c\" (3/3)"
+    @test sprint(show, ov2) == "CategoricalArrays.CategoricalString{UInt32} \"b\" (2/3)"
+    @test sprint(show, ov3) == "CategoricalArrays.CategoricalString{UInt32} \"a\" (1/3)"
 
     @test sprint(showcompact, nv1) == sprint(showcompact, ov1) == "\"c\""
     @test sprint(showcompact, nv2) == sprint(showcompact, ov2) == "\"b\""

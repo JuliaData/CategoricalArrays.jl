@@ -1,6 +1,6 @@
 __precompile__()
 module CategoricalArrays
-    export CategoricalPool, CategoricalValue
+    export CategoricalPool, CategoricalValue, CategoricalString
     export AbstractCategoricalArray, AbstractCategoricalVector, AbstractCategoricalMatrix,
            CategoricalArray, CategoricalVector, CategoricalMatrix
     export AbstractNullableCategoricalArray, AbstractNullableCategoricalVector,
@@ -8,7 +8,7 @@ module CategoricalArrays
            NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
     export LevelsException
 
-    export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!
+    export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!, iscatvalue
     export cut, recode, recode!
 
     using Compat
