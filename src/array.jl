@@ -19,10 +19,6 @@ function reftype(sz::Int)
     end
 end
 
-unwrap_catvalue_type(::Type{<: CategoricalValue{T}}) where {T} = T
-unwrap_catvalue_type(::Type{Union{V, Null}}) where {T, V <: CategoricalValue{T}} = Union{T, Null}
-unwrap_catvalue_type(::Type{T}) where {T} = T
-
 """
     CategoricalArray{T}(dims::Dims; ordered::Bool=false)
     CategoricalArray{T}(dims::Int...; ordered::Bool=false)
