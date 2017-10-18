@@ -1,3 +1,9 @@
+pool(x::CategoricalValue) = x.pool
+level(x::CategoricalValue) = x.level
+
+Base.get(x::CategoricalValue) = index(pool(x))[level(x)]
+order(x::CategoricalValue) = order(pool(x))[level(x)]
+
 function CategoricalValue(level::Integer, pool::CategoricalPool{T, R}) where {T, R}
     return CategoricalValue(convert(R, level), pool)
 end
@@ -28,30 +34,27 @@ Base.promote_rule(::Type{CategoricalValue{S, R}}, ::Type{Null}) where {S, R <: I
     Union{CategoricalValue{S, R}, Null}
 
 Base.convert(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) where {S} =
-    convert(Nullable{S}, index(x.pool)[x.level])
+    convert(Nullable{S}, get(x))
 Base.convert(::Type{Nullable}, x::CategoricalValue{S}) where {S} = convert(Nullable{S}, x)
 Base.convert(::Type{Nullable{CategoricalValue{Nullable{T}}}},
              x::CategoricalValue{Nullable{T}}) where {T} =
     Nullable(x)
 Base.convert(::Type{Ref}, x::CategoricalValue{T}) where {T} = RefValue{T}(x)
-Base.convert(::Type{String}, x::CategoricalValue) = convert(String, index(x.pool)[x.level])
+Base.convert(::Type{String}, x::CategoricalValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CategoricalValue) = x
 
-Base.convert(::Type{S}, x::CategoricalValue) where {S} = convert(S, index(x.pool)[x.level])
-Base.convert(::Type{Union{S, Null}}, x::CategoricalValue) where {S} = convert(S, index(x.pool)[x.level])
+Base.convert(::Type{S}, x::CategoricalValue) where {S} = convert(S, get(x))
+Base.convert(::Type{Union{S, Null}}, x::CategoricalValue) where {S} = convert(S, get(x))
 
 function Base.show(io::IO, x::CategoricalValue{T}) where {T}
     if get(io, :compact, false)
-        print(io, repr(index(x.pool)[x.level]))
-    elseif isordered(x.pool)
+        print(io, repr(x))
+    elseif isordered(pool(x))
         @printf(io, "%s %s (%i/%i)",
-                typeof(x),
-                repr(index(x.pool)[x.level]),
-                order(x.pool)[x.level], length(x.pool))
+                typeof(x), repr(x),
+                order(x), length(pool(x)))
     else
-        @printf(io, "%s %s",
-                typeof(x),
-                repr(index(x.pool)[x.level]))
+        @printf(io, "%s %s", typeof(x), repr(x))
     end
 end
 
@@ -62,7 +65,7 @@ Base.repr(x::CategoricalValue) = repr(get(x))
     if x.pool === y.pool
         return x.level == y.level
     else
-        return index(x.pool)[x.level] == index(y.pool)[y.level]
+        return get(x) == get(y)
     end
 end
 
@@ -70,34 +73,33 @@ Base.:(==)(::CategoricalValue, ::Null) = null
 Base.:(==)(::Null, ::CategoricalValue) = null
 
 # To fix ambiguities with Base
-Base.:(==)(x::CategoricalValue, y::WeakRef) = index(x.pool)[x.level] == y
+Base.:(==)(x::CategoricalValue, y::WeakRef) = get(x) == y
 Base.:(==)(x::WeakRef, y::CategoricalValue) = y == x
 
-Base.:(==)(x::CategoricalValue, y::AbstractString) = index(x.pool)[x.level] == y
+Base.:(==)(x::CategoricalValue, y::AbstractString) = get(x) == y
 Base.:(==)(x::AbstractString, y::CategoricalValue) = y == x
 
-Base.:(==)(x::CategoricalValue, y::Any) = index(x.pool)[x.level] == y
+Base.:(==)(x::CategoricalValue, y::Any) = get(x) == y
 Base.:(==)(x::Any, y::CategoricalValue) = y == x
 
 @inline function Base.isequal(x::CategoricalValue, y::CategoricalValue)
-    if x.pool === y.pool
-        return x.level == y.level
+    if pool(x) === pool(y)
+        return level(x) == level(y)
     else
-        return isequal(index(x.pool)[x.level], index(y.pool)[y.level])
+        return isequal(get(x), get(y))
     end
-end
 
-Base.isequal(x::CategoricalValue, y::Any) = isequal(index(x.pool)[x.level], y)
+Base.isequal(x::CategoricalValue, y::Any) = isequal(get(x), y)
 Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
 
 Base.isequal(::CategoricalValue, ::Null) = false
 Base.isequal(::Null, ::CategoricalValue) = false
 
-Base.in(x::CategoricalValue, y::Any) = index(x.pool)[x.level] in y
-Base.in(x::CategoricalValue, y::Set) = index(x.pool)[x.level] in y
-Base.in(x::CategoricalValue, y::Range{T}) where {T<:Integer} = index(x.pool)[x.level] in y
+Base.in(x::CategoricalValue, y::Any) = get(x) in y
+Base.in(x::CategoricalValue, y::Set) = get(x) in y
+Base.in(x::CategoricalValue, y::Range{T}) where {T<:Integer} = get(x) in y
 
-Base.hash(x::CategoricalValue, h::UInt) = hash(index(x.pool)[x.level], h)
+Base.hash(x::CategoricalValue, h::UInt) = hash(get(x), h)
 
 function Base.isless(x::CategoricalValue{S}, y::CategoricalValue{T}) where {S, T}
     throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
@@ -105,24 +107,22 @@ end
 
 # Method defined even on unordered values so that sort() works
 function Base.isless(x::CategoricalValue{T}, y::CategoricalValue{T}) where {T}
-    if x.pool !== y.pool
+    if pool(x) !== pool(y)
         throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
     else
-        return order(x.pool)[x.level] < order(y.pool)[y.level]
+        return order(x) < order(y)
     end
 end
 
 function Base.:<(x::CategoricalValue{T}, y::CategoricalValue{T}) where {T}
-    if x.pool !== y.pool
+    if pool(x) !== pool(y)
         throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
-    elseif !isordered(x.pool) # !isordered(y.pool) is implied by x.pool === y.pool
+    elseif !isordered(pool(x)) # !isordered(pool(y)) is implied by pool(x) === pool(y)
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
-        return order(x.pool)[x.level] < order(y.pool)[y.level]
+        return order(x) < order(y)
     end
 end
-
-Base.get(x::CategoricalValue{T,R}) where {T,R} = convert(T,x)
 
 # AbstractString interface
 Base.string(x::CategoricalValue{<:AbstractString}) = get(x)
