@@ -2,9 +2,12 @@ const DefaultRefType = UInt32
 
 ## Pools
 
-# V is always set to CategoricalValue{T}
-# This workaround is needed since this type not defined yet
-# See JuliaLang/julia#269
+# Type params:
+# * `T` type of categorized values
+# * `R` integral type for referncing category levels
+# * `V` categorical value type, always set to CategoricalValue{T}
+#   This workaround is needed since this type not defined yet
+#   See JuliaLang/julia#269
 mutable struct CategoricalPool{T, R <: Integer, V}
     index::Vector{T}        # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
@@ -38,6 +41,12 @@ end
 
 ## Arrays
 
+# Type params:
+# * `T` original type of elements before categorization, could be nullable
+# * `N` array dimension
+# * `R` integral type for referncing category levels
+# * `V` orignial type of non-nullable elements before categorization
+# * `U` type of null value, `Union{}` if the data is non-nullable
 abstract type AbstractCategoricalArray{T, N, R, V, U} <: AbstractArray{Union{CategoricalValue{V, R}, U}, N} end
 AbstractCategoricalVector{T, R, V, U} = AbstractCategoricalArray{T, 1, R, V, U}
 AbstractCategoricalMatrix{T, R, V, U} = AbstractCategoricalArray{T, 2, R, V, U}
