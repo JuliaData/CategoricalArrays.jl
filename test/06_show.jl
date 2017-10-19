@@ -6,13 +6,13 @@ module TestShow
 
     opool = CategoricalPool(["c", "b", "a"], ["a", "b", "c"], true)
 
-    nv1 = CategoricalValue(1, pool)
-    nv2 = CategoricalValue(2, pool)
-    nv3 = CategoricalValue(3, pool)
+    nv1 = catvalue(1, pool)
+    nv2 = catvalue(2, pool)
+    nv3 = catvalue(3, pool)
 
-    ov1 = CategoricalValue(1, opool)
-    ov2 = CategoricalValue(2, opool)
-    ov3 = CategoricalValue(3, opool)
+    ov1 = catvalue(1, opool)
+    ov2 = catvalue(2, opool)
+    ov3 = catvalue(3, opool)
 
     @test sprint(show, pool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"c\",\"b\",\"a\"])"
     @test sprint(show, opool) == "CategoricalArrays.CategoricalPool{String,UInt32}([\"a\",\"b\",\"c\"]) with ordered levels"

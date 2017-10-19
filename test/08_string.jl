@@ -4,8 +4,8 @@ module TestString
 
     pool = CategoricalPool(["", "café"])
 
-    v1 = CategoricalValue(1, pool)
-    v2 = CategoricalValue(2, pool)
+    v1 = catvalue(1, pool)
+    v2 = catvalue(2, pool)
 
     @test v1 isa AbstractString
     @test v2 isa AbstractString

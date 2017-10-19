@@ -8,7 +8,8 @@ module CategoricalArrays
            NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
     export LevelsException
 
-    export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!, iscatvalue
+    export catvalue#, iscatvalue
+    export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!
     export cut, recode, recode!
 
     using Compat

@@ -53,7 +53,7 @@ order(x::CatValue) = order(pool(x))[level(x)]
 
 # creates categorical value for `level` from the `pool`
 # The result type is of type `C`, which may be different from `CategoricalValue{T,R}`
-function CategoricalValue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C}
+function catvalue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C}
     return C(convert(R, level), pool)
 end
 

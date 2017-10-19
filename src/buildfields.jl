@@ -21,7 +21,7 @@ end
 function buildvalues!(pool::CategoricalPool)
     resize!(pool.valindex, length(levels(pool)))
     for i in eachindex(pool.valindex)
-        v = CategoricalValue(i, pool)
+        v = catvalue(i, pool)
         @inbounds pool.valindex[i] = v
     end
     return pool.valindex

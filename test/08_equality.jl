@@ -32,10 +32,10 @@ module TestEquality
     @test (opool1 === opool2) === false
     @test (opool2 === opool2) === true
 
-    nv1a = CategoricalValue(1, pool1)
-    nv2a = CategoricalValue(1, pool2)
-    nv1b = CategoricalValue(2, pool1)
-    nv2b = CategoricalValue(2, pool2)
+    nv1a = catvalue(1, pool1)
+    nv2a = catvalue(1, pool2)
+    nv1b = catvalue(2, pool1)
+    nv2b = catvalue(2, pool2)
 
     @test isequal(nv1a, nv1a) == true
     @test isequal(nv1a, nv2a) == false
@@ -67,10 +67,10 @@ module TestEquality
     @test isequal(nv1b, 2) == true
     @test isequal(nv2b, 2) == false
 
-    ov1a = CategoricalValue(1, opool1)
-    ov2a = CategoricalValue(1, opool2)
-    ov1b = CategoricalValue(2, opool1)
-    ov2b = CategoricalValue(2, opool2)
+    ov1a = catvalue(1, opool1)
+    ov2a = catvalue(1, opool2)
+    ov1b = catvalue(2, opool1)
+    ov2b = catvalue(2, opool2)
 
     @test isequal(ov1a, ov1a) == true
     @test isequal(ov1a, ov2a) == false
@@ -156,7 +156,7 @@ module TestEquality
 
     # Check in()
     pool = CategoricalPool([5, 1, 3])
-    nv = CategoricalValue(2, pool)
+    nv = catvalue(2, pool)
 
     @test (nv in 1:3) === true
     @test (nv in [1, 2, 3]) === true

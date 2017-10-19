@@ -4,9 +4,9 @@ module TestIsLess
 
     pool = CategoricalPool([1, 2, 3])
 
-    v1 = CategoricalValue(1, pool)
-    v2 = CategoricalValue(2, pool)
-    v3 = CategoricalValue(3, pool)
+    v1 = catvalue(1, pool)
+    v2 = catvalue(2, pool)
+    v3 = catvalue(3, pool)
 
     @test_throws ArgumentError v1 < v1
     @test_throws ArgumentError v1 < v2
@@ -246,9 +246,9 @@ module TestIsLess
     # (since the AbstractString fallback could break this)
     pool = CategoricalPool(["a", "b", "c"])
 
-    v1 = CategoricalValue(1, pool)
-    v2 = CategoricalValue(2, pool)
-    v3 = CategoricalValue(3, pool)
+    v1 = catvalue(1, pool)
+    v2 = catvalue(2, pool)
+    v3 = catvalue(3, pool)
 
     @test_throws ArgumentError v1 < v1
     @test_throws ArgumentError v1 < v2
@@ -305,7 +305,7 @@ module TestIsLess
     pool2 = CategoricalPool([1, 2, 3])
     ordered!(pool2, true)
 
-    v = CategoricalValue(1, pool2)
+    v = catvalue(1, pool2)
 
     @test_throws ArgumentError v < v1
     @test_throws ArgumentError v <= v1
