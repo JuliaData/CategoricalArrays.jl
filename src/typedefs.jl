@@ -78,5 +78,5 @@ struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray
         new{T, N, R, V, C, U}(refs, pool)
     end
 end
-CategoricalVector{T, R, V, C, U} = CategoricalArray{T, 1, V, C, U}
-CategoricalMatrix{T, R, V, C, U} = CategoricalArray{T, 2, V, C, U}
+const CategoricalVector{T, R, V, C, U} = CategoricalArray{T, 1, V, C, U}
+const CategoricalMatrix{T, R, V, C, U} = CategoricalArray{T, 2, V, C, U}
