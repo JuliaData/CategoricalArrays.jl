@@ -174,7 +174,7 @@ function Base.:<(x::CatValue, y::CatValue)
     end
 end
 
-# AbstractString interface
+# AbstractString interface for CategoricalString
 Base.string(x::CategoricalString) = get(x)
 Base.length(x::CategoricalString) = length(get(x))
 Base.endof(x::CategoricalString) = endof(get(x))
