@@ -7,7 +7,8 @@ iscatvalue(::Type{<:CategoricalString}) = true
 iscatvalue(::Type{<:CategoricalValue}) = true
 valtype(::Type{<:CategoricalValue{T}}) where T = T
 valtype(::Type{<:CategoricalString}) = String
-# type of levels
+# integer type of category reference codes for given type
+reftype(::Type) = DefaultRefType
 reftype(::Type{<:CategoricalValue{T, R}}) where {T,R} = R
 reftype(::Type{<:CategoricalString{R}}) where R = R
 

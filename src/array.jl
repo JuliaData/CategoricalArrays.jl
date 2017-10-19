@@ -122,7 +122,7 @@ CategoricalArray(dims::Int...; ordered=false) =
 CategoricalArray{T, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R<:Integer} =
     CategoricalArray{T, N, R}(zeros(R, dims), CategoricalPool{T, R}(ordered))
 CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
-    CategoricalArray{T, N, DefaultRefType}(dims, ordered=ordered)
+    CategoricalArray{T, N, reftype(T)}(dims, ordered=ordered)
 CategoricalArray{T}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
     CategoricalArray{T, N}(dims, ordered=ordered)
 CategoricalArray{T, 1}(m::Int; ordered=false) where {T} =
@@ -187,7 +187,7 @@ end
 
 # From AbstractArray
 CategoricalArray{T, N}(A::AbstractArray{S, N}; ordered=_isordered(A)) where {S, T, N} =
-    CategoricalArray{T, N, DefaultRefType}(A, ordered=ordered)
+    CategoricalArray{T, N, reftype(T)}(A, ordered=ordered)
 CategoricalArray{T}(A::AbstractArray{S, N}; ordered=_isordered(A)) where {S, T, N} =
     CategoricalArray{T, N}(A, ordered=ordered)
 CategoricalArray(A::AbstractArray{T, N}; ordered=_isordered(A)) where {T, N} =
@@ -233,7 +233,7 @@ CategoricalMatrix(A::CategoricalArray{T, 2, R};
 
 # From AbstractArray
 convert(::Type{CategoricalArray{T, N}}, A::AbstractArray{S, N}) where {S, T, N} =
-    convert(CategoricalArray{T, N, DefaultRefType}, A)
+    convert(CategoricalArray{T, N, reftype(T)}, A)
 convert(::Type{CategoricalArray{T}}, A::AbstractArray{S, N}) where {S, T, N} =
     convert(CategoricalArray{T, N}, A)
 convert(::Type{CategoricalArray}, A::AbstractArray{T, N}) where {T, N} =
@@ -245,14 +245,14 @@ convert(::Type{CategoricalArray{CategoricalValue{T}, N}}, A::AbstractArray{T, N}
     convert(CategoricalArray{T, N}, A)
 
 convert(::Type{CategoricalVector{T}}, A::AbstractVector) where {T} =
-    convert(CategoricalVector{T, DefaultRefType}, A)
+    convert(CategoricalVector{T, reftype(T)}, A)
 convert(::Type{CategoricalVector}, A::AbstractVector{T}) where {T} =
     convert(CategoricalVector{T}, A)
 convert(::Type{CategoricalVector{T}}, A::CategoricalVector{T}) where {T} = A
 convert(::Type{CategoricalVector}, A::CategoricalVector) = A
 
 convert(::Type{CategoricalMatrix{T}}, A::AbstractMatrix) where {T} =
-    convert(CategoricalMatrix{T, DefaultRefType}, A)
+    convert(CategoricalMatrix{T, reftype(T)}, A)
 convert(::Type{CategoricalMatrix}, A::AbstractMatrix{T}) where {T} =
     convert(CategoricalMatrix{T}, A)
 convert(::Type{CategoricalMatrix{T}}, A::CategoricalMatrix{T}) where {T} = A
@@ -484,7 +484,7 @@ To avoid the need to call decompress, ensure [`compress`](@ref) is not called wh
 the categorical array.
 """
 decompress(A::CategoricalArray{T, N}) where {T, N} =
-    convert(CategoricalArray{T, N, DefaultRefType}, A)
+    convert(CategoricalArray{T, N, reftype(T)}, A)
 
 function vcat(A::CategoricalArray...)
     ordered = any(isordered, A) && all(a->isordered(a) || isempty(levels(a)), A)
@@ -497,9 +497,10 @@ function vcat(A::CategoricalArray...)
 
     T = Base.promote_eltype(A...) >: Null ?
         Union{eltype(newlevels), Null} : eltype(newlevels)
-    refs = DefaultRefType[refsvec...;]
+    R = reftype(T)
+    refs = R[refsvec...;]
     pool = CategoricalPool(newlevels, ordered)
-    CategoricalArray{T, ndims(refs), DefaultRefType}(refs, pool)
+    CategoricalArray{T, ndims(refs), R}(refs, pool)
 end
 
 @inline function getindex(A::CategoricalArray{T}, I...) where {T}
@@ -696,7 +697,7 @@ categorical(A::AbstractArray; ordered=_isordered(A)) = CategoricalArray(A, order
 
 # Type-unstable methods
 function categorical(A::AbstractArray{T, N}, compress; ordered=_isordered(A)) where {T, N}
-    RefType = compress ? reftype(length(unique(A))) : DefaultRefType
+    RefType = compress ? reftype(length(unique(A))) : reftype(T)
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
 function categorical(A::CategoricalArray{T, N, R}, compress; ordered=_isordered(A)) where {T, N, R}
