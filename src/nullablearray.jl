@@ -4,12 +4,12 @@ import Base: convert, getindex, setindex!, similar, in
 ## (special methods for AbstractArray{Union{T, Null}}, to avoid wrapping nulls inside CategoricalValues)
 
 CategoricalArray{Union{T, Null}, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R<:Integer} =
-    CategoricalArray{Union{T, Null}, N, R}(zeros(R, dims), CategoricalPool{T, R}(ordered))
+    CategoricalArray{Union{T, Null}, N}(zeros(R, dims), CategoricalPool{T, R}(ordered))
 
 function CategoricalArray{Union{T, Null}, N, R}(dims::NTuple{N,Int};
                                                 ordered=false) where {T<:CatValue, N, R<:Integer}
     V = unwrap_catvalue_type(T)
-    CategoricalArray{Union{V, Null}, N, R}(zeros(R, dims), CategoricalPool{V, R, T}(ordered))
+    CategoricalArray{Union{V, Null}, N}(zeros(R, dims), CategoricalPool{V, R, T}(ordered))
 end
 
 CategoricalArray{Union{T, Null}, N}(dims::NTuple{N,Int}; ordered=false) where {T<:CatValue, N} =
@@ -54,7 +54,7 @@ end
     @inbounds r = A.refs[I...]
 
     if isa(r, Array)
-        ret = CategoricalArray{T, ndims(r), eltype(r)}(r, deepcopy(A.pool))
+        ret = CategoricalArray{T, ndims(r)}(r, deepcopy(A.pool))
         return ordered!(ret, isordered(A))
     else
         if r > 0

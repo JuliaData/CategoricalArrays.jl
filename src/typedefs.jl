@@ -70,8 +70,8 @@ struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray
     refs::Array{R, N}
     pool::CategoricalPool{V, R, C}
 
-    function CategoricalArray{T, N, R}(refs::Array{R, N},
-                                       pool::CategoricalPool{V, R, C}) where
+    function CategoricalArray{T, N}(refs::Array{R, N},
+                                    pool::CategoricalPool{V, R, C}) where
                                                  {T, N, R <: Integer, V, C}
         T === V || T == Union{V, Null} || throw(ArgumentError("T ($T) must be equal to $V or Union{$V, Null}"))
         U = T >: Null ? Null : Union{}
