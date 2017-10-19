@@ -132,7 +132,7 @@ CategoricalArray{T, 2}(m::Int, n::Int; ordered=false) where {T} =
 CategoricalArray{T, 1, R}(m::Int; ordered=false) where {T, R} =
     CategoricalArray{T, 1, R}((m,), ordered=ordered)
 # R <: Integer is required to prevent default constructor from being called instead
-CategoricalArray{T, 2, R}(m::Int, n::Int; ordered=false) where {T, R<:Integer} =
+CategoricalArray{T, 2, R}(m::Int, n::Int; ordered=false) where {T, R <: Integer} =
     CategoricalArray{T, 2, R}((m, n), ordered=ordered)
 CategoricalArray{T, 3, R}(m::Int, n::Int, o::Int; ordered=false) where {T, R} =
     CategoricalArray{T, 3, R}((m, n, o), ordered=ordered)
