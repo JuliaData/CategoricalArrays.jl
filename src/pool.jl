@@ -87,9 +87,6 @@ function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
     pool.ordered && print(io, " with ordered levels")
 end
 
-reftype(::Type{CategoricalPool{T,R}}) where {T,R} = R
-reftype(pool::CategoricalPool) = reftype(typeof(pool))
-
 Base.length(pool::CategoricalPool) = length(pool.index)
 
 Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
