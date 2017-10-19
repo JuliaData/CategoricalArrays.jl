@@ -113,8 +113,14 @@ function CategoricalMatrix end
 CategoricalArray(dims::Int...; ordered=false) =
     CategoricalArray{String}(dims, ordered=ordered)
 
-CategoricalArray{T, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R<:Integer} =
-    CategoricalArray{T, N}(zeros(R, dims), CategoricalPool{T, R}(ordered))
+function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
+                                   ordered=false) where {T, N, R}
+    C = catvalue_type(unwrap_catvalue_type(T), R)
+    V = valtype(C)
+    S = T >: Null ? Union{V, Null} : V
+    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
+end
+
 CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
     CategoricalArray{T, N, reftype(T)}(dims, ordered=ordered)
 CategoricalArray{T}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
@@ -136,15 +142,6 @@ CategoricalArray{T}(m::Int, n::Int; ordered=false) where {T} =
     CategoricalArray{T}((m, n), ordered=ordered)
 CategoricalArray{T}(m::Int, n::Int, o::Int; ordered=false) where {T} =
     CategoricalArray{T}((m, n, o), ordered=ordered)
-
-function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
-                                   ordered=false) where {T<:CatValue, N, R<:Integer}
-    V = unwrap_catvalue_type(T)
-    CategoricalArray{V, N}(zeros(R, dims), CategoricalPool{V, R, T}(ordered))
-end
-
-CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T<:CatValue, N} =
-    CategoricalArray{T, N, reftype(T)}(dims, ordered=ordered)
 
 #(::Type{CategoricalArray{CategoricalValue, N}}){N}(dims::NTuple{N,Int}; ordered=false) =
 #   CategoricalArray{String, N}(dims, ordered=ordered)
@@ -233,6 +230,7 @@ convert(::Type{CategoricalArray{T}}, A::AbstractArray{S, N}) where {S, T, N} =
 convert(::Type{CategoricalArray}, A::AbstractArray{T, N}) where {T, N} =
     convert(CategoricalArray{T, N}, A)
 
+# FIXME T=String would use wrong categorical value, also it's not extensible, where it's used?
 convert(::Type{CategoricalArray{CategoricalValue{T, R}, N}}, A::AbstractArray{T, N}) where {T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
 convert(::Type{CategoricalArray{CategoricalValue{T}, N}}, A::AbstractArray{T, N}) where {T, N} =

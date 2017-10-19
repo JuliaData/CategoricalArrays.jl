@@ -3,7 +3,9 @@ function CategoricalPool(index::Vector{S},
                          order::Vector{R},
                          ordered::Bool=false) where {S, T <: Integer, R <: Integer}
     invindex = convert(Dict{S, R}, invindex)
-    CategoricalPool{S, R, catvalue_type(S, R)}(index, invindex, order, ordered)
+    C = catvalue_type(S, R)
+    V = valtype(C) # might be diffrent from S (e.g. S==SubString, V==String)
+    CategoricalPool{V, R, C}(index, invindex, order, ordered)
 end
 
 CategoricalPool{T, R, C}(ordered::Bool=false) where {T, R, C} =

@@ -39,7 +39,7 @@ module TestTypeDef
     for i in 1:3
         x = catvalue(i, pool)
 
-        @test iscatvalue(x)
+        @test CategoricalArrays.iscatvalue(x) === CategoricalArrays.IsCatValue
 
         @test isa(x.level, DefaultRefType)
         @test x.level === DefaultRefType(i)
@@ -89,7 +89,7 @@ module TestTypeDef
     for i in 1:3
         y = catvalue(i, pool)
 
-        @test iscatvalue(y)
+        @test CategoricalArrays.iscatvalue(y) === CategoricalArrays.IsCatValue
 
         @test isa(y.level, DefaultRefType)
         @test y.level === DefaultRefType(i)

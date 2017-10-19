@@ -1,65 +1,65 @@
-# categorical value concept
-iscatvalue(::Type) = false
+# "categorical value" trait
+abstract type CatValueSupport end
+struct IsCatValue <: CatValueSupport end
+struct NotCatValue <: CatValueSupport end
+
+# by default types do not have "categorical value" trait
+iscatvalue(::Type) = NotCatValue
+iscatvalue(::Type{Union{}}) = NotCatValue # otherwise it dispatches to Type{<:...}
 iscatvalue(x::Any) = iscatvalue(typeof(x))
 
 # union of all types that have "categorical value" trait
 const CatValue{R} = Union{CategoricalValue{T, R} where T,
                           CategoricalString{R}}
 
-# categorical value concept implementation for CategoricalValue and CategoricalString
-iscatvalue(::Type{<:CategoricalString}) = true
-iscatvalue(::Type{<:CategoricalValue}) = true
-valtype(::Type{<:CategoricalValue{T}}) where T = T
+# "categorical value" trait implementation for CategoricalValue and CategoricalString
+iscatvalue(::Type{<:CatValue}) = IsCatValue
+valtype(::Type) = Union{} # no value type if not a proper categorical value type
+valtype(::Type{<:CategoricalValue{T}}) where {T} = T
 valtype(::Type{<:CategoricalString}) = String
+
 # integer type of category reference codes for given type
 reftype(::Type) = DefaultRefType
-reftype(::Type{<:CategoricalValue{T, R}}) where {T,R} = R
-reftype(::Type{<:CategoricalString{R}}) where R = R
+# TODO reftype(::Type{T}) where {T <: Integer} = T ?
+reftype(::Type{<:CatValue{R}}) where {R} = R
 
 pool(x::CatValue) = x.pool
 level(x::CatValue) = x.level
 
-# extract the type of original value from categorical value type
-unwrap_catvalue_type(::Type{T}) where {T<:CatValue} = valtype(T)
-unwrap_catvalue_type(::Type{Union{T, Null}}) where {T<:CatValue} = Union{valtype(T), Null}
-unwrap_catvalue_type(::Type{T}) where {T} = T
+# extract the type of the original value from array eltype `T`
+unwrap_catvalue_type(::Type{T}) where {T} =
+    unwrap_catvalue_type(iscatvalue(T), T)
 
-# default categorical value type for given non-null value type `T` and reference type `R`
-catvalue_type(::Type{T}, refType::Type{R}) where {T<:CatValue, R} =
-    reftype(T) === R ? T : catvalue_type(valtype(T), refType)
-catvalue_type(::Type{Any}, refType::Type{R}) where {R} = # to avoid recursion within Union{T,Null}
-    CategoricalValue{Any, R}
-catvalue_type(::Type{Union{T, Null}}, refType::Type{R}) where {T, R} =
-    catvalue_type(T, R)
-catvalue_type(::Type{T}, refType::Type{R}) where {T, R} =
+function unwrap_catvalue_type(::Type{T}) where T >: Null
+    V = Nulls.T(T)
+    Union{unwrap_catvalue_type(iscatvalue(V), V), Null}
+end
+
+unwrap_catvalue_type(::Type{Any}) = # to prevent dispatching to T>:Null method
+    unwrap_catvalue_type(NotCatValue, Any)
+unwrap_catvalue_type(::Type{NotCatValue}, ::Type{T}) where {T} = T
+unwrap_catvalue_type(::Type{IsCatValue}, ::Type{T}) where {T} = valtype(T)
+
+# get default categorical value type given value type `T` and reference type `R`
+function catvalue_type(::Type{T}, ::Type{R}) where {T, R}
+    V = Nulls.T(T)
+    catvalue_type(iscatvalue(V), V, R)
+end
+
+catvalue_type(::Type{IsCatValue}, ::Type{T}, ::Type{R}) where {T, R} =
+    reftype(T) === R ? T : catvalue_type(valtype(T), R)
+catvalue_type(::Type{NotCatValue}, ::Type{T}, ::Type{R}) where {T, R} =
     CategoricalValue{T, R}
-catvalue_type(::Type{String}, refType::Type{R}) where {R} =
+catvalue_type(::Type{NotCatValue}, ::Type{<:AbstractString}, ::Type{R}) where {R} =
     CategoricalString{R}
 
-#= type-unstable by more generic version
-function catvalue_type(::Type{T}, refType::Type) where {T, R} =
-    if iscatvalue(T) # generic categorical value type not included in CatValue
-        if reftype(T) === R
-            return T
-        else
-            return catvalue_type(valtype(T), R)
-        end
-    else
-        return CategoricalValue{T, R}
-    end
-end
-=#
-
-# these functions use the "categorical value" concept,
-# but are defined only for CatValue union
 Base.get(x::CatValue) = index(pool(x))[level(x)]
 order(x::CatValue) = order(pool(x))[level(x)]
 
 # creates categorical value for `level` from the `pool`
-# The result type is of type `C`, which may be different from `CategoricalValue{T,R}`
-function catvalue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C}
-    return C(convert(R, level), pool)
-end
+# The result is of type `C` that has "categorical value" trait
+catvalue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C} =
+    C(convert(R, level), pool)
 
 Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
 Base.convert(::Type{Union{T, Null}}, x::T) where {T <: CatValue} = x
