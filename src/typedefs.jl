@@ -50,9 +50,6 @@ struct CategoricalString{R <: Integer} <: AbstractString
     pool::CategoricalPool{String, R, CategoricalString{R}}
 end
 
-# alias for all implementations of categorical value concept
-const CatValue = Union{CategoricalValue, CategoricalString}
-
 ## Arrays
 
 # Type params:

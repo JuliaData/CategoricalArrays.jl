@@ -2,6 +2,10 @@
 iscatvalue(::Type) = false
 iscatvalue(x::Any) = iscatvalue(typeof(x))
 
+# union of all types that have "categorical value" trait
+const CatValue{R} = Union{CategoricalValue{T, R} where T,
+                          CategoricalString{R}}
+
 # categorical value concept implementation for CategoricalValue and CategoricalString
 iscatvalue(::Type{<:CategoricalString}) = true
 iscatvalue(::Type{<:CategoricalValue}) = true
@@ -57,33 +61,17 @@ function catvalue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C
     return C(convert(R, level), pool)
 end
 
-Base.convert(::Type{CategoricalValue{T, R}}, x::CategoricalValue{T, R}) where {T, R <: Integer} = x
-Base.convert(::Type{CategoricalValue{T}}, x::CategoricalValue{T}) where {T} = x
-Base.convert(::Type{CategoricalValue}, x::CategoricalValue) = x
+Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
+Base.convert(::Type{Union{T, Null}}, x::T) where {T <: CatValue} = x
 
-Base.convert(::Type{CategoricalString{R}}, x::CategoricalString{R}) where {R <: Integer} = x
-Base.convert(::Type{CategoricalString}, x::CategoricalString) = x
-
-Base.convert(::Type{Union{CategoricalValue{T, R}, Null}}, x::CategoricalValue{T, R}) where {T, R <: Integer} = x
-Base.convert(::Type{Union{CategoricalValue{T}, Null}}, x::CategoricalValue{T}) where {T} = x
-Base.convert(::Type{Union{CategoricalValue, Null}}, x::CategoricalValue) = x
+# FIXME do we need this rule or promotion is only required for CategoricalString?
+Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(valtype(C), T)
 
 # To fix ambiguities with definitions from Base
-Base.promote_rule(::Type{CategoricalValue{S, R}}, ::Type{T}) where {S, T, R} = promote_type(S, T)
-Base.promote_rule(::Type{CategoricalValue{S}}, ::Type{T}) where {S, T} = promote_type(S, T)
-Base.promote_rule(::Type{CategoricalValue}, ::Type{T}) where {T} = T
+Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalString, T <: AbstractString} =
+    promote_type(valtype(C), T)
+Base.promote_rule(::Type{C}, ::Type{Null}) where {C <: CatValue} = Union{C, Null}
 
-# FIXME is that right?
-Base.promote_rule(::Type{<:CategoricalString}, ::Type{T}) where {T <: AbstractString} = T
-
-Base.promote_rule(::Type{CategoricalValue}, ::Type{Null}) = Union{CategoricalValue, Null}
-Base.promote_rule(::Type{CategoricalValue{T}}, ::Type{Null}) where T = Union{CategoricalValue{T}, Null}
-Base.promote_rule(::Type{CategoricalValue{T,R}}, ::Type{Null}) where {T,R} = Union{CategoricalValue{T,R}, Null}
-
-Base.promote_rule(::Type{CategoricalString}, ::Type{Null}) = Union{CategoricalString, Null}
-Base.promote_rule(::Type{CategoricalString{R}}, ::Type{Null}) where {R} = Union{CategoricalString{R}, Null}
-
-# Nullable support
 Base.convert(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) where {S} =
     convert(Nullable{S}, get(x))
 Base.convert(::Type{Nullable}, x::CategoricalValue{S}) where {S} = convert(Nullable{S}, x)
@@ -96,8 +84,6 @@ Base.convert(::Type{Any}, x::CatValue) = x
 
 # fallback
 Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x))
-# Null support
-Base.convert(::Type{Union{S, Null}}, x::CatValue) where {S} = convert(S, get(x))
 
 function Base.show(io::IO, x::CatValue)
     if get(io, :compact, false)
