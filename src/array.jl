@@ -19,12 +19,6 @@ function reftype(sz::Int)
     end
 end
 
-reftype(::Type{<:CategoricalArray{T, N, R}}) where {T, N, R} = R
-reftype(A::T) where {T <: CategoricalArray} = reftype(T)
-
-catvalue_type(::Type{<:CategoricalArray{T,N,R,V,C}}) where {T,N,R,V,C} = C
-catvalue_type(A::T) where {T <: CategoricalArray} = catvalue_type(T)
-
 """
     CategoricalArray{T}(dims::Dims; ordered::Bool=false)
     CategoricalArray{T}(dims::Int...; ordered::Bool=false)
