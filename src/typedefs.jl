@@ -18,6 +18,9 @@ mutable struct CategoricalPool{T, R <: Integer, V}
                                       invindex::Dict{T, R},
                                       order::Vector{R},
                                       ordered::Bool) where {T, R, V}
+        if iscatvalue(V) !== IsCatValue
+            throw(ArgumentError("Type $V does not have \"categorical value\" trait"))
+        end
         levels = similar(index)
         levels[order] = index
         pool = new(index, invindex, order, levels, V[], ordered)
