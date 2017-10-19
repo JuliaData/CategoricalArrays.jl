@@ -115,8 +115,8 @@ Base.print(io::IO, x::CatValue) = print(io, get(x))
 Base.repr(x::CatValue) = repr(get(x))
 
 @inline function Base.:(==)(x::CatValue, y::CatValue)
-    if x.pool === y.pool
-        return x.level == y.level
+    if pool(x) === pool(y)
+        return level(x) == level(y)
     else
         return get(x) == get(y)
     end
