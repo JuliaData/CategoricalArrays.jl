@@ -37,7 +37,7 @@ module TestTypeDef
     @test pool.order[3] === DefaultRefType(3)
 
     for i in 1:3
-        x = catvalue(i, pool)
+        x = CategoricalArrays.catvalue(i, pool)
 
         @test CategoricalArrays.iscatvalue(x) === CategoricalArrays.IsCatValue
 
@@ -87,7 +87,7 @@ module TestTypeDef
     @test pool.order[3] === DefaultRefType(1)
 
     for i in 1:3
-        y = catvalue(i, pool)
+        y = CategoricalArrays.catvalue(i, pool)
 
         @test CategoricalArrays.iscatvalue(y) === CategoricalArrays.IsCatValue
 

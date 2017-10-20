@@ -10,9 +10,9 @@ module TestConvert
     convert(CategoricalPool{Float64}, pool)
     convert(CategoricalPool, pool)
 
-    v1 = catvalue(1, pool)
-    v2 = catvalue(2, pool)
-    v3 = catvalue(3, pool)
+    v1 = CategoricalArrays.catvalue(1, pool)
+    v2 = CategoricalArrays.catvalue(2, pool)
+    v3 = CategoricalArrays.catvalue(3, pool)
 
     @test convert(Int32, v1) === Int32(1)
     @test convert(Int32, v2) === Int32(2)
