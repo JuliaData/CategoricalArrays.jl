@@ -4,6 +4,7 @@ level(x::CategoricalValue) = x.level
 Base.get(x::CategoricalValue) = index(pool(x))[level(x)]
 order(x::CategoricalValue) = order(pool(x))[level(x)]
 
+valtype(::Type{<:CategoricalValue{T}}) where T = T
 reftype(::Type{CategoricalValue{T, R}}) where {T,R} = R
 reftype(v::CategoricalValue) = reftype(typeof(v))
 
@@ -11,6 +12,14 @@ reftype(v::CategoricalValue) = reftype(typeof(v))
 unwrap_catvalue_type(::Type{<: CategoricalValue{T}}) where {T} = T
 unwrap_catvalue_type(::Type{Union{V, Null}}) where {T, V <: CategoricalValue{T}} = Union{T, Null}
 unwrap_catvalue_type(::Type{T}) where {T} = T
+
+# default categorical value type for given non-null value type `T` and reference type `R`
+catvalue_type(::Type{T}, refType::Type{R}) where {T<:CategoricalValue, R} =
+    reftype(T) === R ? T : catvalue_type(valtype(T), refType)
+catvalue_type(::Type{Union{T, Null}}, refType::Type{R}) where {T, R} =
+    catvalue_type(T, R)
+catvalue_type(::Type{T}, refType::Type{R}) where {T, R} =
+    CategoricalValue{T, R}
 
 function CategoricalValue(level::Integer, pool::CategoricalPool{T, R}) where {T, R}
     return CategoricalValue(convert(R, level), pool)
