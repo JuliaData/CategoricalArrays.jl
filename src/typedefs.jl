@@ -18,8 +18,17 @@ mutable struct CategoricalPool{T, R <: Integer, V}
                                       invindex::Dict{T, R},
                                       order::Vector{R},
                                       ordered::Bool) where {T, R, V}
+        if iscatvalue(T) === IsCatValue
+            throw(ArgumentError("Level type $T cannot be a type with \"categorical value\" trait"))
+        end
         if iscatvalue(V) !== IsCatValue
             throw(ArgumentError("Type $V does not have \"categorical value\" trait"))
+        end
+        if valtype(V) !== T
+            throw(ArgumentError("Value types of the categorical value ($(valtype(V))) and of the pool ($T) do not match"))
+        end
+        if reftype(V) !== R
+            throw(ArgumentError("Reference types of the categorical value ($(reftype(V))) and of the pool ($R) do not match"))
         end
         levels = similar(index)
         levels[order] = index
