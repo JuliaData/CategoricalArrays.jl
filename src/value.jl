@@ -14,7 +14,6 @@ const CatValue{R} = Union{CategoricalValue{T, R} where T,
 
 # "categorical value" trait implementation for CategoricalValue and CategoricalString
 iscatvalue(::Type{<:CatValue}) = IsCatValue
-valtype(::Type) = Union{} # no value type if not a proper categorical value type
 valtype(::Type{<:CategoricalValue{T}}) where {T} = T
 valtype(::Type{<:CategoricalString}) = String
 
