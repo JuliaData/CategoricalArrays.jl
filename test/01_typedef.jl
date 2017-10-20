@@ -1,7 +1,7 @@
 module TestTypeDef
     using Base.Test
     using CategoricalArrays
-    using CategoricalArrays: DefaultRefType
+    using CategoricalArrays: DefaultRefType, level,  reftype, valtype, catvalue, iscatvalue
 
     pool = CategoricalPool(
         [
@@ -16,9 +16,9 @@ module TestTypeDef
         )
     )
 
-    @test CategoricalArrays.iscatvalue(Int) == false
-    @test CategoricalArrays.iscatvalue(Any) == false
-    @test CategoricalArrays.iscatvalue(Null) == false
+    @test iscatvalue(Int) == false
+    @test iscatvalue(Any) == false
+    @test iscatvalue(Null) == false
 
     @test isa(pool, CategoricalPool)
 
@@ -41,15 +41,17 @@ module TestTypeDef
     @test pool.order[3] === DefaultRefType(3)
 
     for i in 1:3
-        x = CategoricalArrays.catvalue(i, pool)
+        x = catvalue(i, pool)
 
-        @test CategoricalArrays.iscatvalue(x)
+        @test iscatvalue(x)
+        @test valtype(typeof(x)) == String
+        @test reftype(typeof(x)) == DefaultRefType
 
-        @test isa(x.level, DefaultRefType)
-        @test x.level === DefaultRefType(i)
+        @test isa(level(x), DefaultRefType)
+        @test level(x) === DefaultRefType(i)
 
-        @test isa(x.pool, CategoricalPool)
-        @test x.pool === pool
+        @test isa(CategoricalArrays.pool(x), CategoricalPool)
+        @test CategoricalArrays.pool(x) === pool
     end
 
     pool = CategoricalPool(
@@ -91,14 +93,14 @@ module TestTypeDef
     @test pool.order[3] === DefaultRefType(1)
 
     for i in 1:3
-        y = CategoricalArrays.catvalue(i, pool)
+        y = catvalue(i, pool)
 
-        @test CategoricalArrays.iscatvalue(y)
+        @test iscatvalue(y)
 
-        @test isa(y.level, DefaultRefType)
-        @test y.level === DefaultRefType(i)
+        @test isa(level(y), DefaultRefType)
+        @test level(y) === DefaultRefType(i)
 
-        @test isa(y.pool, CategoricalPool)
-        @test y.pool === pool
+        @test isa(CategoricalArrays.pool(y), CategoricalPool)
+        @test CategoricalArrays.pool(y) === pool
     end
 end

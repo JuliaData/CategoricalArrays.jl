@@ -15,7 +15,7 @@ module TestConstructors
 
     pool = CategoricalPool{Int, UInt8}()
 
-    @test isa(pool, CategoricalPool{Int, UInt8})
+    @test isa(pool, CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}})
 
     @test isa(pool.index, Vector{Int})
     @test length(pool.index) == 0
@@ -25,7 +25,7 @@ module TestConstructors
 
     pool = CategoricalPool(["a", "b", "c"])
 
-    @test isa(pool, CategoricalPool)
+    @test isa(pool, CategoricalPool{String, UInt32, CategoricalString{UInt32}})
 
     @test isa(pool.index, Vector{String})
     @test length(pool.index) == 3
