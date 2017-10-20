@@ -143,11 +143,6 @@ CategoricalArray{T}(m::Int, n::Int; ordered=false) where {T} =
 CategoricalArray{T}(m::Int, n::Int, o::Int; ordered=false) where {T} =
     CategoricalArray{T}((m, n, o), ordered=ordered)
 
-#(::Type{CategoricalArray{CategoricalValue, N}}){N}(dims::NTuple{N,Int}; ordered=false) =
-#   CategoricalArray{String, N}(dims, ordered=ordered)
-#(::Type{CategoricalArray{CategoricalValue}}){N}(dims::NTuple{N,Int}; ordered=false) =
-#   CategoricalArray{String, N}(dims, ordered=ordered)
-
 CategoricalVector(m::Integer; ordered=false) = CategoricalArray(m, ordered=ordered)
 CategoricalVector{T}(m::Int; ordered=false) where {T} =
     CategoricalArray{T}((m,), ordered=ordered)
@@ -228,12 +223,6 @@ convert(::Type{CategoricalArray{T, N}}, A::AbstractArray{S, N}) where {S, T, N} 
 convert(::Type{CategoricalArray{T}}, A::AbstractArray{S, N}) where {S, T, N} =
     convert(CategoricalArray{T, N}, A)
 convert(::Type{CategoricalArray}, A::AbstractArray{T, N}) where {T, N} =
-    convert(CategoricalArray{T, N}, A)
-
-# FIXME T=String would use wrong categorical value, also it's not extensible, where it's used?
-convert(::Type{CategoricalArray{CategoricalValue{T, R}, N}}, A::AbstractArray{T, N}) where {T, N, R} =
-    convert(CategoricalArray{T, N, R}, A)
-convert(::Type{CategoricalArray{CategoricalValue{T}, N}}, A::AbstractArray{T, N}) where {T, N} =
     convert(CategoricalArray{T, N}, A)
 
 convert(::Type{CategoricalVector{T}}, A::AbstractVector) where {T} =
