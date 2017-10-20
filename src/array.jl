@@ -115,7 +115,7 @@ CategoricalArray(dims::Int...; ordered=false) =
 
 function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
                                    ordered=false) where {T, N, R}
-    C = catvalue_type(unwrap_catvalue_type(T), R)
+    C = catvalue_type(T, R)
     V = valtype(C)
     S = T >: Null ? Union{V, Null} : V
     CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
