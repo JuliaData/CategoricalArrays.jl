@@ -13,27 +13,25 @@ CategoricalPool{T, R, C}(ordered::Bool=false) where {T, R, C} =
 CategoricalPool{T, R}(ordered::Bool=false) where {T, R} =
     CategoricalPool(T[], Dict{T, R}(), R[], ordered)
 CategoricalPool{T}(ordered::Bool=false) where {T} =
-    CategoricalPool{T, reftype(T)}(ordered)
+    CategoricalPool{T, DefaultRefType}(ordered)
 
-function CategoricalPool{T, R}(index::Vector{T},
+function CategoricalPool{T, R}(index::Vector,
                                ordered::Bool=false) where {T, R}
     invindex = buildinvindex(index, R)
     order = Vector{R}(1:length(index))
     CategoricalPool(index, invindex, order, ordered)
 end
 
-function CategoricalPool(index::Vector{T}, ordered::Bool=false) where {T}
+function CategoricalPool(index::Vector, ordered::Bool=false)
     invindex = buildinvindex(index)
-    R = reftype(T)
-    order = Vector{R}(1:length(index))
+    order = Vector{DefaultRefType}(1:length(index))
     return CategoricalPool(index, invindex, order, ordered)
 end
 
 function CategoricalPool(invindex::Dict{S, R},
                          ordered::Bool=false) where {S, R <: Integer}
     index = buildindex(invindex)
-    Q = reftype(S)
-    order = Vector{Q}(1:length(index))
+    order = Vector{DefaultRefType}(1:length(index))
     return CategoricalPool(index, invindex, order, ordered)
 end
 
@@ -41,8 +39,7 @@ end
 function CategoricalPool(index::Vector{S},
                          invindex::Dict{S, R},
                          ordered::Bool=false) where {S, R <: Integer}
-    Q = reftype(S)
-    order = Vector{Q}(1:length(index))
+    order = Vector{DefaultRefType}(1:length(index))
     return CategoricalPool(index, invindex, order, ordered)
 end
 

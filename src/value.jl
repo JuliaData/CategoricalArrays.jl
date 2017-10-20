@@ -11,9 +11,7 @@ iscatvalue(x::Any) = iscatvalue(typeof(x))
 valtype(::Type{<:CategoricalValue{T}}) where {T} = T
 valtype(::Type{<:CategoricalString}) = String
 
-# integer type of category reference codes for given type
-reftype(::Type) = DefaultRefType
-# TODO reftype(::Type{T}) where {T <: Integer} = T ?
+# integer type of category reference codes used by categorical value
 reftype(::Type{<:CatValue{R}}) where {R} = R
 
 pool(x::CatValue) = x.pool
