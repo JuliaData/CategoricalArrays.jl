@@ -62,9 +62,7 @@ function CategoricalPool(invindex::Dict{S, R},
     return CategoricalPool(index, invindex, order, ordered)
 end
 
-Base.convert(::Type{CategoricalPool}, pool::CategoricalPool) = pool
-Base.convert(::Type{CategoricalPool{T}}, pool::CategoricalPool{T}) where {T} = pool
-Base.convert(::Type{CategoricalPool{T, R}}, pool::CategoricalPool{T, R}) where {T, R <: Integer} = pool
+Base.convert(::Type{T}, pool::T) where {T <: CategoricalPool} = pool
 
 Base.convert(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) where {S, T, R <: Integer} =
     convert(CategoricalPool{S, R}, pool)
