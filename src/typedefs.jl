@@ -5,7 +5,7 @@ const DefaultRefType = UInt32
 # Type params:
 # * `T` type of categorized values
 # * `R` integer type for referencing category levels
-# * `V` categorical value type that implements "categorical value" concept
+# * `V` categorical value type that implements "categorical value" trait
 mutable struct CategoricalPool{T, R <: Integer, V}
     index::Vector{T}        # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
@@ -36,8 +36,8 @@ end
 ## Values
 
 """
-Default implementation of "categorical value" concept
-that references value of type `T`.
+Default "categorical value" type for
+referencing values of type `T`.
 """
 struct CategoricalValue{T, R <: Integer}
     level::R
@@ -60,7 +60,7 @@ end
 # * `N` array dimension
 # * `R` integer type for referencing category levels
 # * `V` original type of non-nullable elements before categorization
-# * `C` categorical value type that implements "categorical value" concept
+# * `C` categorical value type that implements "categorical value" trait
 # * `U` type of null value, `Union{}` if the data is non-nullable
 abstract type AbstractCategoricalArray{T, N, R, V, C, U} <: AbstractArray{Union{C, U}, N} end
 AbstractCategoricalVector{T, R, V, C, U} = AbstractCategoricalArray{T, 1, R, V, C, U}
