@@ -18,10 +18,10 @@ mutable struct CategoricalPool{T, R <: Integer, V}
                                       invindex::Dict{T, R},
                                       order::Vector{R},
                                       ordered::Bool) where {T, R, V}
-        if iscatvalue(T) === IsCatValue
+        if iscatvalue(T)
             throw(ArgumentError("Level type $T cannot be a type with \"categorical value\" trait"))
         end
-        if iscatvalue(V) !== IsCatValue
+        if !iscatvalue(V)
             throw(ArgumentError("Type $V does not have \"categorical value\" trait"))
         end
         if valtype(V) !== T

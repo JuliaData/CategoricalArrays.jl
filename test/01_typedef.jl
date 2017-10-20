@@ -16,6 +16,10 @@ module TestTypeDef
         )
     )
 
+    @test CategoricalArrays.iscatvalue(Int) == false
+    @test CategoricalArrays.iscatvalue(Any) == false
+    @test CategoricalArrays.iscatvalue(Null) == false
+
     @test isa(pool, CategoricalPool)
 
     @test isa(pool.index, Vector)
@@ -39,7 +43,7 @@ module TestTypeDef
     for i in 1:3
         x = CategoricalArrays.catvalue(i, pool)
 
-        @test CategoricalArrays.iscatvalue(x) === CategoricalArrays.IsCatValue
+        @test CategoricalArrays.iscatvalue(x)
 
         @test isa(x.level, DefaultRefType)
         @test x.level === DefaultRefType(i)
@@ -89,7 +93,7 @@ module TestTypeDef
     for i in 1:3
         y = CategoricalArrays.catvalue(i, pool)
 
-        @test CategoricalArrays.iscatvalue(y) === CategoricalArrays.IsCatValue
+        @test CategoricalArrays.iscatvalue(y)
 
         @test isa(y.level, DefaultRefType)
         @test y.level === DefaultRefType(i)
