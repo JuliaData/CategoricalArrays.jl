@@ -218,4 +218,7 @@ module TestString
 
     @test escape_string(v1) == ""
     @test escape_string(v2) == "café"
+
+    @test collect(v1) == Char[]
+    @test collect(v2) == Char['c', 'a', 'f', 'é']
 end
