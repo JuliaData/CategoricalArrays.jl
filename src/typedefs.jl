@@ -6,11 +6,11 @@ const DefaultRefType = UInt32
 # This workaround is needed since this type not defined yet
 # See JuliaLang/julia#269
 mutable struct CategoricalPool{T, R <: Integer, V}
-    index::Vector{T}
-    invindex::Dict{T, R}
-    order::Vector{R}
-    levels::Vector{T}
-    valindex::Vector{V}
+    index::Vector{T}        # category levels ordered by their reference codes
+    invindex::Dict{T, R}    # map from category levels to their reference codes
+    order::Vector{R}        # 1-to-1 map from `index` to `level` (position of i-th category in `levels`)
+    levels::Vector{T}       # category levels ordered by externally specified order
+    valindex::Vector{V}     # "category value" objects 1-to-1 matching `index`
     ordered::Bool
 
     function CategoricalPool{T, R, V}(index::Vector{T},
