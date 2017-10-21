@@ -1,18 +1,26 @@
 module TestConvert
     using Base.Test
     using CategoricalArrays
+    using CategoricalArrays: DefaultRefType, level, reftype, valtype, catvalue, iscatvalue
 
     pool = CategoricalPool([1, 2, 3])
-    @test convert(CategoricalPool{Int, CategoricalArrays.DefaultRefType}, pool) === pool
+    @test convert(CategoricalPool{Int, DefaultRefType}, pool) === pool
     @test convert(CategoricalPool{Int}, pool) === pool
     @test convert(CategoricalPool, pool) === pool
     convert(CategoricalPool{Float64, UInt8}, pool)
     convert(CategoricalPool{Float64}, pool)
     convert(CategoricalPool, pool)
 
-    v1 = CategoricalArrays.catvalue(1, pool)
-    v2 = CategoricalArrays.catvalue(2, pool)
-    v3 = CategoricalArrays.catvalue(3, pool)
+    v1 = catvalue(1, pool)
+    v2 = catvalue(2, pool)
+    v3 = catvalue(3, pool)
+    @test iscatvalue(v1)
+    @test iscatvalue(typeof(v1))
+    @test valtype(v1) === Int
+    @test valtype(typeof(v1)) === Int
+    @test reftype(v1) === DefaultRefType
+    @test reftype(typeof(v1)) === DefaultRefType
+    @test v1 isa CategoricalArrays.CategoricalValue{Int, DefaultRefType}
 
     @test convert(Int32, v1) === Int32(1)
     @test convert(Int32, v2) === Int32(2)
@@ -24,7 +32,7 @@ module TestConvert
 
     @test convert(CategoricalValue, v1) === v1
     @test convert(CategoricalValue{Int}, v1) === v1
-    @test convert(CategoricalValue{Int, CategoricalArrays.DefaultRefType}, v1) === v1
+    @test convert(CategoricalValue{Int, DefaultRefType}, v1) === v1
     @test convert(Any, v1) === v1
 
     convert(Any, v1)
