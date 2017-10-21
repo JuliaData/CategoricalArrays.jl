@@ -21,7 +21,7 @@ level(x::CatValue) = x.level
 unwrap_catvalue_type(::Type{T}) where {T} = T
 unwrap_catvalue_type(::Type{T}) where {T >: Null} =
     Union{unwrap_catvalue_type(Nulls.T(T)), Null}
-unwrap_catvalue_type(::Type{Null}) = Null # to prevent dispatching to T<:CatValue method
+unwrap_catvalue_type(::Type{Null}) = Null # to prevent dispatching to T>:Null method
 unwrap_catvalue_type(::Type{Any}) = Any # to prevent dispatching to T>:Null method
 unwrap_catvalue_type(::Type{T}) where {T <: CatValue} = valtype(T)
 
