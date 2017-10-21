@@ -17,7 +17,9 @@ mutable struct CategoricalPool{T, R <: Integer, V}
                                       invindex::Dict{T, R},
                                       order::Vector{R},
                                       ordered::Bool) where {T, R, V}
-        pool = new(index, invindex, order, index[order], V[], ordered)
+        levels = similar(index)
+        levels[order] = index
+        pool = new(index, invindex, order, levels, V[], ordered)
         buildvalues!(pool)
         return pool
     end

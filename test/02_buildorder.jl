@@ -23,4 +23,12 @@ module TestUpdateOrder
     @test order[1] == convert(DefaultRefType, 2)
     @test order[2] == convert(DefaultRefType, 1)
     @test order[3] == convert(DefaultRefType, 3)
+
+    # test that levels are built correctly
+    orig_index = [2, 5, 1, 3, 4]
+    orig_levels = [1, 2, 3, 4, 5]
+    pool = CategoricalPool(orig_index, orig_levels, true)
+    @test orig_index == CategoricalArrays.index(pool)
+    @test orig_levels == levels(pool)
+    @test CategoricalArrays.index(pool) == levels(pool)[CategoricalArrays.order(pool)]
 end
