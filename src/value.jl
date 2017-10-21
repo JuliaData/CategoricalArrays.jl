@@ -35,6 +35,9 @@ catvalue_type(::Type{T}, ::Type{R}) where {T, R} =
     CategoricalValue{T, R}
 catvalue_type(::Type{<:AbstractString}, ::Type{R}) where {R} =
     CategoricalString{R}
+# default to CategoricalString in degenerated case (all nulls)
+catvalue_type(::Type{Null}, ::Type{R}) where {R} =
+    CategoricalString{R}
 
 Base.get(x::CatValue) = index(pool(x))[level(x)]
 order(x::CatValue) = order(pool(x))[level(x)]
