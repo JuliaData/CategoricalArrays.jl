@@ -40,6 +40,12 @@ module TestTypeDef
     @test pool.order[2] === DefaultRefType(2)
     @test pool.order[3] === DefaultRefType(3)
 
+    # valtype() only accepts "categorical value type"
+    @test_throws ArgumentError valtype("abc")
+    @test_throws ArgumentError valtype(String)
+    @test_throws ArgumentError valtype(1.0)
+    @test_throws ArgumentError valtype(Int)
+
     for i in 1:3
         x = catvalue(i, pool)
 

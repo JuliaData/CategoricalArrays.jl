@@ -10,6 +10,8 @@ iscatvalue(x::Any) = iscatvalue(typeof(x))
 
 valtype(::Type{<:CategoricalValue{T}}) where {T} = T
 valtype(::Type{<:CategoricalString}) = String
+valtype(::Type) = throw(ArgumentError("Not a \"categorical value\" type"))
+valtype(x::Any) = valtype(typeof(x))
 
 # integer type of category reference codes used by categorical value
 reftype(::Type{<:CatValue{R}}) where {R} = R
