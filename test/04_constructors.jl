@@ -1,7 +1,7 @@
 module TestConstructors
     using Base.Test
     using CategoricalArrays
-    using CategoricalArrays: DefaultRefType
+    using CategoricalArrays: DefaultRefType, catvalue
 
     pool = CategoricalPool{String}()
 
@@ -197,4 +197,10 @@ module TestConstructors
     @test pool.order[1] === DefaultRefType(1)
     @test pool.order[2] === DefaultRefType(2)
     @test pool.order[3] === DefaultRefType(3)
+
+    # test floating point pool
+    pool = CategoricalPool{Float64, UInt8}([1.0, 2.0, 3.0])
+
+    @test isa(pool, CategoricalPool{Float64, UInt8, CategoricalValue{Float64, UInt8}})
+    @test catvalue(1, pool) isa CategoricalValue{Float64, UInt8}
 end
