@@ -50,8 +50,12 @@ module TestTypeDef
         x = catvalue(i, pool)
 
         @test iscatvalue(x)
-        @test valtype(typeof(x)) == String
-        @test reftype(typeof(x)) == DefaultRefType
+        @test iscatvalue(typeof(x))
+        @test valtype(x) === String
+        @test valtype(typeof(x)) === String
+        @test reftype(x) === DefaultRefType
+        @test reftype(typeof(x)) === DefaultRefType
+        @test x isa CategoricalArrays.CategoricalString{DefaultRefType}
 
         @test isa(level(x), DefaultRefType)
         @test level(x) === DefaultRefType(i)

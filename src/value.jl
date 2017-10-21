@@ -15,6 +15,7 @@ valtype(x::Any) = valtype(typeof(x))
 
 # integer type of category reference codes used by categorical value
 reftype(::Type{<:CatValue{R}}) where {R} = R
+reftype(x::Any) = reftype(typeof(x))
 
 pool(x::CatValue) = x.pool
 level(x::CatValue) = x.level
