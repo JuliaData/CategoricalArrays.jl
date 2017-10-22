@@ -51,6 +51,8 @@ module TestTypeDef
 
         @test iscatvalue(x)
         @test iscatvalue(typeof(x))
+        @test eltype(x) === String
+        @test eltype(typeof(x)) === String
         @test leveltype(x) === String
         @test leveltype(typeof(x)) === String
         @test reftype(x) === DefaultRefType

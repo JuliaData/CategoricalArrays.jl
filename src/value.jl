@@ -12,6 +12,9 @@ leveltype(::Type{<:CategoricalValue{T}}) where {T} = T
 leveltype(::Type{<:CategoricalString}) = String
 leveltype(::Type) = throw(ArgumentError("Not a \"categorical value\" type"))
 leveltype(x::Any) = leveltype(typeof(x))
+# eltype() is a synonym of leveltype() for categorical values
+Base.eltype(::Type{T}) where {T <: CatValue} = leveltype(T)
+Base.eltype(x::CatValue) = eltype(typeof(x))
 
 # integer type of category reference codes used by categorical value
 reftype(::Type{<:CatValue{R}}) where {R} = R
