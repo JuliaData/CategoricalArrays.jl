@@ -21,26 +21,26 @@ pool(x::CatValue) = x.pool
 level(x::CatValue) = x.level
 
 # extract the type of the original value from array eltype `T`
-unwrap_catvalue_type(::Type{T}) where {T} = T
-unwrap_catvalue_type(::Type{T}) where {T >: Null} =
-    Union{unwrap_catvalue_type(Nulls.T(T)), Null}
-unwrap_catvalue_type(::Type{Null}) = Null # to prevent dispatching to T>:Null method
-unwrap_catvalue_type(::Type{Any}) = Any # to prevent dispatching to T>:Null method
-unwrap_catvalue_type(::Type{T}) where {T <: CatValue} = valtype(T)
+unwrap_catvaluetype(::Type{T}) where {T} = T
+unwrap_catvaluetype(::Type{T}) where {T >: Null} =
+    Union{unwrap_catvaluetype(Nulls.T(T)), Null}
+unwrap_catvaluetype(::Type{Null}) = Null # to prevent dispatching to T>:Null method
+unwrap_catvaluetype(::Type{Any}) = Any # to prevent dispatching to T>:Null method
+unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = valtype(T)
 
 # get the "categorical value" type given value type `T` and reference type `R`
-catvalue_type(::Type{T}, ::Type{R}) where {T >: Null, R} =
-    catvalue_type(Nulls.T(T), R)
-catvalue_type(::Type{T}, ::Type{R}) where {T <: CatValue, R} =
-    reftype(T) === R ? T : catvalue_type(valtype(T), R)
-catvalue_type(::Type{Any}, ::Type{R}) where {R} =
+catvaluetype(::Type{T}, ::Type{R}) where {T >: Null, R} =
+    catvaluetype(Nulls.T(T), R)
+catvaluetype(::Type{T}, ::Type{R}) where {T <: CatValue, R} =
+    reftype(T) === R ? T : catvaluetype(valtype(T), R)
+catvaluetype(::Type{Any}, ::Type{R}) where {R} =
     CategoricalValue{Any, R}  # to prevent dispatching to T>:Null method
-catvalue_type(::Type{T}, ::Type{R}) where {T, R} =
+catvaluetype(::Type{T}, ::Type{R}) where {T, R} =
     CategoricalValue{T, R}
-catvalue_type(::Type{<:AbstractString}, ::Type{R}) where {R} =
+catvaluetype(::Type{<:AbstractString}, ::Type{R}) where {R} =
     CategoricalString{R}
 # default to CategoricalString in degenerated case (all nulls)
-catvalue_type(::Type{Null}, ::Type{R}) where {R} =
+catvaluetype(::Type{Null}, ::Type{R}) where {R} =
     CategoricalString{R}
 
 Base.get(x::CatValue) = index(pool(x))[level(x)]

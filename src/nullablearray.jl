@@ -9,7 +9,7 @@ import Base: convert, getindex, setindex!, similar, in
 
 #function CategoricalArray{Union{T, Null}, N, R}(dims::NTuple{N,Int};
 #                                                ordered=false) where {T<:CatValue, N, R<:Integer}
-#    V = unwrap_catvalue_type(T)
+#    V = unwrap_catvaluetype(T)
 #    CategoricalArray{Union{V, Null}, N}(zeros(R, dims), CategoricalPool{V, R, T}(ordered))
 #end
 

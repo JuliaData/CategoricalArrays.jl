@@ -115,7 +115,7 @@ CategoricalArray(dims::Int...; ordered=false) =
 
 function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
                                    ordered=false) where {T, N, R}
-    C = catvalue_type(T, R)
+    C = catvaluetype(T, R)
     V = valtype(C)
     S = T >: Null ? Union{V, Null} : V
     CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
@@ -158,7 +158,7 @@ CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} =
 # so that ordered!() does not affect the original array
 function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
                                    ordered=_isordered(A)) where {S, T, N, Q, R}
-    V = unwrap_catvalue_type(T)
+    V = unwrap_catvaluetype(T)
     res = convert(CategoricalArray{V, N, R}, A)
     if res.pool === A.pool # convert() only makes a copy when necessary
         res = CategoricalArray{V, N}(res.refs, deepcopy(res.pool))
@@ -167,7 +167,7 @@ function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
 end
 
 function CategoricalArray{T, N, R}(A::AbstractArray; ordered=_isordered(A)) where {T, N, R}
-    V = unwrap_catvalue_type(T)
+    V = unwrap_catvaluetype(T)
     ordered!(convert(CategoricalArray{V, N, R}, A), ordered)
 end
 
@@ -263,9 +263,9 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
         S >: Null && any(iszero, A.refs) && throw(NullException())
     end
 
-    pool = convert(CategoricalPool{unwrap_catvalue_type(U), R}, A.pool)
+    pool = convert(CategoricalPool{unwrap_catvaluetype(U), R}, A.pool)
     refs = convert(Array{R, N}, A.refs)
-    CategoricalArray{unwrap_catvalue_type(T), N}(refs, pool)
+    CategoricalArray{unwrap_catvaluetype(T), N}(refs, pool)
 end
 convert(::Type{CategoricalArray{T, N}}, A::CategoricalArray{S, N, R}) where {S, T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
