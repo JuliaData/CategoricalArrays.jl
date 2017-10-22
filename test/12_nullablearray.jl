@@ -2,7 +2,7 @@ module TestNullableArray
 
 using Base.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType
+using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
 
 const ≅ = isequal
 
@@ -14,6 +14,10 @@ for ordered in (false, true)
             x = CategoricalVector{Union{String, Null}, R}(a, ordered=ordered)
 
             @test x == a
+            @test leveltype(typeof(x)) === String
+            @test leveltype(x) === String
+            @test catvaluetype(typeof(x)) === CategoricalArrays.CategoricalString{R}
+            @test catvaluetype(x) === CategoricalArrays.CategoricalString{R}
             @test isordered(x) === ordered
             @test levels(x) == sort(unique(a))
             @test size(x) === (3,)
@@ -62,6 +66,8 @@ for ordered in (false, true)
                                       (x, R, UInt8, true),
                                       (x, R, R, false))
                 x2 = categorical(y, ordered=ordered)
+                @test leveltype(x2) === String
+                @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R1}
                 @test x2 == y
                 if eltype(y) >: Null
                     @test isa(x2, CategoricalVector{Union{String, Null}, R1})
@@ -72,6 +78,8 @@ for ordered in (false, true)
 
                 x2 = categorical(y, comp, ordered=ordered)
                 @test x2 == y
+                @test leveltype(x2) === String
+                @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R2}
                 if eltype(y) >: Null
                     @test isa(x2, CategoricalVector{Union{String, Null}, R2})
                 else
@@ -384,6 +392,8 @@ for ordered in (false, true)
         @test levels(x) == unique(a)
         @test size(x) === (4,)
         @test length(x) === 4
+        @test leveltype(x) === Float64
+        @test catvaluetype(x) <: CategoricalArrays.CategoricalValue{Float64}
 
         @test convert(CategoricalArray, x) === x
         @test convert(CategoricalArray{Union{Float64, Null}}, x) === x
@@ -449,6 +459,8 @@ for ordered in (false, true)
                 @test isa(x2, CategoricalVector{Float64, R1})
             end
             @test isordered(x2) === ordered
+            @test leveltype(x2) === Float64
+            @test catvaluetype(x2) === CategoricalArrays.CategoricalValue{Float64, R1}
 
             x2 = categorical(y, comp, ordered=ordered)
             @test x2 == collect(y)
@@ -458,6 +470,8 @@ for ordered in (false, true)
                 @test isa(x2, CategoricalVector{Float64, R2})
             end
             @test isordered(x2) === ordered
+            @test leveltype(x2) === Float64
+            @test catvaluetype(x2) === CategoricalArrays.CategoricalValue{Float64, R2}
         end
 
         x2 = compress(x)

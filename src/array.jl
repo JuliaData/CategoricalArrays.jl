@@ -498,6 +498,12 @@ end
     end
 end
 
+catvaluetype(::Type{T}) where {T <: CategoricalArray} = Nulls.T(eltype(T))
+catvaluetype(A::CategoricalArray) = catvaluetype(typeof(A))
+
+leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(catvaluetype(T))
+leveltype(A::CategoricalArray) = leveltype(typeof(A))
+
 """
     levels(A::CategoricalArray)
 
