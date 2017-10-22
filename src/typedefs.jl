@@ -24,8 +24,8 @@ mutable struct CategoricalPool{T, R <: Integer, V}
         if !iscatvalue(V)
             throw(ArgumentError("Type $V does not have \"categorical value\" trait"))
         end
-        if valtype(V) !== T
-            throw(ArgumentError("Value types of the categorical value ($(valtype(V))) and of the pool ($T) do not match"))
+        if leveltype(V) !== T
+            throw(ArgumentError("Value types of the categorical value ($(leveltype(V))) and of the pool ($T) do not match"))
         end
         if reftype(V) !== R
             throw(ArgumentError("Reference types of the categorical value ($(reftype(V))) and of the pool ($R) do not match"))

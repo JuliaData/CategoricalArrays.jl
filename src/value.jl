@@ -8,10 +8,10 @@ iscatvalue(::Type{Union{}}) = false # otherwise it dispatches to Type{<:...}
 iscatvalue(::Type{<:CatValue}) = true
 iscatvalue(x::Any) = iscatvalue(typeof(x))
 
-valtype(::Type{<:CategoricalValue{T}}) where {T} = T
-valtype(::Type{<:CategoricalString}) = String
-valtype(::Type) = throw(ArgumentError("Not a \"categorical value\" type"))
-valtype(x::Any) = valtype(typeof(x))
+leveltype(::Type{<:CategoricalValue{T}}) where {T} = T
+leveltype(::Type{<:CategoricalString}) = String
+leveltype(::Type) = throw(ArgumentError("Not a \"categorical value\" type"))
+leveltype(x::Any) = leveltype(typeof(x))
 
 # integer type of category reference codes used by categorical value
 reftype(::Type{<:CatValue{R}}) where {R} = R
@@ -26,13 +26,13 @@ unwrap_catvaluetype(::Type{T}) where {T >: Null} =
     Union{unwrap_catvaluetype(Nulls.T(T)), Null}
 unwrap_catvaluetype(::Type{Null}) = Null # to prevent dispatching to T>:Null method
 unwrap_catvaluetype(::Type{Any}) = Any # to prevent dispatching to T>:Null method
-unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = valtype(T)
+unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = leveltype(T)
 
 # get the "categorical value" type given value type `T` and reference type `R`
 catvaluetype(::Type{T}, ::Type{R}) where {T >: Null, R} =
     catvaluetype(Nulls.T(T), R)
 catvaluetype(::Type{T}, ::Type{R}) where {T <: CatValue, R} =
-    reftype(T) === R ? T : catvaluetype(valtype(T), R)
+    reftype(T) === R ? T : catvaluetype(leveltype(T), R)
 catvaluetype(::Type{Any}, ::Type{R}) where {R} =
     CategoricalValue{Any, R}  # to prevent dispatching to T>:Null method
 catvaluetype(::Type{T}, ::Type{R}) where {T, R} =
@@ -55,11 +55,11 @@ Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
 Base.convert(::Type{Union{T, Null}}, x::T) where {T <: CatValue} = x
 
 # FIXME do we need this rule or promotion is only required for CategoricalString?
-Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(valtype(C), T)
+Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(leveltype(C), T)
 
 # To fix ambiguities with definitions from Base
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalString, T <: AbstractString} =
-    promote_type(valtype(C), T)
+    promote_type(leveltype(C), T)
 Base.promote_rule(::Type{C}, ::Type{Null}) where {C <: CatValue} = Union{C, Null}
 
 Base.convert(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) where {S} =
@@ -68,7 +68,7 @@ Base.convert(::Type{Nullable}, x::CategoricalValue{S}) where {S} = convert(Nulla
 Base.convert(::Type{Nullable{CategoricalValue{Nullable{T}}}},
              x::CategoricalValue{Nullable{T}}) where {T} =
     Nullable(x)
-Base.convert(::Type{Ref}, x::CatValue) = RefValue{valtype(x)}(x)
+Base.convert(::Type{Ref}, x::CatValue) = RefValue{leveltype(x)}(x)
 Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CatValue) = x
 

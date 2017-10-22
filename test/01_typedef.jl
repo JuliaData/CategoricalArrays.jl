@@ -1,7 +1,7 @@
 module TestTypeDef
     using Base.Test
     using CategoricalArrays
-    using CategoricalArrays: DefaultRefType, level,  reftype, valtype, catvalue, iscatvalue
+    using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, iscatvalue
 
     pool = CategoricalPool(
         [
@@ -40,19 +40,19 @@ module TestTypeDef
     @test pool.order[2] === DefaultRefType(2)
     @test pool.order[3] === DefaultRefType(3)
 
-    # valtype() only accepts "categorical value type"
-    @test_throws ArgumentError valtype("abc")
-    @test_throws ArgumentError valtype(String)
-    @test_throws ArgumentError valtype(1.0)
-    @test_throws ArgumentError valtype(Int)
+    # leveltype() only accepts "categorical value type"
+    @test_throws ArgumentError leveltype("abc")
+    @test_throws ArgumentError leveltype(String)
+    @test_throws ArgumentError leveltype(1.0)
+    @test_throws ArgumentError leveltype(Int)
 
     for i in 1:3
         x = catvalue(i, pool)
 
         @test iscatvalue(x)
         @test iscatvalue(typeof(x))
-        @test valtype(x) === String
-        @test valtype(typeof(x)) === String
+        @test leveltype(x) === String
+        @test leveltype(typeof(x)) === String
         @test reftype(x) === DefaultRefType
         @test reftype(typeof(x)) === DefaultRefType
         @test x isa CategoricalArrays.CategoricalString{DefaultRefType}

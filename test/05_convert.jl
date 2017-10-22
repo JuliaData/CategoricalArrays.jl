@@ -1,7 +1,7 @@
 module TestConvert
     using Base.Test
     using CategoricalArrays
-    using CategoricalArrays: DefaultRefType, level, reftype, valtype, catvalue, iscatvalue
+    using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue
 
     pool = CategoricalPool([1, 2, 3])
     @test convert(CategoricalPool{Int, DefaultRefType}, pool) === pool
@@ -16,8 +16,8 @@ module TestConvert
     v3 = catvalue(3, pool)
     @test iscatvalue(v1)
     @test iscatvalue(typeof(v1))
-    @test valtype(v1) === Int
-    @test valtype(typeof(v1)) === Int
+    @test leveltype(v1) === Int
+    @test leveltype(typeof(v1)) === Int
     @test reftype(v1) === DefaultRefType
     @test reftype(typeof(v1)) === DefaultRefType
     @test v1 isa CategoricalArrays.CategoricalValue{Int, DefaultRefType}
