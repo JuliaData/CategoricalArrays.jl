@@ -40,7 +40,7 @@ module TestTypeDef
     @test pool.order[2] === DefaultRefType(2)
     @test pool.order[3] === DefaultRefType(3)
 
-    # leveltype() only accepts "categorical value type"
+    # leveltype() only accepts categorical value type
     @test_throws ArgumentError leveltype("abc")
     @test_throws ArgumentError leveltype(String)
     @test_throws ArgumentError leveltype(1.0)

@@ -5,7 +5,7 @@ const DefaultRefType = UInt32
 # Type params:
 # * `T` type of categorized values
 # * `R` integer type for referencing category levels
-# * `V` categorical value type that implements "categorical value" trait
+# * `V` categorical value type
 mutable struct CategoricalPool{T, R <: Integer, V}
     index::Vector{T}        # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
@@ -19,16 +19,16 @@ mutable struct CategoricalPool{T, R <: Integer, V}
                                       order::Vector{R},
                                       ordered::Bool) where {T, R, V}
         if iscatvalue(T)
-            throw(ArgumentError("Level type $T cannot be a type with \"categorical value\" trait"))
+            throw(ArgumentError("Level type $T cannot be a categorical value type"))
         end
         if !iscatvalue(V)
-            throw(ArgumentError("Type $V does not have \"categorical value\" trait"))
+            throw(ArgumentError("Type $V is not a categorical value type"))
         end
         if leveltype(V) !== T
-            throw(ArgumentError("Value types of the categorical value ($(leveltype(V))) and of the pool ($T) do not match"))
+            throw(ArgumentError("Level type of the categorical value ($(leveltype(V))) and of the pool ($T) do not match"))
         end
         if reftype(V) !== R
-            throw(ArgumentError("Reference types of the categorical value ($(reftype(V))) and of the pool ($R) do not match"))
+            throw(ArgumentError("Reference type of the categorical value ($(reftype(V))) and of the pool ($R) do not match"))
         end
         levels = similar(index)
         levels[order] = index
@@ -45,7 +45,7 @@ end
 ## Values
 
 """
-Default "categorical value" type for
+Default categorical value type for
 referencing values of type `T`.
 """
 struct CategoricalValue{T, R <: Integer}
@@ -69,7 +69,7 @@ end
 # * `N` array dimension
 # * `R` integer type for referencing category levels
 # * `V` original type of non-nullable elements before categorization
-# * `C` categorical value type that implements "categorical value" trait
+# * `C` categorical value type
 # * `U` type of null value, `Union{}` if the data is non-nullable
 abstract type AbstractCategoricalArray{T, N, R, V, C, U} <: AbstractArray{Union{C, U}, N} end
 const AbstractCategoricalVector{T, R, V, C, U} = AbstractCategoricalArray{T, 1, R, V, C, U}

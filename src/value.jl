@@ -1,8 +1,8 @@
-# union of all types that have "categorical value" trait
+# union of all types categorical value types
 const CatValue{R} = Union{CategoricalValue{T, R} where T,
                           CategoricalString{R}}
 
-# checks whether the type is "categorical value"
+# checks whether the type is categorical value
 iscatvalue(::Type) = false
 iscatvalue(::Type{Union{}}) = false # otherwise it dispatches to Type{<:...}
 iscatvalue(::Type{<:CatValue}) = true
@@ -10,7 +10,7 @@ iscatvalue(x::Any) = iscatvalue(typeof(x))
 
 leveltype(::Type{<:CategoricalValue{T}}) where {T} = T
 leveltype(::Type{<:CategoricalString}) = String
-leveltype(::Type) = throw(ArgumentError("Not a \"categorical value\" type"))
+leveltype(::Type) = throw(ArgumentError("Not a categorical value type"))
 leveltype(x::Any) = leveltype(typeof(x))
 # eltype() is a synonym of leveltype() for categorical values
 Base.eltype(::Type{T}) where {T <: CatValue} = leveltype(T)
@@ -31,7 +31,7 @@ unwrap_catvaluetype(::Type{Null}) = Null # to prevent dispatching to T>:Null met
 unwrap_catvaluetype(::Type{Any}) = Any # to prevent dispatching to T>:Null method
 unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = leveltype(T)
 
-# get the "categorical value" type given value type `T` and reference type `R`
+# get the categorical value type given value type `T` and reference type `R`
 catvaluetype(::Type{T}, ::Type{R}) where {T >: Null, R} =
     catvaluetype(Nulls.T(T), R)
 catvaluetype(::Type{T}, ::Type{R}) where {T <: CatValue, R} =
