@@ -27,7 +27,7 @@ level(x::CatValue) = x.level
 unwrap_catvaluetype(::Type{T}) where {T} = T
 unwrap_catvaluetype(::Type{T}) where {T >: Null} =
     Union{unwrap_catvaluetype(Nulls.T(T)), Null}
-unwrap_catvaluetype(::Type{Null}) = Null # to prevent dispatching to T>:Null method
+unwrap_catvaluetype(::Type{Union{}}) = Union{} # to prevent incorrect dispatch to T<:CatValue method
 unwrap_catvaluetype(::Type{Any}) = Any # to prevent dispatching to T>:Null method
 unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = leveltype(T)
 
@@ -42,9 +42,8 @@ catvaluetype(::Type{T}, ::Type{R}) where {T, R} =
     CategoricalValue{T, R}
 catvaluetype(::Type{<:AbstractString}, ::Type{R}) where {R} =
     CategoricalString{R}
-# default to CategoricalString in degenerated case (all nulls)
-catvaluetype(::Type{Null}, ::Type{R}) where {R} =
-    CategoricalString{R}
+# to prevent incorrect dispatch to T<:CatValue method
+catvaluetype(::Type{Union{}}, ::Type{R}) where {R} = CategoricalValue{Union{}, R}
 
 Base.get(x::CatValue) = index(pool(x))[level(x)]
 order(x::CatValue) = order(pool(x))[level(x)]
