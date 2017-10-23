@@ -53,9 +53,6 @@ order(x::CatValue) = order(pool(x))[level(x)]
 catvalue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C} =
     C(convert(R, level), pool)
 
-Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
-Base.convert(::Type{Union{T, Null}}, x::T) where {T <: CatValue} = x
-
 # FIXME do we need this rule or promotion is only required for CategoricalString?
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(leveltype(C), T)
 
@@ -74,8 +71,9 @@ Base.convert(::Type{Ref}, x::CatValue) = RefValue{leveltype(x)}(x)
 Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CatValue) = x
 
-# fallback
-Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x))
+Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
+Base.convert(::Type{Union{T, Null}}, x::T) where {T <: CatValue} = x # override the convert() below
+Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x)) # fallback
 
 function Base.show(io::IO, x::CatValue)
     if get(io, :compact, false)
