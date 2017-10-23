@@ -243,7 +243,9 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) wher
     res = CategoricalArray{T, N, R}(size(A))
     copy!(res, A)
 
-    if method_exists(isless, Tuple{T, T})
+    # if order is defined for level type, automatically apply it
+    L = leveltype(res)
+    if method_exists(isless, Tuple{L, L})
         levels!(res, sort(levels(res)))
     end
 

@@ -1,18 +1,4 @@
-import Base: convert, getindex, setindex!, similar, in
-
-## Constructors and converters
-## (special methods for AbstractArray{Union{T, Null}}, to avoid wrapping nulls inside CategoricalValues)
-
-function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T>:Null, N, R}
-    res = CategoricalArray{T, N, R}(size(A))
-    copy!(res, A)
-
-    if method_exists(isless, Tuple{Nulls.T(T), Nulls.T(T)})
-        levels!(res, sort(levels(res)))
-    end
-
-    res
-end
+import Base: getindex, setindex!, similar, in
 
 @inline function getindex(A::CategoricalArray{T}, I...) where {T>:Null}
     @boundscheck checkbounds(A, I...)
