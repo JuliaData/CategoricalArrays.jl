@@ -1,4 +1,4 @@
-# union of all types categorical value types
+# union of all categorical value types
 const CatValue{R} = Union{CategoricalValue{T, R} where T,
                           CategoricalString{R}}
 
