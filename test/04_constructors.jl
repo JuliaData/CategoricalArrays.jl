@@ -3,6 +3,18 @@ module TestConstructors
     using CategoricalArrays
     using CategoricalArrays: DefaultRefType, catvalue
 
+    # cannot use categorical value as level type
+    @test_throws ArgumentError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
+            CategoricalValue{Int,UInt8}[], Dict{CategoricalValue{Int,UInt8}, UInt8}(), UInt8[], false)
+    # cannot use non-categorical value as categorical value type
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    # level type of the pool and categorical value should match
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalString{UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    # reference type of the pool and categorical value should match
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    # correct types combination
+    @test CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false) isa CategoricalPool
+
     pool = CategoricalPool{String}()
 
     @test isa(pool, CategoricalPool{String})
