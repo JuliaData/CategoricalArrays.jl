@@ -920,7 +920,7 @@ for ordered in (false, true)
 
             x2 = compress(x)
             @test x2 ≅ x
-            @test isa(x2, CategoricalArray{Union{String, Null}, ndims(x), UInt8})
+            @test isa(x2, CategoricalArray{Union{leveltype(x), Null}, ndims(x), UInt8})
             @test isordered(x2) === isordered(x)
             @test levels(x2) == []
 

@@ -571,7 +571,7 @@ for ordered in (false, true)
             @test levels(x) == []
 
             x2 = compress(x)
-            @test isa(x2, CategoricalArray{String, ndims(x), UInt8})
+            @test isa(x2, CategoricalArray{leveltype(x), ndims(x), UInt8})
             @test !isassigned(x2, 1) && isdefined(x2, 1)
             @test !isassigned(x2, 2) && isdefined(x2, 2)
             @test_throws UndefRefError x2[1]
