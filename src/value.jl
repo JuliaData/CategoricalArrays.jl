@@ -35,7 +35,7 @@ unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = leveltype(T)
 catvaluetype(::Type{T}, ::Type{R}) where {T >: Null, R} =
     catvaluetype(Nulls.T(T), R)
 catvaluetype(::Type{T}, ::Type{R}) where {T <: CatValue, R} =
-    reftype(T) === R ? T : catvaluetype(leveltype(T), R)
+    catvaluetype(leveltype(T), R)
 catvaluetype(::Type{Any}, ::Type{R}) where {R} =
     CategoricalValue{Any, R}  # to prevent dispatching to T>:Null method
 catvaluetype(::Type{T}, ::Type{R}) where {T, R} =
