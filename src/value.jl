@@ -53,7 +53,6 @@ order(x::CatValue) = order(pool(x))[level(x)]
 catvalue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C} =
     C(convert(R, level), pool)
 
-# FIXME do we need this rule or promotion is only required for CategoricalString?
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(leveltype(C), T)
 
 # To fix ambiguities with definitions from Base
