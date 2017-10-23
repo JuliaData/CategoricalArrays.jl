@@ -2,9 +2,10 @@ const DefaultRefType = UInt32
 
 ## Pools
 
-# V is always set to CategoricalValue{T}
-# This workaround is needed since this type not defined yet
-# See JuliaLang/julia#269
+# Type params:
+# * `T` type of categorized values
+# * `R` integer type for referencing category levels
+# * `V` categorical value type
 mutable struct CategoricalPool{T, R <: Integer, V}
     index::Vector{T}        # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
@@ -17,6 +18,18 @@ mutable struct CategoricalPool{T, R <: Integer, V}
                                       invindex::Dict{T, R},
                                       order::Vector{R},
                                       ordered::Bool) where {T, R, V}
+        if iscatvalue(T)
+            throw(ArgumentError("Level type $T cannot be a categorical value type"))
+        end
+        if !iscatvalue(V)
+            throw(ArgumentError("Type $V is not a categorical value type"))
+        end
+        if leveltype(V) !== T
+            throw(ArgumentError("Level type of the categorical value ($(leveltype(V))) and of the pool ($T) do not match"))
+        end
+        if reftype(V) !== R
+            throw(ArgumentError("Reference type of the categorical value ($(reftype(V))) and of the pool ($R) do not match"))
+        end
         levels = similar(index)
         levels[order] = index
         pool = new(index, invindex, order, levels, V[], ordered)
@@ -31,28 +44,48 @@ end
 
 ## Values
 
-struct CategoricalValue{T, R <: Integer} <: AbstractString
+"""
+Default categorical value type for
+referencing values of type `T`.
+"""
+struct CategoricalValue{T, R <: Integer}
     level::R
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
 
+"""
+`String` categorical value.
+Provides `AbstractString` interoperability.
+"""
+struct CategoricalString{R <: Integer} <: AbstractString
+    level::R
+    pool::CategoricalPool{String, R, CategoricalString{R}}
+end
+
 ## Arrays
 
-abstract type AbstractCategoricalArray{T, N, R, V, U} <: AbstractArray{Union{CategoricalValue{V, R}, U}, N} end
-AbstractCategoricalVector{T, R, V, U} = AbstractCategoricalArray{T, 1, R, V, U}
-AbstractCategoricalMatrix{T, R, V, U} = AbstractCategoricalArray{T, 2, R, V, U}
+# Type params:
+# * `T` original type of elements before categorization, could be nullable
+# * `N` array dimension
+# * `R` integer type for referencing category levels
+# * `V` original type of non-nullable elements before categorization
+# * `C` categorical value type
+# * `U` type of null value, `Union{}` if the data is non-nullable
+abstract type AbstractCategoricalArray{T, N, R, V, C, U} <: AbstractArray{Union{C, U}, N} end
+const AbstractCategoricalVector{T, R, V, C, U} = AbstractCategoricalArray{T, 1, R, V, C, U}
+const AbstractCategoricalMatrix{T, R, V, C, U} = AbstractCategoricalArray{T, 2, R, V, C, U}
 
-struct CategoricalArray{T, N, R <: Integer, V, U} <: AbstractCategoricalArray{T, N, R, V, U}
+struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray{T, N, R, V, C, U}
     refs::Array{R, N}
-    pool::CategoricalPool{V, R, CategoricalValue{V, R}}
+    pool::CategoricalPool{V, R, C}
 
-    function CategoricalArray{T, N, R}(refs::Array{R, N},
-                                       pool::CategoricalPool{V, R, CategoricalValue{V, R}}) where
-                                                 {T, N, R <: Integer, V}
+    function CategoricalArray{T, N}(refs::Array{R, N},
+                                    pool::CategoricalPool{V, R, C}) where
+                                                 {T, N, R <: Integer, V, C}
         T === V || T == Union{V, Null} || throw(ArgumentError("T ($T) must be equal to $V or Union{$V, Null}"))
         U = T >: Null ? Null : Union{}
-        new{T, N, R, V, U}(refs, pool)
+        new{T, N, R, V, C, U}(refs, pool)
     end
 end
-CategoricalVector{T, R, V, U} = CategoricalArray{T, 1, V, U}
-CategoricalMatrix{T, R, V, U} = CategoricalArray{T, 2, V, U}
+const CategoricalVector{T, R, V, C, U} = CategoricalArray{T, 1, V, C, U}
+const CategoricalMatrix{T, R, V, C, U} = CategoricalArray{T, 2, V, C, U}

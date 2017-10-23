@@ -461,9 +461,9 @@ a4 = [4, 3, 2]
 a5 = [1 2; 3 4]
 ca1 = CategoricalArray(a1)
 ca2 = CategoricalArray{Union{Int, Null}}(a2)
-ca2b = CategoricalArray{Union{Int, Null}, 1, UInt32}(ca2.refs, ca2.pool)
+ca2b = CategoricalArray{Union{Int, Null}, 1}(ca2.refs, ca2.pool)
 ca3 = CategoricalArray(a3)
-ca3b = CategoricalArray{Union{Int, Null}, 1, UInt32}(ca3.refs, ca2.pool)
+ca3b = CategoricalArray{Union{Int, Null}, 1}(ca3.refs, ca2.pool)
 ca4 = CategoricalArray(a4)
 ca5 = CategoricalArray(a5)
 

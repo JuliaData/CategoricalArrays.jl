@@ -109,7 +109,7 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
 
     pool = CategoricalPool(levs, true)
     S = T >: Null ? Union{String, Null} : String
-    CategoricalArray{S, N, DefaultRefType}(refs, pool)
+    CategoricalArray{S, N}(refs, pool)
 end
 
 """

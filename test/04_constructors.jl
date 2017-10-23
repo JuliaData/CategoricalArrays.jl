@@ -1,7 +1,19 @@
 module TestConstructors
     using Base.Test
     using CategoricalArrays
-    using CategoricalArrays: DefaultRefType
+    using CategoricalArrays: DefaultRefType, catvalue
+
+    # cannot use categorical value as level type
+    @test_throws ArgumentError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
+            CategoricalValue{Int,UInt8}[], Dict{CategoricalValue{Int,UInt8}, UInt8}(), UInt8[], false)
+    # cannot use non-categorical value as categorical value type
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    # level type of the pool and categorical value should match
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalString{UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    # reference type of the pool and categorical value should match
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    # correct types combination
+    @test CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false) isa CategoricalPool
 
     pool = CategoricalPool{String}()
 
@@ -15,7 +27,7 @@ module TestConstructors
 
     pool = CategoricalPool{Int, UInt8}()
 
-    @test isa(pool, CategoricalPool{Int, UInt8})
+    @test isa(pool, CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}})
 
     @test isa(pool.index, Vector{Int})
     @test length(pool.index) == 0
@@ -25,7 +37,7 @@ module TestConstructors
 
     pool = CategoricalPool(["a", "b", "c"])
 
-    @test isa(pool, CategoricalPool)
+    @test isa(pool, CategoricalPool{String, UInt32, CategoricalString{UInt32}})
 
     @test isa(pool.index, Vector{String})
     @test length(pool.index) == 3
@@ -197,4 +209,10 @@ module TestConstructors
     @test pool.order[1] === DefaultRefType(1)
     @test pool.order[2] === DefaultRefType(2)
     @test pool.order[3] === DefaultRefType(3)
+
+    # test floating point pool
+    pool = CategoricalPool{Float64, UInt8}([1.0, 2.0, 3.0])
+
+    @test isa(pool, CategoricalPool{Float64, UInt8, CategoricalValue{Float64, UInt8}})
+    @test catvalue(1, pool) isa CategoricalValue{Float64, UInt8}
 end

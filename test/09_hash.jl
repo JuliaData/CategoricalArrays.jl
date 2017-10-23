@@ -16,10 +16,10 @@ module TestHash
     @test (hash(opool1) == hash(opool2)) === false
     @test (hash(opool2) == hash(opool2)) === true
 
-    nv1a = CategoricalValue(1, pool1)
-    nv2a = CategoricalValue(1, pool2)
-    nv1b = CategoricalValue(2, pool1)
-    nv2b = CategoricalValue(2, pool2)
+    nv1a = CategoricalArrays.catvalue(1, pool1)
+    nv2a = CategoricalArrays.catvalue(1, pool2)
+    nv1b = CategoricalArrays.catvalue(2, pool1)
+    nv2b = CategoricalArrays.catvalue(2, pool2)
 
     @test (hash(nv1a) == hash(nv1a)) === true
     @test (hash(nv1a) == hash(nv2a)) === false
@@ -41,10 +41,10 @@ module TestHash
     @test (hash(nv2b) == hash(nv1b)) === false
     @test (hash(nv2b) == hash(nv2b)) === true
 
-    ov1a = CategoricalValue(1, opool1)
-    ov2a = CategoricalValue(1, opool2)
-    ov1b = CategoricalValue(2, opool1)
-    ov2b = CategoricalValue(2, opool2)
+    ov1a = CategoricalArrays.catvalue(1, opool1)
+    ov2a = CategoricalArrays.catvalue(1, opool2)
+    ov1b = CategoricalArrays.catvalue(2, opool1)
+    ov2b = CategoricalArrays.catvalue(2, opool2)
 
     @test (hash(ov1a) == hash(ov1a)) === true
     @test (hash(ov1a) == hash(ov2a)) === false

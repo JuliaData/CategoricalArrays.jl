@@ -4,8 +4,8 @@ module TestString
 
     pool = CategoricalPool(["", "café"])
 
-    v1 = CategoricalValue(1, pool)
-    v2 = CategoricalValue(2, pool)
+    v1 = CategoricalArrays.catvalue(1, pool)
+    v2 = CategoricalArrays.catvalue(2, pool)
 
     @test v1 isa AbstractString
     @test v2 isa AbstractString
@@ -218,4 +218,7 @@ module TestString
 
     @test escape_string(v1) == ""
     @test escape_string(v2) == "café"
+
+    @test collect(v1) == Char[]
+    @test collect(v2) == Char['c', 'a', 'f', 'é']
 end

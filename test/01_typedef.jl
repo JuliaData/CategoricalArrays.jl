@@ -1,7 +1,7 @@
 module TestTypeDef
     using Base.Test
     using CategoricalArrays
-    using CategoricalArrays: DefaultRefType
+    using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, iscatvalue
 
     pool = CategoricalPool(
         [
@@ -15,6 +15,10 @@ module TestTypeDef
             "c" => DefaultRefType(3),
         )
     )
+
+    @test iscatvalue(Int) == false
+    @test iscatvalue(Any) == false
+    @test iscatvalue(Null) == false
 
     @test isa(pool, CategoricalPool)
 
@@ -36,16 +40,30 @@ module TestTypeDef
     @test pool.order[2] === DefaultRefType(2)
     @test pool.order[3] === DefaultRefType(3)
 
+    # leveltype() only accepts categorical value type
+    @test_throws ArgumentError leveltype("abc")
+    @test_throws ArgumentError leveltype(String)
+    @test_throws ArgumentError leveltype(1.0)
+    @test_throws ArgumentError leveltype(Int)
+
     for i in 1:3
-        x = CategoricalValue(i, pool)
+        x = catvalue(i, pool)
 
-        @test isa(x, CategoricalValue)
+        @test iscatvalue(x)
+        @test iscatvalue(typeof(x))
+        @test eltype(x) === String
+        @test eltype(typeof(x)) === String
+        @test leveltype(x) === String
+        @test leveltype(typeof(x)) === String
+        @test reftype(x) === DefaultRefType
+        @test reftype(typeof(x)) === DefaultRefType
+        @test x isa CategoricalArrays.CategoricalString{DefaultRefType}
 
-        @test isa(x.level, DefaultRefType)
-        @test x.level === DefaultRefType(i)
+        @test isa(level(x), DefaultRefType)
+        @test level(x) === DefaultRefType(i)
 
-        @test isa(x.pool, CategoricalPool)
-        @test x.pool === pool
+        @test isa(CategoricalArrays.pool(x), CategoricalPool)
+        @test CategoricalArrays.pool(x) === pool
     end
 
     pool = CategoricalPool(
@@ -87,14 +105,14 @@ module TestTypeDef
     @test pool.order[3] === DefaultRefType(1)
 
     for i in 1:3
-        y = CategoricalValue(i, pool)
+        y = catvalue(i, pool)
 
-        @test isa(y, CategoricalValue)
+        @test iscatvalue(y)
 
-        @test isa(y.level, DefaultRefType)
-        @test y.level === DefaultRefType(i)
+        @test isa(level(y), DefaultRefType)
+        @test level(y) === DefaultRefType(i)
 
-        @test isa(y.pool, CategoricalPool)
-        @test y.pool === pool
+        @test isa(CategoricalArrays.pool(y), CategoricalPool)
+        @test CategoricalArrays.pool(y) === pool
     end
 end

@@ -3,13 +3,17 @@ function CategoricalPool(index::Vector{S},
                          order::Vector{R},
                          ordered::Bool=false) where {S, T <: Integer, R <: Integer}
     invindex = convert(Dict{S, R}, invindex)
-    CategoricalPool{S, R, CategoricalValue{S, R}}(index, invindex, order, ordered)
+    C = catvaluetype(S, R)
+    V = leveltype(C) # might be different from S (e.g. S == SubString, V == String)
+    CategoricalPool{V, R, C}(index, invindex, order, ordered)
 end
 
+CategoricalPool{T, R, C}(ordered::Bool=false) where {T, R, C} =
+    CategoricalPool{T, R, C}(T[], Dict{T, R}(), R[], ordered)
 CategoricalPool{T, R}(ordered::Bool=false) where {T, R} =
     CategoricalPool(T[], Dict{T, R}(), R[], ordered)
 CategoricalPool{T}(ordered::Bool=false) where {T} =
-    CategoricalPool(T[], Dict{T, DefaultRefType}(), DefaultRefType[], ordered)
+    CategoricalPool{T, DefaultRefType}(ordered)
 
 function CategoricalPool{T, R}(index::Vector,
                                ordered::Bool=false) where {T, R}
@@ -55,9 +59,7 @@ function CategoricalPool(invindex::Dict{S, R},
     return CategoricalPool(index, invindex, order, ordered)
 end
 
-Base.convert(::Type{CategoricalPool}, pool::CategoricalPool) = pool
-Base.convert(::Type{CategoricalPool{T}}, pool::CategoricalPool{T}) where {T} = pool
-Base.convert(::Type{CategoricalPool{T, R}}, pool::CategoricalPool{T, R}) where {T, R <: Integer} = pool
+Base.convert(::Type{T}, pool::T) where {T <: CategoricalPool} = pool
 
 Base.convert(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) where {S, T, R <: Integer} =
     convert(CategoricalPool{S, R}, pool)
@@ -86,7 +88,7 @@ Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
-function Base.get!(pool::CategoricalPool{T, R, V}, level) where {T, R, V}
+function Base.get!(pool::CategoricalPool{T, R}, level::Any) where {T, R}
     get!(pool.invindex, level) do
         x = convert(T, level)
         n = length(pool)
@@ -98,7 +100,7 @@ function Base.get!(pool::CategoricalPool{T, R, V}, level) where {T, R, V}
         push!(pool.index, x)
         push!(pool.order, i)
         push!(pool.levels, x)
-        push!(pool.valindex, V(i, pool))
+        push!(pool.valindex, catvalue(i, pool))
         i
     end
 end
@@ -113,7 +115,7 @@ function Base.append!(pool::CategoricalPool, levels)
     return pool
 end
 
-function Base.delete!(pool::CategoricalPool{S, R, V}, levels...) where {S, R, V}
+function Base.delete!(pool::CategoricalPool{S}, levels...) where S
     for level in levels
         levelS = convert(S, level)
         if haskey(pool.invindex, levelS)
@@ -125,7 +127,7 @@ function Base.delete!(pool::CategoricalPool{S, R, V}, levels...) where {S, R, V}
             splice!(pool.valindex, ind)
             for i in ind:length(pool)
                 pool.invindex[pool.index[i]] -= 1
-                pool.valindex[i] = V(i, pool)
+                pool.valindex[i] = catvalue(i, pool)
             end
             for i in 1:length(pool)
                 pool.order[i] > ord && (pool.order[i] -= 1)
@@ -135,7 +137,7 @@ function Base.delete!(pool::CategoricalPool{S, R, V}, levels...) where {S, R, V}
     return pool
 end
 
-function levels!(pool::CategoricalPool{S, R, V}, newlevels::Vector) where {S, R, V}
+function levels!(pool::CategoricalPool{S, R}, newlevels::Vector) where {S, R}
     levs = convert(Vector{S}, newlevels)
     if !allunique(levs)
         throw(ArgumentError(string("duplicated levels found in levs: ",
@@ -161,7 +163,7 @@ function levels!(pool::CategoricalPool{S, R, V}, newlevels::Vector) where {S, R,
             v = levs[i]
             pool.index[i] = v
             pool.invindex[v] = i
-            pool.valindex[i] = V(i, pool)
+            pool.valindex[i] = catvalue(i, pool)
         end
     end
 

@@ -19,10 +19,6 @@ function reftype(sz::Int)
     end
 end
 
-unwrap_catvalue_type(::Type{<: CategoricalValue{T}}) where {T} = T
-unwrap_catvalue_type(::Type{Union{V, Null}}) where {T, V <: CategoricalValue{T}} = Union{T, Null}
-unwrap_catvalue_type(::Type{T}) where {T} = T
-
 """
     CategoricalArray{T}(dims::Dims; ordered::Bool=false)
     CategoricalArray{T}(dims::Int...; ordered::Bool=false)
@@ -117,8 +113,14 @@ function CategoricalMatrix end
 CategoricalArray(dims::Int...; ordered=false) =
     CategoricalArray{String}(dims, ordered=ordered)
 
-CategoricalArray{T, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R} =
-    CategoricalArray{T, N, R}(zeros(R, dims), CategoricalPool{T, R}(ordered))
+function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
+                                   ordered=false) where {T, N, R}
+    C = catvaluetype(T, R)
+    V = leveltype(C)
+    S = T >: Null ? Union{V, Null} : V
+    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
+end
+
 CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
     CategoricalArray{T, N, DefaultRefType}(dims, ordered=ordered)
 CategoricalArray{T}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
@@ -141,23 +143,6 @@ CategoricalArray{T}(m::Int, n::Int; ordered=false) where {T} =
 CategoricalArray{T}(m::Int, n::Int, o::Int; ordered=false) where {T} =
     CategoricalArray{T}((m, n, o), ordered=ordered)
 
-CategoricalArray{CategoricalValue{T, R}, N, R}(dims::NTuple{N,Int};
-                                               ordered=false) where {T, N, R} =
-    CategoricalArray{T, N, R}(dims, ordered=ordered)
-CategoricalArray{CategoricalValue{T}, N, R}(dims::NTuple{N,Int};
-                                            ordered=false) where {T, N, R} =
-    CategoricalArray{T, N, R}(dims, ordered=ordered)
-CategoricalArray{CategoricalValue{T, R}, N}(dims::NTuple{N,Int};
-                                            ordered=false) where {T, N, R} =
-    CategoricalArray{T, N, R}(dims, ordered=ordered)
-CategoricalArray{CategoricalValue{T}, N}(dims::NTuple{N,Int};
-                                         ordered=false) where {T, N} =
-    CategoricalArray{T, N}(dims, ordered=ordered)
-#(::Type{CategoricalArray{CategoricalValue, N}}){N}(dims::NTuple{N,Int}; ordered=false) =
-#   CategoricalArray{String, N}(dims, ordered=ordered)
-#(::Type{CategoricalArray{CategoricalValue}}){N}(dims::NTuple{N,Int}; ordered=false) =
-#   CategoricalArray{String, N}(dims, ordered=ordered)
-
 CategoricalVector(m::Integer; ordered=false) = CategoricalArray(m, ordered=ordered)
 CategoricalVector{T}(m::Int; ordered=false) where {T} =
     CategoricalArray{T}((m,), ordered=ordered)
@@ -173,20 +158,18 @@ CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} =
 # so that ordered!() does not affect the original array
 function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
                                    ordered=_isordered(A)) where {S, T, N, Q, R}
-    U = unwrap_catvalue_type(T)
-    res = convert(CategoricalArray{U, N, R}, A)
+    V = unwrap_catvaluetype(T)
+    res = convert(CategoricalArray{V, N, R}, A)
     if res.pool === A.pool # convert() only makes a copy when necessary
-        res = CategoricalArray{U, N, R}(res.refs, deepcopy(res.pool))
+        res = CategoricalArray{V, N}(res.refs, deepcopy(res.pool))
     end
     ordered!(res, ordered)
 end
 
-CategoricalArray{T, N, R}(A::AbstractArray; ordered=_isordered(A)) where {T, N, R} =
-    ordered!(convert(CategoricalArray{T, N, R}, A), ordered)
-
-CategoricalArray{T, N, R}(A::AbstractArray;
-                          ordered=_isordered(A)) where {T<:CategoricalValue, N, R} =
-    CategoricalArray{T.parameters[1], N, R}(A, ordered=ordered)
+function CategoricalArray{T, N, R}(A::AbstractArray; ordered=_isordered(A)) where {T, N, R}
+    V = unwrap_catvaluetype(T)
+    ordered!(convert(CategoricalArray{V, N, R}, A), ordered)
+end
 
 # From AbstractArray
 CategoricalArray{T, N}(A::AbstractArray{S, N}; ordered=_isordered(A)) where {S, T, N} =
@@ -242,11 +225,6 @@ convert(::Type{CategoricalArray{T}}, A::AbstractArray{S, N}) where {S, T, N} =
 convert(::Type{CategoricalArray}, A::AbstractArray{T, N}) where {T, N} =
     convert(CategoricalArray{T, N}, A)
 
-convert(::Type{CategoricalArray{CategoricalValue{T, R}, N}}, A::AbstractArray{T, N}) where {T, N, R} =
-    convert(CategoricalArray{T, N, R}, A)
-convert(::Type{CategoricalArray{CategoricalValue{T}, N}}, A::AbstractArray{T, N}) where {T, N} =
-    convert(CategoricalArray{T, N}, A)
-
 convert(::Type{CategoricalVector{T}}, A::AbstractVector) where {T} =
     convert(CategoricalVector{T, DefaultRefType}, A)
 convert(::Type{CategoricalVector}, A::AbstractVector{T}) where {T} =
@@ -265,7 +243,9 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) wher
     res = CategoricalArray{T, N, R}(size(A))
     copy!(res, A)
 
-    if method_exists(isless, Tuple{T, T})
+    # if order is defined for level type, automatically apply it
+    L = leveltype(res)
+    if method_exists(isless, Tuple{L, L})
         levels!(res, sort(levels(res)))
     end
 
@@ -285,9 +265,9 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
         S >: Null && any(iszero, A.refs) && throw(NullException())
     end
 
-    pool = convert(CategoricalPool{unwrap_catvalue_type(U), R}, A.pool)
+    pool = convert(CategoricalPool{unwrap_catvaluetype(U), R}, A.pool)
     refs = convert(Array{R, N}, A.refs)
-    CategoricalArray{unwrap_catvalue_type(T), N, R}(refs, pool)
+    CategoricalArray{unwrap_catvaluetype(T), N}(refs, pool)
 end
 convert(::Type{CategoricalArray{T, N}}, A::CategoricalArray{S, N, R}) where {S, T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
@@ -408,8 +388,8 @@ end
 copy(A::CategoricalArray) = deepcopy(A)
 
 function copy!(dest::CategoricalArray{T, N}, dstart::Integer,
-                     src::CategoricalArray{T, N}, sstart::Integer,
-                     n::Integer=length(src)-sstart+1) where {T, N}
+               src::CategoricalArray{T, N}, sstart::Integer,
+               n::Integer=length(src)-sstart+1) where {T, N}
     destinds, srcinds = linearindices(dest), linearindices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
@@ -502,7 +482,7 @@ function vcat(A::CategoricalArray...)
         Union{eltype(newlevels), Null} : eltype(newlevels)
     refs = DefaultRefType[refsvec...;]
     pool = CategoricalPool(newlevels, ordered)
-    CategoricalArray{T, ndims(refs), DefaultRefType}(refs, pool)
+    CategoricalArray{T, ndims(refs)}(refs, pool)
 end
 
 @inline function getindex(A::CategoricalArray{T}, I...) where {T}
@@ -511,7 +491,7 @@ end
     @inbounds r = A.refs[I...]
 
     if isa(r, Array)
-        res = CategoricalArray{T, ndims(r), eltype(r)}(r, deepcopy(A.pool))
+        res = CategoricalArray{T, ndims(r)}(r, deepcopy(A.pool))
         return ordered!(res, isordered(A))
     else
         r > 0 || throw(UndefRefError())
@@ -519,6 +499,11 @@ end
         return res
     end
 end
+
+catvaluetype(::Type{T}) where {T <: CategoricalArray} = Nulls.T(eltype(T))
+catvaluetype(A::CategoricalArray) = catvaluetype(typeof(A))
+
+leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(catvaluetype(T))
 
 """
     levels(A::CategoricalArray)
@@ -665,9 +650,9 @@ end
 
 Base.empty!(A::CategoricalArray) = (empty!(A.refs); return A)
 
-function Base.reshape(A::CategoricalArray{T, N, R}, dims::Dims) where {T, N, R}
+function Base.reshape(A::CategoricalArray{T, N}, dims::Dims) where {T, N}
     x = reshape(A.refs, dims)
-    res = CategoricalArray{T, ndims(x), R}(x, A.pool)
+    res = CategoricalArray{T, ndims(x)}(x, A.pool)
     ordered!(res, isordered(res))
 end
 
