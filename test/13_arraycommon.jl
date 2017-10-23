@@ -512,4 +512,25 @@ ca5 = CategoricalArray(a5)
     ("1×3 CategoricalArrays.CategoricalArray{Union{Nulls.Null, $Int},2,UInt32}",
      "1×3 CategoricalArrays.CategoricalArray{Union{$Int, Nulls.Null},2,UInt32}")
 
+# Test that vcat() takes into account element type even when array is empty
+# or when both arrays have the same levels but of different types
+x = CategoricalVector{String}(0)
+y = CategoricalVector{Int}(0)
+z1 = CategoricalVector{Float64}([1.0])
+z2 = CategoricalVector{Int}([1])
+@inferred vcat(x, y)
+@test vcat(x, y) isa CategoricalVector{Any}
+@inferred vcat(x, z1)
+@test vcat(x, z1) isa CategoricalVector{Any}
+@inferred vcat(y, z1)
+@test vcat(y, z1) isa CategoricalVector{Float64}
+@inferred vcat(x, x)
+@test vcat(x, x) isa CategoricalVector{String}
+@inferred vcat(y, y)
+@test vcat(y, y) isa CategoricalVector{Int}
+@inferred vcat(z1, z1)
+@test vcat(z1, z1) isa CategoricalVector{Float64}
+@inferred vcat(z1, z2)
+@test vcat(z1, z2) isa CategoricalVector{Float64}
+
 end

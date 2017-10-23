@@ -343,9 +343,11 @@ function mergelevels(ordered, levels...)
 
     # Fast path in case all levels are equal
     if all(l -> l == levels[1], levels[2:end])
-        return copy(levels[1]), ordered
+        append!(res, levels[1])
+        return res, ordered
     elseif sum(l -> !isempty(l), levels) == 1
-        return copy(levels[findfirst(l -> !isempty(l), levels)]), ordered
+        append!(res, levels[findfirst(l -> !isempty(l), levels)])
+        return res, ordered
     end
 
     for l in levels
