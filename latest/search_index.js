@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Using CategoricalArrays",
     "title": "Nulls.levels",
     "category": "Function",
-    "text": "levels(A::CategoricalArray)\n\nReturn the levels of categorical array A. This may include levels which do not actually appear in the data (see droplevels!).\n\n\n\nlevels(x)\n\nReturn a vector of unique values which occur or could occur in collection x, omitting null even if present. Values are returned in the preferred order for the collection, with the result of sort as a default.\n\nContrary to unique, this function may return values which do not actually occur in the data, and does not preserve their order of appearance in x.\n\n\n\n"
+    "text": "levels(x)\n\nReturn a vector of unique values which occur or could occur in collection x, omitting null even if present. Values are returned in the preferred order for the collection, with the result of sort as a default.\n\nContrary to unique, this function may return values which do not actually occur in the data, and does not preserve their order of appearance in x.\n\n\n\nlevels(A::CategoricalArray)\n\nReturn the levels of categorical array A. This may include levels which do not actually appear in the data (see droplevels!).\n\n\n\n"
 },
 
 {
