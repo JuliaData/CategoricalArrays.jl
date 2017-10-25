@@ -38,10 +38,10 @@ Thanks to this order, we can not only test for equality between two values, but 
 
 ```jldoctest using
 julia> x[1]
-CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.CategoricalString{UInt32} "Old" (3/3)
 
 julia> x[2]
-CategoricalArrays.CategoricalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.CategoricalString{UInt32} "Young" (1/3)
 
 julia> x[2] == x[4]
 true
@@ -58,7 +58,7 @@ julia> x[1] = "Young"
 "Young"
 
 julia> x[1]
-CategoricalArrays.CategoricalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.CategoricalString{UInt32} "Young" (1/3)
 
 ```
 
@@ -102,7 +102,7 @@ julia> x[3] = lowercase(x[3])
 "middle"
 
 julia> x[3]
-CategoricalArrays.CategoricalValue{String,UInt32} "middle" (3/3)
+CategoricalArrays.CategoricalString{UInt32} "middle" (3/3)
 
 julia> droplevels!(x)
 4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
@@ -112,7 +112,7 @@ julia> droplevels!(x)
  "Young" 
 
 julia> x[3]
-CategoricalArrays.CategoricalValue{String,UInt32} "middle" (2/2)
+CategoricalArrays.CategoricalString{UInt32} "middle" (2/2)
 
 ```
 
@@ -160,7 +160,7 @@ At this point, indexing into the array gives exactly the same result
 
 ```jldoctest using
 julia> y[1]
-CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.CategoricalString{UInt32} "Old" (3/3)
 ```
 
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:
