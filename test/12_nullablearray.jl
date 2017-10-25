@@ -8,237 +8,239 @@ const ≅ = isequal
 @testset "conversion ordered=$ordered" for ordered in (false, true)
     @testset "conversion reftype=$R" for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
         @testset "conversion of $(typeof(a))" for a in (["b", "a", "b"], Union{String, Null}["b", "a", "b"])
-            x = CategoricalVector{Union{String, Null}, R}(a, ordered=ordered)
+            @testset "Vector with no null values" begin
+                x = CategoricalVector{Union{String, Null}, R}(a, ordered=ordered)
 
-            @test x == a
-            @test leveltype(typeof(x)) === String
-            @test leveltype(x) === String
-            @test catvaluetype(typeof(x)) === CategoricalArrays.CategoricalString{R}
-            @test catvaluetype(x) === CategoricalArrays.CategoricalString{R}
-            @test isordered(x) === ordered
-            @test levels(x) == sort(unique(a))
-            @test size(x) === (3,)
-            @test length(x) === 3
+                @test x == a
+                @test leveltype(typeof(x)) === String
+                @test leveltype(x) === String
+                @test catvaluetype(typeof(x)) === CategoricalArrays.CategoricalString{R}
+                @test catvaluetype(x) === CategoricalArrays.CategoricalString{R}
+                @test isordered(x) === ordered
+                @test levels(x) == sort(unique(a))
+                @test size(x) === (3,)
+                @test length(x) === 3
 
-            @test convert(CategoricalArray, x) === x
-            @test convert(CategoricalArray{Union{String, Null}}, x) === x
-            @test convert(CategoricalArray{Union{String, Null}, 1}, x) === x
-            @test convert(CategoricalArray{Union{String, Null}, 1, R}, x) === x
-            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, x) == x
-            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, x) == x
+                @test convert(CategoricalArray, x) === x
+                @test convert(CategoricalArray{Union{String, Null}}, x) === x
+                @test convert(CategoricalArray{Union{String, Null}, 1}, x) === x
+                @test convert(CategoricalArray{Union{String, Null}, 1, R}, x) === x
+                @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, x) == x
+                @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, x) == x
 
-            @test convert(CategoricalVector, x) === x
-            @test convert(CategoricalVector{Union{String, Null}}, x) === x
-            @test convert(CategoricalVector{Union{String, Null}, R}, x) === x
-            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, x) == x
-            @test convert(CategoricalVector{Union{String, Null}, UInt8}, x) == x
+                @test convert(CategoricalVector, x) === x
+                @test convert(CategoricalVector{Union{String, Null}}, x) === x
+                @test convert(CategoricalVector{Union{String, Null}, R}, x) === x
+                @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, x) == x
+                @test convert(CategoricalVector{Union{String, Null}, UInt8}, x) == x
 
-            @test convert(CategoricalArray, a) == x
-            @test convert(CategoricalArray{Union{String, Null}}, a) == x
-            @test convert(CategoricalArray{Union{String, Null}, 1}, a) == x
-            @test convert(CategoricalArray{Union{String, Null}, 1, R}, a) == x
-            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, a) == x
-            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, a) == x
+                @test convert(CategoricalArray, a) == x
+                @test convert(CategoricalArray{Union{String, Null}}, a) == x
+                @test convert(CategoricalArray{Union{String, Null}, 1}, a) == x
+                @test convert(CategoricalArray{Union{String, Null}, 1, R}, a) == x
+                @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, a) == x
+                @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, a) == x
 
-            @test convert(CategoricalVector, a) == x
-            @test convert(CategoricalVector{Union{String, Null}}, a) == x
-            @test convert(CategoricalVector{Union{String, Null}, R}, a) == x
-            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, a) == x
-            @test convert(CategoricalVector{Union{String, Null}, UInt8}, a) == x
+                @test convert(CategoricalVector, a) == x
+                @test convert(CategoricalVector{Union{String, Null}}, a) == x
+                @test convert(CategoricalVector{Union{String, Null}, R}, a) == x
+                @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, a) == x
+                @test convert(CategoricalVector{Union{String, Null}, UInt8}, a) == x
 
-            @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
-            @test CategoricalArray{Union{String, Null}, 1}(a, ordered=ordered) == x
-            @test CategoricalArray{Union{String, Null}, 1, R}(a, ordered=ordered) == x
-            @test CategoricalArray{Union{String, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalArray{Union{String, Null}, 1, UInt8}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Null}, 1}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Null}, 1, R}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Null}, 1, UInt8}(a, ordered=ordered) == x
 
-            @test CategoricalVector(a, ordered=ordered) == x
-            @test CategoricalVector{Union{String, Null}}(a, ordered=ordered) == x
-            @test CategoricalVector{Union{String, Null}, R}(a, ordered=ordered) == x
-            @test CategoricalVector{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
-            @test CategoricalVector{Union{String, Null}, UInt8}(a, ordered=ordered) == x
+                @test CategoricalVector(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Null}}(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Null}, R}(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Null}, UInt8}(a, ordered=ordered) == x
 
-            @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
-                ((a, DefaultRefType, UInt8, true),
-                 (a, DefaultRefType, DefaultRefType, false),
-                 (x, R, UInt8, true),
-                 (x, R, R, false))
+                @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
+                    ((a, DefaultRefType, UInt8, true),
+                     (a, DefaultRefType, DefaultRefType, false),
+                     (x, R, UInt8, true),
+                     (x, R, R, false))
 
-                x2 = categorical(y, ordered=ordered)
-                @test leveltype(x2) === String
-                @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R1}
-                @test x2 == y
-                if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{Union{String, Null}, R1})
-                else
-                    @test isa(x2, CategoricalVector{String, R1})
+                    x2 = categorical(y, ordered=ordered)
+                    @test leveltype(x2) === String
+                    @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R1}
+                    @test x2 == y
+                    if eltype(y) >: Null
+                        @test isa(x2, CategoricalVector{Union{String, Null}, R1})
+                    else
+                        @test isa(x2, CategoricalVector{String, R1})
+                    end
+                    @test isordered(x2) === ordered
+
+                    x2 = categorical(y, comp, ordered=ordered)
+                    @test x2 == y
+                    @test leveltype(x2) === String
+                    @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R2}
+                    if eltype(y) >: Null
+                        @test isa(x2, CategoricalVector{Union{String, Null}, R2})
+                    else
+                        @test isa(x2, CategoricalVector{String, R2})
+                    end
+                    @test isordered(x2) === ordered
                 end
-                @test isordered(x2) === ordered
 
-                x2 = categorical(y, comp, ordered=ordered)
-                @test x2 == y
-                @test leveltype(x2) === String
-                @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R2}
-                if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{Union{String, Null}, R2})
-                else
-                    @test isa(x2, CategoricalVector{String, R2})
+                x2 = compress(x)
+                @test x2 == x
+                @test isa(x2, CategoricalVector{Union{String, Null}, UInt8})
+                @test isordered(x2) === isordered(x)
+                @test levels(x2) == levels(x)
+
+                x2 = copy(x)
+                @test x2 == x
+                @test isordered(x2) === isordered(x)
+                @test typeof(x2) === typeof(x)
+                @test levels(x2) == levels(x)
+
+                if !isordered(x)
+                    @test ordered!(x, true) === x
+                    @test isordered(x) === true
                 end
-                @test isordered(x2) === ordered
+                @test x[1] > x[2]
+                @test x[3] > x[2]
+
+                @test ordered!(x, false) === x
+                @test isordered(x) === false
+                @test_throws Exception x[1] > x[2]
+                @test_throws Exception x[3] > x[2]
+
+                @test x[1] === x.pool.valindex[1]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[1]
+                @test_throws BoundsError x[4]
+
+                x2 = x[:]
+                @test typeof(x2) === typeof(x)
+                @test x2 == x
+                @test x2 !== x
+                @test levels(x2) == levels(x)
+                @test levels(x2) !== levels(x)
+                @test isordered(x2) == isordered(x)
+
+                x2 = x[2:3]
+                @test typeof(x2) === typeof(x)
+                @test x2 == ["a", "b"]
+                @test levels(x2) == levels(x)
+                @test levels(x2) !== levels(x)
+                @test isordered(x2) == isordered(x)
+
+                x2 = x[1:1]
+                @test typeof(x2) === typeof(x)
+                @test x2 == ["b"]
+                @test levels(x2) == levels(x)
+                @test levels(x2) !== levels(x)
+                @test isordered(x2) == isordered(x)
+
+                x2 = x[2:1]
+                @test typeof(x2) === typeof(x)
+                @test isempty(x2)
+                @test levels(x2) == levels(x)
+                @test levels(x2) !== levels(x)
+                @test isordered(x2) == isordered(x)
+
+                x[1] = x[2]
+                @test x[1] === x.pool.valindex[2]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[1]
+
+                x[3] = "c"
+                @test x[1] === x.pool.valindex[2]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[3]
+                @test levels(x) == ["a", "b", "c"]
+
+                x[2:3] = "b"
+                @test x[1] === x.pool.valindex[2]
+                @test x[2] === x.pool.valindex[1]
+                @test x[3] === x.pool.valindex[1]
+                @test levels(x) == ["a", "b", "c"]
+
+                @test droplevels!(x) === x
+                @test levels(x) == ["a", "b"]
+                @test x[1] === x.pool.valindex[1]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[2]
+                @test levels(x) == ["a", "b"]
+
+                @test levels!(x, ["b", "a"]) === x
+                @test levels(x) == ["b", "a"]
+                @test x[1] === x.pool.valindex[1]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[2]
+                @test levels(x) == ["b", "a"]
+
+                @test_throws ArgumentError levels!(x, ["a"])
+                @test_throws ArgumentError levels!(x, ["e", "b"])
+                @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
+
+                @test levels!(x, ["e", "a", "b"]) === x
+                @test levels(x) == ["e", "a", "b"]
+                @test x[1] === x.pool.valindex[1]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[2]
+                @test levels(x) == ["e", "a", "b"]
+
+                x[1] = "c"
+                @test x[1] === x.pool.valindex[4]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[2]
+                @test levels(x) == ["e", "a", "b", "c"]
+
+                @test_throws ArgumentError levels!(x, ["e", "c"])
+                @test levels!(x, ["e", "c"], nullok=true) === x
+                @test levels(x) == ["e", "c"]
+                @test x[1] === x.pool.valindex[2]
+                @test x[2] === null
+                @test x[3] === null
+                @test levels(x) == ["e", "c"]
+
+                push!(x, "e")
+                @test length(x) == 4
+                @test x ≅ ["c", null, null, "e"]
+                @test levels(x) == ["e", "c"]
+
+                push!(x, "zz")
+                @test length(x) == 5
+                @test x ≅ ["c", null, null, "e", "zz"]
+                @test levels(x) == ["e", "c", "zz"]
+
+                push!(x, x[1])
+                @test length(x) == 6
+                @test x ≅ ["c", null, null, "e", "zz", "c"]
+                @test levels(x) == ["e", "c", "zz"]
+
+                push!(x, null)
+                @test length(x) == 7
+                @test x ≅ ["c", null, null, "e", "zz", "c", null]
+                @test levels(x) == ["e", "c", "zz"]
+
+                append!(x, x)
+                @test x ≅ ["c", null, null, "e", "zz", "c", null, "c", null, null, "e", "zz", "c", null]
+                @test levels(x) == ["e", "c", "zz"]
+                @test isordered(x) === false
+                @test length(x) == 14
+
+                b = ["z","y","x"]
+                y = CategoricalVector{Union{String, Null}, R}(b)
+                append!(x, y)
+                @test length(x) == 17
+                @test isordered(x) === false
+                @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
+                @test x ≅ ["c", null, null, "e", "zz", "c", null, "c", null, null, "e", "zz", "c", null, "z", "y", "x"]
+
+                empty!(x)
+                @test isordered(x) === false
+                @test length(x) == 0
+                @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
             end
-
-            x2 = compress(x)
-            @test x2 == x
-            @test isa(x2, CategoricalVector{Union{String, Null}, UInt8})
-            @test isordered(x2) === isordered(x)
-            @test levels(x2) == levels(x)
-
-            x2 = copy(x)
-            @test x2 == x
-            @test isordered(x2) === isordered(x)
-            @test typeof(x2) === typeof(x)
-            @test levels(x2) == levels(x)
-
-            if !isordered(x)
-                @test ordered!(x, true) === x
-                @test isordered(x) === true
-            end
-            @test x[1] > x[2]
-            @test x[3] > x[2]
-
-            @test ordered!(x, false) === x
-            @test isordered(x) === false
-            @test_throws Exception x[1] > x[2]
-            @test_throws Exception x[3] > x[2]
-
-            @test x[1] === x.pool.valindex[1]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[1]
-            @test_throws BoundsError x[4]
-
-            x2 = x[:]
-            @test typeof(x2) === typeof(x)
-            @test x2 == x
-            @test x2 !== x
-            @test levels(x2) == levels(x)
-            @test levels(x2) !== levels(x)
-            @test isordered(x2) == isordered(x)
-
-            x2 = x[2:3]
-            @test typeof(x2) === typeof(x)
-            @test x2 == ["a", "b"]
-            @test levels(x2) == levels(x)
-            @test levels(x2) !== levels(x)
-            @test isordered(x2) == isordered(x)
-
-            x2 = x[1:1]
-            @test typeof(x2) === typeof(x)
-            @test x2 == ["b"]
-            @test levels(x2) == levels(x)
-            @test levels(x2) !== levels(x)
-            @test isordered(x2) == isordered(x)
-
-            x2 = x[2:1]
-            @test typeof(x2) === typeof(x)
-            @test isempty(x2)
-            @test levels(x2) == levels(x)
-            @test levels(x2) !== levels(x)
-            @test isordered(x2) == isordered(x)
-
-            x[1] = x[2]
-            @test x[1] === x.pool.valindex[2]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[1]
-
-            x[3] = "c"
-            @test x[1] === x.pool.valindex[2]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[3]
-            @test levels(x) == ["a", "b", "c"]
-
-            x[2:3] = "b"
-            @test x[1] === x.pool.valindex[2]
-            @test x[2] === x.pool.valindex[1]
-            @test x[3] === x.pool.valindex[1]
-            @test levels(x) == ["a", "b", "c"]
-
-            @test droplevels!(x) === x
-            @test levels(x) == ["a", "b"]
-            @test x[1] === x.pool.valindex[1]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[2]
-            @test levels(x) == ["a", "b"]
-
-            @test levels!(x, ["b", "a"]) === x
-            @test levels(x) == ["b", "a"]
-            @test x[1] === x.pool.valindex[1]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[2]
-            @test levels(x) == ["b", "a"]
-
-            @test_throws ArgumentError levels!(x, ["a"])
-            @test_throws ArgumentError levels!(x, ["e", "b"])
-            @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
-
-            @test levels!(x, ["e", "a", "b"]) === x
-            @test levels(x) == ["e", "a", "b"]
-            @test x[1] === x.pool.valindex[1]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[2]
-            @test levels(x) == ["e", "a", "b"]
-
-            x[1] = "c"
-            @test x[1] === x.pool.valindex[4]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[2]
-            @test levels(x) == ["e", "a", "b", "c"]
-
-            @test_throws ArgumentError levels!(x, ["e", "c"])
-            @test levels!(x, ["e", "c"], nullok=true) === x
-            @test levels(x) == ["e", "c"]
-            @test x[1] === x.pool.valindex[2]
-            @test x[2] === null
-            @test x[3] === null
-            @test levels(x) == ["e", "c"]
-
-            push!(x, "e")
-            @test length(x) == 4
-            @test x ≅ ["c", null, null, "e"]
-            @test levels(x) == ["e", "c"]
-
-            push!(x, "zz")
-            @test length(x) == 5
-            @test x ≅ ["c", null, null, "e", "zz"]
-            @test levels(x) == ["e", "c", "zz"]
-
-            push!(x, x[1])
-            @test length(x) == 6
-            @test x ≅ ["c", null, null, "e", "zz", "c"]
-            @test levels(x) == ["e", "c", "zz"]
-
-            push!(x, null)
-            @test length(x) == 7
-            @test x ≅ ["c", null, null, "e", "zz", "c", null]
-            @test levels(x) == ["e", "c", "zz"]
-
-            append!(x, x)
-            @test x ≅ ["c", null, null, "e", "zz", "c", null, "c", null, null, "e", "zz", "c", null]
-            @test levels(x) == ["e", "c", "zz"]
-            @test isordered(x) === false
-            @test length(x) == 14
-
-            b = ["z","y","x"]
-            y = CategoricalVector{Union{String, Null}, R}(b)
-            append!(x, y)
-            @test length(x) == 17
-            @test isordered(x) === false
-            @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
-            @test x ≅ ["c", null, null, "e", "zz", "c", null, "c", null, null, "e", "zz", "c", null, "z", "y", "x"]
-
-            empty!(x)
-            @test isordered(x) === false
-            @test length(x) == 0
-            @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
         end
 
         @testset "Vector with null values" begin
