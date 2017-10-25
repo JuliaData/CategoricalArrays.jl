@@ -1,8 +1,9 @@
 module TestBuildFields
-    using Base.Test
-    using CategoricalArrays
-    using CategoricalArrays: DefaultRefType
+using Base.Test
+using CategoricalArrays
+using CategoricalArrays: DefaultRefType
 
+@testset "buildindex(), buildinvindex(), buildorder() for b a c" begin
     index = ["b", "a", "c"]
 
     invindex = Dict(
@@ -38,4 +39,6 @@ module TestBuildFields
     built_order = CategoricalArrays.buildorder(pool.invindex, levels)
     @test isa(order, Vector{DefaultRefType})
     @test built_order == neworder
+end
+
 end

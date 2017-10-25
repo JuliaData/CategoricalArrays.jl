@@ -1,7 +1,8 @@
 module TestString
-    using Base.Test
-    using CategoricalArrays
+using Base.Test
+using CategoricalArrays
 
+@testset "AbstractString operations on values of CategoricalPool{String}" begin
     pool = CategoricalPool(["", "café"])
 
     v1 = CategoricalArrays.catvalue(1, pool)
@@ -221,4 +222,6 @@ module TestString
 
     @test collect(v1) == Char[]
     @test collect(v2) == Char['c', 'a', 'f', 'é']
+end
+
 end

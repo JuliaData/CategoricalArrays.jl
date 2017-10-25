@@ -1,8 +1,9 @@
 module TestTypeDef
-    using Base.Test
-    using CategoricalArrays
-    using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, iscatvalue
+using Base.Test
+using CategoricalArrays
+using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, iscatvalue
 
+@testset "CategoricalPool, a b c order" begin
     pool = CategoricalPool(
         [
             "a",
@@ -65,7 +66,9 @@ module TestTypeDef
         @test isa(CategoricalArrays.pool(x), CategoricalPool)
         @test CategoricalArrays.pool(x) === pool
     end
+end
 
+@testset "CategoricalPool, c b a order" begin
     pool = CategoricalPool(
         [
             "a",
@@ -115,4 +118,6 @@ module TestTypeDef
         @test isa(CategoricalArrays.pool(y), CategoricalPool)
         @test CategoricalArrays.pool(y) === pool
     end
+end
+
 end

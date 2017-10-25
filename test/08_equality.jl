@@ -1,7 +1,8 @@
 module TestEquality
-    using Base.Test
-    using CategoricalArrays
+using Base.Test
+using CategoricalArrays
 
+@testset "== and isequal() for CategoricalPool{Int} and CategoricalPool{Float64}" begin
     pool1 = CategoricalPool([1, 2, 3])
     pool2 = CategoricalPool([2.0, 1.0, 3.0])
 
@@ -122,7 +123,7 @@ module TestEquality
     @test (ov2b == ov1b) == false
     @test (ov2b == ov2b) == true
 
-    # Check that ordered and non-ordered values are equal
+    @testset "ordered and non-ordered values are equal" begin
     @test (ov1a == nv1a) === true
     @test (ov1a == nv2a) === false
     @test (ov1a == nv1b) === false
@@ -142,8 +143,9 @@ module TestEquality
     @test (ov2b == nv2a) === false
     @test (ov2b == nv1b) === false
     @test (ov2b == nv2b) === true
+    end
 
-    # Check non-equality with null
+    @testset "non-equality with null" begin
     @test isnull(nv1a == null)
     @test isnull(ov1a == null)
     @test isnull(null == nv1a)
@@ -153,8 +155,10 @@ module TestEquality
     @test isequal(ov1a, null) == false
     @test isequal(null, nv1a) == false
     @test isequal(null, ov1a) == false
+    end
+end
 
-    # Check in()
+@testset "in()" begin
     pool = CategoricalPool([5, 1, 3])
     nv = CategoricalArrays.catvalue(2, pool)
 
@@ -162,4 +166,6 @@ module TestEquality
     @test (nv in [1, 2, 3]) === true
     @test (nv in 2:3) === false
     @test (nv in [2, 3]) === false
+end
+
 end

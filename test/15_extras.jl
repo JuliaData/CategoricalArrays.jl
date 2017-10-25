@@ -1,13 +1,10 @@
 module TestExtras
-
 using Base.Test
 using CategoricalArrays
 
 const ≅ = isequal
 
-# Test cut
-
-for T in (Union{}, Null)
+@testset "cut($(Union{Int, T})[...])" for T in (Union{}, Null)
     x = @inferred cut(Vector{Union{Int, T}}([2, 3, 5]), [1, 3, 6])
     @test x == ["[1, 3)", "[3, 6)", "[3, 6)"]
     @test isa(x, CategoricalVector{Union{String, T}})
@@ -102,10 +99,12 @@ for T in (Union{}, Null)
 end
 
 # TODO: test on nullable arrays once a quantile() method is provided for them
-x = @inferred cut([5, 4, 3, 2], 2)
-@test x == ["[3.5, 5.0]", "[3.5, 5.0]", "[2.0, 3.5)", "[2.0, 3.5)"]
-@test isa(x, CategoricalArray)
-@test isordered(x)
-@test levels(x) == ["[2.0, 3.5)", "[3.5, 5.0]"]
+@testset "cut([5, 4, 3, 2], 2)" begin
+    x = @inferred cut([5, 4, 3, 2], 2)
+    @test x == ["[3.5, 5.0]", "[3.5, 5.0]", "[2.0, 3.5)", "[2.0, 3.5)"]
+    @test isa(x, CategoricalArray)
+    @test isordered(x)
+    @test levels(x) == ["[2.0, 3.5)", "[3.5, 5.0]"]
+end
 
 end

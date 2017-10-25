@@ -1,7 +1,8 @@
 module TestHash
-    using Base.Test
-    using CategoricalArrays
+using Base.Test
+using CategoricalArrays
 
+@testset "hash() for CategoricalPool{Int} and CategoricalPool{Float64} and its values" begin
     pool1 = CategoricalPool([1, 2, 3])
     pool2 = CategoricalPool([2.0, 1.0, 3.0])
 
@@ -66,7 +67,7 @@ module TestHash
     @test (hash(ov2b) == hash(ov1b)) === false
     @test (hash(ov2b) == hash(ov2b)) === true
 
-    # Check that ordered and non-ordered values hash equal
+    @testset "ordered and non-ordered values hash equal" begin
     @test (hash(ov1a) == hash(nv1a)) === true
     @test (hash(ov1a) == hash(nv2a)) === false
     @test (hash(ov1a) == hash(nv1b)) === false
@@ -86,4 +87,7 @@ module TestHash
     @test (hash(ov2b) == hash(nv2a)) === false
     @test (hash(ov2b) == hash(nv1b)) === false
     @test (hash(ov2b) == hash(nv2b)) === true
+    end
+end
+
 end

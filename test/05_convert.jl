@@ -1,8 +1,9 @@
 module TestConvert
-    using Base.Test
-    using CategoricalArrays
-    using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue
+using Base.Test
+using CategoricalArrays
+using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue
 
+@testset "convert() for CategoricalPool{Int, DefaultRefType} and values" begin
     pool = CategoricalPool([1, 2, 3])
     @test convert(CategoricalPool{Int, DefaultRefType}, pool) === pool
     @test convert(CategoricalPool{Int}, pool) === pool
@@ -53,8 +54,11 @@ module TestConvert
     @test promote_type(CategoricalValue{Int}, Null) === Union{CategoricalValue{Int}, Null}
     @test promote_type(CategoricalValue{Int, UInt32}, Null) ===
         Union{CategoricalValue{Int, UInt32}, Null}
+end
 
-    # Test that ordered property is preserved
+@testset "convert() preserves `ordered`" begin
     pool = CategoricalPool([1, 2, 3], true)
     @test convert(CategoricalPool{Float64, UInt8}, pool).ordered === true
+end
+
 end

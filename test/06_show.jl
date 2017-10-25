@@ -1,7 +1,8 @@
 module TestShow
-    using Base.Test
-    using CategoricalArrays
+using Base.Test
+using CategoricalArrays
 
+@testset "show() for CategoricalPool{String} and its values" begin
     pool = CategoricalPool(["c", "b", "a"])
 
     opool = CategoricalPool(["c", "b", "a"], ["a", "b", "c"], true)
@@ -40,8 +41,9 @@ module TestShow
     @test repr(nv1) == repr(ov1) == "\"c\""
     @test repr(nv2) == repr(ov2) == "\"b\""
     @test repr(nv3) == repr(ov3) == "\"a\""
+end
 
-    # test Date-valued categories pool
+@testset "show() for CategoricalPool{Date} and its values" begin
     pool = CategoricalPool([Date(1999, 12), Date(1991, 8), Date(1993, 10)])
 
     opool = CategoricalPool([Date(1999, 12), Date(1991, 8), Date(1993, 10)],
@@ -81,4 +83,6 @@ module TestShow
     @test repr(nv1) == repr(ov1) == "1999-12-01"
     @test repr(nv2) == repr(ov2) == "1991-08-01"
     @test repr(nv3) == repr(ov3) == "1993-10-01"
+end
+
 end

@@ -1,8 +1,9 @@
 module TestLevels
-    using Base.Test
-    using CategoricalArrays
-    using CategoricalArrays: DefaultRefType, levels!
+using Base.Test
+using CategoricalArrays
+using CategoricalArrays: DefaultRefType, levels!
 
+@testset "CategoricalPool{Int} updates levels/index/order correctly" begin
     pool = CategoricalPool([2, 1, 3])
 
     @test isa(levels(pool), Vector{Int})
@@ -201,10 +202,9 @@ module TestLevels
         @test_throws KeyError get(pool, 6)
         @test pool.valindex == [CategoricalArrays.catvalue(i, pool) for i in 1:4]
     end
+end
 
-
-    # Test that overflow of reftype is detected and doesn't corrupt levels
-
+@testset "overflow of reftype is detected and doesn't corrupt levels" begin
     res = @test_throws LevelsException{Int, UInt8} CategoricalPool{Int, UInt8}(collect(256:-1:1))
     @test res.value.levels == [1]
     @test sprint(showerror, res.value) == "cannot store level(s) 1 since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
@@ -221,4 +221,6 @@ module TestLevels
     lev = copy(levels(pool))
     levels!(pool, vcat(lev, "az"))
     @test levels(pool) == vcat(lev, "az")
+end
+
 end
