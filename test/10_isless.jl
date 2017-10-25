@@ -60,16 +60,16 @@ v3 = CategoricalArrays.catvalue(3, pool)
     @test isless(v3, v3) === false
 
     @testset "comparison with null" begin
-        @test isless(v1, null)
-        @test !isless(null, v1)
-        @test isnull(v1 < null)
-        @test isnull(v1 <= null)
-        @test isnull(v1 > null)
-        @test isnull(v1 >= null)
-        @test isnull(null < v1)
-        @test isnull(null <= v1)
-        @test isnull(null > v1)
-        @test isnull(null >= v1)
+    @test isless(v1, null)
+    @test !isless(null, v1)
+    @test isnull(v1 < null)
+    @test isnull(v1 <= null)
+    @test isnull(v1 > null)
+    @test isnull(v1 >= null)
+    @test isnull(null < v1)
+    @test isnull(null <= v1)
+    @test isnull(null > v1)
+    @test isnull(null >= v1)
     end
 end
 

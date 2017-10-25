@@ -2,7 +2,7 @@ module TestShow
 using Base.Test
 using CategoricalArrays
 
-@testset "String-valued CategoricalPool" begin
+@testset "show() for CategoricalPool{String} and its values" begin
     pool = CategoricalPool(["c", "b", "a"])
 
     opool = CategoricalPool(["c", "b", "a"], ["a", "b", "c"], true)
@@ -43,7 +43,7 @@ using CategoricalArrays
     @test repr(nv3) == repr(ov3) == "\"a\""
 end
 
-@testset "Date-valued CategoricalPool" begin
+@testset "show() for CategoricalPool{Date} and its values" begin
     pool = CategoricalPool([Date(1999, 12), Date(1991, 8), Date(1993, 10)])
 
     opool = CategoricalPool([Date(1999, 12), Date(1991, 8), Date(1993, 10)],
