@@ -248,8 +248,8 @@ end
     @test isless(v3, v3) === false
 end
 
-@testset "ordering comparisons" begin
-    # check that ordering comparisons also fail for CategoricalValue{String}
+@testset "comparisons for CategoricalString" begin
+    # check that ordering comparisons also fail for CategoricalString
     # (since the AbstractString fallback could break this)
     pool = CategoricalPool(["a", "b", "c"])
 
