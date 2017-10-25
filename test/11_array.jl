@@ -389,7 +389,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
     end
 
-    @testset "Matrix"
+    @testset "Matrix" begin
         a = ["a" "b" "c"; "b" "a" "c"]
         x = CategoricalMatrix{String, R}(a, ordered=ordered)
 
