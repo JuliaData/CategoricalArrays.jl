@@ -293,7 +293,7 @@ end
         @test levels(x) == vcat(lev, "az")
     end
 
-    @testset "compresss/decompress?" begin
+    @testset "compress()/decompress()" begin
         x = compress(CategoricalArray{Union{T, Int}}([1, 3, 736251]))
         ux = decompress(x)
         @test x == ux
