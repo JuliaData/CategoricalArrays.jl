@@ -184,6 +184,24 @@ end
             @test_throws BoundsError copy!(x, 1, y, 4, 2)
             @test x ≅ a
         end
+
+        @testset "level preservation with copy!" begin
+            v = ["a", "b", "c"]
+            src = CategoricalVector(v)
+            dest = CategoricalVector{String}(3)
+            @test levels(copy!(dest, src)) == v
+
+            src = levels!(CategoricalVector(v), reverse(v))
+            dest = CategoricalVector{String}(3)
+            @test levels(copy!(dest, src)) == reverse(v)
+
+            dest = CategoricalVector{Union{String, Null}}(3)
+            @test levels(copy!(dest, src)) == reverse(v)
+
+            dest = CategoricalVector{Union{String, Null}}(3)
+            dest[1] = src[1]
+            @test levels(copy!(dest, 2, src[2:end])) == reverse(v)
+        end
     end
 
     @testset "resize!()" begin

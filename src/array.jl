@@ -389,7 +389,7 @@ end
 # Methods preserving levels and more efficient than AbstractArray fallbacks
 copy(A::CategoricalArray) = deepcopy(A)
 
-function copy!(dest::CategoricalArray{T, N}, dstart::Integer,
+function copy!(dest::CategoricalArray{<:Union{T, Null}, N}, dstart::Integer,
                src::CategoricalArray{T, N}, sstart::Integer,
                n::Integer=length(src)-sstart+1) where {T, N}
     destinds, srcinds = linearindices(dest), linearindices(src)
@@ -433,8 +433,10 @@ function copy!(dest::CategoricalArray{T, N}, dstart::Integer,
     dest
 end
 
-copy!(dest::CategoricalArray{T, N}, src::CategoricalArray{T, N}) where {T,N} =
+copy!(dest::CategoricalArray, src::CategoricalArray) =
     copy!(dest, 1, src, 1, length(src))
+copy!(dest::CategoricalArray, dstart::Integer, src::CategoricalArray) =
+    copy!(dest, dstart, src, 1, length(src))
 
 """
     similar(A::CategoricalArray, element_type=eltype(A), dims=size(A))
