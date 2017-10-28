@@ -51,7 +51,7 @@ true
 
 ```
 
-Now let us imagine the first individual is actually in the "Young" group. Let's fix this (notice how the string `"Young"` is automatically converted to a `CategoricalValue`):
+Now let us imagine the first individual is actually in the "Young" group. Let's fix this (notice how the string `"Young"` is automatically converted to a `CategoricalString`):
 
 ```jldoctest using
 julia> x[1] = "Young"
@@ -96,7 +96,7 @@ ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. 
 
 ```
 
-Note that entries in the `x` array can be treated as strings even though they are `CategoricalValue` objects:
+Note that entries in the `x` array can be treated as strings (that's because `CategoricalString <: AbstractString`):
 ```jldoctest using
 julia> x[3] = lowercase(x[3])
 "middle"
@@ -124,7 +124,7 @@ levels!
 
 ## Handling Missing Values
 
-The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Null}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Null}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a `CategoricalValue{T}`, or `null` if the value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
+The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Null}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Null}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a categorical value object (`CategoricalString` or `CategoricalValue{T}`) or `null` if the value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
 
 Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a `String` or `null`:
 
