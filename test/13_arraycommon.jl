@@ -201,6 +201,25 @@ end
             dest = CategoricalVector{Union{String, Null}}(3)
             dest[1] = src[1]
             @test levels(copy!(dest, 2, src[2:end])) == reverse(v)
+
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            @test levels(copy!(dest, src)) == reverse(v)
+
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            dest = CategoricalVector{String}(3)
+            @test levels(copy!(dest, src)) == reverse(v)
+
+            # incorrectly leaves #undef in 1st entry of dest
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            src[1] = null
+            dest = CategoricalVector{String}(3)
+            @test levels(copy!(dest, src)) == reverse(v)
+
+            # does not dispatch correctly
+            dest = CategoricalVector{Union{String, Null}}(3)
+            vsrc = view(src, 1:length(src))
+            @test levels(copy!(dest, vsrc)) == reverse(v)
         end
     end
 

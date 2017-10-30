@@ -389,9 +389,14 @@ end
 # Methods preserving levels and more efficient than AbstractArray fallbacks
 copy(A::CategoricalArray) = deepcopy(A)
 
-function copy!(dest::CategoricalArray{<:Union{T, Null}, N}, dstart::Integer,
-               src::CategoricalArray{T, N}, sstart::Integer,
+# Type-spaghetti for copy!
+CA_VIEW{T, N} = SubArray{A, B, C, D} where {A, B, C <: CategoricalArray{T, N} where {T, N}, D}
+CA_OR_CA_VIEW{T, N} = Union{CategoricalArray{T, N}, CA_VIEW{T, N}} where {T, N}
+
+function copy!(dest::CategoricalArray{<:Union{T,Null}, N}, dstart::Integer,
+               src::CA_OR_CA_VIEW{<:Union{T,Null}, N}, sstart::Integer,
                n::Integer=length(src)-sstart+1) where {T, N}
+    @show "here"
     destinds, srcinds = linearindices(dest), linearindices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
@@ -399,7 +404,7 @@ function copy!(dest::CategoricalArray{<:Union{T, Null}, N}, dstart::Integer,
     n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
 
     drefs = dest.refs
-    srefs = src.refs
+    srefs = isa(src, SubArray) ? src.parent.refs : src.refs
 
     newlevels, ordered = mergelevels(isordered(dest), levels(dest), levels(src))
     # Orderedness cannot be preserved if the source was unordered and new levels
@@ -433,9 +438,10 @@ function copy!(dest::CategoricalArray{<:Union{T, Null}, N}, dstart::Integer,
     dest
 end
 
-copy!(dest::CategoricalArray, src::CategoricalArray) =
+copy!(dest::CategoricalArray, src::CA_OR_CA_VIEW) =
     copy!(dest, 1, src, 1, length(src))
-copy!(dest::CategoricalArray, dstart::Integer, src::CategoricalArray) =
+
+copy!(dest::CategoricalArray, dstart::Integer, src::CA_OR_CA_VIEW) =
     copy!(dest, dstart, src, 1, length(src))
 
 """
