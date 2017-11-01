@@ -434,10 +434,8 @@ function copy!(dest::CategoricalArray{<:Union{T,Null}, N}, dstart::Integer,
     dest
 end
 
-CA_OR_CA_VIEW = Union{CategoricalArray{T, N},
-                      SubArray{A, B, C, D} where
-                              {A, B, C <: CategoricalArray{T, N} where {T, N}, D}
-                      } where {T, N}
+CA_OR_CA_VIEW = Union{CategoricalArray, SubArray{A,B,C,D} where
+                                                {A,B,C<:CategoricalArray,D}}
 
 copy!(dest::CategoricalArray, src::CA_OR_CA_VIEW) =
     copy!(dest, 1, src, 1, length(src))

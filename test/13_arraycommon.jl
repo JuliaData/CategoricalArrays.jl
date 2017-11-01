@@ -185,35 +185,89 @@ end
             @test x ≅ a
         end
 
-        @testset "level preservation with copy!" begin
-            using CategoricalArrays, Base.Test
+        @testset "copy non-nullable src into non-nullable dest" begin
             v = ["a", "b", "c"]
-            src = CategoricalVector(v)
-            dest = CategoricalVector{String}(3)
-            @test levels(copy!(dest, src)) == v
-
             src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{String}(3)
-            @test levels(copy!(dest, src)) == reverse(v)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
 
-            dest = CategoricalVector{Union{String, Null}}(3)
-            @test levels(copy!(dest, src)) == reverse(v)
-
-            dest = CategoricalVector{Union{String, Null}}(3)
-            dest[1] = src[1]
-            @test levels(copy!(dest, 2, src[2:end])) == reverse(v)
-
-            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
-            dest = CategoricalVector{Union{String, Null}}(3)
-            @test levels(copy!(dest, src)) == reverse(v)
-
-            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+        @testset "copy nullable src into non-nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{Null, String}}(v), reverse(v))
             dest = CategoricalVector{String}(3)
-            @test levels(copy!(dest, src)) == reverse(v)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
 
+        @testset "copy non-nullable src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy nullable src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy non-nullable viewed src into non-nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:length(src))
-            @test levels(copy!(dest, vsrc)) == reverse(v)
+            dest = CategoricalVector{String}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy nullable viewed src into non-nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{String}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy non-nullable viewed src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy nullable viewed src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "TODO" begin
+            # test what happens when non-nullable element-types aren't equal
+            # I think it will default to a Base.copy! fxn
+
+            # test what happens when we view a subset of the CategoricalArray
+            # fix currently just calls viewarray.parent.refs & viewarray.parent.pool which isn't subset properly,
+            # so I think there are still issues to solve due to that
         end
     end
 
