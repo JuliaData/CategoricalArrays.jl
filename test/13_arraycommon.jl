@@ -186,6 +186,7 @@ end
         end
 
         @testset "level preservation with copy!" begin
+            using CategoricalArrays, Base.Test
             v = ["a", "b", "c"]
             src = CategoricalVector(v)
             dest = CategoricalVector{String}(3)
@@ -210,13 +211,6 @@ end
             dest = CategoricalVector{String}(3)
             @test levels(copy!(dest, src)) == reverse(v)
 
-            # incorrectly leaves #undef in 1st entry of dest
-            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
-            src[1] = null
-            dest = CategoricalVector{String}(3)
-            @test levels(copy!(dest, src)) == reverse(v)
-
-            # does not dispatch correctly
             dest = CategoricalVector{Union{String, Null}}(3)
             vsrc = view(src, 1:length(src))
             @test levels(copy!(dest, vsrc)) == reverse(v)

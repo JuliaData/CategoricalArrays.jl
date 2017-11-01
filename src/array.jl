@@ -389,14 +389,9 @@ end
 # Methods preserving levels and more efficient than AbstractArray fallbacks
 copy(A::CategoricalArray) = deepcopy(A)
 
-# Type-spaghetti for copy!
-CA_VIEW{T, N} = SubArray{A, B, C, D} where {A, B, C <: CategoricalArray{T, N} where {T, N}, D}
-CA_OR_CA_VIEW{T, N} = Union{CategoricalArray{T, N}, CA_VIEW{T, N}} where {T, N}
-
 function copy!(dest::CategoricalArray{<:Union{T,Null}, N}, dstart::Integer,
-               src::CA_OR_CA_VIEW{<:Union{T,Null}, N}, sstart::Integer,
-               n::Integer=length(src)-sstart+1) where {T, N}
-    @show "here"
+               src::S, sstart::Integer, n::Integer=length(src)-sstart+1) where
+               {T,N,S<:Union{CategoricalArray{<:Union{T,Null},N},SubArray{A,B,C,D}} where {A,B,C<:CategoricalArray{<:Union{T,Null},N},D}}
     destinds, srcinds = linearindices(dest), linearindices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
@@ -405,6 +400,7 @@ function copy!(dest::CategoricalArray{<:Union{T,Null}, N}, dstart::Integer,
 
     drefs = dest.refs
     srefs = isa(src, SubArray) ? src.parent.refs : src.refs
+    spool = isa(src, SubArray) ? src.parent.pool : src.pool
 
     newlevels, ordered = mergelevels(isordered(dest), levels(dest), levels(src))
     # Orderedness cannot be preserved if the source was unordered and new levels
@@ -417,7 +413,7 @@ function copy!(dest::CategoricalArray{<:Union{T,Null}, N}, dstart::Integer,
     if dstart == dstart == 1 && n == length(dest) == length(src)
         # Set index to reflect refs
         levels!(dest.pool, T[]) # Needed in case src and dest share some levels
-        levels!(dest.pool, index(src.pool))
+        levels!(dest.pool, index(spool))
 
         # Set final levels in their visible order
         levels!(dest.pool, newlevels)
@@ -426,7 +422,7 @@ function copy!(dest::CategoricalArray{<:Union{T,Null}, N}, dstart::Integer,
     else # More work to do: preserve some values (and therefore index)
         levels!(dest.pool, newlevels)
 
-        indexmap = indexin(index(src.pool), index(dest.pool))
+        indexmap = indexin(index(spool), index(dest.pool))
 
         @inbounds for i = 0:(n-1)
             x = srefs[sstart+i]
@@ -437,6 +433,11 @@ function copy!(dest::CategoricalArray{<:Union{T,Null}, N}, dstart::Integer,
 
     dest
 end
+
+CA_OR_CA_VIEW = Union{CategoricalArray{T, N},
+                      SubArray{A, B, C, D} where
+                              {A, B, C <: CategoricalArray{T, N} where {T, N}, D}
+                      } where {T, N}
 
 copy!(dest::CategoricalArray, src::CA_OR_CA_VIEW) =
     copy!(dest, 1, src, 1, length(src))
