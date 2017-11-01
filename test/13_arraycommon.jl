@@ -261,13 +261,14 @@ end
             @test levels(dest) == levels(src) == reverse(v)
         end
 
-        @testset "TODO" begin
-            # test what happens when non-nullable element-types aren't equal
-            # I think it will default to a Base.copy! fxn
-
-            # test what happens when we view a subset of the CategoricalArray
-            # fix currently just calls viewarray.parent.refs & viewarray.parent.pool which isn't subset properly,
-            # so I think there are still issues to solve due to that
+        @testset "copy a viewed subset of src into dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            vsrc = view(src, 1:2)
+            dest = CategoricalVector{String}(3)
+            copy!(dest, vsrc)
+            @test dest[1:2] == src[1:2]
+            @test levels(dest) == levels(src)
         end
     end
 
