@@ -184,6 +184,180 @@ end
             @test_throws BoundsError copy!(x, 1, y, 4, 2)
             @test x ≅ a
         end
+
+        @testset "copy non-nullable src into non-nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            dest = CategoricalVector{String}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy nullable src into non-nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{Null, String}}(v), reverse(v))
+            dest = CategoricalVector{String}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy non-nullable src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy nullable src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy non-nullable viewed src into non-nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{String}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy nullable viewed src into non-nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{String}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy non-nullable viewed src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy nullable viewed src into nullable dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{Union{String, Null}}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy a viewed subset of src into dest" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            vsrc = view(src, 1:2)
+            dest = CategoricalVector{String}(3)
+            copy!(dest, vsrc)
+            @test dest[1:2] == src[1:2]
+            @test levels(dest) == levels(src)
+
+            vsrc = view(src, 1:2)
+            dest = CategoricalVector{String}(2)
+            copy!(dest, vsrc)
+            @test dest == src[1:2]
+            @test levels(dest) == levels(src)
+        end
+
+        @testset "copy a src into viewed dest" begin
+            v = ["a", "b"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            dest = CategoricalVector{String}(["e", "f", "g"])
+            vdest = view(dest, 1:2)
+            copy!(vdest, src)
+            @test dest[1:2] == src[1:2]
+            @test levels(dest) == levels(vdest) == ["e", "f", "g", "b", "a"]
+
+            dest = CategoricalVector{String}(["e", "f"])
+            vdest = view(dest, 1:2)
+            copy!(vdest, src)
+            @test vdest == src[1:2]
+            @test levels(dest) == levels(vdest) == ["e", "f", "b", "a"]
+        end
+
+        @testset "copy a src into viewed dest and breaking orderedness" begin
+            v = ["a", "b"]
+            src = levels!(CategoricalVector(v), reverse(v))
+            dest = CategoricalVector{String}(["e", "f", "g"], ordered=true)
+            vdest = view(dest, 1:2)
+            res = @test_throws ArgumentError copy!(vdest, src)
+            @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
+                "Found when trying to set levels to String[\"e\", \"f\", \"g\", \"b\", \"a\"]."
+            @test dest[1:2] ==  ["e", "f"]
+            @test levels(dest) == levels(vdest) == ["e", "f", "g"]
+            @test isordered(dest) && isordered(vdest)
+
+            dest = CategoricalVector{String}(["e", "f"], ordered=true)
+            vdest = view(dest, 1:2)
+            res = @test_throws ArgumentError copy!(vdest, src)
+            @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
+                "Found when trying to set levels to String[\"e\", \"f\", \"b\", \"a\"]."
+            @test dest == ["e", "f"]
+            @test levels(dest) == levels(vdest) == ["e", "f"]
+            @test isordered(dest) && isordered(vdest)
+        end
+
+        @testset "viable mixed src and dest types" begin
+            v = ["a", "b", "c"]
+            src = CategoricalVector{Union{eltype(v), Null}}(v)
+            levels!(src, reverse(v))
+            dest = CategoricalVector{String}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+
+            vsrc = view(src, 1:length(src))
+            copy!(dest, vsrc)
+            @test dest == vsrc
+            @test levels(dest) == levels(vsrc) == reverse(v)
+
+            src = CategoricalVector{AbstractString}(v)
+            levels!(src, reverse(v))
+            dest = CategoricalVector{String}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+
+            src = CategoricalVector{String}(v)
+            levels!(src, reverse(v))
+            dest = CategoricalVector{AbstractString}(3)
+            copy!(dest, src)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "inviable mixed src and dest types" begin
+            v = ["a", "b", null]
+            src = CategoricalVector(v)
+            dest = CategoricalVector{String}(3)
+            @test_throws NullException copy!(dest, src)
+
+            vsrc = view(src, 1:length(src))
+            @test_throws NullException copy!(dest, vsrc)
+
+            v = Integer[-1, -2, -3]
+            src = CategoricalVector(v)
+            dest = CategoricalVector{UInt}(3)
+            @test_throws InexactError copy!(dest, src)
+        end
     end
 
     @testset "resize!()" begin

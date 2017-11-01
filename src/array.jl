@@ -389,8 +389,11 @@ end
 # Methods preserving levels and more efficient than AbstractArray fallbacks
 copy(A::CategoricalArray) = deepcopy(A)
 
-function copy!(dest::CategoricalArray{T, N}, dstart::Integer,
-               src::CategoricalArray{T, N}, sstart::Integer,
+CatArrOrSub{T, N} = Union{CategoricalArray{T, N},
+                          SubArray{<:Any, N, <:CategoricalArray{T}}} where {T, N}
+
+function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
+               src::CatArrOrSub{<:Any, N}, sstart::Integer,
                n::Integer=length(src)-sstart+1) where {T, N}
     destinds, srcinds = linearindices(dest), linearindices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
@@ -398,30 +401,42 @@ function copy!(dest::CategoricalArray{T, N}, dstart::Integer,
     n == 0 && return dest
     n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
 
-    drefs = dest.refs
-    srefs = src.refs
+    drefs = refs(dest)
+    srefs = refs(src)
+    dpool = pool(dest)
+    spool = pool(src)
 
-    newlevels, ordered = mergelevels(isordered(dest), levels(dest), levels(src))
+    # try converting src to dest type to avoid partial copy corruption of dest
+    # in the event that the src cannot be copied into dest
+    slevs = convert(Vector{T}, levels(src))
+    if eltype(src) >: Null && !(eltype(dest) >: Null) && !all(x -> x > 0, srefs)
+        throw(NullException())
+    end
+
+    newlevels, ordered = mergelevels(isordered(dest), levels(dest), slevs)
     # Orderedness cannot be preserved if the source was unordered and new levels
     # need to be added: new comparisons would only be based on the source's order
     # (this is consistent with what happens when adding a new level via setindex!)
     ordered &= isordered(src) | (length(newlevels) == length(levels(dest)))
-    ordered!(dest, ordered)
+    if ordered != isordered(dest)
+        isa(dest, SubArray) && throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it would affect the parent. Found when trying to set levels to $newlevels."))
+        ordered!(dest, ordered)
+    end
 
     # Simple case: replace all values
-    if dstart == dstart == 1 && n == length(dest) == length(src)
+    if !isa(dest, SubArray) && dstart == dstart == 1 && n == length(dest) == length(src)
         # Set index to reflect refs
-        levels!(dest.pool, T[]) # Needed in case src and dest share some levels
-        levels!(dest.pool, index(src.pool))
+        levels!(dpool, T[]) # Needed in case src and dest share some levels
+        levels!(dpool, index(spool))
 
         # Set final levels in their visible order
-        levels!(dest.pool, newlevels)
+        levels!(dpool, newlevels)
 
         copy!(drefs, srefs)
     else # More work to do: preserve some values (and therefore index)
-        levels!(dest.pool, newlevels)
+        levels!(dpool, newlevels)
 
-        indexmap = indexin(index(src.pool), index(dest.pool))
+        indexmap = indexin(index(spool), index(dpool))
 
         @inbounds for i = 0:(n-1)
             x = srefs[sstart+i]
@@ -433,8 +448,11 @@ function copy!(dest::CategoricalArray{T, N}, dstart::Integer,
     dest
 end
 
-copy!(dest::CategoricalArray{T, N}, src::CategoricalArray{T, N}) where {T,N} =
+copy!(dest::CatArrOrSub, src::CatArrOrSub) =
     copy!(dest, 1, src, 1, length(src))
+
+copy!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
+    copy!(dest, dstart, src, 1, length(src))
 
 """
     similar(A::CategoricalArray, element_type=eltype(A), dims=size(A))
@@ -711,3 +729,6 @@ end
 # Override AbstractArray method to avoid printing useless type parameters
 summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
     string(Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")
+
+refs(A::CategoricalArray) = A.refs
+pool(A::CategoricalArray) = A.pool
