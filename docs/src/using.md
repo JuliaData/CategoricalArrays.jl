@@ -38,10 +38,10 @@ Thanks to this order, we can not only test for equality between two values, but 
 
 ```jldoctest using
 julia> x[1]
-CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.CategoricalString{UInt32} "Old" (3/3)
 
 julia> x[2]
-CategoricalArrays.CategoricalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.CategoricalString{UInt32} "Young" (1/3)
 
 julia> x[2] == x[4]
 true
@@ -51,14 +51,14 @@ true
 
 ```
 
-Now let us imagine the first individual is actually in the "Young" group. Let's fix this (notice how the string `"Young"` is automatically converted to a `CategoricalValue`): 
+Now let us imagine the first individual is actually in the "Young" group. Let's fix this (notice how the string `"Young"` is automatically converted to a `CategoricalString`):
 
 ```jldoctest using
 julia> x[1] = "Young"
 "Young"
 
 julia> x[1]
-CategoricalArrays.CategoricalValue{String,UInt32} "Young" (1/3)
+CategoricalArrays.CategoricalString{UInt32} "Young" (1/3)
 
 ```
 
@@ -90,19 +90,19 @@ julia> levels(x)
 Another solution would have been to call `levels!(x, ["Young", "Middle"])` manually. This command is safe too, since it will raise an error when trying to remove levels that are currently used:
 
 ```jldoctest using
-julia> levels!(x, ["Young", "Midle"]) 
+julia> levels!(x, ["Young", "Midle"])
 ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. Change the array element type to Union{String, Null} using convert if you want to transform some levels to missing values.
 [...]
 
 ```
 
-Note that entries in the `x` array can be treated as strings even though they are `CategoricalValue` objects:
+Note that entries in the `x` array can be treated as strings (that's because `CategoricalString <: AbstractString`):
 ```jldoctest using
 julia> x[3] = lowercase(x[3])
 "middle"
 
 julia> x[3]
-CategoricalArrays.CategoricalValue{String,UInt32} "middle" (3/3)
+CategoricalArrays.CategoricalString{UInt32} "middle" (3/3)
 
 julia> droplevels!(x)
 4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
@@ -112,7 +112,7 @@ julia> droplevels!(x)
  "Young" 
 
 julia> x[3]
-CategoricalArrays.CategoricalValue{String,UInt32} "middle" (2/2)
+CategoricalArrays.CategoricalString{UInt32} "middle" (2/2)
 
 ```
 
@@ -124,7 +124,7 @@ levels!
 
 ## Handling Missing Values
 
-The examples above assumed that the data contained no missing values. This is generally not the case in real data. This is where `CategoricalArray{Union{T, Null}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Null}}`. It behaves exactly the same as `CategoricalArray{T}` , except that when indexed it returns either a `CategoricalValue{T}`, or `null` if a value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
+The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Null}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Null}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a categorical value object (`CategoricalString` or `CategoricalValue{T}`) or `null` if the value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
 
 Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a `String` or `null`:
 
@@ -153,14 +153,14 @@ julia> levels!(y, ["Young", "Middle", "Old"])
  "Young" 
  "Middle"
  "Young" 
- 
+
 ```
 
 At this point, indexing into the array gives exactly the same result
 
 ```jldoctest using
 julia> y[1]
-CategoricalArrays.CategoricalValue{String,UInt32} "Old" (3/3)
+CategoricalArrays.CategoricalString{UInt32} "Old" (3/3)
 ```
 
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:
