@@ -16,11 +16,10 @@ Elements of `src` as well as values from `pairs` will be `convert`ed when possib
 on assignment.
 If an element matches more than one key, the first match is used.
 
-    recode!(dest::AbstractArray, src::AbstractArray{>:Null}[, default::Any], pairs::Pair...)
+    recode!(dest::AbstractArray, src::AbstractArray{>:Missing}[, default::Any], pairs::Pair...)
 
-For a nullable array `a`, null values are never replaced with `default`:
-use `null` in a pair to recode them. If that's not the case, the returned array
-will be nullable.
+If `src` contains missing values, they are never replaced with `default`:
+use `missing` in a pair to recode them.
 """
 function recode! end
 
@@ -45,8 +44,11 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
         end
 
         # Value not in any of the pairs
-        if isnull(x)
-            dest[i] = null
+        if ismissing(x)
+            eltype(dest) >: Missing ||
+                throw(MissingException("missing value found, but dest does not support them: " *
+                                       "recode them to a supported value"))
+            dest[i] = missing
         elseif default === nothing
             try
                 dest[i] = x
@@ -74,14 +76,14 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     vals = T[p.second for p in pairs]
     default !== nothing && push!(vals, default)
 
-    levels!(dest.pool, filter!(!isnull, unique(vals)))
+    levels!(dest.pool, filter!(!ismissing, unique(vals)))
     # In the absence of duplicated recoded values, we do not need to lookup the reference
     # for each pair in the loop, which is more efficient (with loop unswitching)
     dupvals = length(vals) != length(levels(dest.pool))
 
     drefs = dest.refs
-    pairmap = [isnull(v) ? 0 : get(dest.pool, v) for v in vals]
-    defaultref = default === nothing || isnull(default) ? 0 : get(dest.pool, default)
+    pairmap = [ismissing(v) ? 0 : get(dest.pool, v) for v in vals]
+    defaultref = default === nothing || ismissing(default) ? 0 : get(dest.pool, default)
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
@@ -95,8 +97,10 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
         end
 
         # Value not in any of the pairs
-        if isnull(x)
-            eltype(dest) >: Null || throw(NullException())
+        if ismissing(x)
+            eltype(dest) >: Missing ||
+                throw(MissingException("missing value found, but dest does not support them: " *
+                                       "recode them to a supported value"))
             drefs[i] = 0
         elseif default === nothing
             try
@@ -117,7 +121,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     # Put existing levels first, and sort them if possible
     # for consistency with CategoricalArray
     oldlevels = setdiff(levels(dest), vals)
-    filter!(!isnull, oldlevels)
+    filter!(!ismissing, oldlevels)
     if method_exists(isless, (eltype(oldlevels), eltype(oldlevels)))
         sort!(oldlevels)
     end
@@ -153,10 +157,10 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
                 end
             end
         end
-        levs, ordered = mergelevels(isordered(src), keptlevels, filter!(!isnull, unique(vals)))
+        levs, ordered = mergelevels(isordered(src), keptlevels, filter!(!ismissing, unique(vals)))
     else
         push!(vals, default)
-        levs = filter!(!isnull, unique(vals))
+        levs = filter!(!ismissing, unique(vals))
         # The order of default cannot be determined
         ordered = false
     end
@@ -169,19 +173,19 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
 
     origmap = [get(dest.pool, v, 0) for v in srcindex]
     indexmap = Vector{DefaultRefType}(length(srcindex)+1)
-    # For null values (0 if no null in pairs' keys)
+    # For missing values (0 if no missing in pairs' keys)
     indexmap[1] = 0
     for p in pairs
-        if isnull(p.first)
+        if ismissing(p.first)
             indexmap[1] = get(dest.pool, p.second)
             break
         end
     end
-    pairmap = [isnull(p.second) ? 0 : get(dest.pool, p.second) for p in pairs]
+    pairmap = [ismissing(p.second) ? 0 : get(dest.pool, p.second) for p in pairs]
     # Preserving ordered property only makes sense if new order is consistent with previous one
     ordered && (ordered = issorted(pairmap))
     ordered!(dest, ordered)
-    defaultref = default === nothing || isnull(default) ? 0 : get(dest.pool, default)
+    defaultref = default === nothing || ismissing(default) ? 0 : get(dest.pool, default)
     @inbounds for (i, l) in enumerate(srcindex)
         for j in 1:length(pairs)
             p = pairs[j]
@@ -204,8 +208,9 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
 
     @inbounds for i in eachindex(drefs)
         v = indexmap[srefs[i]+1]
-        if !(eltype(dest) >: Null)
-            v > 0 || throw(NullException())
+        if !(eltype(dest) >: Missing)
+            v > 0 || throw(MissingException("missing value found, but dest does not support them: " *
+                                            "recode them to a supported value"))
         end
         drefs[i] = v
     end
@@ -246,8 +251,8 @@ recode!(a::AbstractArray, pairs::Pair...) = recode!(a, a, nothing, pairs...)
 promote_valuetype(x::Pair{K, V}) where {K, V} = V
 promote_valuetype(x::Pair{K, V}, y::Pair...) where {K, V} = promote_type(V, promote_valuetype(y...))
 
-keytype_hasnull(x::Pair{K}) where {K} = K === Null
-keytype_hasnull(x::Pair{K}, y::Pair...) where {K} = K === Null || keytype_hasnull(y...)
+keytype_hasmissing(x::Pair{K}) where {K} = K === Missing
+keytype_hasmissing(x::Pair{K}, y::Pair...) where {K} = K === Missing || keytype_hasmissing(y...)
 
 """
     recode(a::AbstractArray[, default::Any], pairs::Pair...)
@@ -282,24 +287,24 @@ julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1)
 
 ```
 
-     recode(a::AbstractArray{>:Null}[, default::Any], pairs::Pair...)
+     recode(a::AbstractArray{>:Missing}[, default::Any], pairs::Pair...)
 
-For a nullable array `a`, null values are never replaced with `default`:
-use `null` in a pair to recode them. If that's not the case, the returned array
-will be nullable.
+If `a` contains missing values, they are never replaced with `default`:
+use `missing` in a pair to recode them. If that's not the case, the returned array
+will accept missing values.
 
 # Examples
 ```jldoctest
-julia> using CategoricalArrays, Nulls
+julia> using CategoricalArrays, Missings
 
-julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>null)
-10-element Array{Union{Int64, Nulls.Null},1}:
+julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>missing)
+10-element Array{Union{Int64, Missings.Missing},1}:
  100    
    0    
    0    
    0    
   -1    
-    null
+    missing
    7    
    8    
   -1    
@@ -317,12 +322,12 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
     T = default === nothing ? V : promote_type(typeof(default), V)
-    # Exception: if original array was nullable and null does not appear
-    # in one of the pairs' LHS, result must be nullable
-    if T >: Null || default === null || (eltype(a) >: Null && !keytype_hasnull(pairs...))
-        dest = Array{Union{T, Null}}(size(a))
+    # Exception: if original array accepted missing values and missing does not appear
+    # in one of the pairs' LHS, result must accept missing values
+    if T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+        dest = Array{Union{T, Missing}}(size(a))
     else
-        dest = Array{Nulls.T(T)}(size(a))
+        dest = Array{Missings.T(T)}(size(a))
     end
     recode!(dest, a, default, pairs...)
 end
@@ -333,12 +338,12 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
     T = default === nothing ? V : promote_type(typeof(default), V)
-    # Exception: if original array was nullable and null does not appear
-    # in one of the pairs' LHS, result must be nullable
-    if T >: Null || default === null || (eltype(a) >: Null && !keytype_hasnull(pairs...))
-        dest = CategoricalArray{Union{T, Null}, N, R}(size(a))
+    # Exception: if original array accepted missing values and missing does not appear
+    # in one of the pairs' LHS, result must accept missing values
+    if T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+        dest = CategoricalArray{Union{T, Missing}, N, R}(size(a))
     else
-        dest = CategoricalArray{Nulls.T(T), N, R}(size(a))
+        dest = CategoricalArray{Missings.T(T), N, R}(size(a))
     end
     recode!(dest, a, default, pairs...)
 end

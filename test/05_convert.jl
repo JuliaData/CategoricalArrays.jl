@@ -50,10 +50,10 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test promote(1.0, v1) === (1.0, 1.0)
     @test promote(0x1, v1) === (1, 1)
 
-    @test promote_type(CategoricalValue, Null) === Union{CategoricalValue, Null}
-    @test promote_type(CategoricalValue{Int}, Null) === Union{CategoricalValue{Int}, Null}
-    @test promote_type(CategoricalValue{Int, UInt32}, Null) ===
-        Union{CategoricalValue{Int, UInt32}, Null}
+    @test promote_type(CategoricalValue, Missing) === Union{CategoricalValue, Missing}
+    @test promote_type(CategoricalValue{Int}, Missing) === Union{CategoricalValue{Int}, Missing}
+    @test promote_type(CategoricalValue{Int, UInt32}, Missing) ===
+        Union{CategoricalValue{Int, UInt32}, Missing}
 end
 
 @testset "convert() preserves `ordered`" begin

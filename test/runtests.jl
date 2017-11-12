@@ -24,7 +24,7 @@ module TestCategoricalArrays
         "09_hash.jl",
         "10_isless.jl",
         "11_array.jl",
-        "12_nullablearray.jl",
+        "12_missingarray.jl",
         "13_arraycommon.jl",
         "14_view.jl",
         "15_extras.jl",

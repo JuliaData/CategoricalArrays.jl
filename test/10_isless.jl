@@ -59,17 +59,17 @@ v3 = CategoricalArrays.catvalue(3, pool)
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
-    @testset "comparison with null" begin
-        @test isless(v1, null)
-        @test !isless(null, v1)
-        @test isnull(v1 < null)
-        @test isnull(v1 <= null)
-        @test isnull(v1 > null)
-        @test isnull(v1 >= null)
-        @test isnull(null < v1)
-        @test isnull(null <= v1)
-        @test isnull(null > v1)
-        @test isnull(null >= v1)
+    @testset "comparison with missing" begin
+        @test isless(v1, missing)
+        @test !isless(missing, v1)
+        @test ismissing(v1 < missing)
+        @test ismissing(v1 <= missing)
+        @test ismissing(v1 > missing)
+        @test ismissing(v1 >= missing)
+        @test ismissing(missing < v1)
+        @test ismissing(missing <= v1)
+        @test ismissing(missing > v1)
+        @test ismissing(missing >= v1)
     end
 end
 
@@ -127,17 +127,17 @@ end
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
-    @testset "comparison with null" begin
-        @test isless(v1, null)
-        @test !isless(null, v1)
-        @test isnull(v1 < null)
-        @test isnull(v1 <= null)
-        @test isnull(v1 > null)
-        @test isnull(v1 >= null)
-        @test isnull(null < v1)
-        @test isnull(null <= v1)
-        @test isnull(null > v1)
-        @test isnull(null >= v1)
+    @testset "comparison with missing" begin
+        @test isless(v1, missing)
+        @test !isless(missing, v1)
+        @test ismissing(v1 < missing)
+        @test ismissing(v1 <= missing)
+        @test ismissing(v1 > missing)
+        @test ismissing(v1 >= missing)
+        @test ismissing(missing < v1)
+        @test ismissing(missing <= v1)
+        @test ismissing(missing > v1)
+        @test ismissing(missing >= v1)
     end
 end
 

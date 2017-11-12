@@ -3,9 +3,9 @@ module CategoricalArrays
     export CategoricalPool, CategoricalValue, CategoricalString
     export AbstractCategoricalArray, AbstractCategoricalVector, AbstractCategoricalMatrix,
            CategoricalArray, CategoricalVector, CategoricalMatrix
-    export AbstractNullableCategoricalArray, AbstractNullableCategoricalVector,
-           AbstractNullableCategoricalMatrix,
-           NullableCategoricalArray, NullableCategoricalVector, NullableCategoricalMatrix
+    export AbstractMissingCategoricalArray, AbstractMissingCategoricalVector,
+           AbstractMissingCategoricalMatrix,
+           MissingCategoricalArray, MissingCategoricalVector, MissingCategoricalMatrix
     export LevelsException
 
     export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!
@@ -13,7 +13,7 @@ module CategoricalArrays
 
     using Compat
     using Reexport
-    @reexport using Nulls
+    @reexport using Missings
 
     include("typedefs.jl")
 
@@ -23,7 +23,7 @@ module CategoricalArrays
     include("value.jl")
 
     include("array.jl")
-    include("nullablearray.jl")
+    include("missingarray.jl")
     include("subarray.jl")
 
     include("extras.jl")

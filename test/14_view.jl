@@ -3,7 +3,7 @@ using Base.Test
 using CategoricalArrays
 
 @testset "view($(CategoricalArray{Union{T, eltype(a)}}), $inds), ordered=$order construction" for
-    T in (Union{}, Null), order in (true, false),
+    T in (Union{}, Missing), order in (true, false),
     a in (1:10, 10:-1:1, ["a", "c", "b", "b", "a"]),
     inds in [1:2, :, 1, []]
 
@@ -16,8 +16,8 @@ end
 
 @testset "views comparison" begin
     ca1 = CategoricalArray([1, 2, 3])
-    ca2 = CategoricalArray{Union{Int, Null}}([1, 2, 3])
-    ca3 = CategoricalArray([1, 2, null])
+    ca2 = CategoricalArray{Union{Int, Missing}}([1, 2, 3])
+    ca3 = CategoricalArray([1, 2, missing])
     ca4 = CategoricalArray([4, 3, 2])
     ca5 = CategoricalArray([1 2; 3 4])
 

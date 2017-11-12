@@ -65,12 +65,12 @@ end
 ## Arrays
 
 # Type params:
-# * `T` original type of elements before categorization, could be nullable
+# * `T` original type of elements before categorization, could be Union{T, Missing}
 # * `N` array dimension
 # * `R` integer type for referencing category levels
-# * `V` original type of non-nullable elements before categorization
+# * `V` original type of elements (excluding Missing) before categorization
 # * `C` categorical value type
-# * `U` type of null value, `Union{}` if the data is non-nullable
+# * `U` type of missing value, `Union{}` if missing values are not accepted
 abstract type AbstractCategoricalArray{T, N, R, V, C, U} <: AbstractArray{Union{C, U}, N} end
 const AbstractCategoricalVector{T, R, V, C, U} = AbstractCategoricalArray{T, 1, R, V, C, U}
 const AbstractCategoricalMatrix{T, R, V, C, U} = AbstractCategoricalArray{T, 2, R, V, C, U}
@@ -82,8 +82,8 @@ struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray
     function CategoricalArray{T, N}(refs::Array{R, N},
                                     pool::CategoricalPool{V, R, C}) where
                                                  {T, N, R <: Integer, V, C}
-        T === V || T == Union{V, Null} || throw(ArgumentError("T ($T) must be equal to $V or Union{$V, Null}"))
-        U = T >: Null ? Null : Union{}
+        T === V || T == Union{V, Missing} || throw(ArgumentError("T ($T) must be equal to $V or Union{$V, Missing}"))
+        U = T >: Missing ? Missing : Union{}
         new{T, N, R, V, C, U}(refs, pool)
     end
 end

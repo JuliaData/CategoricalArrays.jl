@@ -91,7 +91,7 @@ Another solution would have been to call `levels!(x, ["Young", "Middle"])` manua
 
 ```jldoctest using
 julia> levels!(x, ["Young", "Midle"])
-ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. Change the array element type to Union{String, Null} using convert if you want to transform some levels to missing values.
+ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. Change the array element type to Union{String, Missing} using convert if you want to transform some levels to missing values.
 [...]
 
 ```
@@ -124,13 +124,13 @@ levels!
 
 ## Handling Missing Values
 
-The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Null}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Null}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a categorical value object (`CategoricalString` or `CategoricalValue{T}`) or `null` if the value is missing. See [the Nulls package](https://github.com/JuliaData/Nulls.jl) for more information on the `Null` type.
+The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Missing}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Missing}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a categorical value object (`CategoricalString` or `CategoricalValue{T}`) or `missing` if the value is missing. See [the Missings package](https://github.com/JuliaData/Missings.jl) for more information on the `Missing` type.
 
-Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a `String` or `null`:
+Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a `String` or `missing`:
 
 ```jldoctest using
-julia> y = CategoricalArray{Union{Null, String}}(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
+julia> y = CategoricalArray{Union{Missing, String}}(["Old", "Young", "Middle", "Young"], ordered=true)
+4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -148,7 +148,7 @@ julia> levels(y)
  "Young" 
 
 julia> levels!(y, ["Young", "Middle", "Old"])
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
+4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -166,37 +166,37 @@ CategoricalArrays.CategoricalString{UInt32} "Old" (3/3)
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:
 
 ```jldoctest using
-julia> y[1] = null
-null
+julia> y[1] = missing
+missing
 
 julia> y
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
- null    
+4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+ missing
  "Young" 
  "Middle"
  "Young" 
 
 julia> y[1]
-null
+missing
 
 ```
 
-It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the `"Old"` group. Let's first restore the original value for the first element, and then set it to missing again using the `nullok` argument to `levels!`:
+It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the `"Old"` group. Let's first restore the original value for the first element, and then set it to missing again using the `allow_missing` argument to `levels!`:
 
 ```jldoctest using
 julia> y[1] = "Old"
 "Old"
 
 julia> y
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
+4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
  "Young" 
 
-julia> levels!(y, ["Young", "Middle"]; nullok=true)
-4-element CategoricalArrays.CategoricalArray{Union{Nulls.Null, String},1,UInt32}:
- null    
+julia> levels!(y, ["Young", "Middle"]; allow_missing=true)
+4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+ missing
  "Young" 
  "Middle"
  "Young" 

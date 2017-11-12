@@ -25,19 +25,19 @@ level(x::CatValue) = x.level
 
 # extract the type of the original value from array eltype `T`
 unwrap_catvaluetype(::Type{T}) where {T} = T
-unwrap_catvaluetype(::Type{T}) where {T >: Null} =
-    Union{unwrap_catvaluetype(Nulls.T(T)), Null}
+unwrap_catvaluetype(::Type{T}) where {T >: Missing} =
+    Union{unwrap_catvaluetype(Missings.T(T)), Missing}
 unwrap_catvaluetype(::Type{Union{}}) = Union{} # prevent incorrect dispatch to T<:CatValue method
-unwrap_catvaluetype(::Type{Any}) = Any # prevent recursion in T>:Null method
+unwrap_catvaluetype(::Type{Any}) = Any # prevent recursion in T>:Missing method
 unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = leveltype(T)
 
 # get the categorical value type given value type `T` and reference type `R`
-catvaluetype(::Type{T}, ::Type{R}) where {T >: Null, R} =
-    catvaluetype(Nulls.T(T), R)
+catvaluetype(::Type{T}, ::Type{R}) where {T >: Missing, R} =
+    catvaluetype(Missings.T(T), R)
 catvaluetype(::Type{T}, ::Type{R}) where {T <: CatValue, R} =
     catvaluetype(leveltype(T), R)
 catvaluetype(::Type{Any}, ::Type{R}) where {R} =
-    CategoricalValue{Any, R}  # prevent recursion in T>:Null method
+    CategoricalValue{Any, R}  # prevent recursion in T>:Missing method
 catvaluetype(::Type{T}, ::Type{R}) where {T, R} =
     CategoricalValue{T, R}
 catvaluetype(::Type{<:AbstractString}, ::Type{R}) where {R} =
@@ -58,7 +58,7 @@ Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(
 # To fix ambiguities with definitions from Base
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalString, T <: AbstractString} =
     promote_type(leveltype(C), T)
-Base.promote_rule(::Type{C}, ::Type{Null}) where {C <: CatValue} = Union{C, Null}
+Base.promote_rule(::Type{C}, ::Type{Missing}) where {C <: CatValue} = Union{C, Missing}
 
 Base.convert(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) where {S} =
     convert(Nullable{S}, get(x))
@@ -71,7 +71,7 @@ Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CatValue) = x
 
 Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
-Base.convert(::Type{Union{T, Null}}, x::T) where {T <: CatValue} = x # override the convert() below
+Base.convert(::Type{Union{T, Missing}}, x::T) where {T <: CatValue} = x # override the convert() below
 Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x)) # fallback
 
 function Base.show(io::IO, x::CatValue)
@@ -97,8 +97,8 @@ Base.repr(x::CatValue) = repr(get(x))
     end
 end
 
-Base.:(==)(::CatValue, ::Null) = null
-Base.:(==)(::Null, ::CatValue) = null
+Base.:(==)(::CatValue, ::Missing) = missing
+Base.:(==)(::Missing, ::CatValue) = missing
 
 # To fix ambiguities with Base
 Base.:(==)(x::CatValue, y::WeakRef) = get(x) == y
@@ -121,8 +121,8 @@ end
 Base.isequal(x::CatValue, y::Any) = isequal(get(x), y)
 Base.isequal(x::Any, y::CatValue) = isequal(y, x)
 
-Base.isequal(::CatValue, ::Null) = false
-Base.isequal(::Null, ::CatValue) = false
+Base.isequal(::CatValue, ::Missing) = false
+Base.isequal(::Missing, ::CatValue) = false
 
 Base.in(x::CatValue, y::Any) = get(x) in y
 Base.in(x::CatValue, y::Set) = get(x) in y
