@@ -11,9 +11,9 @@ using CategoricalArrays
     end
 
     ca = CategoricalArray(repeat(string.('A':'J'), outer=1000))
-    nca = CategoricalArray(repeat([null; string.('A':'J')], outer=1000))
+    nca = CategoricalArray(repeat([missing; string.('A':'J')], outer=1000))
     @bench "CategoricalArray{String}" sumequals(ca, "D")
-    @bench "CategoricalArray{Union{String, Null}}" sumequals(nca, "D")
+    @bench "CategoricalArray{Union{String, Missing}}" sumequals(nca, "D")
 end
 
 @benchgroup "isequal(A, v::CategoricalValue)" begin
@@ -26,7 +26,7 @@ end
     end
 
     ca = CategoricalArray(repeat(string.('A':'J'), outer=1000))
-    nca = CategoricalArray(repeat([null; string.('A':'J')], outer=1000))
+    nca = CategoricalArray(repeat([missing; string.('A':'J')], outer=1000))
     @bench "CategoricalArray{String}" sumequals(ca, ca[1])
-    @bench "CategoricalArray{Union{String, Null}}" sumequals(nca, nca[1])
+    @bench "CategoricalArray{Union{String, Missing}}" sumequals(nca, nca[1])
 end

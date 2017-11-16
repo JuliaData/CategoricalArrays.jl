@@ -1,6 +1,6 @@
 import Base: getindex, setindex!, similar, in
 
-@inline function getindex(A::CategoricalArray{T}, I...) where {T>:Null}
+@inline function getindex(A::CategoricalArray{T}, I...) where {T>:Missing}
     @boundscheck checkbounds(A, I...)
     # Let Array indexing code handle everything
     @inbounds r = A.refs[I...]
@@ -12,15 +12,15 @@ import Base: getindex, setindex!, similar, in
         if r > 0
             @inbounds return A.pool[r]
         else
-            return null
+            return missing
         end
     end
 end
 
-@inline function setindex!(A::CategoricalArray{>:Null}, v::Null, I::Real...)
+@inline function setindex!(A::CategoricalArray{>:Missing}, v::Missing, I::Real...)
     @boundscheck checkbounds(A, I...)
     @inbounds A.refs[I...] = 0
 end
 
-in(x::Null, y::CategoricalArray) = false
-in(x::Null, y::CategoricalArray{>:Null}) = !all(v -> v > 0, y.refs)
+in(x::Missing, y::CategoricalArray) = false
+in(x::Missing, y::CategoricalArray{>:Missing}) = !all(v -> v > 0, y.refs)

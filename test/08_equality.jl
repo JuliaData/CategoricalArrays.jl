@@ -145,16 +145,16 @@ using CategoricalArrays
     @test (ov2b == nv2b) === true
     end
 
-    @testset "non-equality with null" begin
-    @test isnull(nv1a == null)
-    @test isnull(ov1a == null)
-    @test isnull(null == nv1a)
-    @test isnull(null == ov1a)
+    @testset "non-equality with missing" begin
+    @test ismissing(nv1a == missing)
+    @test ismissing(ov1a == missing)
+    @test ismissing(missing == nv1a)
+    @test ismissing(missing == ov1a)
 
-    @test isequal(nv1a, null) == false
-    @test isequal(ov1a, null) == false
-    @test isequal(null, nv1a) == false
-    @test isequal(null, ov1a) == false
+    @test isequal(nv1a, missing) == false
+    @test isequal(ov1a, missing) == false
+    @test isequal(missing, nv1a) == false
+    @test isequal(missing, ov1a) == false
     end
 end
 

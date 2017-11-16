@@ -19,7 +19,7 @@ using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, i
 
     @test iscatvalue(Int) == false
     @test iscatvalue(Any) == false
-    @test iscatvalue(Null) == false
+    @test iscatvalue(Missing) == false
 
     @test isa(pool, CategoricalPool)
 

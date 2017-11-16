@@ -117,7 +117,7 @@ function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
                                    ordered=false) where {T, N, R}
     C = catvaluetype(T, R)
     V = leveltype(C)
-    S = T >: Null ? Union{V, Null} : V
+    S = T >: Missing ? Union{V, Missing} : V
     CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
 end
 
@@ -258,11 +258,12 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
         throw(LevelsException{T, R}(levels(A)[typemax(R)+1:end]))
     end
 
-    if T >: Null
-        U = Nulls.T(T)
+    if T >: Missing
+        U = Missings.T(T)
     else
         U = T
-        S >: Null && any(iszero, A.refs) && throw(NullException())
+        S >: Missing && any(iszero, A.refs) &&
+            throw(MissingException("cannot convert CategoricalArray with missing values to a CategoricalArray{$T}"))
     end
 
     pool = convert(CategoricalPool{unwrap_catvaluetype(U), R}, A.pool)
@@ -287,11 +288,11 @@ function Base.:(==)(A::CategoricalArray{S}, B::CategoricalArray{T}) where {S, T}
     if size(A) != size(B)
         return false
     end
-    anynull = false
+    anymissing = false
     if A.pool === B.pool
         @inbounds for (a, b) in zip(A.refs, B.refs)
             if a == 0 || b == 0
-                (S >: Null || T >: Null) && (anynull = true)
+                (S >: Missing || T >: Missing) && (anymissing = true)
             elseif a != b
                 return false
             end
@@ -301,12 +302,12 @@ function Base.:(==)(A::CategoricalArray{S}, B::CategoricalArray{T}) where {S, T}
             eq = (a == b)
             if eq === false
                 return false
-            elseif S >: Null || T >: Null
-                anynull |= isnull(eq)
+            elseif S >: Missing || T >: Missing
+                anymissing |= ismissing(eq)
             end
         end
     end
-    return anynull ? null : true
+    return anymissing ? missing : true
 end
 
 function Base.isequal(A::CategoricalArray, B::CategoricalArray)
@@ -409,8 +410,8 @@ function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
     # try converting src to dest type to avoid partial copy corruption of dest
     # in the event that the src cannot be copied into dest
     slevs = convert(Vector{T}, levels(src))
-    if eltype(src) >: Null && !(eltype(dest) >: Null) && !all(x -> x > 0, srefs)
-        throw(NullException())
+    if eltype(src) >: Missing && !(eltype(dest) >: Missing) && !all(x -> x > 0, srefs)
+        throw(MissingException("cannot copy array with missing values to an array with element type $T"))
     end
 
     newlevels, ordered = mergelevels(isordered(dest), levels(dest), slevs)
@@ -498,8 +499,8 @@ function vcat(A::CategoricalArray...)
         [x==0 ? 0 : ii[x] for x in a.refs]
     end
 
-    T = Base.promote_eltype(A...) >: Null ?
-        Union{eltype(newlevels), Null} : eltype(newlevels)
+    T = Base.promote_eltype(A...) >: Missing ?
+        Union{eltype(newlevels), Missing} : eltype(newlevels)
     refs = DefaultRefType[refsvec...;]
     pool = CategoricalPool(newlevels, ordered)
     CategoricalArray{T, ndims(refs)}(refs, pool)
@@ -520,7 +521,7 @@ end
     end
 end
 
-catvaluetype(::Type{T}) where {T <: CategoricalArray} = Nulls.T(eltype(T))
+catvaluetype(::Type{T}) where {T <: CategoricalArray} = Missings.T(eltype(T))
 catvaluetype(A::CategoricalArray) = catvaluetype(typeof(A))
 
 leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(catvaluetype(T))
@@ -531,10 +532,10 @@ leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(catvaluetype(T))
 Return the levels of categorical array `A`. This may include levels which do not actually appear
 in the data (see [`droplevels!`](@ref)).
 """
-Nulls.levels(A::CategoricalArray) = levels(A.pool)
+Missings.levels(A::CategoricalArray) = levels(A.pool)
 
 """
-    levels!(A::CategoricalArray, newlevels::Vector; nullok::Bool=false)
+    levels!(A::CategoricalArray, newlevels::Vector; allow_missing::Bool=false)
 
 Set the levels categorical array `A`. The order of appearance of levels will be respected
 by [`levels`](@ref), which may affect display of results in some operations; if `A` is
@@ -542,11 +543,11 @@ ordered (see [`isordered`](@ref)), it will also be used for order comparisons
 using `<`, `>` and similar operators. Reordering levels will never affect the values
 of entries in the array.
 
-If `A` is nullable (i.e. `eltype(A) >: Null`) and `nullok=true`, entries corresponding
-to missing levels will be set to `null`. Else, `newlevels` must include all levels
-which appear in the data.
+If `A` accepts missing values (i.e. `eltype(A) >: Missing`) and `allow_missing=true`,
+entries corresponding to omitted levels will be set to `missing`.
+Else, `newlevels` must include all levels which appear in the data.
 """
-function levels!(A::CategoricalArray{T}, newlevels::Vector; nullok=false) where {T}
+function levels!(A::CategoricalArray{T}, newlevels::Vector; allow_missing=false) where {T}
     if !allunique(newlevels)
         throw(ArgumentError(string("duplicated levels found: ",
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
@@ -557,13 +558,13 @@ function levels!(A::CategoricalArray{T}, newlevels::Vector; nullok=false) where 
     if !all(l->l in newlevels, index(A.pool))
         deleted = [!(l in newlevels) for l in index(A.pool)]
         @inbounds for (i, x) in enumerate(A.refs)
-            if T >: Null
-                !nullok && x > 0 && deleted[x] &&
-                    throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i and nullok=false."))
+            if T >: Missing
+                !allow_missing && x > 0 && deleted[x] &&
+                    throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i and allow_missing=false."))
             else
                 deleted[x] &&
                     throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i. " *
-                                        "Change the array element type to Union{$T, Null} using convert if you want to transform some levels to missing values."))
+                                        "Change the array element type to Union{$T, Missing} using convert if you want to transform some levels to missing values."))
             end
         end
     end
@@ -588,9 +589,9 @@ function _unique(::Type{S},
                  refs::AbstractArray{T},
                  pool::CategoricalPool) where {S, T<:Integer}
     seen = fill(false, length(index(pool))+1)
-    tracknulls = S >: Null
-    # If we don't track nulls, short-circuit even if none has been seen
-    seen[1] = !tracknulls
+    trackmissings = S >: Missing
+    # If we don't track missings, short-circuit even if none has been seen
+    seen[1] = !trackmissings
     batch = 0
     @inbounds for i in refs
         seen[i + 1] = true
@@ -601,10 +602,10 @@ function _unique(::Type{S},
             batch = 0
         end
     end
-    seennull = shift!(seen)
+    seenmissing = shift!(seen)
     res = convert(Vector{S}, index(pool)[seen][sortperm(pool.order[seen])])
-    if tracknulls && seennull
-        push!(res, null)
+    if trackmissings && seenmissing
+        push!(res, missing)
     end
     res
 end
@@ -624,7 +625,7 @@ unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
 Drop levels which do not appear in categorical array `A` (so that they will no longer be
 returned by [`levels`](@ref)).
 """
-droplevels!(A::CategoricalArray) = levels!(A, filter!(!isnull, unique(A)))
+droplevels!(A::CategoricalArray) = levels!(A, filter!(!ismissing, unique(A)))
 
 """
     isordered(A::CategoricalArray)

@@ -62,7 +62,7 @@ const ≇ = !isequal
         (["A", "B", "C", "D", "E", "G", "F"], false)
 end
 
-@testset "Testing $T" for T in (Union{}, Null)
+@testset "Testing $T" for T in (Union{}, Missing)
     @testset "vcat()" begin
         # Test that vcat of compress arrays uses a reftype that doesn't overflow
         a1 = 3:200
@@ -157,11 +157,11 @@ end
         levels!(x, ["Young", "Middle", "Old"])
         ordered!(x, true)
         y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
-        a = (Union{String, Null})["Z", "Y", "X", "Young"]
-        # Test with null values
-        if T === Null
-            x[3] = null
-            y[3] = a[2] = null
+        a = (Union{String, Missing})["Z", "Y", "X", "Young"]
+        # Test with missing values
+        if T === Missing
+            x[3] = missing
+            y[3] = a[2] = missing
         end
         @test copy!(x, 1, y, 2) === x
         @test x ≅ a
@@ -185,7 +185,7 @@ end
             @test x ≅ a
         end
 
-        @testset "copy non-nullable src into non-nullable dest" begin
+        @testset "copy src not supporting missings into dest not supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{String}(3)
@@ -194,46 +194,36 @@ end
             @test levels(dest) == levels(src) == reverse(v)
         end
 
-        @testset "copy nullable src into non-nullable dest" begin
+        @testset "copy src supporting missings into dest not supporting missings" begin
             v = ["a", "b", "c"]
-            src = levels!(CategoricalVector{Union{Null, String}}(v), reverse(v))
+            src = levels!(CategoricalVector{Union{Missing, String}}(v), reverse(v))
             dest = CategoricalVector{String}(3)
             copy!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
 
-        @testset "copy non-nullable src into nullable dest" begin
+        @testset "copy src not supporting missings into dest supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
-            dest = CategoricalVector{Union{String, Null}}(3)
+            dest = CategoricalVector{Union{String, Missing}}(3)
             copy!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
 
-        @testset "copy nullable src into nullable dest" begin
+        @testset "copy src supporting missings into dest supporting missings" begin
             v = ["a", "b", "c"]
-            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
-            dest = CategoricalVector{Union{String, Null}}(3)
+            src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
+            dest = CategoricalVector{Union{String, Missing}}(3)
             copy!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
 
-        @testset "copy non-nullable viewed src into non-nullable dest" begin
+        @testset "copy viewed src not supporting missings into dest not supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
-            vsrc = view(src, 1:length(src))
-            dest = CategoricalVector{String}(3)
-            copy!(dest, vsrc)
-            @test dest == src
-            @test levels(dest) == levels(src) == reverse(v)
-        end
-
-        @testset "copy nullable viewed src into non-nullable dest" begin
-            v = ["a", "b", "c"]
-            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
             vsrc = view(src, 1:length(src))
             dest = CategoricalVector{String}(3)
             copy!(dest, vsrc)
@@ -241,21 +231,31 @@ end
             @test levels(dest) == levels(src) == reverse(v)
         end
 
-        @testset "copy non-nullable viewed src into nullable dest" begin
+        @testset "copy viewed src supporting missings into dest not supporting missings" begin
             v = ["a", "b", "c"]
-            src = levels!(CategoricalVector(v), reverse(v))
+            src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
             vsrc = view(src, 1:length(src))
-            dest = CategoricalVector{Union{String, Null}}(3)
+            dest = CategoricalVector{String}(3)
             copy!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
 
-        @testset "copy nullable viewed src into nullable dest" begin
+        @testset "copy viewed src not supporting missings into dest supporting missings" begin
             v = ["a", "b", "c"]
-            src = levels!(CategoricalVector{Union{String, Null}}(v), reverse(v))
+            src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:length(src))
-            dest = CategoricalVector{Union{String, Null}}(3)
+            dest = CategoricalVector{Union{String, Missing}}(3)
+            copy!(dest, vsrc)
+            @test dest == src
+            @test levels(dest) == levels(src) == reverse(v)
+        end
+
+        @testset "copy viewed src supporting missings into dest supporting missings" begin
+            v = ["a", "b", "c"]
+            src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
+            vsrc = view(src, 1:length(src))
+            dest = CategoricalVector{Union{String, Missing}}(3)
             copy!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -317,7 +317,7 @@ end
 
         @testset "viable mixed src and dest types" begin
             v = ["a", "b", "c"]
-            src = CategoricalVector{Union{eltype(v), Null}}(v)
+            src = CategoricalVector{Union{eltype(v), Missing}}(v)
             levels!(src, reverse(v))
             dest = CategoricalVector{String}(3)
             copy!(dest, src)
@@ -345,13 +345,13 @@ end
         end
 
         @testset "inviable mixed src and dest types" begin
-            v = ["a", "b", null]
+            v = ["a", "b", missing]
             src = CategoricalVector(v)
             dest = CategoricalVector{String}(3)
-            @test_throws NullException copy!(dest, src)
+            @test_throws MissingException copy!(dest, src)
 
             vsrc = view(src, 1:length(src))
-            @test_throws NullException copy!(dest, vsrc)
+            @test_throws MissingException copy!(dest, vsrc)
 
             v = Integer[-1, -2, -3]
             src = CategoricalVector(v)
@@ -365,8 +365,8 @@ end
         @test resize!(x, 3) === x
         @test x == ["Old", "Young", "Middle"]
         @test resize!(x, 4) === x
-        if T === Null
-            @test x ≅ ["Old", "Young", "Middle", null]
+        if T === Missing
+            @test x ≅ ["Old", "Young", "Middle", missing]
         else
             @test x[1:3] == ["Old", "Young", "Middle"]
             @test !isassigned(x, 4)
@@ -492,12 +492,12 @@ end
         @test levels(x) == levels(y)
         @test isordered(x)
 
-        # Test with null values
-        if T === Null
-            x[3] = null
+        # Test with missing values
+        if T === Missing
+            x[3] = missing
             y = reshape(x, 1, 4)
             @test isa(y, CategoricalArray{Union{T, String}, 2, CategoricalArrays.DefaultRefType})
-            @test y ≅ ["Old" "Young" null "Young"]
+            @test y ≅ ["Old" "Young" missing "Young"]
             @test levels(x) == levels(y)
             @test isordered(x)
         end
@@ -517,7 +517,7 @@ end
 @testset "constructors and convert() between categorical arrays, ordered_orig=$ordered_orig, ordered=$ordered, R=$R, T=$T, CVM2=$CVM2, N=$N" for ordered_orig in (true, false),
     ordered in (true, false),
     R in (DefaultRefType, UInt8, UInt, Int8, Int),
-    T in (String, Union{String, Null}),
+    T in (String, Union{String, Missing}),
     (CVM2, N) in ((CategoricalVector, 1), (CategoricalMatrix, 2))
     # check that ctors/converters preserve levels and ordering by default even across types,
     # do not modify original array when changing ordering, and make copies
@@ -612,13 +612,13 @@ end
     end
 end
 
-@testset "converting from nullable to non-nullable CategoricalArray fails with nulls" begin
-    x = CategoricalArray{Union{String, Null}}(1)
-    @test_throws NullException CategoricalArray{String}(x)
-    @test_throws NullException convert(CategoricalArray{String}, x)
+@testset "converting from array with missings to array without missings CategoricalArray fails with missings" begin
+    x = CategoricalArray{Union{String, Missing}}(1)
+    @test_throws MissingException CategoricalArray{String}(x)
+    @test_throws MissingException convert(CategoricalArray{String}, x)
 end
 
-@testset "in($T, CategoricalArray{$T})" for T in (Int, Union{Int, Null})
+@testset "in($T, CategoricalArray{$T})" for T in (Int, Union{Int, Missing})
     ca1 = CategoricalArray{T}([1, 2, 3])
     ca2 = CategoricalArray{T}([4, 3, 2])
 
@@ -632,26 +632,26 @@ end
 
 @testset "comparison" begin
     a1 = [1, 2, 3]
-    a2 = Union{Int, Null}[1, 2, 3]
-    a3 = [1, 2, null]
+    a2 = Union{Int, Missing}[1, 2, 3]
+    a3 = [1, 2, missing]
     a4 = [4, 3, 2]
     a5 = [1 2; 3 4]
     ca1 = CategoricalArray(a1)
-    ca2 = CategoricalArray{Union{Int, Null}}(a2)
-    ca2b = CategoricalArray{Union{Int, Null}, 1}(ca2.refs, ca2.pool)
+    ca2 = CategoricalArray{Union{Int, Missing}}(a2)
+    ca2b = CategoricalArray{Union{Int, Missing}, 1}(ca2.refs, ca2.pool)
     ca3 = CategoricalArray(a3)
-    ca3b = CategoricalArray{Union{Int, Null}, 1}(ca3.refs, ca2.pool)
+    ca3b = CategoricalArray{Union{Int, Missing}, 1}(ca3.refs, ca2.pool)
     ca4 = CategoricalArray(a4)
     ca5 = CategoricalArray(a5)
 
     @testset "==" begin
         @test ca1 == copy(ca1) == a1
         @test ca2 == copy(ca2) == a2
-        @test isnull(ca3 == copy(ca3)) && isnull(ca3 == ca3b) && isnull(ca3 == a3)
+        @test ismissing(ca3 == copy(ca3)) && ismissing(ca3 == ca3b) && ismissing(ca3 == a3)
         @test ca4 == copy(ca4) == a4
         @test ca5 == copy(ca5) == a5
         @test ca1 == ca2 == a2
-        @test isnull(ca1 != ca3) && isnull(ca1 != a3)
+        @test ismissing(ca1 != ca3) && ismissing(ca1 != a3)
         @test ca1 != ca4
         @test ca1 != a4
         @test a1 != ca4
@@ -661,7 +661,7 @@ end
         @test ca3 != ca4
         @test ca3 != a4
         @test a3 != ca4
-        @test isnull(ca2b != ca3b)
+        @test ismissing(ca2b != ca3b)
     end
 
     @testset "isequal()" begin
@@ -689,9 +689,9 @@ end
     @test summary(CategoricalArray([1, 2, 3])) ==
         "3-element CategoricalArrays.CategoricalArray{$Int,1,UInt32}"
     # Ordering changed in Julia 0.7
-    @test summary(CategoricalArray{Union{Int, Null}}([1 2 3])) in
-        ("1×3 CategoricalArrays.CategoricalArray{Union{Nulls.Null, $Int},2,UInt32}",
-         "1×3 CategoricalArrays.CategoricalArray{Union{$Int, Nulls.Null},2,UInt32}")
+    @test summary(CategoricalArray{Union{Int, Missing}}([1 2 3])) in
+        ("1×3 CategoricalArrays.CategoricalArray{Union{Missings.Missing, $Int},2,UInt32}",
+         "1×3 CategoricalArrays.CategoricalArray{Union{$Int, Missings.Missing},2,UInt32}")
 end
 
 @testset "vcat() takes into account element type even when array is empty" begin

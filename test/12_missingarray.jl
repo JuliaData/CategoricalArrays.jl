@@ -1,4 +1,4 @@
-module TestNullableArray
+module TestMissingArray
 using Base.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
@@ -7,9 +7,9 @@ const ≅ = isequal
 
 @testset "conversion ordered=$ordered" for ordered in (false, true)
     @testset "conversion reftype=$R" for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
-        @testset "conversion of $(typeof(a))" for a in (["b", "a", "b"], Union{String, Null}["b", "a", "b"])
-            @testset "Vector with no null values" begin
-                x = CategoricalVector{Union{String, Null}, R}(a, ordered=ordered)
+        @testset "conversion of $(typeof(a))" for a in (["b", "a", "b"], Union{String, Missing}["b", "a", "b"])
+            @testset "Vector with no missing values" begin
+                x = CategoricalVector{Union{String, Missing}, R}(a, ordered=ordered)
 
                 @test x == a
                 @test leveltype(typeof(x)) === String
@@ -22,42 +22,42 @@ const ≅ = isequal
                 @test length(x) === 3
 
                 @test convert(CategoricalArray, x) === x
-                @test convert(CategoricalArray{Union{String, Null}}, x) === x
-                @test convert(CategoricalArray{Union{String, Null}, 1}, x) === x
-                @test convert(CategoricalArray{Union{String, Null}, 1, R}, x) === x
-                @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, x) == x
-                @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, x) == x
+                @test convert(CategoricalArray{Union{String, Missing}}, x) === x
+                @test convert(CategoricalArray{Union{String, Missing}, 1}, x) === x
+                @test convert(CategoricalArray{Union{String, Missing}, 1, R}, x) === x
+                @test convert(CategoricalArray{Union{String, Missing}, 1, DefaultRefType}, x) == x
+                @test convert(CategoricalArray{Union{String, Missing}, 1, UInt8}, x) == x
 
                 @test convert(CategoricalVector, x) === x
-                @test convert(CategoricalVector{Union{String, Null}}, x) === x
-                @test convert(CategoricalVector{Union{String, Null}, R}, x) === x
-                @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, x) == x
-                @test convert(CategoricalVector{Union{String, Null}, UInt8}, x) == x
+                @test convert(CategoricalVector{Union{String, Missing}}, x) === x
+                @test convert(CategoricalVector{Union{String, Missing}, R}, x) === x
+                @test convert(CategoricalVector{Union{String, Missing}, DefaultRefType}, x) == x
+                @test convert(CategoricalVector{Union{String, Missing}, UInt8}, x) == x
 
                 @test convert(CategoricalArray, a) == x
-                @test convert(CategoricalArray{Union{String, Null}}, a) == x
-                @test convert(CategoricalArray{Union{String, Null}, 1}, a) == x
-                @test convert(CategoricalArray{Union{String, Null}, 1, R}, a) == x
-                @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, a) == x
-                @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, a) == x
+                @test convert(CategoricalArray{Union{String, Missing}}, a) == x
+                @test convert(CategoricalArray{Union{String, Missing}, 1}, a) == x
+                @test convert(CategoricalArray{Union{String, Missing}, 1, R}, a) == x
+                @test convert(CategoricalArray{Union{String, Missing}, 1, DefaultRefType}, a) == x
+                @test convert(CategoricalArray{Union{String, Missing}, 1, UInt8}, a) == x
 
                 @test convert(CategoricalVector, a) == x
-                @test convert(CategoricalVector{Union{String, Null}}, a) == x
-                @test convert(CategoricalVector{Union{String, Null}, R}, a) == x
-                @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, a) == x
-                @test convert(CategoricalVector{Union{String, Null}, UInt8}, a) == x
+                @test convert(CategoricalVector{Union{String, Missing}}, a) == x
+                @test convert(CategoricalVector{Union{String, Missing}, R}, a) == x
+                @test convert(CategoricalVector{Union{String, Missing}, DefaultRefType}, a) == x
+                @test convert(CategoricalVector{Union{String, Missing}, UInt8}, a) == x
 
-                @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
-                @test CategoricalArray{Union{String, Null}, 1}(a, ordered=ordered) == x
-                @test CategoricalArray{Union{String, Null}, 1, R}(a, ordered=ordered) == x
-                @test CategoricalArray{Union{String, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
-                @test CategoricalArray{Union{String, Null}, 1, UInt8}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Missing}}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Missing}, 1}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Missing}, 1, R}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Missing}, 1, DefaultRefType}(a, ordered=ordered) == x
+                @test CategoricalArray{Union{String, Missing}, 1, UInt8}(a, ordered=ordered) == x
 
                 @test CategoricalVector(a, ordered=ordered) == x
-                @test CategoricalVector{Union{String, Null}}(a, ordered=ordered) == x
-                @test CategoricalVector{Union{String, Null}, R}(a, ordered=ordered) == x
-                @test CategoricalVector{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
-                @test CategoricalVector{Union{String, Null}, UInt8}(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Missing}}(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Missing}, R}(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Missing}, DefaultRefType}(a, ordered=ordered) == x
+                @test CategoricalVector{Union{String, Missing}, UInt8}(a, ordered=ordered) == x
 
                 @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
                     ((a, DefaultRefType, UInt8, true),
@@ -69,8 +69,8 @@ const ≅ = isequal
                     @test leveltype(x2) === String
                     @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R1}
                     @test x2 == y
-                    if eltype(y) >: Null
-                        @test isa(x2, CategoricalVector{Union{String, Null}, R1})
+                    if eltype(y) >: Missing
+                        @test isa(x2, CategoricalVector{Union{String, Missing}, R1})
                     else
                         @test isa(x2, CategoricalVector{String, R1})
                     end
@@ -80,8 +80,8 @@ const ≅ = isequal
                     @test x2 == y
                     @test leveltype(x2) === String
                     @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R2}
-                    if eltype(y) >: Null
-                        @test isa(x2, CategoricalVector{Union{String, Null}, R2})
+                    if eltype(y) >: Missing
+                        @test isa(x2, CategoricalVector{Union{String, Missing}, R2})
                     else
                         @test isa(x2, CategoricalVector{String, R2})
                     end
@@ -90,7 +90,7 @@ const ≅ = isequal
 
                 x2 = compress(x)
                 @test x2 == x
-                @test isa(x2, CategoricalVector{Union{String, Null}, UInt8})
+                @test isa(x2, CategoricalVector{Union{String, Missing}, UInt8})
                 @test isordered(x2) === isordered(x)
                 @test levels(x2) == levels(x)
 
@@ -195,46 +195,46 @@ const ≅ = isequal
                 @test levels(x) == ["e", "a", "b", "c"]
 
                 @test_throws ArgumentError levels!(x, ["e", "c"])
-                @test levels!(x, ["e", "c"], nullok=true) === x
+                @test levels!(x, ["e", "c"], allow_missing=true) === x
                 @test levels(x) == ["e", "c"]
                 @test x[1] === x.pool.valindex[2]
-                @test x[2] === null
-                @test x[3] === null
+                @test x[2] === missing
+                @test x[3] === missing
                 @test levels(x) == ["e", "c"]
 
                 push!(x, "e")
                 @test length(x) == 4
-                @test x ≅ ["c", null, null, "e"]
+                @test x ≅ ["c", missing, missing, "e"]
                 @test levels(x) == ["e", "c"]
 
                 push!(x, "zz")
                 @test length(x) == 5
-                @test x ≅ ["c", null, null, "e", "zz"]
+                @test x ≅ ["c", missing, missing, "e", "zz"]
                 @test levels(x) == ["e", "c", "zz"]
 
                 push!(x, x[1])
                 @test length(x) == 6
-                @test x ≅ ["c", null, null, "e", "zz", "c"]
+                @test x ≅ ["c", missing, missing, "e", "zz", "c"]
                 @test levels(x) == ["e", "c", "zz"]
 
-                push!(x, null)
+                push!(x, missing)
                 @test length(x) == 7
-                @test x ≅ ["c", null, null, "e", "zz", "c", null]
+                @test x ≅ ["c", missing, missing, "e", "zz", "c", missing]
                 @test levels(x) == ["e", "c", "zz"]
 
                 append!(x, x)
-                @test x ≅ ["c", null, null, "e", "zz", "c", null, "c", null, null, "e", "zz", "c", null]
+                @test x ≅ ["c", missing, missing, "e", "zz", "c", missing, "c", missing, missing, "e", "zz", "c", missing]
                 @test levels(x) == ["e", "c", "zz"]
                 @test isordered(x) === false
                 @test length(x) == 14
 
                 b = ["z","y","x"]
-                y = CategoricalVector{Union{String, Null}, R}(b)
+                y = CategoricalVector{Union{String, Missing}, R}(b)
                 append!(x, y)
                 @test length(x) == 17
                 @test isordered(x) === false
                 @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
-                @test x ≅ ["c", null, null, "e", "zz", "c", null, "c", null, null, "e", "zz", "c", null, "z", "y", "x"]
+                @test x ≅ ["c", missing, missing, "e", "zz", "c", missing, "c", missing, missing, "e", "zz", "c", missing, "z", "y", "x"]
 
                 empty!(x)
                 @test isordered(x) === false
@@ -243,52 +243,52 @@ const ≅ = isequal
             end
         end
 
-        @testset "Vector with null values" begin
-            a = ["a", "b", null]
-            x = CategoricalVector{Union{String, Null}, R}(a, ordered=ordered)
+        @testset "Vector with missing values" begin
+            a = ["a", "b", missing]
+            x = CategoricalVector{Union{String, Missing}, R}(a, ordered=ordered)
 
             @test x ≅ a
-            @test levels(x) == filter(x->!isnull(x), unique(a))
+            @test levels(x) == filter(x->!ismissing(x), unique(a))
             @test size(x) === (3,)
             @test length(x) === 3
 
             @test convert(CategoricalArray, x) === x
-            @test convert(CategoricalArray{Union{String, Null}}, x) === x
-            @test convert(CategoricalArray{Union{String, Null}, 1}, x) === x
-            @test convert(CategoricalArray{Union{String, Null}, 1, R}, x) === x
-            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, x) ≅ x
-            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, x) ≅ x
+            @test convert(CategoricalArray{Union{String, Missing}}, x) === x
+            @test convert(CategoricalArray{Union{String, Missing}, 1}, x) === x
+            @test convert(CategoricalArray{Union{String, Missing}, 1, R}, x) === x
+            @test convert(CategoricalArray{Union{String, Missing}, 1, DefaultRefType}, x) ≅ x
+            @test convert(CategoricalArray{Union{String, Missing}, 1, UInt8}, x) ≅ x
 
             @test convert(CategoricalVector, x) === x
-            @test convert(CategoricalVector{Union{String, Null}}, x) === x
-            @test convert(CategoricalVector{Union{String, Null}, R}, x) === x
-            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, x) ≅ x
-            @test convert(CategoricalVector{Union{String, Null}, UInt8}, x) ≅ x
+            @test convert(CategoricalVector{Union{String, Missing}}, x) === x
+            @test convert(CategoricalVector{Union{String, Missing}, R}, x) === x
+            @test convert(CategoricalVector{Union{String, Missing}, DefaultRefType}, x) ≅ x
+            @test convert(CategoricalVector{Union{String, Missing}, UInt8}, x) ≅ x
 
             @test convert(CategoricalArray, a) ≅ x
-            @test convert(CategoricalArray{Union{String, Null}}, a) ≅ x
-            @test convert(CategoricalArray{Union{String, Null}, 1}, a) ≅ x
-            @test convert(CategoricalArray{Union{String, Null}, 1, R}, a) ≅ x
-            @test convert(CategoricalArray{Union{String, Null}, 1, DefaultRefType}, a) ≅ x
-            @test convert(CategoricalArray{Union{String, Null}, 1, UInt8}, a) ≅ x
+            @test convert(CategoricalArray{Union{String, Missing}}, a) ≅ x
+            @test convert(CategoricalArray{Union{String, Missing}, 1}, a) ≅ x
+            @test convert(CategoricalArray{Union{String, Missing}, 1, R}, a) ≅ x
+            @test convert(CategoricalArray{Union{String, Missing}, 1, DefaultRefType}, a) ≅ x
+            @test convert(CategoricalArray{Union{String, Missing}, 1, UInt8}, a) ≅ x
 
             @test convert(CategoricalVector, a) ≅ x
-            @test convert(CategoricalVector{Union{String, Null}}, a) ≅ x
-            @test convert(CategoricalVector{Union{String, Null}, R}, a) ≅ x
-            @test convert(CategoricalVector{Union{String, Null}, DefaultRefType}, a) ≅ x
-            @test convert(CategoricalVector{Union{String, Null}, UInt8}, a) ≅ x
+            @test convert(CategoricalVector{Union{String, Missing}}, a) ≅ x
+            @test convert(CategoricalVector{Union{String, Missing}, R}, a) ≅ x
+            @test convert(CategoricalVector{Union{String, Missing}, DefaultRefType}, a) ≅ x
+            @test convert(CategoricalVector{Union{String, Missing}, UInt8}, a) ≅ x
 
-            @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) ≅ x
-            @test CategoricalArray{Union{String, Null}, 1}(a, ordered=ordered) ≅ x
-            @test CategoricalArray{Union{String, Null}, 1, R}(a, ordered=ordered) ≅ x
-            @test CategoricalArray{Union{String, Null}, 1, DefaultRefType}(a, ordered=ordered) ≅ x
-            @test CategoricalArray{Union{String, Null}, 1, UInt8}(a, ordered=ordered) ≅ x
+            @test CategoricalArray{Union{String, Missing}}(a, ordered=ordered) ≅ x
+            @test CategoricalArray{Union{String, Missing}, 1}(a, ordered=ordered) ≅ x
+            @test CategoricalArray{Union{String, Missing}, 1, R}(a, ordered=ordered) ≅ x
+            @test CategoricalArray{Union{String, Missing}, 1, DefaultRefType}(a, ordered=ordered) ≅ x
+            @test CategoricalArray{Union{String, Missing}, 1, UInt8}(a, ordered=ordered) ≅ x
 
             @test CategoricalVector(a, ordered=ordered) ≅ x
-            @test CategoricalVector{Union{String, Null}}(a, ordered=ordered) ≅ x
-            @test CategoricalVector{Union{String, Null}, R}(a, ordered=ordered) ≅ x
-            @test CategoricalVector{Union{String, Null}, DefaultRefType}(a, ordered=ordered) ≅ x
-            @test CategoricalVector{Union{String, Null}, UInt8}(a, ordered=ordered) ≅ x
+            @test CategoricalVector{Union{String, Missing}}(a, ordered=ordered) ≅ x
+            @test CategoricalVector{Union{String, Missing}, R}(a, ordered=ordered) ≅ x
+            @test CategoricalVector{Union{String, Missing}, DefaultRefType}(a, ordered=ordered) ≅ x
+            @test CategoricalVector{Union{String, Missing}, UInt8}(a, ordered=ordered) ≅ x
 
             @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
                 ((a, DefaultRefType, UInt8, true),
@@ -298,8 +298,8 @@ const ≅ = isequal
 
                 x2 = categorical(y, ordered=ordered)
                 @test x2 ≅ y
-                if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{Union{String, Null}, R1})
+                if eltype(y) >: Missing
+                    @test isa(x2, CategoricalVector{Union{String, Missing}, R1})
                 else
                     @test isa(x2, CategoricalVector{String, R1})
                 end
@@ -307,8 +307,8 @@ const ≅ = isequal
 
                 x2 = categorical(y, comp, ordered=ordered)
                 @test x2 ≅ y
-                if eltype(y) >: Null
-                    @test isa(x2, CategoricalVector{Union{String, Null}, R2})
+                if eltype(y) >: Missing
+                    @test isa(x2, CategoricalVector{Union{String, Missing}, R2})
                 else
                     @test isa(x2, CategoricalVector{String, R2})
                 end
@@ -317,7 +317,7 @@ const ≅ = isequal
 
             x2 = compress(x)
             @test x2 ≅ x
-            @test isa(x2, CategoricalVector{Union{String, Null}, UInt8})
+            @test isa(x2, CategoricalVector{Union{String, Missing}, UInt8})
             @test levels(x2) == levels(x)
 
             x2 = copy(x)
@@ -327,7 +327,7 @@ const ≅ = isequal
 
             @test x[1] === x.pool.valindex[1]
             @test x[2] === x.pool.valindex[2]
-            @test x[3] === null
+            @test x[3] === missing
             @test_throws BoundsError x[4]
 
             x2 = x[:]
@@ -340,7 +340,7 @@ const ≅ = isequal
 
             x2 = x[2:3]
             @test typeof(x2) === typeof(x)
-            @test x2 ≅ ["b", null]
+            @test x2 ≅ ["b", missing]
             @test levels(x2) == levels(x)
             @test levels(x2) !== levels(x)
             @test isordered(x2) == isordered(x)
@@ -362,7 +362,7 @@ const ≅ = isequal
             x[1] = "b"
             @test x[1] === x.pool.valindex[2]
             @test x[2] === x.pool.valindex[2]
-            @test x[3] === null
+            @test x[3] === missing
 
             x[3] = "c"
             @test x[1] === x.pool.valindex[2]
@@ -370,16 +370,16 @@ const ≅ = isequal
             @test x[3] === x.pool.valindex[3]
             @test levels(x) == ["a", "b", "c"]
 
-            x[1] = null
-            @test x[1] === null
+            x[1] = missing
+            @test x[1] === missing
             @test x[2] === x.pool.valindex[2]
             @test x[3] === x.pool.valindex[3]
             @test levels(x) == ["a", "b", "c"]
 
-            x[2:3] = null
-            @test x[1] === null
-            @test x[2] === null
-            @test x[3] === null
+            x[2:3] = missing
+            @test x[1] === missing
+            @test x[2] === missing
+            @test x[3] === missing
             @test levels(x) == ["a", "b", "c"]
         end
 
@@ -387,7 +387,7 @@ const ≅ = isequal
         # (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
         a = 0.0:0.5:1.5
-        x = CategoricalVector{Union{Float64, Null}, R}(a, ordered=ordered)
+        x = CategoricalVector{Union{Float64, Missing}, R}(a, ordered=ordered)
 
         @test x == collect(a)
         @test isordered(x) === ordered
@@ -398,56 +398,56 @@ const ≅ = isequal
         @test catvaluetype(x) <: CategoricalArrays.CategoricalValue{Float64}
 
         @test convert(CategoricalArray, x) === x
-        @test convert(CategoricalArray{Union{Float64, Null}}, x) === x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1}, x) === x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1, R}, x) === x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1, DefaultRefType}, x) == x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1, UInt8}, x) == x
+        @test convert(CategoricalArray{Union{Float64, Missing}}, x) === x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1}, x) === x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1, R}, x) === x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1, UInt8}, x) == x
 
         @test convert(CategoricalVector, x) === x
-        @test convert(CategoricalVector{Union{Float64, Null}}, x) === x
-        @test convert(CategoricalVector{Union{Float64, Null}, R}, x) === x
-        @test convert(CategoricalVector{Union{Float64, Null}, DefaultRefType}, x) == x
-        @test convert(CategoricalVector{Union{Float64, Null}, UInt8}, x) == x
+        @test convert(CategoricalVector{Union{Float64, Missing}}, x) === x
+        @test convert(CategoricalVector{Union{Float64, Missing}, R}, x) === x
+        @test convert(CategoricalVector{Union{Float64, Missing}, DefaultRefType}, x) == x
+        @test convert(CategoricalVector{Union{Float64, Missing}, UInt8}, x) == x
 
         @test convert(CategoricalArray, a) == x
-        @test convert(CategoricalArray{Union{Float64, Null}}, a) == x
-        @test convert(CategoricalArray{Union{Float32, Null}}, a) == x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1}, a) == x
-        @test convert(CategoricalArray{Union{Float32, Null}, 1}, a) == x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1, R}, a) == x
-        @test convert(CategoricalArray{Union{Float32, Null}, 1, R}, a) == x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1, DefaultRefType}, a) == x
-        @test convert(CategoricalArray{Union{Float32, Null}, 1, DefaultRefType}, a) == x
-        @test convert(CategoricalArray{Union{Float64, Null}, 1, UInt8}, a) == x
-        @test convert(CategoricalArray{Union{Float32, Null}, 1, UInt8}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Missing}}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Missing}}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Missing}, 1}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1, R}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Missing}, 1, R}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Missing}, 1, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{Union{Float64, Missing}, 1, UInt8}, a) == x
+        @test convert(CategoricalArray{Union{Float32, Missing}, 1, UInt8}, a) == x
 
         @test convert(CategoricalVector, a) == x
-        @test convert(CategoricalVector{Union{Float64, Null}}, a) == x
-        @test convert(CategoricalVector{Union{Float32, Null}}, a) == x
-        @test convert(CategoricalVector{Union{Float64, Null}, R}, a) == x
-        @test convert(CategoricalVector{Union{Float32, Null}, R}, a) == x
-        @test convert(CategoricalVector{Union{Float64, Null}, DefaultRefType}, a) == x
-        @test convert(CategoricalVector{Union{Float32, Null}, DefaultRefType}, a) == x
-        @test convert(CategoricalVector{Union{Float64, Null}, UInt8}, a) == x
-        @test convert(CategoricalVector{Union{Float32, Null}, UInt8}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Missing}}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Missing}}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Missing}, R}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Missing}, R}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Missing}, DefaultRefType}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Missing}, DefaultRefType}, a) == x
+        @test convert(CategoricalVector{Union{Float64, Missing}, UInt8}, a) == x
+        @test convert(CategoricalVector{Union{Float32, Missing}, UInt8}, a) == x
 
-        @test CategoricalArray{Union{Float64, Null}}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{Float32, Null}}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{Float64, Null}, 1}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{Float32, Null}, 1}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{Float64, Null}, 1, R}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{Float32, Null}, 1, R}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{Float64, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{Float32, Null}, 1, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Missing}}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Missing}}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Missing}, 1}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Missing}, 1}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Missing}, 1, R}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Missing}, 1, R}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float64, Missing}, 1, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{Float32, Missing}, 1, DefaultRefType}(a, ordered=ordered) == x
 
         @test CategoricalVector(a, ordered=ordered) == x
-        @test CategoricalVector{Union{Float64, Null}}(a, ordered=ordered) == x
-        @test CategoricalVector{Union{Float32, Null}}(a, ordered=ordered) == x
-        @test CategoricalVector{Union{Float64, Null}, R}(a, ordered=ordered) == x
-        @test CategoricalVector{Union{Float32, Null}, R}(a, ordered=ordered) == x
-        @test CategoricalVector{Union{Float64, Null}, DefaultRefType}(a, ordered=ordered) == x
-        @test CategoricalVector{Union{Float32, Null}, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float64, Missing}}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float32, Missing}}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float64, Missing}, R}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float32, Missing}, R}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float64, Missing}, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalVector{Union{Float32, Missing}, DefaultRefType}(a, ordered=ordered) == x
 
         @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
             ((a, DefaultRefType, UInt8, true),
@@ -457,8 +457,8 @@ const ≅ = isequal
 
             x2 = categorical(y, ordered=ordered)
             @test x2 == collect(y)
-            if eltype(y) >: Null
-                @test isa(x2, CategoricalVector{Union{Float64, Null}, R1})
+            if eltype(y) >: Missing
+                @test isa(x2, CategoricalVector{Union{Float64, Missing}, R1})
             else
                 @test isa(x2, CategoricalVector{Float64, R1})
             end
@@ -468,8 +468,8 @@ const ≅ = isequal
 
             x2 = categorical(y, comp, ordered=ordered)
             @test x2 == collect(y)
-            if eltype(y) >: Null
-                @test isa(x2, CategoricalVector{Union{Float64, Null}, R2})
+            if eltype(y) >: Missing
+                @test isa(x2, CategoricalVector{Union{Float64, Missing}, R2})
             else
                 @test isa(x2, CategoricalVector{Float64, R2})
             end
@@ -481,7 +481,7 @@ const ≅ = isequal
         x2 = compress(x)
         @test x2 == x
         @test isordered(x2) === isordered(x)
-        @test isa(x2, CategoricalVector{Union{Float64, Null}, UInt8})
+        @test isa(x2, CategoricalVector{Union{Float64, Missing}, UInt8})
         @test levels(x2) == levels(x)
 
         x2 = copy(x)
@@ -558,7 +558,7 @@ const ≅ = isequal
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
         b = [2.5, 3.0, -3.5]
-        y = CategoricalVector{Union{Float64, Null}, R}(b)
+        y = CategoricalVector{Union{Float64, Missing}, R}(b)
         append!(x, y)
         @test length(x) == 15
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
@@ -571,11 +571,11 @@ const ≅ = isequal
         @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
     end
 
-    @testset "Matrix $(typeof(a)) with no null values" for a in
+    @testset "Matrix $(typeof(a)) with no missing values" for a in
         (["a" "b" "c"; "b" "a" "c"],
-         Union{String, Null}["a" "b" "c"; "b" "a" "c"])
+         Union{String, Missing}["a" "b" "c"; "b" "a" "c"])
 
-        x = CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered)
+        x = CategoricalMatrix{Union{String, Missing}, R}(a, ordered=ordered)
 
         @test x == a
         @test isordered(x) === ordered
@@ -584,42 +584,42 @@ const ≅ = isequal
         @test length(x) === 6
 
         @test convert(CategoricalArray, x) === x
-        @test convert(CategoricalArray{Union{String, Null}}, x) === x
-        @test convert(CategoricalArray{Union{String, Null}, 2}, x) === x
-        @test convert(CategoricalArray{Union{String, Null}, 2, R}, x) === x
-        @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, x) == x
-        @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, x) == x
+        @test convert(CategoricalArray{Union{String, Missing}}, x) === x
+        @test convert(CategoricalArray{Union{String, Missing}, 2}, x) === x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, R}, x) === x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, UInt8}, x) == x
 
         @test convert(CategoricalMatrix, x) === x
-        @test convert(CategoricalMatrix{Union{String, Null}}, x) === x
-        @test convert(CategoricalMatrix{Union{String, Null}, R}, x) === x
-        @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, x) == x
-        @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, x) == x
+        @test convert(CategoricalMatrix{Union{String, Missing}}, x) === x
+        @test convert(CategoricalMatrix{Union{String, Missing}, R}, x) === x
+        @test convert(CategoricalMatrix{Union{String, Missing}, DefaultRefType}, x) == x
+        @test convert(CategoricalMatrix{Union{String, Missing}, UInt8}, x) == x
 
         @test convert(CategoricalArray, a) == x
-        @test convert(CategoricalArray{Union{String, Null}}, a) == x
-        @test convert(CategoricalArray{Union{String, Null}, 2, R}, a) == x
-        @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, a) == x
-        @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, a) == x
+        @test convert(CategoricalArray{Union{String, Missing}}, a) == x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, R}, a) == x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, DefaultRefType}, a) == x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, UInt8}, a) == x
 
         @test convert(CategoricalMatrix, a) == x
-        @test convert(CategoricalMatrix{Union{String, Null}}, a) == x
-        @test convert(CategoricalMatrix{Union{String, Null}, R}, a) == x
-        @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, a) == x
-        @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, a) == x
+        @test convert(CategoricalMatrix{Union{String, Missing}}, a) == x
+        @test convert(CategoricalMatrix{Union{String, Missing}, R}, a) == x
+        @test convert(CategoricalMatrix{Union{String, Missing}, DefaultRefType}, a) == x
+        @test convert(CategoricalMatrix{Union{String, Missing}, UInt8}, a) == x
 
-        @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{String, Null}, 2, R}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{String, Null}, 2, DefaultRefType}(a, ordered=ordered) == x
-        @test CategoricalArray{Union{String, Null}, 2, UInt8}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{String, Missing}}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{String, Missing}, 2}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{String, Missing}, 2}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{String, Missing}, 2, R}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{String, Missing}, 2, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalArray{Union{String, Missing}, 2, UInt8}(a, ordered=ordered) == x
 
         @test CategoricalMatrix(a, ordered=ordered) == x
-        @test CategoricalMatrix{Union{String, Null}}(a, ordered=ordered) == x
-        @test CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered) == x
-        @test CategoricalMatrix{Union{String, Null}, DefaultRefType}(a, ordered=ordered) == x
-        @test CategoricalMatrix{Union{String, Null}, UInt8}(a, ordered=ordered) == x
+        @test CategoricalMatrix{Union{String, Missing}}(a, ordered=ordered) == x
+        @test CategoricalMatrix{Union{String, Missing}, R}(a, ordered=ordered) == x
+        @test CategoricalMatrix{Union{String, Missing}, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalMatrix{Union{String, Missing}, UInt8}(a, ordered=ordered) == x
 
         @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
             ((a, DefaultRefType, UInt8, true),
@@ -629,8 +629,8 @@ const ≅ = isequal
 
             x2 = categorical(y, ordered=ordered)
             @test x2 == y
-            if eltype(y) >: Null
-                @test isa(x2, CategoricalMatrix{Union{String, Null}, R1})
+            if eltype(y) >: Missing
+                @test isa(x2, CategoricalMatrix{Union{String, Missing}, R1})
             else
                 @test isa(x2, CategoricalMatrix{String, R1})
             end
@@ -638,8 +638,8 @@ const ≅ = isequal
 
             x2 = categorical(y, comp, ordered=ordered)
             @test x2 == y
-            if eltype(y) >: Null
-                @test isa(x2, CategoricalMatrix{Union{String, Null}, R2})
+            if eltype(y) >: Missing
+                @test isa(x2, CategoricalMatrix{Union{String, Missing}, R2})
             else
                 @test isa(x2, CategoricalMatrix{String, R2})
             end
@@ -648,7 +648,7 @@ const ≅ = isequal
 
         x2 = compress(x)
         @test x2 == x
-        @test isa(x2, CategoricalMatrix{Union{String, Null}, UInt8})
+        @test isa(x2, CategoricalMatrix{Union{String, Missing}, UInt8})
         @test isordered(x2) === isordered(x)
         @test levels(x2) == levels(x)
 
@@ -679,7 +679,7 @@ const ≅ = isequal
         @test x[1:2,:] == x
         @test typeof(x[1:2,:]) === typeof(x)
         @test x[1:2,1] == ["a", "b"]
-        @test isa(x[1:2,1], CategoricalVector{Union{String, Null}, R})
+        @test isa(x[1:2,1], CategoricalVector{Union{String, Missing}, R})
 
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
@@ -709,53 +709,53 @@ const ≅ = isequal
         @test levels(x) == ["a", "b", "c", "z"]
         end
 
-        @testset "Matrix with null values" begin
-        a = ["a" null "c"; "b" "a" null]
-        x = CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered)
+        @testset "Matrix with missing values" begin
+        a = ["a" missing "c"; "b" "a" missing]
+        x = CategoricalMatrix{Union{String, Missing}, R}(a, ordered=ordered)
 
         @test x ≅ a
         @test isordered(x) === ordered
-        @test levels(x) == filter(x->!isnull(x), unique(a))
+        @test levels(x) == filter(x->!ismissing(x), unique(a))
         @test size(x) === (2, 3)
         @test length(x) === 6
 
         @test convert(CategoricalArray, x) === x
-        @test convert(CategoricalArray{Union{String, Null}}, x) === x
-        @test convert(CategoricalArray{Union{String, Null}, 2}, x) === x
-        @test convert(CategoricalArray{Union{String, Null}, 2, R}, x) === x
-        @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, x) ≅ x
-        @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, x) ≅ x
+        @test convert(CategoricalArray{Union{String, Missing}}, x) === x
+        @test convert(CategoricalArray{Union{String, Missing}, 2}, x) === x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, R}, x) === x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, DefaultRefType}, x) ≅ x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, UInt8}, x) ≅ x
 
         @test convert(CategoricalMatrix, x) === x
-        @test convert(CategoricalMatrix{Union{String, Null}}, x) === x
-        @test convert(CategoricalMatrix{Union{String, Null}, R}, x) === x
-        @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, x) ≅ x
-        @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, x) ≅ x
+        @test convert(CategoricalMatrix{Union{String, Missing}}, x) === x
+        @test convert(CategoricalMatrix{Union{String, Missing}, R}, x) === x
+        @test convert(CategoricalMatrix{Union{String, Missing}, DefaultRefType}, x) ≅ x
+        @test convert(CategoricalMatrix{Union{String, Missing}, UInt8}, x) ≅ x
 
         @test convert(CategoricalArray, a) ≅ x
-        @test convert(CategoricalArray{Union{String, Null}}, a) ≅ x
-        @test convert(CategoricalArray{Union{String, Null}, 2, R}, a) ≅ x
-        @test convert(CategoricalArray{Union{String, Null}, 2, DefaultRefType}, a) ≅ x
-        @test convert(CategoricalArray{Union{String, Null}, 2, UInt8}, a) ≅ x
+        @test convert(CategoricalArray{Union{String, Missing}}, a) ≅ x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, R}, a) ≅ x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, DefaultRefType}, a) ≅ x
+        @test convert(CategoricalArray{Union{String, Missing}, 2, UInt8}, a) ≅ x
 
         @test convert(CategoricalMatrix, a) ≅ x
-        @test convert(CategoricalMatrix{Union{String, Null}}, a) ≅ x
-        @test convert(CategoricalMatrix{Union{String, Null}, R}, a) ≅ x
-        @test convert(CategoricalMatrix{Union{String, Null}, DefaultRefType}, a) ≅ x
-        @test convert(CategoricalMatrix{Union{String, Null}, UInt8}, a) ≅ x
+        @test convert(CategoricalMatrix{Union{String, Missing}}, a) ≅ x
+        @test convert(CategoricalMatrix{Union{String, Missing}, R}, a) ≅ x
+        @test convert(CategoricalMatrix{Union{String, Missing}, DefaultRefType}, a) ≅ x
+        @test convert(CategoricalMatrix{Union{String, Missing}, UInt8}, a) ≅ x
 
-        @test CategoricalArray{Union{String, Null}}(a, ordered=ordered) ≅ x
-        @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) ≅ x
-        @test CategoricalArray{Union{String, Null}, 2}(a, ordered=ordered) ≅ x
-        @test CategoricalArray{Union{String, Null}, 2, R}(a, ordered=ordered) ≅ x
-        @test CategoricalArray{Union{String, Null}, 2, DefaultRefType}(a, ordered=ordered) ≅ x
-        @test CategoricalArray{Union{String, Null}, 2, UInt8}(a, ordered=ordered) ≅ x
+        @test CategoricalArray{Union{String, Missing}}(a, ordered=ordered) ≅ x
+        @test CategoricalArray{Union{String, Missing}, 2}(a, ordered=ordered) ≅ x
+        @test CategoricalArray{Union{String, Missing}, 2}(a, ordered=ordered) ≅ x
+        @test CategoricalArray{Union{String, Missing}, 2, R}(a, ordered=ordered) ≅ x
+        @test CategoricalArray{Union{String, Missing}, 2, DefaultRefType}(a, ordered=ordered) ≅ x
+        @test CategoricalArray{Union{String, Missing}, 2, UInt8}(a, ordered=ordered) ≅ x
 
         @test CategoricalMatrix(a, ordered=ordered) ≅ x
-        @test CategoricalMatrix{Union{String, Null}}(a, ordered=ordered) ≅ x
-        @test CategoricalMatrix{Union{String, Null}, R}(a, ordered=ordered) ≅ x
-        @test CategoricalMatrix{Union{String, Null}, DefaultRefType}(a, ordered=ordered) ≅ x
-        @test CategoricalMatrix{Union{String, Null}, UInt8}(a, ordered=ordered) ≅ x
+        @test CategoricalMatrix{Union{String, Missing}}(a, ordered=ordered) ≅ x
+        @test CategoricalMatrix{Union{String, Missing}, R}(a, ordered=ordered) ≅ x
+        @test CategoricalMatrix{Union{String, Missing}, DefaultRefType}(a, ordered=ordered) ≅ x
+        @test CategoricalMatrix{Union{String, Missing}, UInt8}(a, ordered=ordered) ≅ x
 
         @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
             ((a, DefaultRefType, UInt8, true),
@@ -765,18 +765,18 @@ const ≅ = isequal
 
             x2 = categorical(y, ordered=ordered)
             @test x2 ≅ y
-            @test isa(x2, CategoricalMatrix{Union{String, Null}, R1})
+            @test isa(x2, CategoricalMatrix{Union{String, Missing}, R1})
             @test isordered(x2) === ordered
 
             x2 = categorical(y, comp, ordered=ordered)
             @test x2 ≅ y
-            @test isa(x2, CategoricalMatrix{Union{String, Null}, R2})
+            @test isa(x2, CategoricalMatrix{Union{String, Missing}, R2})
             @test isordered(x2) === ordered
         end
 
         x2 = compress(x)
         @test x2 ≅ x
-        @test isa(x2, CategoricalMatrix{Union{String, Null}, UInt8})
+        @test isa(x2, CategoricalMatrix{Union{String, Missing}, UInt8})
         @test isordered(x2) === isordered(x)
         @test levels(x2) == levels(x)
 
@@ -788,18 +788,18 @@ const ≅ = isequal
 
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
-        @test x[3] === null
+        @test x[3] === missing
         @test x[4] === x.pool.valindex[1]
         @test x[5] === x.pool.valindex[3]
-        @test x[6] === null
+        @test x[6] === missing
         @test_throws BoundsError x[7]
 
         @test x[1,1] === x.pool.valindex[1]
         @test x[2,1] === x.pool.valindex[2]
-        @test x[1,2] === null
+        @test x[1,2] === missing
         @test x[2,2] === x.pool.valindex[1]
         @test x[1,3] === x.pool.valindex[3]
-        @test x[2,3] === null
+        @test x[2,3] === missing
         @test_throws BoundsError x[1,4]
         @test_throws BoundsError x[4,1]
         @test_throws BoundsError x[4,4]
@@ -813,14 +813,14 @@ const ≅ = isequal
 
         x2 = x[:,[1, 3]]
         @test typeof(x2) === typeof(x)
-        @test x2 ≅ ["a" "c"; "b" null]
+        @test x2 ≅ ["a" "c"; "b" missing]
         @test levels(x2) == levels(x)
         @test levels(x2) !== levels(x)
         @test isordered(x2) == isordered(x)
 
         x2 = x[1:1,2]
-        @test isa(x2, CategoricalVector{Union{String, Null}, R})
-        @test x2 ≅ [null]
+        @test isa(x2, CategoricalVector{Union{String, Missing}, R})
+        @test x2 ≅ [missing]
         @test levels(x2) == levels(x)
         @test levels(x2) !== levels(x)
         @test isordered(x2) == isordered(x)
@@ -839,10 +839,10 @@ const ≅ = isequal
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
-        @test x[3] === null
+        @test x[3] === missing
         @test x[4] === x.pool.valindex[1]
         @test x[5] === x.pool.valindex[3]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,:] = "a"
@@ -851,7 +851,7 @@ const ≅ = isequal
         @test x[3] === x.pool.valindex[1]
         @test x[4] === x.pool.valindex[1]
         @test x[5] === x.pool.valindex[1]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,1:2] = "z"
@@ -860,76 +860,76 @@ const ≅ = isequal
         @test x[3] === x.pool.valindex[4]
         @test x[4] === x.pool.valindex[1]
         @test x[5] === x.pool.valindex[1]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1] = null
-        @test x[1] === null
+        x[1] = missing
+        @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[4]
         @test x[4] === x.pool.valindex[1]
         @test x[5] === x.pool.valindex[1]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = null
-        @test x[1] === null
+        x[1,1:2] = missing
+        @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
-        @test x[3] === null
+        @test x[3] === missing
         @test x[4] === x.pool.valindex[1]
         @test x[5] === x.pool.valindex[1]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[:,2] = null
-        @test x[1] === null
+        x[:,2] = missing
+        @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
-        @test x[3] === null
-        @test x[4] === null
+        @test x[3] === missing
+        @test x[4] === missing
         @test x[5] === x.pool.valindex[1]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,2] = "a"
-        @test x[1] === null
+        @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
-        @test x[4] === null
+        @test x[4] === missing
         @test x[5] === x.pool.valindex[1]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[2,1] = null
-        @test x[1] === null
-        @test x[2] === null
+        x[2,1] = missing
+        @test x[1] === missing
+        @test x[2] === missing
         @test x[3] === x.pool.valindex[1]
-        @test x[4] === null
+        @test x[4] === missing
         @test x[5] === x.pool.valindex[1]
-        @test x[6] === null
+        @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
         end
 
         # Uninitialized array
-        v = Any[CategoricalArray{Union{String, Null}}(2, ordered=ordered),
-                CategoricalArray{Union{String, Null}, 1}(2, ordered=ordered),
-                CategoricalArray{Union{String, Null}, 1, R}(2, ordered=ordered),
-                CategoricalVector{Union{String, Null}}(2, ordered=ordered),
-                CategoricalVector{Union{String, Null}, R}(2, ordered=ordered),
-                CategoricalArray{Union{String, Null}}(2, 3, ordered=ordered),
-                CategoricalArray{Union{String, Null}, 2}(2, 3, ordered=ordered),
-                CategoricalArray{Union{String, Null}, 2, R}(2, 3, ordered=ordered),
-                CategoricalMatrix{Union{String, Null}}(2, 3, ordered=ordered),
-                CategoricalMatrix{Union{String, Null}, R}(2, 3, ordered=ordered)]
+        v = Any[CategoricalArray{Union{String, Missing}}(2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 1}(2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 1, R}(2, ordered=ordered),
+                CategoricalVector{Union{String, Missing}}(2, ordered=ordered),
+                CategoricalVector{Union{String, Missing}, R}(2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}}(2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 2}(2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 2, R}(2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Missing}}(2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Missing}, R}(2, 3, ordered=ordered)]
 
         @testset "Uninitialized $(typeof(x))" for x in v
         @test isordered(x) === ordered
-        @test isnull(x[1])
-        @test isnull(x[2])
+        @test ismissing(x[1])
+        @test ismissing(x[2])
         @test levels(x) == []
 
         x2 = compress(x)
         @test x2 ≅ x
-        @test isa(x2, CategoricalArray{Union{leveltype(x), Null}, ndims(x), UInt8})
+        @test isa(x2, CategoricalArray{Union{leveltype(x), Missing}, ndims(x), UInt8})
         @test isordered(x2) === isordered(x)
         @test levels(x2) == []
 
@@ -941,32 +941,32 @@ const ≅ = isequal
 
         x[1] = "c"
         @test x[1] === x.pool.valindex[1]
-        @test isnull(x[2])
+        @test ismissing(x[2])
         @test levels(x) == ["c"]
 
         x[1] = "a"
         @test x[1] === x.pool.valindex[2]
-        @test isnull(x[2])
+        @test ismissing(x[2])
         @test levels(x) == ["c", "a"]
 
-        x[2] = null
+        x[2] = missing
         @test x[1] === x.pool.valindex[2]
-        @test x[2] === null
+        @test x[2] === missing
         @test levels(x) == ["c", "a"]
 
         x[1] = "b"
         @test x[1] === x.pool.valindex[3]
-        @test x[2] === null
+        @test x[2] === missing
         @test levels(x) == ["c", "a", "b"]
         end
     end
 end
 
-@testset "vcat with nulls" begin
-    ca1 = CategoricalArray(["a", null])
-    ca2 = CategoricalArray([null, "a"])
+@testset "vcat with missings" begin
+    ca1 = CategoricalArray(["a", missing])
+    ca2 = CategoricalArray([missing, "a"])
     r = vcat(ca1, ca2)
-    @test r ≅ CategoricalArray(["a", null, null, "a"])
+    @test r ≅ CategoricalArray(["a", missing, missing, "a"])
     @test levels(r) == ["a"]
     @test !isordered(r)
     ordered!(ca1,true)
@@ -977,16 +977,16 @@ end
     @test !isordered(vcat(ca1, ca2))
 end
 
-@testset "vcat with all nulls" begin
-    ca1 = CategoricalArray(["a", null])
-    ca2 = CategoricalArray([null, null])
+@testset "vcat with all missings" begin
+    ca1 = CategoricalArray(["a", missing])
+    ca2 = CategoricalArray([missing, missing])
     r = vcat(ca1, ca2)
-    @test r ≅ ["a", null, null, null]
+    @test r ≅ ["a", missing, missing, missing]
     @test levels(r) == ["a"]
     @test !isordered(r)
 
     @testset "preserves isordered" begin
-    # needed for instance when expanding an array with nulls
+    # needed for instance when expanding an array with missings
     # such as vcat of DataFrame with missing columns
     ordered!(ca1, true)
     @test isempty(levels(ca2))
@@ -997,18 +997,18 @@ end
 
 @testset "vcat with all empty array" begin
     ca1 = CategoricalArray(0)
-    ca2 = CategoricalArray([null, "b"])
+    ca2 = CategoricalArray([missing, "b"])
     r = vcat(ca1, ca2)
-    @test r ≅ [null, "b"]
+    @test r ≅ [missing, "b"]
     @test levels(r) == ["b"]
     @test !isordered(r)
 end
 
-@testset "vcat with all nulls and empty" begin
+@testset "vcat with all missings and empty" begin
     ca1 = CategoricalArray(0)
-    ca2 = CategoricalArray([null, null])
+    ca2 = CategoricalArray([missing, missing])
     r = vcat(ca1, ca2)
-    @test r ≅ [null, null]
+    @test r ≅ [missing, missing]
     @test levels(r) == String[]
     @test !isordered(r)
 
@@ -1017,52 +1017,52 @@ end
     r = vcat(ca1, ca2)
     @test isordered(r)
 
-    ca1 = CategoricalArray(["a", null])
-    ca2 = CategoricalArray{Union{String, Null}}(2)
+    ca1 = CategoricalArray(["a", missing])
+    ca2 = CategoricalArray{Union{String, Missing}}(2)
     ordered!(ca1, true)
     @test isempty(levels(ca2))
     r = vcat(ca1, ca2)
-    @test r ≅ ["a", null, null, null]
+    @test r ≅ ["a", missing, missing, missing]
     @test isordered(r)
 end
 
 @testset "unique() and levels()" begin
-    x = CategoricalArray(["Old", "Young", "Middle", null, "Young"])
+    x = CategoricalArray(["Old", "Young", "Middle", missing, "Young"])
     @test levels(x) == ["Middle", "Old", "Young"]
-    @test unique(x) ≅ ["Middle", "Old", "Young", null]
+    @test unique(x) ≅ ["Middle", "Old", "Young", missing]
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
-    @test unique(x) ≅ ["Young", "Middle", "Old", null]
+    @test unique(x) ≅ ["Young", "Middle", "Old", missing]
     @test levels!(x, ["Young", "Middle", "Old", "Unused"]) === x
     @test levels(x) == ["Young", "Middle", "Old", "Unused"]
-    @test unique(x) ≅ ["Young", "Middle", "Old", null]
+    @test unique(x) ≅ ["Young", "Middle", "Old", missing]
     @test levels!(x, ["Unused1", "Young", "Middle", "Old", "Unused2"]) === x
     @test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
-    @test unique(x) ≅["Young", "Middle", "Old", null]
+    @test unique(x) ≅["Young", "Middle", "Old", missing]
 
-    x = CategoricalArray((Union{String, Null})[null])
+    x = CategoricalArray((Union{String, Missing})[missing])
     @test isa(levels(x), Vector{String}) && isempty(levels(x))
-    @test unique(x) ≅ [null]
+    @test unique(x) ≅ [missing]
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
-    @test unique(x) ≅ [null]
+    @test unique(x) ≅ [missing]
 
     # To test short-circuit after 1000 elements
-    x = CategoricalArray{Union{Int, Null}}(repeat(1:1500, inner=10))
+    x = CategoricalArray{Union{Int, Missing}}(repeat(1:1500, inner=10))
     @test levels(x) == collect(1:1500)
     @test unique(x) == collect(1:1500)
     @test levels!(x, [1600:-1:1; 2000]) === x
-    x[3] = null
+    x[3] = missing
     @test levels(x) == [1600:-1:1; 2000]
-    @test unique(x) ≅ [1500:-1:3; 2; 1; null]
+    @test unique(x) ≅ [1500:-1:3; 2; 1; missing]
 
     # in
     x = CategoricalArray{Int}(repeat(1:1500, inner=10))
-    @test !(null in x)
+    @test !(missing in x)
 
-    x = CategoricalArray{Union{Int, Null}}(repeat(1:1500, inner=10))
-    x[1] = null
-    @test null in x
+    x = CategoricalArray{Union{Int, Missing}}(repeat(1:1500, inner=10))
+    x[1] = missing
+    @test missing in x
 end
 
 end

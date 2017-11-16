@@ -4,7 +4,7 @@ using CategoricalArrays
 
 const ≅ = isequal
 
-@testset "cut($(Union{Int, T})[...])" for T in (Union{}, Null)
+@testset "cut($(Union{Int, T})[...])" for T in (Union{}, Missing)
     x = @inferred cut(Vector{Union{Int, T}}([2, 3, 5]), [1, 3, 6])
     @test x == ["[1, 3)", "[3, 6)", "[3, 6)"]
     @test isa(x, CategoricalVector{Union{String, T}})
@@ -12,28 +12,28 @@ const ≅ = isequal
     @test levels(x) == ["[1, 3)", "[3, 6)"]
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6])
-    if T === Null
-        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or nullok=true"
+    if T === Missing
+        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allow_missing=true"
     else
         @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
 
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5])
-    if T === Null
-        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or nullok=true"
+    if T === Missing
+        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allow_missing=true"
     else
         @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
 
-    if T === Null
-        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], nullok=true)
-        @test x ≅ ["[2, 5)", "[2, 5)", null]
+    if T === Missing
+        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allow_missing=true)
+        @test x ≅ ["[2, 5)", "[2, 5)", missing]
         @test isa(x, CategoricalVector{Union{String, T}})
         @test isordered(x)
         @test levels(x) == ["[2, 5)"]
     else
-        err = @test_throws ArgumentError cut(Vector{Int}([2, 3, 5]), [2, 5], nullok=true)
+        err = @test_throws ArgumentError cut(Vector{Int}([2, 3, 5]), [2, 5], allow_missing=true)
         @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
 
@@ -98,7 +98,7 @@ const ≅ = isequal
     @test levels(x) == ["[-2.134, 3.0)", "[3.0, 12.5)"]
 end
 
-# TODO: test on nullable arrays once a quantile() method is provided for them
+# TODO: test on arrays supporting missing values once a quantile() method is provided for them
 @testset "cut([5, 4, 3, 2], 2)" begin
     x = @inferred cut([5, 4, 3, 2], 2)
     @test x == ["[3.5, 5.0]", "[3.5, 5.0]", "[2.0, 3.5)", "[2.0, 3.5)"]
