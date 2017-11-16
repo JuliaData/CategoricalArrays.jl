@@ -88,7 +88,7 @@ Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
-function Base.get!(pool::CategoricalPool{T, R}, level::Any) where {T, R}
+@inline function Base.get!(pool::CategoricalPool{T, R}, level::Any) where {T, R}
     get!(pool.invindex, level) do
         x = convert(T, level)
         n = length(pool)
@@ -151,7 +151,8 @@ function levels!(pool::CategoricalPool{S, R}, newlevels::Vector) where {S, R}
     end
 
     # No deletions: can preserve position of existing levels
-    if issubset(pool.index, levs)
+    # equivalent to issubset but faster due to JuliaLang/julia#24624
+    if isempty(setdiff(pool.index, levs))
         append!(pool, setdiff(levs, pool.index))
     else
         empty!(pool.invindex)
