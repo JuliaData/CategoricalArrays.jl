@@ -246,7 +246,7 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) wher
     # if order is defined for level type, automatically apply it
     L = leveltype(res)
     if method_exists(isless, Tuple{L, L})
-        levels!(res, sort(levels(res)))
+        levels!(res.pool, sort(levels(res.pool)))
     end
 
     res
@@ -552,9 +552,10 @@ function levels!(A::CategoricalArray{T}, newlevels::Vector; nullok=false) where 
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
     end
 
-    # first pass to check whether changes can be applied without error
+    # first pass to check whether, if some levels are removed, changes can be applied without error
     # TODO: save original levels and undo changes in case of error to skip this step
-    if !all(l->l in newlevels, index(A.pool))
+    # equivalent to issubset but faster due to JuliaLang/julia#24624
+    if !isempty(setdiff(index(A.pool), newlevels))
         deleted = [!(l in newlevels) for l in index(A.pool)]
         @inbounds for (i, x) in enumerate(A.refs)
             if T >: Null
