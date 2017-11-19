@@ -126,7 +126,7 @@ Base.isequal(::Missing, ::CatValue) = false
 
 Base.in(x::CatValue, y::Any) = get(x) in y
 Base.in(x::CatValue, y::Set) = get(x) in y
-Base.in(x::CatValue, y::Range{T}) where {T<:Integer} = get(x) in y
+Base.in(x::CatValue, y::AbstractRange{T}) where {T<:Integer} = get(x) in y
 
 Base.hash(x::CatValue, h::UInt) = hash(get(x), h)
 
