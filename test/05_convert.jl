@@ -17,8 +17,8 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     v3 = catvalue(3, pool)
     @test iscatvalue(v1)
     @test iscatvalue(typeof(v1))
-    @test eltype(v1) === Int
-    @test eltype(typeof(v1)) === Int
+    @test eltype(v1) === Any
+    @test eltype(typeof(v1)) === Any
     @test leveltype(v1) === Int
     @test leveltype(typeof(v1)) === Int
     @test reftype(v1) === DefaultRefType

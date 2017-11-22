@@ -52,8 +52,8 @@ using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, i
 
         @test iscatvalue(x)
         @test iscatvalue(typeof(x))
-        @test eltype(x) === String
-        @test eltype(typeof(x)) === String
+        @test eltype(x) === Char
+        @test eltype(typeof(x)) === Char
         @test leveltype(x) === String
         @test leveltype(typeof(x)) === String
         @test reftype(x) === DefaultRefType
