@@ -30,6 +30,9 @@ using CategoricalArrays
     @test isempty(v1)
     @test !isempty(v2)
 
+    @test eltype(v1) === Char
+    @test eltype(v2) === Char
+
     @test length(v1) === 0
     @test length(v2) === 4
 
