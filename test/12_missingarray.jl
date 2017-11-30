@@ -146,6 +146,17 @@ const ≅ = isequal
                 @test levels(x2) !== levels(x)
                 @test isordered(x2) == isordered(x)
 
+                x2 = copy(x)
+                @test fill!(x2, "a") === x2
+                @test x2 == ["a", "a", "a"]
+                @test levels(x2) == ["a", "b"]
+                fill!(x2, "c")
+                @test x2 == ["c", "c", "c"]
+                @test levels(x2) == ["a", "b", "c"]
+                fill!(x2, missing)
+                @test all(ismissing, x2)
+                @test levels(x2) == ["a", "b", "c"]
+
                 x[1] = x[2]
                 @test x[1] === x.pool.valindex[2]
                 @test x[2] === x.pool.valindex[2]

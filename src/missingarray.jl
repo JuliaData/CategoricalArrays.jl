@@ -22,5 +22,7 @@ end
     @inbounds A.refs[I...] = 0
 end
 
+Base.fill!(A::CategoricalArray{>:Missing}, ::Missing) = (fill!(A.refs, 0); A)
+
 in(x::Missing, y::CategoricalArray) = false
 in(x::Missing, y::CategoricalArray{>:Missing}) = !all(v -> v > 0, y.refs)
