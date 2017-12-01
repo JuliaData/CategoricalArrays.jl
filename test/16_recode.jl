@@ -335,6 +335,17 @@ end
     else
         @test typeof(y) === Vector{Union{Int, Missing}}
     end
+
+    # Recoding from Int to Union{Int, Missing} with single missing RHS
+    y = @inferred recode(x, 1=>missing)
+    @test y ≅ [missing, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    if isa(x, CategoricalArray)
+        @test isa(y, CategoricalVector{Union{Int, Missing}, DefaultRefType})
+        @test levels(y) == collect(2:10)
+        @test !isordered(y)
+    else
+        @test typeof(y) === Vector{Union{Int, Missing}}
+    end
 end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(x))" for

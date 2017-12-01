@@ -322,9 +322,14 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
     T = default === nothing ? V : promote_type(typeof(default), V)
-    # Exception: if original array accepted missing values and missing does not appear
+    # Exception 1: if T === Missing and default not missing,
+    # assume the caller wants to recode only some values to missing,
+    # but accept original values
+    if T === Missing && default !== missing
+        dest = Array{Union{eltype(a), Missing}}(size(a))
+    # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
-    if T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+    elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
         dest = Array{Union{T, Missing}}(size(a))
     else
         dest = Array{Missings.T(T)}(size(a))
@@ -338,9 +343,14 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
     T = default === nothing ? V : promote_type(typeof(default), V)
-    # Exception: if original array accepted missing values and missing does not appear
+    # Exception 1: if T === Missing and default not missing,
+    # assume the caller wants to recode only some values to missing,
+    # but accept original values
+    if T === Missing && default !== missing
+        dest = CategoricalArray{Union{S, Missing}, N, R}(size(a))
+    # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
-    if T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+    elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
         dest = CategoricalArray{Union{T, Missing}, N, R}(size(a))
     else
         dest = CategoricalArray{Missings.T(T), N, R}(size(a))
