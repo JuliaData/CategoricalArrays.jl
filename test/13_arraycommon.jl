@@ -427,6 +427,37 @@ end
         @test !isordered(x)
     end
 
+    @testset "fill!()" begin
+        x = CategoricalArray{Union{String, T}}(["a", "b", "c"])
+        x2 = copy(x)
+        @test fill!(x2, "a") === x2
+        @test x2 == ["a", "a", "a"]
+        @test levels(x2) == ["a", "b", "c"]
+
+        @test fill!(x2, x[2]) == ["b", "b", "b"]
+        @test levels(x2) == ["a", "b", "c"]
+
+        x2 = copy(x)
+        @test_throws MethodError fill!(x2, 3)
+        @test x2 == x
+
+        if T === Missing
+            x2 = fill!(copy(x), missing)
+            @test all(ismissing, x2)
+        else
+            @test_throws MethodError fill!(x2, missing)
+            @test x2 == x
+        end
+
+        fill!(x2, :c)
+        @test x2 == ["c", "c", "c"]
+        @test levels(x2) == ["a", "b", "c"]
+
+        fill!(x2, "0")
+        @test x2 == ["0", "0", "0"]
+        @test levels(x2) == ["a", "b", "c", "0"]
+    end
+
     @testset "overflow of reftype is detected and doesn't corrupt data and levels" begin
         res = @test_throws LevelsException{Int, UInt8} CategoricalArray{Union{T, Int}, 1, UInt8}(256:-1:1)
         @test res.value.levels == [1]
