@@ -427,6 +427,61 @@ end
         @test !isordered(x)
     end
 
+    @testset "fill!()" begin
+        @testset "non-missing" begin
+            x = categorical(["a", "b", "c"])
+            x2 = copy(x)
+            @test fill!(x2, "a") === x2
+            @test x2 == ["a", "a", "a"]
+            @test levels(x2) == ["a", "b", "c"]
+
+            @test fill!(x2, x[2]) == ["b", "b", "b"]
+            @test levels(x2) == ["a", "b", "c"]
+
+            x2 = copy(x)
+            @test_throws MethodError fill!(x2, missing)
+            @test x2 == x
+            @test_throws MethodError fill!(x2, 3)
+            @test x2 == x
+
+            fill!(x2, :c)
+            @test x2 == ["c", "c", "c"]
+            @test levels(x2) == ["a", "b", "c"]
+
+            fill!(x2, "0")
+            @test x2 == ["0", "0", "0"]
+            @test levels(x2) == ["a", "b", "c", "0"]
+        end
+
+        @testset "missing" begin
+            x = categorical(Union{String, Missing}["a", "b", "c"])
+
+            x2 = copy(x)
+            @test fill!(x2, "a") === x2
+            @test x2 == ["a", "a", "a"]
+            @test levels(x2) == ["a", "b", "c"]
+
+            @test fill!(x2, x[2]) == ["b", "b", "b"]
+            @test levels(x2) == ["a", "b", "c"]
+
+            x2 = copy(x)
+            fill!(x2, "0")
+            @test x2 == ["0", "0", "0"]
+            @test levels(x2) == ["a", "b", "c", "0"]
+
+            x2 = fill!(copy(x), missing)
+            @test all(ismissing, x2)
+
+            x2 = copy(x)
+            @test_throws MethodError fill!(x2, 3.0)
+            @test x2 == x
+
+            fill!(x2, Symbol(1))
+            @test x2 == ["1", "1", "1"]
+            @test levels(x2) == ["a", "b", "c", "1"]
+        end
+    end
+
     @testset "overflow of reftype is detected and doesn't corrupt data and levels" begin
         res = @test_throws LevelsException{Int, UInt8} CategoricalArray{Union{T, Int}, 1, UInt8}(256:-1:1)
         @test res.value.levels == [1]
