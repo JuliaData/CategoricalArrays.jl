@@ -338,7 +338,8 @@ Base.IndexStyle(::Type{<:CategoricalArray}) = IndexLinear()
     @inbounds A.refs[I...] = get!(A.pool, v)
 end
 
-Base.fill!(A::CategoricalArray, v::Any) = (fill!(A.refs, get!(A.pool, v)); A)
+Base.fill!(A::CategoricalArray, v::Any) =
+    (fill!(A.refs, get!(A.pool, convert(leveltype(A), v))); A)
 
 function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
