@@ -11,6 +11,8 @@ or [`in`](@ref) the key (first item of the pair), then the corresponding value
 (second item) is copied to `dest`.
 If the element matches no key and `default` is not provided or `nothing`, it is copied as-is;
 if `default` is specified, it is used in place of the original element.
+If `dest` is CategoricalArray and `default` is provided then the ordering of resulting levels
+is determined by the order of passed `pairs` and `default` will be the last level.
 `dest` and `src` must be of the same length, but not necessarily of the same type.
 Elements of `src` as well as values from `pairs` will be `convert`ed when possible
 on assignment.
@@ -37,7 +39,7 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
         for j in 1:length(pairs)
             p = pairs[j]
             if (!isa(p.first, Union{AbstractArray, Tuple}) && x ≅ p.first) ||
-               (isa(p.first, Union{AbstractArray, Tuple}) && x in p.first)
+               (isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first))
                 dest[i] = p.second
                 @goto nextitem
             end
@@ -90,7 +92,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
         for j in 1:length(pairs)
             p = pairs[j]
             if (!isa(p.first, Union{AbstractArray, Tuple}) && x ≅ p.first) ||
-               (isa(p.first, Union{AbstractArray, Tuple}) && x in p.first)
+               (isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first))
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
             end
@@ -146,7 +148,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
 
         for l in srclevels
             if !(any(x -> x ≅ l, firsts) ||
-                 any(f -> isa(f, Union{AbstractArray, Tuple}) && l in f, firsts))
+                 any(f -> isa(f, Union{AbstractArray, Tuple}) && any(l ≅ y for y in f), firsts))
                 try
                     push!(keptlevels, l)
                 catch err
@@ -176,7 +178,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     # For missing values (0 if no missing in pairs' keys)
     indexmap[1] = 0
     for p in pairs
-        if ismissing(p.first)
+        if any(ismissing.(p.first))
             indexmap[1] = get(dest.pool, p.second)
             break
         end
@@ -190,7 +192,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
         for j in 1:length(pairs)
             p = pairs[j]
             if (!isa(p.first, Union{AbstractArray, Tuple}) && l ≅ p.first) ||
-               (isa(p.first, Union{AbstractArray, Tuple}) && l in p.first)
+               (isa(p.first, Union{AbstractArray, Tuple}) && any(l ≅ y for y in p.first))
                 indexmap[i+1] = pairmap[j]
                 @goto nextitem
             end
@@ -266,6 +268,8 @@ or [`in`](@ref) the key (first item of the pair), then the corresponding value
 (second item) is used.
 If the element matches no key and `default` is not provided or `nothing`, it is copied as-is;
 if `default` is specified, it is used in place of the original element.
+If `a` is CategoricalArray and `default` is provided then the ordering of resulting levels
+is determined by the order of passed `pairs` and `default` will be the last level.
 If an element matches more than one key, the first match is used.
 
 # Examples
