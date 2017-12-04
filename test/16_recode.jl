@@ -159,7 +159,7 @@ end
     end
 end
 
-@testset "Group recoding array with missings and no default from $(typeof(x)) to $(typeof(y))" for
+@testset "Collection in LHS recoding array with missings and no default from $(typeof(x)) to $(typeof(y))" for
     x in (["1", missing, "3", "4", "5"], CategoricalArray(["1", missing, "3", "4", "5"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
@@ -187,7 +187,7 @@ end
     end
 end
 
-@testset "Group recoding array with missings, default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
+@testset "Collection with missing in LHS recoding array with missings, default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
@@ -215,7 +215,7 @@ end
     end
 end
 
-@testset "Group recoding array with missings, no default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
+@testset "Collection with missing in LHS recoding array with missings, no default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
