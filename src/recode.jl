@@ -41,8 +41,9 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
 
         for j in 1:length(pairs)
             p = pairs[j]
-            if (!isa(p.first, Union{AbstractArray, Tuple}) && x ≅ p.first) ||
-               (isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first))
+            if ((isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first)) ||
+                x ≅ p.first)
+               
                 dest[i] = p.second
                 @goto nextitem
             end
@@ -94,8 +95,9 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
 
         for j in 1:length(pairs)
             p = pairs[j]
-            if (!isa(p.first, Union{AbstractArray, Tuple}) && x ≅ p.first) ||
-               (isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first))
+            if ((isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first)) ||
+                x ≅ p.first)
+               
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
             end
@@ -181,7 +183,8 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     # For missing values (0 if no missing in pairs' keys)
     indexmap[1] = 0
     for p in pairs
-        if any(ismissing, p.first)
+        if ((isa(p.first, Union{AbstractArray, Tuple}) && any(ismissing, p.first)) ||
+            ismissing(p.first))
             indexmap[1] = get(dest.pool, p.second)
             break
         end
@@ -194,8 +197,9 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     @inbounds for (i, l) in enumerate(srcindex)
         for j in 1:length(pairs)
             p = pairs[j]
-            if (!isa(p.first, Union{AbstractArray, Tuple}) && l ≅ p.first) ||
-               (isa(p.first, Union{AbstractArray, Tuple}) && any(l ≅ y for y in p.first))
+            if ((isa(p.first, Union{AbstractArray, Tuple}) && any(l ≅ y for y in p.first)) ||
+                l ≅ p.first) 
+               
                 indexmap[i+1] = pairmap[j]
                 @goto nextitem
             end
