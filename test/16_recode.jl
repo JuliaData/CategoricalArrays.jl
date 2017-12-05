@@ -14,7 +14,6 @@ const ≅ = isequal
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
     @test y === z
     @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -28,7 +27,6 @@ end
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, 1=>100, 2:4=>100, [5; 9:10]=>-1)
     @test y === z
     @test y == [100, 100, 100, 100, -1, 6, 7, 8, -1, -1]
@@ -42,7 +40,6 @@ end
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1, 100=>1)
     @test y === z
     @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -56,7 +53,6 @@ end
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, 100, 1=>100, 2:4=>100, [5; 9:10]=>-1)
     @test y === z
     @test y == [100, 100, 100, 100, -1, 100, 100, 100, -1, -1]
@@ -70,7 +66,6 @@ end
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, -10, 1=>100, 2:4=>0, [5; 9:10]=>-1)
     @test y === z
     @test y == [100, 0, 0, 0, -1, -10, -10, -10, -1, -1]
@@ -84,7 +79,6 @@ end
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, 1.0=>100, 2:4=>0, [5; 9:10]=>-1)
     @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
     if isa(y, CategoricalArray)
@@ -97,7 +91,6 @@ end
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1, 1:10=>0)
     @test y === z
     @test y == [100, 0, 0, 0, -1, 0, 0, 0, -1, -1]
@@ -111,7 +104,6 @@ end
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
     @test y === z
     @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -135,7 +127,6 @@ end
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, "a", "c"=>"b")
     @test y === z
     @test y ≅ ["a", missing, "b", "a"]
@@ -149,7 +140,6 @@ end
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, "c"=>"b")
     @test y === z
     @test y ≅ ["a", missing, "b", "d"]
@@ -163,7 +153,6 @@ end
     x in (["1", missing, "3", "4", "5"], CategoricalArray(["1", missing, "3", "4", "5"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, ["3","4"]=>"2")
     @test y === z
     @test y ≅ ["1", missing, "2", "2", "5"]
@@ -177,7 +166,6 @@ end
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, "a", "c"=>"b", missing=>"d")
     @test y === z
     @test y == ["a", "d", "b", "a"]
@@ -187,11 +175,10 @@ end
     end
 end
 
-@testset "Collection with missing in LHS recoding array with missings, default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
+@testset "Collection with missing in LHS recoding array with missings, default from $(typeof(x)) to $(typeof(y))" for
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, "a", [missing, "c"]=>"b")
     @test y === z
     @test y == ["a", "b", "b", "a"]
@@ -205,7 +192,6 @@ end
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, "c"=>"b", missing=>"d")
     @test y === z
     @test y == ["a", "d", "b", "d"]
@@ -215,11 +201,10 @@ end
     end
 end
 
-@testset "Collection with missing in LHS recoding array with missings, no default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
+@testset "Collection with missing in LHS recoding array with missings, no default from $(typeof(x)) to $(typeof(y))" for
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
-
     z = @inferred recode!(y, x, ["c", missing]=>"b")
     @test y === z
     @test y == ["a", "b", "b", "d"]
@@ -233,21 +218,18 @@ end
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x, 0), Array{Union{String, Missing}}(0),
           CategoricalArray{Union{String, Missing}}(0))
-
     @test_throws DimensionMismatch recode!(y, x, "c"=>"b", missing=>"d")
 end
 
 @testset "Recoding into an array with incompatible eltype from $(typeof(x)) to $(typeof(y))" for
     x in ([1:10;], CategoricalArray(1:10)),
     y in (similar(x, String), Array{String}(size(x)), CategoricalArray{String}(size(x)))
-
     @test_throws ArgumentError recode!(y, x, 1=>"a", 2:4=>"b", [5; 9:10]=>"c")
 end
 
 @testset "Recoding into an array with incompatible eltype from $(typeof(x)) to $(typeof(y))" for
     x in ((Union{Int, Missing})[1:10;], CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Union{Int, Missing}}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)))
-
     @test_throws MethodError recode!(y, x, 1=>"a", 2:4=>"b", [5; 9:10]=>"c")
 end
 
@@ -255,7 +237,6 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(x)) without default" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10))
-
     z = @inferred recode!(x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
     @test x === z
     @test x == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
@@ -267,7 +248,6 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(x)) without default" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10))
-
     z = @inferred recode!(x, 1, 1=>100, 2:4=>0, [5; 9:10]=>-1)
     @test x === z
     @test x == [100, 0, 0, 0, -1, 1, 1, 1, -1, -1]
@@ -392,7 +372,6 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(x))" for
     x in (["a", "c", "b", "a"], CategoricalArray(["a", "c", "b", "a"]))
-
     y = @inferred recode(x, "c"=>"x", "b"=>"y", "a"=>"z")
     @test y == ["z", "x", "y", "z"]
     if isa(x, CategoricalArray)
@@ -406,7 +385,6 @@ end
 
 @testset "Recoding a matrix $(typeof(x))" for
     x in (['a' 'c'; 'b' 'a'], CategoricalArray(['a' 'c'; 'b' 'a']))
-
     y = @inferred recode(x, 'c'=>'x', 'b'=>'y', 'a'=>'z')
     @test y == ['z' 'x'; 'y' 'z']
     if isa(x, CategoricalArray)
@@ -420,7 +398,6 @@ end
 
 @testset "Recoding from $(typeof(x)) to Int/String (i.e. Any), with index and levels in different orders" for
     x in (10:-1:1, CategoricalArray(10:-1:1))
-
     y = @inferred recode(x, 0, 1=>"a", 2:4=>"c", [5; 9:10]=>"b")
     @test y == ["b", "b", 0, 0, 0, "b", "c", "c", "c", "a"]
     if isa(x, CategoricalArray)
