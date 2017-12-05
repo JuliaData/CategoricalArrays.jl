@@ -123,6 +123,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to categorical array with missing values" for
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"]))
+
     # check that error is thrown
     y = Vector{String}(4)
     @test_throws MissingException recode!(y, x, "a", "c"=>"b")
@@ -159,7 +160,21 @@ end
     end
 end
 
-@testset "Recoding array with missings, no default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
+@testset "Collection in LHS recoding array with missings and no default from $(typeof(x)) to $(typeof(y))" for
+    x in (["1", missing, "3", "4", "5"], CategoricalArray(["1", missing, "3", "4", "5"])),
+    y in (similar(x), Array{Union{String, Missing}}(size(x)),
+          CategoricalArray{Union{String, Missing}}(size(x)), x)
+
+    z = @inferred recode!(y, x, ["3","4"]=>"2")
+    @test y === z
+    @test y ≅ ["1", missing, "2", "2", "5"]
+    if isa(y, CategoricalArray)
+        @test levels(y) == ["1", "5", "2"]
+        @test !isordered(y)
+    end
+end
+
+@testset "Recoding array with missings, default and with missing as a key pair from $(typeof(x)) to $(typeof(y))" for
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
     y in (similar(x), Array{Union{String, Missing}}(size(x)),
           CategoricalArray{Union{String, Missing}}(size(x)), x)
@@ -169,6 +184,20 @@ end
     @test y == ["a", "d", "b", "a"]
     if isa(y, CategoricalArray)
         @test levels(y) == ["b", "d", "a"]
+        @test !isordered(y)
+    end
+end
+
+@testset "Collection with missing in LHS recoding array with missings, default from $(typeof(x)) to $(typeof(y))" for
+    x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
+    y in (similar(x), Array{Union{String, Missing}}(size(x)),
+          CategoricalArray{Union{String, Missing}}(size(x)), x)
+
+    z = @inferred recode!(y, x, "a", [missing, "c"]=>"b")
+    @test y === z
+    @test y == ["a", "b", "b", "a"]
+    if isa(y, CategoricalArray)
+        @test levels(y) == ["b", "a"]
         @test !isordered(y)
     end
 end
@@ -183,6 +212,20 @@ end
     @test y == ["a", "d", "b", "d"]
     if isa(y, CategoricalArray)
         @test levels(y) == ["a", "b", "d"]
+        @test !isordered(y)
+    end
+end
+
+@testset "Collection with missing in LHS recoding array with missings, no default from $(typeof(x)) to $(typeof(y))" for
+    x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"])),
+    y in (similar(x), Array{Union{String, Missing}}(size(x)),
+          CategoricalArray{Union{String, Missing}}(size(x)), x)
+
+    z = @inferred recode!(y, x, ["c", missing]=>"b")
+    @test y === z
+    @test y == ["a", "b", "b", "d"]
+    if isa(y, CategoricalArray)
+        @test levels(y) == ["a", "d", "b"]
         @test !isordered(y)
     end
 end
