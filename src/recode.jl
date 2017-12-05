@@ -42,7 +42,7 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
         for j in 1:length(pairs)
             p = pairs[j]
             if ((isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first)) ||
-                x ≅ p.first)               
+                x ≅ p.first)
                 dest[i] = p.second
                 @goto nextitem
             end
@@ -95,7 +95,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
         for j in 1:length(pairs)
             p = pairs[j]
             if ((isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first)) ||
-                x ≅ p.first)               
+                x ≅ p.first)
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
             end
@@ -196,8 +196,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
         for j in 1:length(pairs)
             p = pairs[j]
             if ((isa(p.first, Union{AbstractArray, Tuple}) && any(l ≅ y for y in p.first)) ||
-                l ≅ p.first) 
-               
+                l ≅ p.first)
                 indexmap[i+1] = pairmap[j]
                 @goto nextitem
             end
