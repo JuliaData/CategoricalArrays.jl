@@ -1,6 +1,7 @@
 module TestEquality
 using Base.Test
 using CategoricalArrays
+using CategoricalArrays: CategoricalPool
 
 @testset "== and isequal() for CategoricalPool{Int} and CategoricalPool{Float64}" begin
     pool1 = CategoricalPool([1, 2, 3])

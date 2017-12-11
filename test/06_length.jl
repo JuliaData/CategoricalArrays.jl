@@ -1,6 +1,7 @@
 module TestLength
 using Base.Test
 using CategoricalArrays
+using CategoricalArrays: CategoricalPool
 
 @testset "length(pool)" begin
     pool = CategoricalPool([1, 2, 3])

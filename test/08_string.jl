@@ -1,6 +1,7 @@
 module TestString
 using Base.Test
 using CategoricalArrays
+using CategoricalArrays: CategoricalPool
 
 @testset "AbstractString operations on values of CategoricalPool{String}" begin
     pool = CategoricalPool(["", "café"])

@@ -1,7 +1,7 @@
 module TestConstructors
 using Base.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, catvalue
+using CategoricalArrays: DefaultRefType, catvalue, CategoricalPool
 
 @testset "Type parameter constraints" begin
     # cannot use categorical value as level type
