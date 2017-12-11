@@ -579,7 +579,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (categorical(x),
@@ -591,7 +591,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (CategoricalArray(x, ordered=ordered),
@@ -611,7 +611,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (categorical(x, ordered=ordered),
@@ -623,7 +623,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (convert(CategoricalArray, x),
