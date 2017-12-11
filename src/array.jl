@@ -35,7 +35,7 @@ Similar to definition above, but uses reference type `R` instead of the default 
 
     CategoricalArray(A::AbstractArray; ordered::Bool=false)
 
-Construct a `CategoricalArray` with the values from `A` and the same element type.
+Construct a new `CategoricalArray` with the values from `A` and the same element type.
 
 If the element type supports it, levels are sorted in ascending order;
 else, they are kept in their order of appearance in `A`. The `ordered` keyword
@@ -154,14 +154,23 @@ CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} =
 
 ## Constructors from arrays
 
-# This method is needed to ensure that a copy of the pool is always made
+# This method is needed to ensure that a copy of the refs and pool is always made
 # so that ordered!() does not affect the original array
 function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
                                    ordered=_isordered(A)) where {S, T, N, Q, R}
     V = unwrap_catvaluetype(T)
     res = convert(CategoricalArray{V, N, R}, A)
-    if res.pool === A.pool # convert() only makes a copy when necessary
-        res = CategoricalArray{V, N}(res.refs, deepcopy(res.pool))
+    needs_copy = false
+    if res.refs === A.refs # convert() only makes a copy when necessary
+        refs = deepcopy(res.refs)
+        needs_copy = true
+    end
+    if res.pool === A.pool
+        pool = deepcopy(res.pool)
+        needs_copy = true
+    end
+    if needs_copy
+        res = CategoricalArray{V, N}(refs, pool)
     end
     ordered!(res, ordered)
 end

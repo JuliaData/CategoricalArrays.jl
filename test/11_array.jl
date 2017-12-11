@@ -638,4 +638,14 @@ end
     @test unique(x) == collect(1500:-1:1)
 end
 
+@testset "categorical() makes a copy of pool and refs" begin
+    x = categorical(1:10)
+    y = categorical(x)
+    @test !(x.refs === y.refs)
+    @test !(x.pool === y.pool)
+    y = categorical(x, ordered=true)
+    @test !(x.refs === y.refs)
+    @test !(x.pool === y.pool)
+end
+
 end
