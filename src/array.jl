@@ -158,15 +158,8 @@ function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
                                    ordered=_isordered(A)) where {S, T, N, Q, R}
     V = unwrap_catvaluetype(T)
     res = convert(CategoricalArray{V, N, R}, A)
-    needs_copy = false
-    if res.refs === A.refs # convert() only makes a copy when necessary
-        refs = deepcopy(res.refs)
-        needs_copy = true
-    end
-    if res.pool === A.pool
-        pool = deepcopy(res.pool)
-        needs_copy = true
-    end
+    refs = res.refs === A.refs ? deepcopy(res.refs) : res.refs
+    pool = res.pool === A.pool ? deepcopy(res.pool) : res.pool
     ordered!(CategoricalArray{V, N}(refs, pool), ordered)
 end
 
