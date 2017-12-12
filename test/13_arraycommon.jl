@@ -747,4 +747,18 @@ end
     @test vcat(z1, z2) isa CategoricalVector{Float64}
 end
 
+@testset "categorical() makes a copy of pool and refs" begin
+    xs = Any[Int8[1:10;], [Int8[1:10;]; missing]]
+    for x in xs, o1 in [true, false], o2 in [true, false], T in [Int64, Int8]
+        y = categorical(x, ordered=o1)
+        if x === xs[1]
+            z = CategoricalArray{T}(y, ordered=o2)
+        else
+            z = CategoricalArray{Union{T, Missing}}(y, ordered=o2)
+        end
+        @test z.refs !== y.refs
+        @test z.pool !== y.pool
+    end
+end
+
 end

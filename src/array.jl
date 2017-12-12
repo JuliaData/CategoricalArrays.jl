@@ -154,8 +154,6 @@ CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} =
 
 ## Constructors from arrays
 
-# This method is needed to ensure that a copy of the refs and pool is always made
-# so that ordered!() does not affect the original array
 function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
                                    ordered=_isordered(A)) where {S, T, N, Q, R}
     V = unwrap_catvaluetype(T)
@@ -169,10 +167,7 @@ function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
         pool = deepcopy(res.pool)
         needs_copy = true
     end
-    if needs_copy
-        res = CategoricalArray{V, N}(refs, pool)
-    end
-    ordered!(res, ordered)
+    ordered!(CategoricalArray{V, N}(refs, pool), ordered)
 end
 
 function CategoricalArray{T, N, R}(A::AbstractArray; ordered=_isordered(A)) where {T, N, R}
