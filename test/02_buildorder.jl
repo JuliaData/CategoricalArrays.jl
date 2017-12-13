@@ -1,7 +1,7 @@
 module TestUpdateOrder
 using Base.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType
+using CategoricalArrays: DefaultRefType, CategoricalPool
 
 @testset "buildorder!(b a c)" begin
     pool = CategoricalPool(

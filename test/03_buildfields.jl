@@ -1,7 +1,7 @@
 module TestBuildFields
 using Base.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType
+using CategoricalArrays: DefaultRefType, CategoricalPool
 
 @testset "buildindex(), buildinvindex(), buildorder() for b a c" begin
     index = ["b", "a", "c"]

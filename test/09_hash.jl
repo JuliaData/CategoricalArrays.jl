@@ -1,6 +1,7 @@
 module TestHash
 using Base.Test
 using CategoricalArrays
+using CategoricalArrays: CategoricalPool
 
 @testset "hash() for CategoricalPool{Int} and CategoricalPool{Float64} and its values" begin
     pool1 = CategoricalPool([1, 2, 3])
