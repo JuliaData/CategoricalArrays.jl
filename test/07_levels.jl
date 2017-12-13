@@ -2,7 +2,6 @@ module TestLevels
 using Base.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, levels!
-using CategoricalArrays: CategoricalPool
 
 @testset "CategoricalPool{Int} updates levels/index/order correctly" begin
     pool = CategoricalPool([2, 1, 3])

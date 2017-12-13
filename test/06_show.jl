@@ -1,7 +1,6 @@
 module TestShow
 using Base.Test
 using CategoricalArrays
-using CategoricalArrays: CategoricalPool
 
 @testset "show() for CategoricalPool{String} and its values" begin
     pool = CategoricalPool(["c", "b", "a"])

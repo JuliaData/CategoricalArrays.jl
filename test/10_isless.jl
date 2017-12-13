@@ -1,7 +1,6 @@
 module TestIsLess
 using Base.Test
 using CategoricalArrays
-using CategoricalArrays: CategoricalPool
 
 pool = CategoricalPool([1, 2, 3])
 

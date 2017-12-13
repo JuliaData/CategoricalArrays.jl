@@ -2,7 +2,6 @@ module TestConvert
 using Base.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue
-using CategoricalArrays: CategoricalPool
 
 @testset "convert() for CategoricalPool{Int, DefaultRefType} and values" begin
     pool = CategoricalPool([1, 2, 3])

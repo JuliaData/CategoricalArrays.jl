@@ -1,8 +1,7 @@
 module TestTypeDef
 using Base.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue,
-                         iscatvalue, CategoricalPool
+using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, iscatvalue
 
 @testset "CategoricalPool, a b c order" begin
     pool = CategoricalPool(
