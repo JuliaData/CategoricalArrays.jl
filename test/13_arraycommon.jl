@@ -579,7 +579,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (categorical(x),
@@ -591,7 +591,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (CategoricalArray(x, ordered=ordered),
@@ -611,7 +611,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (categorical(x, ordered=ordered),
@@ -623,7 +623,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (convert(CategoricalArray, x),
@@ -745,6 +745,20 @@ end
     @test vcat(z1, z1) isa CategoricalVector{Float64}
     @inferred vcat(z1, z2)
     @test vcat(z1, z2) isa CategoricalVector{Float64}
+end
+
+@testset "categorical() makes a copy of pool and refs" begin
+    xs = Any[Int8[1:10;], [Int8[1:10;]; missing]]
+    for x in xs, o1 in [true, false], o2 in [true, false], T in [Int64, Int8]
+        y = categorical(x, ordered=o1)
+        if x === xs[1]
+            z = CategoricalArray{T}(y, ordered=o2)
+        else
+            z = CategoricalArray{Union{T, Missing}}(y, ordered=o2)
+        end
+        @test z.refs !== y.refs
+        @test z.pool !== y.pool
+    end
 end
 
 end
