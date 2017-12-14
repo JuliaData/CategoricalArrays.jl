@@ -395,12 +395,12 @@ CatArrOrSub{T, N} = Union{CategoricalArray{T, N},
 
 function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
                src::CatArrOrSub{<:Any, N}, sstart::Integer,
-               n::Integer=length(src)-sstart+1) where {T, N}
+               n::Integer) where {T, N}
+    n == 0 && return dest
+    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
     destinds, srcinds = linearindices(dest), linearindices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
-    n == 0 && return dest
-    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
 
     drefs = refs(dest)
     srefs = refs(src)

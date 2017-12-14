@@ -168,6 +168,37 @@ end
         @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
         @test !isordered(x)
 
+        @testset "0-length copy! does nothing (including bounds checks)" begin
+            u = x[1:0]
+            v = y[1:0]
+
+            @test copy!(x, 1, y, 3, 0) === x
+            @test x ≅ a
+            @test copy!(x, 1, y, 5, 0) === x
+            @test x ≅ a
+
+            @test copy!(u, -5, v, 2, 0) === u
+            @test u ≅ v
+            @test copy!(x, -5, v, 2, 0) === x
+            @test x ≅ a
+            @test copy!(u, v) === u
+            @test u ≅ v
+            @test copy!(x, v) === x
+            @test x ≅ a
+        end
+
+        @testset "nonzero-length copy! into/from empty array throws bounds error" begin
+            u = x[1:0]
+            v = y[1:0]
+
+            @test_throws BoundsError copy!(u, x)
+            @test u ≅ v
+            @test_throws BoundsError copy!(u, 1, v, 1, 1)
+            @test u ≅ v
+            @test_throws BoundsError copy!(x, 1, v, 1, 1)
+            @test x ≅ a
+        end
+
         @testset "no corruption happens in case of bounds error" begin
             @test_throws BoundsError copy!(x, 10, y, 2)
             @test x ≅ a
