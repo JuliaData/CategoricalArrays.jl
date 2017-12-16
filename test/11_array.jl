@@ -1,5 +1,6 @@
 module TestArray
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
 

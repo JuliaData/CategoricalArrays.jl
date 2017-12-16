@@ -1,5 +1,6 @@
 module TestExtras
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 
 const ≅ = isequal

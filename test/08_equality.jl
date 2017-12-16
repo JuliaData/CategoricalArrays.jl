@@ -1,5 +1,6 @@
 module TestEquality
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 
 @testset "== and isequal() for CategoricalPool{Int} and CategoricalPool{Float64}" begin
