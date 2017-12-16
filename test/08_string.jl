@@ -3,6 +3,10 @@ using Compat
 using Compat.Test
 using CategoricalArrays
 
+if VERSION >= v"0.7.0-DEV.2915"
+    using Unicode
+end
+
 @testset "AbstractString operations on values of CategoricalPool{String}" begin
     pool = CategoricalPool(["", "café"])
 
@@ -55,7 +59,11 @@ using CategoricalArrays
     @test v2[2] === 'a'
     @test v2[4] === 'é'
     @test_throws BoundsError v1[1]
-    @test_throws UnicodeError v2[5]
+    if VERSION >= v"0.7.0-DEV.2949"
+        @test_throws StringIndexError v2[5]
+    else
+        @test_throws UnicodeError v2[5]
+    end
 
     @test codeunit(v2, 2) === 0x61
     @test codeunit(v2, 5) === 0xa9
