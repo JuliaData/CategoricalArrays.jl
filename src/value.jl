@@ -57,12 +57,6 @@ Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalString, T <: Abst
     promote_type(leveltype(C), T)
 Base.promote_rule(::Type{C}, ::Type{Missing}) where {C <: CatValue} = Union{C, Missing}
 
-Base.convert(::Type{Nullable{S}}, x::CategoricalValue{Nullable}) where {S} =
-    convert(Nullable{S}, get(x))
-Base.convert(::Type{Nullable}, x::CategoricalValue{S}) where {S} = convert(Nullable{S}, x)
-Base.convert(::Type{Nullable{CategoricalValue{Nullable{T}}}},
-             x::CategoricalValue{Nullable{T}}) where {T} =
-    Nullable(x)
 Base.convert(::Type{Ref}, x::CatValue) = RefValue{leveltype(x)}(x)
 Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CatValue) = x
