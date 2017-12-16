@@ -1,5 +1,6 @@
 module TestString
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 
 @testset "AbstractString operations on values of CategoricalPool{String}" begin

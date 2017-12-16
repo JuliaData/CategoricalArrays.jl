@@ -76,7 +76,7 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
         end
     end
 
-    refs = Array{DefaultRefType, N}(size(x))
+    refs = Array{DefaultRefType, N}(uninitialized, size(x))
     try
         fill_refs!(refs, x, breaks, extend, allow_missing)
     catch err
@@ -93,7 +93,7 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
     if isempty(labels)
         from = map(x -> sprint(showcompact, x), breaks[1:n-1])
         to = map(x -> sprint(showcompact, x), breaks[2:n])
-        levs = Vector{String}(n-1)
+        levs = Vector{String}(uninitialized, n-1)
         for i in 1:n-2
             levs[i] = string("[", from[i], ", ", to[i], ")")
         end

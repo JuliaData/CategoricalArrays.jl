@@ -1,6 +1,15 @@
 module TestShow
-using Base.Test
+using Compat
+using Compat.Test
+using Compat.Dates
 using CategoricalArrays
+
+# The type is prefixed after Dates moved to the stdlib
+if VERSION >= v"0.7.0-DEV.2575"
+    const DateStr = "Dates.Date"
+else
+    const DateStr = "Date"
+end
 
 @testset "show() for CategoricalPool{String} and its values" begin
     pool = CategoricalPool(["c", "b", "a"])
@@ -57,16 +66,16 @@ end
     ov2 = CategoricalArrays.catvalue(2, opool)
     ov3 = CategoricalArrays.catvalue(3, opool)
 
-    @test sprint(show, pool) == "CategoricalArrays.CategoricalPool{Date,UInt32}([1999-12-01,1991-08-01,1993-10-01])"
-    @test sprint(show, opool) == "CategoricalArrays.CategoricalPool{Date,UInt32}([1991-08-01,1993-10-01,1999-12-01]) with ordered levels"
+    @test sprint(show, pool) == "CategoricalArrays.CategoricalPool{$DateStr,UInt32}([1999-12-01,1991-08-01,1993-10-01])"
+    @test sprint(show, opool) == "CategoricalArrays.CategoricalPool{$DateStr,UInt32}([1991-08-01,1993-10-01,1999-12-01]) with ordered levels"
 
-    @test sprint(show, nv1) == "CategoricalArrays.CategoricalValue{Date,UInt32} 1999-12-01"
-    @test sprint(show, nv2) == "CategoricalArrays.CategoricalValue{Date,UInt32} 1991-08-01"
-    @test sprint(show, nv3) == "CategoricalArrays.CategoricalValue{Date,UInt32} 1993-10-01"
+    @test sprint(show, nv1) == "CategoricalArrays.CategoricalValue{$DateStr,UInt32} 1999-12-01"
+    @test sprint(show, nv2) == "CategoricalArrays.CategoricalValue{$DateStr,UInt32} 1991-08-01"
+    @test sprint(show, nv3) == "CategoricalArrays.CategoricalValue{$DateStr,UInt32} 1993-10-01"
 
-    @test sprint(show, ov1) == "CategoricalArrays.CategoricalValue{Date,UInt32} 1999-12-01 (3/3)"
-    @test sprint(show, ov2) == "CategoricalArrays.CategoricalValue{Date,UInt32} 1991-08-01 (1/3)"
-    @test sprint(show, ov3) == "CategoricalArrays.CategoricalValue{Date,UInt32} 1993-10-01 (2/3)"
+    @test sprint(show, ov1) == "CategoricalArrays.CategoricalValue{$DateStr,UInt32} 1999-12-01 (3/3)"
+    @test sprint(show, ov2) == "CategoricalArrays.CategoricalValue{$DateStr,UInt32} 1991-08-01 (1/3)"
+    @test sprint(show, ov3) == "CategoricalArrays.CategoricalValue{$DateStr,UInt32} 1993-10-01 (2/3)"
 
     @test sprint(showcompact, nv1) == sprint(showcompact, ov1) == "1999-12-01"
     @test sprint(showcompact, nv2) == sprint(showcompact, ov2) == "1991-08-01"

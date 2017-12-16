@@ -1,5 +1,6 @@
 module TestBuildFields
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 

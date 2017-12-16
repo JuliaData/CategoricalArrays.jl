@@ -1,5 +1,6 @@
 module TestUpdateOrder
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 
@@ -17,7 +18,7 @@ using CategoricalArrays: DefaultRefType
         )
     )
 
-    order = Vector{DefaultRefType}(length(pool.index))
+    order = Vector{DefaultRefType}(uninitialized, length(pool.index))
 
     CategoricalArrays.buildorder!(order, pool.invindex, ["b", "a", "c"])
 

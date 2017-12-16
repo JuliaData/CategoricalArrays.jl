@@ -340,7 +340,7 @@ Base.fill!(A::CategoricalArray, v::Any) =
 
 function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
-    res = Array{T}(0)
+    res = Array{T}(uninitialized, 0)
 
     # Fast path in case all levels are equal
     if all(l -> l == levels[1], levels[2:end])
