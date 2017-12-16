@@ -160,6 +160,9 @@ Base.match(r::Regex, s::CategoricalString,
 Base.matchall(r::Regex, s::CategoricalString, overlap::Bool=false) =
     matchall(r, get(s), overlap)
 Base.collect(x::CategoricalString) = collect(get(x))
+if isdefined(Base, :ncodeunits)
+    Base.ncodeunits(x::CategoricalString) = ncodeunits(get(x))
+end
 
 # JSON of CatValue is JSON of the value it refers to
 JSON.lower(x::CatValue) = get(x)
