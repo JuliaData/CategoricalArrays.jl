@@ -8,7 +8,7 @@ module TestCategoricalArrays
     anyerrors = false
 
     using Compat
-using Compat.Test
+    using Compat.Test
     using CategoricalArrays
 
     tests = [

@@ -146,7 +146,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
 
         # Remove recoded levels as they won't appear in result
         firsts = (p.first for p in pairs)
-        keptlevels = Vector{T}()
+        keptlevels = Vector{T}(uninitialized, 0)
         sizehint!(keptlevels, length(srclevels))
 
         for l in srclevels
@@ -177,7 +177,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     srefs = src.refs
 
     origmap = [get(dest.pool, v, 0) for v in srcindex]
-    indexmap = Vector{DefaultRefType}(length(srcindex)+1)
+    indexmap = Vector{DefaultRefType}(uninitialized, length(srcindex)+1)
     # For missing values (0 if no missing in pairs' keys)
     indexmap[1] = 0
     for p in pairs
@@ -343,7 +343,7 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
         dest = Array{Union{T, Missing}}(size(a))
     else
-        dest = Array{Missings.T(T)}(size(a))
+        dest = Array{Missings.T(T)}(uninitialized, size(a))
     end
     recode!(dest, a, default, pairs...)
 end

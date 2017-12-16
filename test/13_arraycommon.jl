@@ -82,8 +82,8 @@ end
         @test levels(r) == collect(3:300)
 
         # Test vcat of multidimensional arrays
-        a1 = Array{Int}(2, 3, 4, 5)
-        a2 = Array{Int}(3, 3, 4, 5)
+        a1 = Array{Int}(uninitialized, 2, 3, 4, 5)
+        a2 = Array{Int}(uninitialized, 3, 3, 4, 5)
         a1[1:end] = (length(a1):-1:1) + 2
         a2[1:end] = (1:length(a2)) + 10
         ca1 = CategoricalArray{Union{T, Int}}(a1)
