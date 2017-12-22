@@ -15,6 +15,10 @@ module CategoricalArrays
     using Reexport
     @reexport using Missings
 
+    if VERSION >= v"0.7.0-DEV.3052"
+        using Printf
+    end
+
     include("typedefs.jl")
 
     include("buildfields.jl")

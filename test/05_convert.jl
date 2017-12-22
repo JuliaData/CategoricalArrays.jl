@@ -1,5 +1,6 @@
 module TestConvert
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue
 

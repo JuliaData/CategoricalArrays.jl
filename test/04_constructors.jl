@@ -1,5 +1,6 @@
 module TestConstructors
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, catvalue
 

@@ -1,5 +1,6 @@
 module TestHash
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 
 @testset "hash() for CategoricalPool{Int} and CategoricalPool{Float64} and its values" begin

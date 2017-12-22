@@ -1,5 +1,6 @@
 module TestView
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 
 @testset "view($(CategoricalArray{Union{T, eltype(a)}}), $inds), ordered=$order construction" for

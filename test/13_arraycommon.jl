@@ -1,5 +1,6 @@
 module TestArrayCommon
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, index
 
@@ -81,8 +82,8 @@ end
         @test levels(r) == collect(3:300)
 
         # Test vcat of multidimensional arrays
-        a1 = Array{Int}(2, 3, 4, 5)
-        a2 = Array{Int}(3, 3, 4, 5)
+        a1 = Array{Int}(uninitialized, 2, 3, 4, 5)
+        a2 = Array{Int}(uninitialized, 3, 3, 4, 5)
         a1[1:end] = (length(a1):-1:1) + 2
         a2[1:end] = (1:length(a2)) + 10
         ca1 = CategoricalArray{Union{T, Int}}(a1)
@@ -167,6 +168,37 @@ end
         @test x ≅ a
         @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
         @test !isordered(x)
+
+        @testset "0-length copy! does nothing (including bounds checks)" begin
+            u = x[1:0]
+            v = y[1:0]
+
+            @test copy!(x, 1, y, 3, 0) === x
+            @test x ≅ a
+            @test copy!(x, 1, y, 5, 0) === x
+            @test x ≅ a
+
+            @test copy!(u, -5, v, 2, 0) === u
+            @test u ≅ v
+            @test copy!(x, -5, v, 2, 0) === x
+            @test x ≅ a
+            @test copy!(u, v) === u
+            @test u ≅ v
+            @test copy!(x, v) === x
+            @test x ≅ a
+        end
+
+        @testset "nonzero-length copy! into/from empty array throws bounds error" begin
+            u = x[1:0]
+            v = y[1:0]
+
+            @test_throws BoundsError copy!(u, x)
+            @test u ≅ v
+            @test_throws BoundsError copy!(u, 1, v, 1, 1)
+            @test u ≅ v
+            @test_throws BoundsError copy!(x, 1, v, 1, 1)
+            @test x ≅ a
+        end
 
         @testset "no corruption happens in case of bounds error" begin
             @test_throws BoundsError copy!(x, 10, y, 2)
@@ -579,7 +611,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (categorical(x),
@@ -591,7 +623,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (CategoricalArray(x, ordered=ordered),
@@ -611,7 +643,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (categorical(x, ordered=ordered),
@@ -623,7 +655,7 @@ end
         @test y.refs == x.refs
         @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
-        @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
+        @test y.refs !== x.refs
         @test y.pool !== x.pool
     end
     for y in (convert(CategoricalArray, x),
@@ -745,6 +777,20 @@ end
     @test vcat(z1, z1) isa CategoricalVector{Float64}
     @inferred vcat(z1, z2)
     @test vcat(z1, z2) isa CategoricalVector{Float64}
+end
+
+@testset "categorical() makes a copy of pool and refs" begin
+    xs = Any[Int8[1:10;], [Int8[1:10;]; missing]]
+    for x in xs, o1 in [true, false], o2 in [true, false], T in [Int64, Int8]
+        y = categorical(x, ordered=o1)
+        if x === xs[1]
+            z = CategoricalArray{T}(y, ordered=o2)
+        else
+            z = CategoricalArray{Union{T, Missing}}(y, ordered=o2)
+        end
+        @test z.refs !== y.refs
+        @test z.pool !== y.pool
+    end
 end
 
 end

@@ -1,5 +1,6 @@
 module TestRecode
-using Base.Test
+using Compat
+using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 
@@ -12,7 +13,7 @@ const ≅ = isequal
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y))" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
@@ -26,7 +27,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with duplicate recoded values" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, 1=>100, 2:4=>100, [5; 9:10]=>-1)
@@ -40,7 +41,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with unused level" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1, 100=>1)
@@ -54,7 +55,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with duplicate default" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, 100, 1=>100, 2:4=>100, [5; 9:10]=>-1)
@@ -68,7 +69,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with default" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, -10, 1=>100, 2:4=>0, [5; 9:10]=>-1)
@@ -82,7 +83,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with first value being Float64" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, 1.0=>100, 2:4=>0, [5; 9:10]=>-1)
@@ -95,7 +96,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with overlapping pairs" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1, 1:10=>0)
@@ -109,7 +110,7 @@ end
 
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with changes to levels order" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
-    y in (similar(x), Array{Int}(size(x)),
+    y in (similar(x), Array{Int}(uninitialized, size(x)),
           CategoricalArray{Int}(size(x)), CategoricalArray{Union{Int, Missing}}(size(x)), x)
 
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
@@ -125,7 +126,7 @@ end
     x in (["a", missing, "c", "d"], CategoricalArray(["a", missing, "c", "d"]))
 
     # check that error is thrown
-    y = Vector{String}(4)
+    y = Vector{String}(uninitialized, 4)
     @test_throws MissingException recode!(y, x, "a", "c"=>"b")
 
     y = CategoricalVector{String}(4)
@@ -240,7 +241,7 @@ end
 
 @testset "Recoding into an array with incompatible eltype from $(typeof(x)) to $(typeof(y))" for
     x in ([1:10;], CategoricalArray(1:10)),
-    y in (similar(x, String), Array{String}(size(x)), CategoricalArray{String}(size(x)))
+    y in (similar(x, String), Array{String}(uninitialized, size(x)), CategoricalArray{String}(size(x)))
 
     @test_throws ArgumentError recode!(y, x, 1=>"a", 2:4=>"b", [5; 9:10]=>"c")
 end
