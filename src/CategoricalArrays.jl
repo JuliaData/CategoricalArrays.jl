@@ -18,6 +18,7 @@ module CategoricalArrays
     if VERSION >= v"0.7.0-DEV.3052"
         using Printf
     end
+    using JSON # FIXME make JSON optional dependency when core Julia will support that
 
     include("typedefs.jl")
 
