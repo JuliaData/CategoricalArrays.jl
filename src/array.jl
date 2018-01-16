@@ -340,14 +340,15 @@ Base.fill!(A::CategoricalArray, v::Any) =
 
 function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
-    res = Array{T}(uninitialized, 0)
+    res = Vector{T}(uninitialized, 0)
 
-    # Fast path in case all levels are equal
-    if all(l -> l == levels[1], levels[2:end])
-        append!(res, levels[1])
+    nonempty_lv = findfirst(!isempty, levels)
+    if nonempty_lv == 0
+        # no levels
         return res, ordered
-    elseif sum(l -> !isempty(l), levels) == 1
-        append!(res, levels[findfirst(l -> !isempty(l), levels)])
+    elseif all(l -> isempty(l) || l == levels[nonempty_lv], levels)
+        # Fast path if all non-empty levels are equal
+        append!(res, levels[nonempty_lv])
         return res, ordered
     end
 
