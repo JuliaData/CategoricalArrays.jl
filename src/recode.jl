@@ -1,5 +1,7 @@
 const ≅ = isequal
 
+import Missings: replace
+
 """
     recode!(dest::AbstractArray, src::AbstractArray[, default::Any], pairs::Pair...)
 
@@ -367,4 +369,8 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
         dest = CategoricalArray{Missings.T(T), N, R}(size(a))
     end
     recode!(dest, a, default, pairs...)
+end
+
+function replace(a::CategoricalArray{S, N, R}, replacement) where {S, N, R}
+    recode(a, missing => replacement)
 end

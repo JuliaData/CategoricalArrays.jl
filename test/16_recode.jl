@@ -534,4 +534,9 @@ end
     @test !isordered(y)
 end
 
+@testset "Missings.replace should work on CategoricalArrays" begin
+    x = ["a", "b", missing, "a"]
+    y = ["a", "b", "", "a"]
+    @test y == collect(Missings.replace(x, ""))
+    @test categorical(y) == Missings.replace(categorical(x), "")
 end
