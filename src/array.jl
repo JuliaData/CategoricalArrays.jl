@@ -735,3 +735,40 @@ summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
 
 refs(A::CategoricalArray) = A.refs
 pool(A::CategoricalArray) = A.pool
+
+"""
+    sort!(V::CategoricalVector; [rev::Bool = false])
+
+A fast in-place sorting method for CategoricalVector using counting sort
+"""
+function Base.sort!(vec::CategoricalVector; rev::Bool = false)
+    cnts = zeros(UInt, length(vec.pool))
+
+    # do a count/histogram of the references, `vec.refs`;
+    # please note that `vec.refs`` may not be in the right order, i.e. ref = 1
+    # does not mean that it should be ranked first. The right order is 
+    # determined by `vec.pool.order``
+    for ref in vec.refs
+        cnts[ref] += 1
+    end
+
+    # compute the order in which to read from cnts
+    # based on the correct ordering in `x.pool.order`
+    sortperm_of_order = sortperm(vec.pool.order, rev = rev)
+
+    j = 0
+    for ref in sortperm_of_order
+        tmpj = j + cnts[ref]
+        vec.refs[j+1:tmpj] .= ref
+        j = tmpj
+    end
+
+    vec
+end
+
+"""
+    sort(V::CategoricalVector; [rev::Bool = false])
+
+A fast sorting method for CategoricalVector using counting sort
+"""
+Base.sort(vec::CategoricalVector; rev::Bool = false) = Base.sort!(copy(vec), rev = rev)

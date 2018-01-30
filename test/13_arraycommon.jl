@@ -793,4 +793,15 @@ end
     end
 end
 
+
+@testset "sort() fast sorting" begin
+    for rev in [true, false], a in categorical.([rand(1:10000, 1000), [randstring(rand(1:32)) for i=1:1000]])
+        sa = sort(a, rev = rev)
+        @test issorted(sa, rev = rev)
+
+        sort!(sa, rev = !rev)
+        @test issorted(sa, rev = !rev)
+    end
+end
+
 end
