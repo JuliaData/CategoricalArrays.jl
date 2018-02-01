@@ -367,3 +367,5 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     end
     recode!(dest, a, default, pairs...)
 end
+
+Base.replace(a::CategoricalArray, pairs::Pair...) = recode(a, pairs...)

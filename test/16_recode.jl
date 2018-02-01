@@ -534,4 +534,10 @@ end
     @test !isordered(y)
 end
 
+@testset "replace should create an CategoricalArray" begin
+    x = categorical(["a", "b", missing, "a"])
+    y = categorical(["a", "b", "", "a"])
+    @test y == replace(x, missing => "")
+end
+
 end
