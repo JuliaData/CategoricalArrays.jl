@@ -535,8 +535,11 @@ end
 end
 
 @testset "Missings.replace should work on CategoricalArrays" begin
-    x = ["a", "b", missing, "a"]
-    y = ["a", "b", "", "a"]
-    @test y == collect(Missings.replace(x, ""))
-    @test categorical(y) == Missings.replace(categorical(x), "")
+    x = categorical(["a", "b", missing, "a"])
+    y = categorical(["a", "b", "", "a"])
+    r = Missings.replace(x, "")
+    @test isa(r, Missings.EachReplaceMissing)
+    @test y == CategoricalArray(collect(r))
+end
+
 end

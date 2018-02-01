@@ -371,6 +371,8 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     recode!(dest, a, default, pairs...)
 end
 
-function replace(a::CategoricalArray{S, N, R}, replacement) where {S, N, R}
-    recode(a, missing => replacement)
+function Missings.replace(a::CategoricalArray{S, N, R, V, C}, replacement::V) where {S, N, R, V, C}
+    pool = CategoricalPool(a.pool)
+    v = C(get!(pool, replacement), pool)
+    Missings.replace(a, v)
 end
