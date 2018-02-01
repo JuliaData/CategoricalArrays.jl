@@ -793,4 +793,32 @@ end
     end
 end
 
+@testset "collect of CategoricalArray produces Array" begin
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = collect(y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = collect(y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+end
+
+@testset "collect of CategoricalValue produces Array" begin
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = collect(CategoricalValue{Int, UInt32}[v for v in y])
+    @test typeof(x) == typeof(z)
+    @test x == z
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = collect(Union{Missing,CategoricalValue{Int, UInt32}}[v for v in y])
+    @test typeof(x) == typeof(z)
+    @test x ≅ z
+end
+
 end
