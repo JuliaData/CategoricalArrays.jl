@@ -1,6 +1,6 @@
 ## Code for CategoricalArray
 
-import Base: convert, collect, copy, copy!, getindex, setindex!, similar, size,
+import Base: Array, convert, collect, copy, copy!, getindex, setindex!, similar, size,
              unique, vcat, in, summary
 
 # Used for keyword argument default value
