@@ -1089,4 +1089,24 @@ end
     @test_throws MethodError Missings.replace(x, 1)
 end
 
+@testset "Missings.replace should work on CategoricalArrays with empty pools" begin
+    x = categorical(Union{String,Missing}[missing])
+    y = [""]
+    r = Missings.replace(x, "")
+    @test isa(r, Missings.EachReplaceMissing)
+    a = collect(r)
+    @test isa(a, CategoricalVector{String})
+    @test y == a
+end
+
+@testset "Missings.replace should work on empty CategoricalArrays" begin
+    x = categorical(Union{String,Missing}[])
+    y = String[]
+    r = Missings.replace(x, "")
+    @test isa(r, Missings.EachReplaceMissing)
+    a = collect(r)
+    @test isa(a, CategoricalVector{String})
+    @test y == a
+end
+
 end
