@@ -1074,6 +1074,8 @@ end
     a = collect(r)
     @test isa(a, CategoricalVector{String})
     @test y == a
+    @test levels(x) == ["a", "b"]
+    @test levels(a) == ["a", "b", ""]
 
     r = Missings.replace(x, "b")
     y = ["a", "b", "b", "a"]
@@ -1081,6 +1083,8 @@ end
     a = collect(r)
     @test isa(a, CategoricalVector{String})
     @test y == a
+    @test levels(x) == ["a", "b"]
+    @test levels(a) == ["a", "b"]
 
     @test_throws MethodError Missings.replace(x, 1)
 end

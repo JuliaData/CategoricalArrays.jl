@@ -28,7 +28,7 @@ in(x::Missing, y::CategoricalArray) = false
 in(x::Missing, y::CategoricalArray{>:Missing}) = !all(v -> v > 0, y.refs)
 
 function Missings.replace(a::CategoricalArray{S, N, R, V, C}, replacement::V) where {S, N, R, V, C}
-    pool = CategoricalPool(a.pool)
+    pool = deepcopy(a.pool)
     v = C(get!(pool, replacement), pool)
     Missings.replace(a, v)
 end
