@@ -1074,6 +1074,15 @@ end
     a = collect(r)
     @test isa(a, CategoricalVector{String})
     @test y == a
+
+    r = Missings.replace(x, "b")
+    y = ["a", "b", "b", "a"]
+    @test isa(r, Missings.EachReplaceMissing)
+    a = collect(r)
+    @test isa(a, CategoricalVector{String})
+    @test y == a
+
+    @test_throws MethodError Missings.replace(x, 1)
 end
 
 end
