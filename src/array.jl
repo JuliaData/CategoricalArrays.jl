@@ -730,8 +730,6 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
 end
 
 collect(x::CategoricalArray{T}) where {T} = convert(Array{T}, x)
-collect(x::Array{CategoricalValue{T,R}}) where {T,R} = convert(Array{T}, x)
-collect(x::AbstractArray{Union{Missing,CategoricalValue{T,R}}}) where {T,R} = convert(Array{Union{Missing,T}}, x)
 
 # Override AbstractArray method to avoid printing useless type parameters
 summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
