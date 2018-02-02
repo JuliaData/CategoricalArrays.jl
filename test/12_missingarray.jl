@@ -1089,6 +1089,26 @@ end
     @test_throws MethodError Missings.replace(x, 1)
 end
 
+@testset "Missings.replace should work on CategoricalArrays without missing values" begin
+    x = categorical(["a", "b", "", "a"])
+    y = ["a", "b", "", "a"]
+    r = Missings.replace(x, "dummy")
+    @test isa(r, Missings.EachReplaceMissing)
+    a = collect(r)
+    @test isa(a, CategoricalVector{String})
+    @test y == a
+    @test levels(x) == ["", "a", "b"]
+    @test levels(a) == ["", "a", "b", "dummy"]
+
+    r = Missings.replace(x, "")
+    @test isa(r, Missings.EachReplaceMissing)
+    a = collect(r)
+    @test isa(a, CategoricalVector{String})
+    @test y == a
+    @test levels(x) == ["", "a", "b"]
+    @test levels(a) == ["", "a", "b"]
+end
+
 @testset "Missings.replace should work on CategoricalArrays with empty pools" begin
     x = categorical(Union{String,Missing}[missing])
     y = [""]
