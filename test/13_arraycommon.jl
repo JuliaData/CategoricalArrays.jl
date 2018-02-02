@@ -807,4 +807,18 @@ end
     @test z ≅ x
 end
 
+@testset "Array(::CategoricalArray{T}) produces Array{T}" begin
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = Array(y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = Array(y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+end
+
 end
