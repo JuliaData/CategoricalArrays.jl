@@ -33,6 +33,6 @@ function Missings.replace(a::CategoricalArray{S, N, R, V, C}, replacement::V) wh
     Missings.replace(a, v)
 end
 
-function collect(r::Missings.EachReplaceMissing{CategoricalArray{S, N, R, C, V, U}, V}) where {S, N, R, C, V, U}
+function collect(r::Missings.EachReplaceMissing{CategoricalArray{S, N, R, C, V, U}}) where {S, N, R, C, V, U}
     CategoricalArray{C,N}([v.level for v in r], r.replacement.pool)
 end
