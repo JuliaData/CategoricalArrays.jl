@@ -536,8 +536,10 @@ end
 
 @testset "replace should create an CategoricalArray" begin
     x = categorical(["a", "b", missing, "a"])
-    y = categorical(["a", "b", "", "a"])
-    @test y == replace(x, missing => "")
+    y = ["a", "b", "", "a"]
+    z = replace(x, missing => "")
+    @test y == z
+    @test isa(z, CategoricalVector{String})
 end
 
 end
