@@ -729,8 +729,8 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
     end
 end
 
-Array(x::CategoricalArray{T}) where {T} = convert(Array{T}, x)
-collect(x::CategoricalArray{T}) where {T} = convert(Array{T}, x)
+Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
+collect(A::CategoricalArray{T}) where {T} = Array{T}(A)
 
 # Override AbstractArray method to avoid printing useless type parameters
 summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
