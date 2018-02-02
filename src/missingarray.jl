@@ -1,4 +1,4 @@
-import Base: getindex, setindex!, similar, in
+import Base: getindex, setindex!, similar, in, collect
 
 @inline function getindex(A::CategoricalArray{T}, I...) where {T>:Missing}
     @boundscheck checkbounds(A, I...)
@@ -31,4 +31,8 @@ function Missings.replace(a::CategoricalArray{S, N, R, V, C}, replacement::V) wh
     pool = CategoricalPool(a.pool)
     v = C(get!(pool, replacement), pool)
     Missings.replace(a, v)
+end
+
+function collect(r::Missings.EachReplaceMissing{CategoricalArray{S, N, R, C, V, U},V}) where {S, N, R, C, V, U}
+           CategoricalArray(C[v for v in r])
 end

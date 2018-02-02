@@ -1068,10 +1068,12 @@ end
 
 @testset "Missings.replace should work on CategoricalArrays" begin
     x = categorical(["a", "b", missing, "a"])
-    y = categorical(["a", "b", "", "a"])
+    y = ["a", "b", "", "a"]
     r = Missings.replace(x, "")
     @test isa(r, Missings.EachReplaceMissing)
-    @test y == CategoricalArray(collect(r))
+    a = collect(r)
+    @test isa(a, CategoricalVector{String})
+    @test y == a
 end
 
 end
