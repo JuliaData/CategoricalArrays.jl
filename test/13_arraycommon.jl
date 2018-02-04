@@ -795,12 +795,17 @@ end
 
 
 @testset "sort() fast sorting" begin
-    for rev in [true, false], a in categorical.([rand(1:10000, 1000), [randstring(rand(1:32)) for i=1:1000]])
-        sa = sort(a, rev = rev)
+    int_cate = rand(1:1000, 10_000) |> categorical
+    int_cate_missing = rand(vcat(missing,1:1000), 10_000) |> categorical
+    str_cate = rand([randstring(rand(1:32)) for i=1:1000], 10_000) |> categorical
+    str_cate_missing =  rand(vcat(missing,[randstring(rand(1:32)) for i=1:1000]), 10_000) |> categorical
+
+    for rev in [true, false], v in (int_cate, int_cate_missing, str_cate, str_cate_missing)
+        sa = sort(v, rev = rev)
         @test issorted(sa, rev = rev)
 
-        sort!(sa, rev = !rev)
-        @test issorted(sa, rev = !rev)
+        sort!(v, rev = rev)
+        @test issorted(v, rev = rev)
     end
 end
 
