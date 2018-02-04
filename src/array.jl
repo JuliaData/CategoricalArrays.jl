@@ -1,6 +1,6 @@
 ## Code for CategoricalArray
 
-import Base: convert, copy, copy!, getindex, setindex!, similar, size,
+import Base: Array, convert, collect, copy, copy!, getindex, setindex!, similar, size,
              unique, vcat, in, summary
 
 # Used for keyword argument default value
@@ -340,14 +340,15 @@ Base.fill!(A::CategoricalArray, v::Any) =
 
 function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
-    res = Array{T}(uninitialized, 0)
+    res = Vector{T}(uninitialized, 0)
 
-    # Fast path in case all levels are equal
-    if all(l -> l == levels[1], levels[2:end])
-        append!(res, levels[1])
+    nonempty_lv = findfirst(!isempty, levels)
+    if nonempty_lv == 0
+        # no levels
         return res, ordered
-    elseif sum(l -> !isempty(l), levels) == 1
-        append!(res, levels[findfirst(l -> !isempty(l), levels)])
+    elseif all(l -> isempty(l) || l == levels[nonempty_lv], levels)
+        # Fast path if all non-empty levels are equal
+        append!(res, levels[nonempty_lv])
         return res, ordered
     end
 
@@ -727,6 +728,9 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
         return ref != 0 ? ref in y.refs : false
     end
 end
+
+Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
+collect(A::CategoricalArray{T}) where {T} = Array{T}(A)
 
 # Override AbstractArray method to avoid printing useless type parameters
 summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
