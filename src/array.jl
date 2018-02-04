@@ -737,38 +737,80 @@ refs(A::CategoricalArray) = A.refs
 pool(A::CategoricalArray) = A.pool
 
 """
-    sort!(V::CategoricalVector; [rev::Bool = false])
+    sort!(V::CategoricalVector; rev::Bool=false)
 
-A fast in-place sorting method for CategoricalVector using counting sort
-"""
-function Base.sort!(vec::CategoricalVector; rev::Bool = false)
-    cnts = zeros(UInt, length(vec.pool))
-
-    # do a count/histogram of the references, `vec.refs`;
-    # please note that `vec.refs`` may not be in the right order, i.e. ref = 1
-    # does not mean that it should be ranked first. The right order is 
-    # determined by `vec.pool.order``
-    for ref in vec.refs
-        cnts[ref] += 1
+A fast in-place sorting method for `CategoricalVector`` using counting sort
+""" 
+function is_categorical_after_by(by::Function, v::CategoricalVector)
+    for v1 in v
+        if !ismissing(v1) 
+            return isa(by(v1), CatValue) 
+        elseif isa(by(v1), CatValue) # if v1 is missing but `by`` still converts it to a `CatValue`
+            return true
+        end
     end
-
-    # compute the order in which to read from cnts
-    # based on the correct ordering in `x.pool.order`
-    sortperm_of_order = sortperm(vec.pool.order, rev = rev)
-
-    j = 0
-    for ref in sortperm_of_order
-        tmpj = j + cnts[ref]
-        vec.refs[j+1:tmpj] .= ref
-        j = tmpj
-    end
-
-    vec
+    # if all values were missing then it will reach here
+    return false
 end
 
-"""
-    sort(V::CategoricalVector; [rev::Bool = false])
+function Base.sort!(v::CategoricalVector;
+                    alg::Base.Algorithm=Base.Sort.defalg(v),
+                    lt=isless,
+                    by=identity,
+                    rev::Bool=false,
+                    order::Base.Ordering=Base.Forward)
 
-A fast sorting method for CategoricalVector using counting sort
-"""
-Base.sort(vec::CategoricalVector; rev::Bool = false) = Base.sort!(copy(vec), rev = rev)
+    ordr = Base.ord(lt,by,rev,order)
+    if (ordr == Base.Forward || ordr == Base.Reverse) && is_categorical_after_by(by, v)
+        if ordr == Base.Forward
+            rev = false
+        else ordr == Base.Reverse
+            rev = true
+        end
+            
+        # add one more level to `cnts` in case there is missing
+        cnts = zeros(UInt, length(v.pool) + 1)
+
+        # do a count/histogram of the references, `v.refs`;
+        # please note that `v.refs`` may not be in the right order, i.e. ref = 1
+        # does not mean that it should be ranked first. The right order is 
+        # determined by `v.pool.order``
+        @inbounds for ref in v.refs
+            cnts[ref + 1] += 1
+        end
+
+        # compute the order in which to read from `cnts``
+        # based on the correct ordering in `x.pool.order`
+        j = 0
+        if eltype(v) >: Missing
+            missing_cnt = cnts[1]
+            if rev == false
+                v.refs[end - missing_cnt + 1:end] = repeat([0], inner = missing_cnt)
+            else
+                v.refs[1:missing_cnt] = repeat([0], inner = missing_cnt)
+                j = missing_cnt
+            end
+        end
+
+        @inbounds for ref in sortperm(v.pool.order, rev = rev)
+            tmpj = j + cnts[ref+1]
+            v.refs[j+1:tmpj] .= ref
+            j = tmpj
+        end
+
+        return v
+    else
+        if ordr === Base.Forward && isa(v,Vector) && eltype(v)<:Integer
+            n = Base._length(v)
+            if n > 1
+                min, max = extrema(v)
+                (diff, o1) = Base.sub_with_overflow(max, min)
+                (rangelen, o2) = Base.add_with_overflow(diff, oneunit(diff))
+                if !o1 && !o2 && rangelen < div(n,2)
+                    return Base.Sort.sort_int_range!(v, rangelen, min)
+                end
+            end
+        end
+        sort!(v, alg, ordr)
+    end
+end
