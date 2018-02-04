@@ -1,6 +1,6 @@
 ## Code for CategoricalArray
 
-import Base: convert, copy, copy!, getindex, setindex!, similar, size,
+import Base: Array, convert, collect, copy, copy!, getindex, setindex!, similar, size,
              unique, vcat, in, summary
 
 # Used for keyword argument default value
@@ -728,6 +728,9 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
         return ref != 0 ? ref in y.refs : false
     end
 end
+
+Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
+collect(A::CategoricalArray{T}) where {T} = Array{T}(A)
 
 # Override AbstractArray method to avoid printing useless type parameters
 summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
