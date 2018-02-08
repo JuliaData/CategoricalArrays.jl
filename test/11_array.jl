@@ -200,6 +200,8 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test x[1] == x[end]
     @test levels(x) == ["e", "a", "b", "c", "zz"]
 
+    @test_throws MethodError push!(x, 1)
+
     append!(x, x)
     @test length(x) == 12
     @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c"]

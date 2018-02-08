@@ -656,7 +656,12 @@ end
 
 function Base.push!(A::CategoricalVector, item)
     resize!(A.refs, length(A.refs) + 1)
-    A[end] = item
+    try
+        A[end] = item
+    catch x
+        resize!(A.refs, length(A.refs) - 1)
+        rethrow(x)
+    end
     return A
 end
 
