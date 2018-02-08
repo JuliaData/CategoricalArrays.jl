@@ -88,24 +88,40 @@ Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
-@inline function Base.get!(pool::CategoricalPool{T, R}, level::Any) where {T, R}
-    get!(pool.invindex, level) do
-        x = convert(T, level)
-        n = length(pool)
-        if n >= typemax(R)
-            throw(LevelsException{T, R}([level]))
-        end
-
-        i = R(n + 1)
-        push!(pool.index, x)
-        push!(pool.order, i)
-        push!(pool.levels, x)
-        push!(pool.valindex, catvalue(i, pool))
-        i
+@inline function push_get!(pool::CategoricalPool{T, R}, level) where {T, R}
+    x = convert(T, level)
+    n = length(pool)
+    if n >= typemax(R)
+        throw(LevelsException{T, R}([level]))
     end
+
+    i = R(n + 1)
+    push!(pool.index, x)
+    push!(pool.order, i)
+    push!(pool.levels, x)
+    push!(pool.valindex, catvalue(i, pool))
+    i
 end
 
-Base.push!(pool::CategoricalPool, level) = (get!(pool, level); pool)
+@inline function Base.get!(pool::CategoricalPool, level::Any)
+    v = get!(pool.invindex, level) do
+        if isordered(pool)
+            throw(ArgumentError("'$level' is a new level but the CategoricalArray uses ordered levels and ordered levels can't be extended implicitly, use function `levels!` to set new levels and include the new level"))
+        end
+
+        push_get!(pool, level)
+    end
+
+    return v
+end
+
+@inline function Base.push!(pool::CategoricalPool, level)
+    get!(pool.invindex, level) do
+        push_get!(pool, level)
+    end
+
+    return pool
+end
 
 # TODO: optimize for multiple additions
 function Base.append!(pool::CategoricalPool, levels)

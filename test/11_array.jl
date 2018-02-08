@@ -353,6 +353,10 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == unique(a)
 
+        if ordered
+            @test_throws ArgumentError x[1:2] = -1
+            levels!(x, [levels(x); -1])
+        end
         x[1:2] = -1
         @test x[1] === x.pool.valindex[5]
         @test x[2] === x.pool.valindex[5]
@@ -360,6 +364,10 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == vcat(unique(a), -1)
 
+        if ordered
+            @test_throws ArgumentError push!(x, 2.0)
+            levels!(x, [levels(x); 2.0])
+        end
         push!(x, 2.0)
         @test length(x) == 5
         @test x[end] == 2.0
@@ -519,6 +527,10 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test_throws BoundsError x[1:1, -1:1]
         @test_throws BoundsError x[4, :]
 
+        if ordered
+            @test_throws ArgumentError x[1] = "z"
+            levels!(x, [levels(x); "z"])
+        end
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
@@ -588,12 +600,20 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test_throws UndefRefError x2[2]
         @test levels(x2) == []
 
+        if ordered
+            @test_throws ArgumentError x[1] = "c"
+            levels!(x, [levels(x); "c"])
+        end
         x[1] = "c"
         @test x[1] === x.pool.valindex[1]
         @test !isassigned(x, 2) && isdefined(x, 2)
         @test_throws UndefRefError x[2]
         @test levels(x) == ["c"]
 
+        if ordered
+            @test_throws ArgumentError x[1] = "a"
+            levels!(x, [levels(x); "a"])
+        end
         x[1] = "a"
         @test x[1] === x.pool.valindex[2]
         @test !isassigned(x, 2) && isdefined(x, 2)
@@ -606,6 +626,10 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[2] === x.pool.valindex[1]
         @test levels(x) == ["c", "a"]
 
+        if ordered
+            @test_throws ArgumentError x[1] = "b"
+            levels!(x, [levels(x); "b"])
+        end
         x[1] = "b"
         @test x[1] === x.pool.valindex[3]
         @test x[2] === x.pool.valindex[1]
