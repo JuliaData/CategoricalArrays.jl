@@ -366,7 +366,7 @@ const ≅ = isequal
             @test x[3] === missing
 
             if ordered
-                @test_throws ArgumentError x[3] = "c"
+                @test_throws OrderedLevelsException x[3] = "c"
                 levels!(x, [levels(x); "c"])
             end
             x[3] = "c"
@@ -538,7 +538,7 @@ const ≅ = isequal
         @test levels(x) == unique(a)
 
         if ordered
-            @test_throws ArgumentError x[1:2] = -1
+            @test_throws OrderedLevelsException x[1:2] = -1
             levels!(x, [levels(x); -1])
         end
         x[1:2] = -1
@@ -549,7 +549,7 @@ const ≅ = isequal
         @test levels(x) == vcat(unique(a), -1)
 
         if ordered
-            @test_throws ArgumentError push!(x, 2.0)
+            @test_throws OrderedLevelsException push!(x, 2.0)
             levels!(x, [levels(x); 2.0])
         end
         push!(x, 2.0)
@@ -695,7 +695,7 @@ const ≅ = isequal
         @test isa(x[1:2,1], CategoricalVector{Union{String, Missing}, R})
 
         if ordered
-            @test_throws ArgumentError x[1] = "z"
+            @test_throws OrderedLevelsException x[1] = "z"
             levels!(x, [levels(x); "z"])
         end
         x[1] = "z"
@@ -854,7 +854,7 @@ const ≅ = isequal
         @test_throws BoundsError x[4, :]
 
         if ordered
-            @test_throws ArgumentError x[1] = "z"
+            @test_throws OrderedLevelsException x[1] = "z"
             levels!(x, [levels(x); "z"])
         end
         x[1] = "z"
@@ -961,7 +961,7 @@ const ≅ = isequal
         @test levels(x2) == []
 
         if ordered
-            @test_throws ArgumentError x[1] = "c"
+            @test_throws OrderedLevelsException x[1] = "c"
             levels!(x, [levels(x); "c"])
         end
         x[1] = "c"
@@ -970,7 +970,7 @@ const ≅ = isequal
         @test levels(x) == ["c"]
 
         if ordered
-            @test_throws ArgumentError x[1] = "a"
+            @test_throws OrderedLevelsException x[1] = "a"
             levels!(x, [levels(x); "a"])
         end
         x[1] = "a"
@@ -984,7 +984,7 @@ const ≅ = isequal
         @test levels(x) == ["c", "a"]
 
         if ordered
-            @test_throws ArgumentError x[1] = "b"
+            @test_throws OrderedLevelsException x[1] = "b"
             levels!(x, [levels(x); "b"])
         end
         x[1] = "b"

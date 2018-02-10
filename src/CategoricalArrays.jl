@@ -6,7 +6,7 @@ module CategoricalArrays
     export AbstractMissingCategoricalArray, AbstractMissingCategoricalVector,
            AbstractMissingCategoricalMatrix,
            MissingCategoricalArray, MissingCategoricalVector, MissingCategoricalMatrix
-    export LevelsException
+    export LevelsException, OrderedLevelsException
 
     export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!
     export cut, recode, recode!

@@ -42,6 +42,11 @@ struct LevelsException{T, R} <: Exception
     levels::Vector{T}
 end
 
+struct OrderedLevelsException{T} <: Exception
+    newlevel::Any
+    levels::Vector{T}
+end
+
 ## Values
 
 """

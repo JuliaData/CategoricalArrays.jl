@@ -88,6 +88,10 @@ Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
+"""
+add the returned value to pool.invindex, this function doesn't do this itself to
+avoid doing a dict lookup twice
+"""
 @inline function push_get!(pool::CategoricalPool{T, R}, level) where {T, R}
     x = convert(T, level)
     n = length(pool)
@@ -104,22 +108,19 @@ Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, l
 end
 
 @inline function Base.get!(pool::CategoricalPool, level::Any)
-    v = get!(pool.invindex, level) do
+    get!(pool.invindex, level) do
         if isordered(pool)
-            throw(ArgumentError("'$level' is a new level but the CategoricalArray uses ordered levels and ordered levels can't be extended implicitly, use function `levels!` to set new levels and include the new level"))
+            throw(OrderedLevelsException(level, pool.levels))
         end
 
         push_get!(pool, level)
     end
-
-    return v
 end
 
 @inline function Base.push!(pool::CategoricalPool, level)
     get!(pool.invindex, level) do
         push_get!(pool, level)
     end
-
     return pool
 end
 
@@ -203,4 +204,10 @@ ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
 function Base.showerror(io::IO, err::LevelsException{T, R}) where {T, R}
     levs = join(repr.(err.levels), ", ", " and ")
     print(io, "cannot store level(s) $levs since reference type $R can only hold $(typemax(R)) levels. Use the decompress function to make room for more levels.")
+end
+
+
+# OrderedLevelsException
+function Base.showerror(io::IO, err::OrderedLevelsException)
+    print(io, "cannot add new level $(err.level) since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.")
 end
