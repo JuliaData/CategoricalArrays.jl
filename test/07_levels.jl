@@ -228,9 +228,9 @@ end
     x = categorical([1,2,3])
     ordered!(x, true)
     lev = copy(levels(x))
-    res = @test_throws OrderedLevelsException{Int} x[1] = 4
+    res = @test_throws OrderedLevelsException{Int, Float64} x[1] = 4.0
     @test res.value.newlevel == 4
-    @test sprint(showerror, res.value) == "cannot add new level 4 since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered."
+    @test sprint(showerror, res.value) == "cannot add new level 4.0 since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered."
     @test lev == levels(x)
 
     # Assignment works after adding the level to the pool
