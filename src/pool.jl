@@ -209,5 +209,5 @@ end
 
 # OrderedLevelsException
 function Base.showerror(io::IO, err::OrderedLevelsException)
-    print(io, "cannot add new level $(err.level) since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.")
+    print(io, "cannot add new level $(err.newlevel) since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.")
 end

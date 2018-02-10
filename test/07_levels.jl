@@ -224,4 +224,19 @@ end
     @test levels(pool) == vcat(lev, "az")
 end
 
+@testset "new levels can't be added through assignment when levels are ordered" begin
+    x = categorical([1,2,3])
+    ordered!(x, true)
+    lev = copy(levels(x))
+    res = @test_throws OrderedLevelsException{Int} x[1] = 4
+    @test res.value.newlevel == 4
+    @test sprint(showerror, res.value) == "cannot add new level 4 since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered."
+    @test lev == levels(x)
+
+    # Assignment works after adding the level to the pool
+    levels!(x, [3,4,1,2])
+    x[1] = 4
+    @test x == [4,2,3]
+end
+
 end
