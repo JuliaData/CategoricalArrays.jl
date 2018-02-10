@@ -92,7 +92,7 @@ Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, l
 add the returned value to pool.invindex, this function doesn't do this itself to
 avoid doing a dict lookup twice
 """
-@inline function push_get!(pool::CategoricalPool{T, R}, level) where {T, R}
+@inline function push_level!(pool::CategoricalPool{T, R}, level) where {T, R}
     x = convert(T, level)
     n = length(pool)
     if n >= typemax(R)
@@ -113,13 +113,13 @@ end
             throw(OrderedLevelsException(level, pool.levels))
         end
 
-        push_get!(pool, level)
+        push_level!(pool, level)
     end
 end
 
 @inline function Base.push!(pool::CategoricalPool, level)
     get!(pool.invindex, level) do
-        push_get!(pool, level)
+        push_level!(pool, level)
     end
     return pool
 end
