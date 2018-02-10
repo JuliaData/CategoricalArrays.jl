@@ -200,7 +200,11 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test x[1] == x[end]
     @test levels(x) == ["e", "a", "b", "c", "zz"]
 
+    x2 = deepcopy(x)
     @test_throws MethodError push!(x, 1)
+    @test x == x2
+    @test x.pool.index == x2.pool.index
+    @test x.pool.invindex == x2.pool.invindex
 
     append!(x, x)
     @test length(x) == 12
