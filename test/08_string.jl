@@ -1,11 +1,8 @@
 module TestString
 using Compat
 using Compat.Test
+using Compat.Unicode
 using CategoricalArrays
-
-if VERSION >= v"0.7.0-DEV.2915"
-    using Unicode
-end
 
 @testset "AbstractString operations on values of CategoricalPool{String}" begin
     pool = CategoricalPool(["", "café"])
@@ -54,8 +51,13 @@ end
     @test prevind(v1, 1) === 0
     @test prevind(v2, 6) === 4
 
-    @test endof(v1) === 0
-    @test endof(v2) === 4
+    if VERSION >= v"0.7.0-DEV.3583"
+        @test firstindex(v1) === 1
+        @test firstindex(v2) === 1
+    end
+
+    @test lastindex(v1) === 0
+    @test lastindex(v2) === 4
 
     @test collect(v1) == []
     @test collect(v2) == collect("café")
@@ -77,15 +79,12 @@ end
     @test ascii(v1)::String == ""
     @test_throws ArgumentError ascii(v2)
 
-    @test normalize_string(v1) == ""
-    @test normalize_string(v2) == "café"
-    @test normalize_string(v2, :NFKD) == "café"
+    @test Unicode.normalize_string(v1) == ""
+    @test Unicode.normalize_string(v2) == "café"
+    @test Unicode.normalize_string(v2, :NFKD) == "café"
 
     @test isempty(collect(graphemes(v1)))
-    if VERSION < v"0.7.0-DEV.2949"
-        # FIXME: This causes a StackOverflowError after the string overhaul
-        @test collect(graphemes(v2)) == collect(graphemes("café"))
-    end
+    @test collect(graphemes(v2)) == collect(graphemes("café"))
 
     @test isvalid(v1)
     @test isvalid(v2)
@@ -93,7 +92,13 @@ end
     @test isvalid(v2, 4)
     @test !isvalid(v2, 5)
 
-    if VERSION < v"0.7.0-DEV.2949"
+    if VERSION >= v"0.7.0-DEV.2949"
+        @test_throws BoundsError length(v1, 0, 0)
+        @test length(v2, 1, 4) === 4
+
+        @test_throws BoundsError nextind(v1, 1, 1)
+        @test nextind(v2, 1, 2) === 3
+    else
         @test_throws BoundsError ind2chr(v1, 0)
         @test ind2chr(v2, 4) === 4
 
@@ -125,20 +130,22 @@ end
     @test repeat(v1, 10) == ""
     @test repeat(v2, 2) == "cafécafé"
 
-    @test !ismatch(r"fé", v1)
-    @test ismatch(r"fé", v2)
+    @test isempty(collect(eachmatch(r"af", v1)))
+    @test first(eachmatch(r"af", v2)).offset == 2
 
-    @test isempty(collect(eachmatch(r"fé", v1)))
-    @test first(eachmatch(r"fé", v2)).offset == 3
+    @test match(r"af", v1) === nothing
+    @test match(r"af", v2).offset === 2
+    @test match(r"af", v2, 2).offset === 2
+    @test match(r"af", v2, 2, UInt32(0)).offset === 2
 
-    @test match(r"fé", v1) === nothing
-    @test match(r"fé", v2).offset === 3
-    @test match(r"fé", v2, 2).offset === 3
-    @test match(r"fé", v2, 2, UInt32(0)).offset === 3
-
-    @test matchall(r"fé", v1) == []
-    @test matchall(r"fé", v2) == ["fé"]
-    @test matchall(r"fé", v2, true) == ["fé"]
+    @test matchall(r"af", v1) == []
+    @test matchall(r"af", v2) == ["af"]
+    if VERSION > v"0.7.0-DEV.3526"
+        @test matchall(r"af", v2, overlap=true) == ["af"]
+    else
+        @test matchall(r"af", v2, overlap=true) == ["af"]
+        @test matchall(r"af", v2, true) == ["af"]
+    end
 
     @test lpad(v1, 1) == " "
     @test lpad(v2, 1) == "café"
@@ -148,30 +155,22 @@ end
     @test rpad(v2, 1) == "café"
     @test rpad(v2, 5) == "café "
 
-    @test search(v1, "") === 1:0
-    @test search(v2, "a") === 2:2
-    @test search(v2, 'a') === 2
-    @test search(v2, 'a', 3) === 0
+    @test Compat.findfirst("", v1) === 1:0
+    @test Compat.findfirst("a", v2) === 2:2
+    @test Compat.findfirst(equalto('a'), v2) === 2
+    @test Compat.findnext(equalto('a'), v2, 3) === nothing
 
-    @test searchindex(v1, "") === 1
-    @test searchindex(v2, "a") === 2
-    @test searchindex(v2, 'a') === 2
-    @test searchindex(v2, 'a', 3) === 0
-
-    @test rsearch(v1, "a") === 0:-1
-    @test rsearch(v2, "a") === 2:2
-    @test rsearch(v2, 'a') === 2
-    @test rsearch(v2, 'a', 1) === 0
-
-    @test rsearchindex(v1, "a") === 0
-    @test rsearchindex(v2, "a") === 2
-    # Methods not defined even for String
-    #@test rsearchindex(v2, 'a') === 2
-    #@test rsearchindex(v2, 'a', 1) === 0
+    @test Compat.findlast("a", v1) === 0:-1
+    @test Compat.findlast("a", v2) === 2:2
+    @test Compat.findlast(equalto('a'), v2) === 2
+    @test Compat.findprev(equalto('a'), v2, 1) === nothing
 
     @test !contains(v1, "a")
     @test contains(v1, "")
     @test contains(v2, "fé")
+
+    @test !contains(v1, r"af")
+    @test contains(v2, r"af")
 
     @test startswith(v1, "")
     @test !startswith(v1, "a")
@@ -184,9 +183,9 @@ end
     @test reverse(v1) == ""
     @test reverse(v2) == "éfac"
 
-    @test replace(v1, "a", "b") == ""
-    @test replace(v2, 'a', 'b') == "cbfé"
-    @test replace(v2, "ca", "b", 1) == "bfé"
+    @test replace(v1, "a"=>"b") == ""
+    @test replace(v2, 'a'=>'b') == "cbfé"
+    @test replace(v2, "ca"=>"b", count=1) == "bfé"
 
     @test isempty(split(v1))
     @test split(v1, "a") == [""]
@@ -226,14 +225,16 @@ end
     @test join([v1, "a"]) == "a"
     @test join([v1, "a"], v2) == "caféa"
 
-    @test chop(v1) == ""
+    if VERSION >= v"0.7.0-DEV.3688" # Version known to throw an erro
+        @test_throws BoundsError chop(v1) == ""
+    end
     @test chop(v2) == "caf"
 
     @test chomp(v1) == ""
     @test chomp(v2) == "café"
 
-    @test strwidth(v1) === 0
-    @test strwidth(v2) === 4
+    @test textwidth(v1) === 0
+    @test textwidth(v2) === 4
 
     @test isascii(v1)
     @test !isascii(v2)
