@@ -144,10 +144,10 @@ end
 Base.string(x::CategoricalString) = get(x)
 Base.eltype(x::CategoricalString) = Char
 Base.length(x::CategoricalString) = length(get(x))
-Base.endof(x::CategoricalString) = endof(get(x))
+Compat.lastindex(x::CategoricalString) = lastindex(get(x))
 Base.sizeof(x::CategoricalString) = sizeof(get(x))
-Base.nextind(x::CategoricalString, i::Integer) = nextind(get(x), i)
-Base.prevind(x::CategoricalString, i::Integer) = prevind(get(x), i)
+Base.nextind(x::CategoricalString, i::Int) = nextind(get(x), i)
+Base.prevind(x::CategoricalString, i::Int) = prevind(get(x), i)
 Base.next(x::CategoricalString, i::Int) = next(get(x), i)
 Base.getindex(x::CategoricalString, i::Int) = getindex(get(x), i)
 Base.codeunit(x::CategoricalString, i::Integer) = codeunit(get(x), i)
@@ -157,9 +157,18 @@ Base.isvalid(x::CategoricalString, i::Integer) = isvalid(get(x), i)
 Base.match(r::Regex, s::CategoricalString,
            idx::Integer=start(s), add_opts::UInt32=UInt32(0)) =
     match(r, get(s), idx, add_opts)
-Base.matchall(r::Regex, s::CategoricalString, overlap::Bool=false) =
-    matchall(r, get(s), overlap)
+if VERSION > v"0.7.0-DEV.3526"
+    Base.matchall(r::Regex, s::CategoricalString; overlap::Bool=false) =
+        matchall(r, get(s); overlap=overlap)
+else
+    Base.matchall(r::Regex, s::CategoricalString; overlap::Bool=false) =
+        matchall(r, get(s), overlap)
+    Base.matchall(r::Regex, s::CategoricalString, overlap::Bool) =
+        matchall(r, get(s), overlap)
+end
 Base.collect(x::CategoricalString) = collect(get(x))
+Base.reverse(x::CategoricalString) = reverse(get(x))
+Compat.ncodeunits(x::CategoricalString) = ncodeunits(get(x))
 
 # JSON of CatValue is JSON of the value it refers to
 JSON.lower(x::CatValue) = get(x)

@@ -1,5 +1,5 @@
 julia 0.6
 Missings
 Reexport
-Compat 0.39.0
+Compat 0.53.0
 JSON
