@@ -655,9 +655,9 @@ function Base.resize!(A::CategoricalVector, n::Integer)
 end
 
 function Base.push!(A::CategoricalVector, item)
-    resize!(A.refs, length(A.refs) + 1)
-    A[end] = item
-    return A
+    r = get!(A.pool, item)
+    push!(A.refs, r)
+    A
 end
 
 function Base.append!(A::CategoricalVector, B::CategoricalArray)
