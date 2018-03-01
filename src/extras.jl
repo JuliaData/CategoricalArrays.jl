@@ -69,7 +69,7 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
     if extend
         min_x, max_x = extrema(x)
         if !ismissing(min_x) && breaks[1] > min_x
-            unshift!(breaks, min_x)
+            pushfirst!(breaks, min_x)
         end
         if !ismissing(max_x) && breaks[end] < max_x
             push!(breaks, max_x)
