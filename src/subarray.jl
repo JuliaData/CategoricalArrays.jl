@@ -19,5 +19,5 @@ function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
     _unique(S, refs, A.pool)
 end
 
-refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = view(A.parent.refs, _subarray_indices(sa)...)
+refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = view(A.parent.refs, _subarray_indices(A)...)
 pool(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = A.parent.pool
