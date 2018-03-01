@@ -21,15 +21,15 @@ function reftype(sz::Int)
 end
 
 """
-    CategoricalArray{T}(dims::Dims; ordered::Bool=false)
-    CategoricalArray{T}(dims::Int...; ordered::Bool=false)
+    CategoricalArray{T}(uninitialized, dims::Dims; ordered::Bool=false)
+    CategoricalArray{T}(uninitialized, dims::Int...; ordered::Bool=false)
 
 Construct an uninitialized `CategoricalArray` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalArray{T, N, R}(dims::Dims; ordered::Bool=false)
-    CategoricalArray{T, N, R}(dims::Int...; ordered::Bool=false)
+    CategoricalArray{T, N, R}(uninitialized, dims::Dims; ordered::Bool=false)
+    CategoricalArray{T, N, R}(uninitialized, dims::Int...; ordered::Bool=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
@@ -52,13 +52,13 @@ explicitly overriden.
 function CategoricalArray end
 
 """
-    CategoricalVector{T}(m::Int; ordered::Bool=false)
+    CategoricalVector{T}(uninitialized, m::Int; ordered::Bool=false)
 
 Construct an uninitialized `CategoricalVector` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalVector{T, R}(m::Int; ordered::Bool=false)
+    CategoricalVector{T, R}(uninitialized, m::Int; ordered::Bool=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
@@ -81,13 +81,13 @@ explicitly overriden.
 function CategoricalVector end
 
 """
-    CategoricalMatrix{T}(m::Int, n::Int; ordered::Bool=false)
+    CategoricalMatrix{T}(uninitialized, m::Int, n::Int; ordered::Bool=false)
 
 Construct an uninitialized `CategoricalMatrix` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalMatrix{T, R}(m::Int, n::Int; ordered::Bool=false)
+    CategoricalMatrix{T, R}(uninitialized, m::Int, n::Int; ordered::Bool=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
@@ -111,10 +111,10 @@ function CategoricalMatrix end
 
 # Uninitialized array constructors
 
-CategoricalArray(dims::Int...; ordered=false) =
-    CategoricalArray{String}(dims, ordered=ordered)
+CategoricalArray(::Uninitialized, dims::Int...; ordered=false) =
+    CategoricalArray{String}(uninitialized, dims, ordered=ordered)
 
-function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
+function CategoricalArray{T, N, R}(::Uninitialized, dims::NTuple{N,Int};
                                    ordered=false) where {T, N, R}
     C = catvaluetype(T, R)
     V = leveltype(C)
@@ -122,35 +122,37 @@ function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
     CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
 end
 
-CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
-    CategoricalArray{T, N, DefaultRefType}(dims, ordered=ordered)
-CategoricalArray{T}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
-    CategoricalArray{T, N}(dims, ordered=ordered)
-CategoricalArray{T, 1}(m::Int; ordered=false) where {T} =
-    CategoricalArray{T, 1}((m,), ordered=ordered)
-CategoricalArray{T, 2}(m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T, 2}((m, n), ordered=ordered)
-CategoricalArray{T, 1, R}(m::Int; ordered=false) where {T, R} =
-    CategoricalArray{T, 1, R}((m,), ordered=ordered)
+CategoricalArray{T, N}(::Uninitialized, dims::NTuple{N,Int}; ordered=false) where {T, N} =
+    CategoricalArray{T, N, DefaultRefType}(uninitialized, dims, ordered=ordered)
+CategoricalArray{T}(::Uninitialized, dims::NTuple{N,Int}; ordered=false) where {T, N} =
+    CategoricalArray{T, N}(uninitialized, dims, ordered=ordered)
+CategoricalArray{T, 1}(::Uninitialized, m::Int; ordered=false) where {T} =
+    CategoricalArray{T, 1}(uninitialized, (m,), ordered=ordered)
+CategoricalArray{T, 2}(::Uninitialized, m::Int, n::Int; ordered=false) where {T} =
+    CategoricalArray{T, 2}(uninitialized, (m, n), ordered=ordered)
+CategoricalArray{T, 1, R}(::Uninitialized, m::Int; ordered=false) where {T, R} =
+    CategoricalArray{T, 1, R}(uninitialized, (m,), ordered=ordered)
 # R <: Integer is required to prevent default constructor from being called instead
-CategoricalArray{T, 2, R}(m::Int, n::Int; ordered=false) where {T, R <: Integer} =
-    CategoricalArray{T, 2, R}((m, n), ordered=ordered)
-CategoricalArray{T, 3, R}(m::Int, n::Int, o::Int; ordered=false) where {T, R} =
-    CategoricalArray{T, 3, R}((m, n, o), ordered=ordered)
-CategoricalArray{T}(m::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m,), ordered=ordered)
-CategoricalArray{T}(m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m, n), ordered=ordered)
-CategoricalArray{T}(m::Int, n::Int, o::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m, n, o), ordered=ordered)
+CategoricalArray{T, 2, R}(::Uninitialized, m::Int, n::Int; ordered=false) where {T, R <: Integer} =
+    CategoricalArray{T, 2, R}(uninitialized, (m, n), ordered=ordered)
+CategoricalArray{T, 3, R}(::Uninitialized, m::Int, n::Int, o::Int; ordered=false) where {T, R} =
+    CategoricalArray{T, 3, R}(uninitialized, (m, n, o), ordered=ordered)
+CategoricalArray{T}(::Uninitialized, m::Int; ordered=false) where {T} =
+    CategoricalArray{T}(uninitialized, (m,), ordered=ordered)
+CategoricalArray{T}(::Uninitialized, m::Int, n::Int; ordered=false) where {T} =
+    CategoricalArray{T}(uninitialized, (m, n), ordered=ordered)
+CategoricalArray{T}(::Uninitialized, m::Int, n::Int, o::Int; ordered=false) where {T} =
+    CategoricalArray{T}(uninitialized, (m, n, o), ordered=ordered)
 
-CategoricalVector(m::Integer; ordered=false) = CategoricalArray(m, ordered=ordered)
-CategoricalVector{T}(m::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m,), ordered=ordered)
+CategoricalVector(::Uninitialized, m::Integer; ordered=false) =
+    CategoricalArray(uninitialized, m, ordered=ordered)
+CategoricalVector{T}(::Uninitialized, m::Int; ordered=false) where {T} =
+    CategoricalArray{T}(uninitialized, (m,), ordered=ordered)
 
-CategoricalMatrix(m::Int, n::Int; ordered=false) = CategoricalArray(m, n, ordered=ordered)
-CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m, n), ordered=ordered)
+CategoricalMatrix(::Uninitialized, m::Int, n::Int; ordered=false) =
+    CategoricalArray(uninitialized, m, n, ordered=ordered)
+CategoricalMatrix{T}(::Uninitialized, m::Int, n::Int; ordered=false) where {T} =
+    CategoricalArray{T}(uninitialized, (m, n), ordered=ordered)
 
 
 ## Constructors from arrays
@@ -238,7 +240,7 @@ convert(::Type{CategoricalMatrix{T}}, A::CategoricalMatrix{T}) where {T} = A
 convert(::Type{CategoricalMatrix}, A::CategoricalMatrix) = A
 
 function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, N, R}
-    res = CategoricalArray{T, N, R}(size(A))
+    res = CategoricalArray{T, N, R}(uninitialized, size(A))
     copyto!(res, A)
 
     # if order is defined for level type, automatically apply it
@@ -463,7 +465,7 @@ copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
 For `CategoricalArray`, preserves the ordered property of `A` (see [`isordered`](@ref)).
 """
 similar(A::CategoricalArray{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) where {S, T, M, N, R} =
-    CategoricalArray{T, N, R}(dims; ordered=isordered(A))
+    CategoricalArray{T, N, R}(uninitialized, dims; ordered=isordered(A))
 
 """
     compress(A::CategoricalArray)
