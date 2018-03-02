@@ -17,7 +17,7 @@ module CategoricalArrays
     # TODO: cannot @reexport in conditional, the below should be removed when 0.6 is deprecated
     @reexport using Missings
 
-    if VERSION >= v"0.7.0-"
+    if VERSION >= v"0.7.0-DEV.3052"
         using Printf
     end
 

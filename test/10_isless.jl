@@ -253,61 +253,61 @@ end
 @testset "comparisons for CategoricalString" begin
     # check that ordering comparisons also fail for CategoricalString
     # (since the AbstractString fallback could break this)
-    pool1 = CategoricalPool(["a", "b", "c"])
+    pool = CategoricalPool(["a", "b", "c"])
 
-    v4 = CategoricalArrays.catvalue(1, pool1)
-    v5 = CategoricalArrays.catvalue(2, pool1)
-    v6 = CategoricalArrays.catvalue(3, pool1)
+    v1 = CategoricalArrays.catvalue(1, pool)
+    v2 = CategoricalArrays.catvalue(2, pool)
+    v3 = CategoricalArrays.catvalue(3, pool)
 
-    @test_throws ArgumentError v4 < v4
-    @test_throws ArgumentError v4 < v5
-    @test_throws ArgumentError v4 < v6
-    @test_throws ArgumentError v5 < v4
-    @test_throws ArgumentError v5 < v5
-    @test_throws ArgumentError v5 < v6
-    @test_throws ArgumentError v6 < v4
-    @test_throws ArgumentError v6 < v5
-    @test_throws ArgumentError v6 < v6
+    @test_throws ArgumentError v1 < v1
+    @test_throws ArgumentError v1 < v2
+    @test_throws ArgumentError v1 < v3
+    @test_throws ArgumentError v2 < v1
+    @test_throws ArgumentError v2 < v2
+    @test_throws ArgumentError v2 < v3
+    @test_throws ArgumentError v3 < v1
+    @test_throws ArgumentError v3 < v2
+    @test_throws ArgumentError v3 < v3
 
-    @test_throws ArgumentError v4 <= v4
-    @test_throws ArgumentError v4 <= v5
-    @test_throws ArgumentError v4 <= v6
-    @test_throws ArgumentError v5 <= v4
-    @test_throws ArgumentError v5 <= v5
-    @test_throws ArgumentError v5 <= v6
-    @test_throws ArgumentError v6 <= v4
-    @test_throws ArgumentError v6 <= v5
-    @test_throws ArgumentError v6 <= v6
+    @test_throws ArgumentError v1 <= v1
+    @test_throws ArgumentError v1 <= v2
+    @test_throws ArgumentError v1 <= v3
+    @test_throws ArgumentError v2 <= v1
+    @test_throws ArgumentError v2 <= v2
+    @test_throws ArgumentError v2 <= v3
+    @test_throws ArgumentError v3 <= v1
+    @test_throws ArgumentError v3 <= v2
+    @test_throws ArgumentError v3 <= v3
 
-    @test_throws ArgumentError v4 > v4
-    @test_throws ArgumentError v4 > v5
-    @test_throws ArgumentError v4 > v6
-    @test_throws ArgumentError v5 > v4
-    @test_throws ArgumentError v5 > v5
-    @test_throws ArgumentError v5 > v6
-    @test_throws ArgumentError v6 > v4
-    @test_throws ArgumentError v6 > v5
-    @test_throws ArgumentError v6 > v6
+    @test_throws ArgumentError v1 > v1
+    @test_throws ArgumentError v1 > v2
+    @test_throws ArgumentError v1 > v3
+    @test_throws ArgumentError v2 > v1
+    @test_throws ArgumentError v2 > v2
+    @test_throws ArgumentError v2 > v3
+    @test_throws ArgumentError v3 > v1
+    @test_throws ArgumentError v3 > v2
+    @test_throws ArgumentError v3 > v3
 
-    @test_throws ArgumentError v4 >= v4
-    @test_throws ArgumentError v4 >= v5
-    @test_throws ArgumentError v4 >= v6
-    @test_throws ArgumentError v5 >= v4
-    @test_throws ArgumentError v5 >= v5
-    @test_throws ArgumentError v5 >= v6
-    @test_throws ArgumentError v6 >= v4
-    @test_throws ArgumentError v6 >= v5
-    @test_throws ArgumentError v6 >= v6
+    @test_throws ArgumentError v1 >= v1
+    @test_throws ArgumentError v1 >= v2
+    @test_throws ArgumentError v1 >= v3
+    @test_throws ArgumentError v2 >= v1
+    @test_throws ArgumentError v2 >= v2
+    @test_throws ArgumentError v2 >= v3
+    @test_throws ArgumentError v3 >= v1
+    @test_throws ArgumentError v3 >= v2
+    @test_throws ArgumentError v3 >= v3
 
-    @test isless(v4, v4) === false
-    @test isless(v4, v5) === true
-    @test isless(v4, v6) === true
-    @test isless(v5, v4) === false
-    @test isless(v5, v5) === false
-    @test isless(v5, v6) === true
-    @test isless(v6, v4) === false
-    @test isless(v6, v5) === false
-    @test isless(v6, v6) === false
+    @test isless(v1, v1) === false
+    @test isless(v1, v2) === true
+    @test isless(v1, v3) === true
+    @test isless(v2, v1) === false
+    @test isless(v2, v2) === false
+    @test isless(v2, v3) === true
+    @test isless(v3, v1) === false
+    @test isless(v3, v2) === false
+    @test isless(v3, v3) === false
 end
 
 @testset "ordering comparisons between pools fail" begin

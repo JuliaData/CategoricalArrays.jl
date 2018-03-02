@@ -6,18 +6,24 @@ isordered(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = isordered(paren
 levels!(sa::SubArray{T,N,P}, newlevels::Vector) where {T,N,P<:CategoricalArray} =
     levels!(parent(sa), levels)
 
-if VERSION ≥ v"0.7.0-"
-    _subarray_indices(sa::SubArray) = sa.indices
+if VERSION ≥ v"0.7.0-DEV.3020"
+    function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
+        A = parent(sa)
+        refs = view(A.refs, sa.indices...)
+        S = eltype(P) >: Missing ? Union{eltype(index(A.pool)), Missing} : eltype(index(A.pool))
+        _unique(S, refs, A.pool)
+    end
+
+    refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = view(A.parent.refs, A.indices...)
 else
-    _subarray_indices(sa::SubArray) = sa.indexes
+    function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
+        A = parent(sa)
+        refs = view(A.refs, sa.indexes...)
+        S = eltype(P) >: Missing ? Union{eltype(index(A.pool)), Missing} : eltype(index(A.pool))
+        _unique(S, refs, A.pool)
+    end
+
+    refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = view(A.parent.refs, A.indexes...)
 end
 
-function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
-    A = parent(sa)
-    refs = view(A.refs, _subarray_indices(sa)...)
-    S = eltype(P) >: Missing ? Union{eltype(index(A.pool)), Missing} : eltype(index(A.pool))
-    _unique(S, refs, A.pool)
-end
-
-refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = view(A.parent.refs, _subarray_indices(A)...)
 pool(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = A.parent.pool

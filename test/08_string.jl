@@ -4,13 +4,6 @@ using Compat.Test
 using Compat.Unicode
 using CategoricalArrays
 
-if VERSION ≥ v"0.7.0-"
-    using Unicode: normalize
-else
-    import Base.LinAlg: normalize
-    normalize(str::AbstractString) = normalize_string(str)
-end
-
 @testset "AbstractString operations on values of CategoricalPool{String}" begin
     pool = CategoricalPool(["", "café"])
 
@@ -86,9 +79,9 @@ end
     @test ascii(v1)::String == ""
     @test_throws ArgumentError ascii(v2)
 
-    @test normalize(v1) == ""
-    @test normalize(v2) == "café"
-    @test normalize(v2, :NFKD) == "café"
+    @test Unicode.normalize(v1) == ""
+    @test Unicode.normalize(v2) == "café"
+    @test Unicode.normalize(v2, :NFKD) == "café"
 
     @test isempty(collect(graphemes(v1)))
     @test collect(graphemes(v2)) == collect(graphemes("café"))
@@ -147,7 +140,7 @@ end
 
     @test collect((m.match for m ∈ eachmatch(r"af", v1))) == []
     @test collect((m.match for m ∈ eachmatch(r"af", v2))) == ["af"]
-    if VERSION > v"0.7.0-"
+    if VERSION > v"0.7.0-DEV.3526"
         @test collect((m.match for m ∈ eachmatch(r"af", v2, overlap=true))) == ["af"]
     else
         @test matchall(r"af", v2, overlap=true) == ["af"]
