@@ -1,7 +1,8 @@
 ## Code for CategoricalArray
 
-import Base: Array, convert, collect, copy, copy!, getindex, setindex!, similar, size,
+import Base: Array, convert, collect, copy, getindex, setindex!, similar, size,
              unique, vcat, in, summary
+import Compat: copyto!
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -240,11 +241,11 @@ convert(::Type{CategoricalMatrix}, A::CategoricalMatrix) = A
 
 function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, N, R}
     res = CategoricalArray{T, N, R}(uninitialized, size(A))
-    copy!(res, A)
+    copyto!(res, A)
 
     # if order is defined for level type, automatically apply it
     L = leveltype(res)
-    if method_exists(isless, Tuple{L, L})
+    if hasmethod(isless, Tuple{L, L})
         levels!(res.pool, sort(levels(res.pool)))
     end
 
@@ -396,9 +397,9 @@ copy(A::CategoricalArray) = deepcopy(A)
 CatArrOrSub{T, N} = Union{CategoricalArray{T, N},
                           SubArray{<:Any, N, <:CategoricalArray{T}}} where {T, N}
 
-function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
-               src::CatArrOrSub{<:Any, N}, sstart::Integer,
-               n::Integer) where {T, N}
+function copyto!(dest::CatArrOrSub{T, N}, dstart::Integer,
+                 src::CatArrOrSub{<:Any, N}, sstart::Integer,
+                 n::Integer) where {T, N}
     n == 0 && return dest
     n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
     destinds, srcinds = linearindices(dest), linearindices(src)
@@ -436,7 +437,7 @@ function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
         # Set final levels in their visible order
         levels!(dpool, newlevels)
 
-        copy!(drefs, srefs)
+        copyto!(drefs, srefs)
     else # More work to do: preserve some values (and therefore index)
         levels!(dpool, newlevels)
 
@@ -452,11 +453,11 @@ function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
     dest
 end
 
-copy!(dest::CatArrOrSub, src::CatArrOrSub) =
-    copy!(dest, 1, src, 1, length(src))
+copyto!(dest::CatArrOrSub, src::CatArrOrSub) =
+    copyto!(dest, 1, src, 1, length(src))
 
-copy!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
-    copy!(dest, dstart, src, 1, length(src))
+copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
+    copyto!(dest, dstart, src, 1, length(src))
 
 """
     similar(A::CategoricalArray, element_type=eltype(A), dims=size(A))
@@ -606,7 +607,7 @@ function _unique(::Type{S},
             batch = 0
         end
     end
-    seenmissing = shift!(seen)
+    seenmissing = popfirst!(seen)
     res = convert(Vector{S}, index(pool)[seen][sortperm(pool.order[seen])])
     if trackmissings && seenmissing
         push!(res, missing)

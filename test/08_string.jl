@@ -79,9 +79,9 @@ using CategoricalArrays
     @test ascii(v1)::String == ""
     @test_throws ArgumentError ascii(v2)
 
-    @test Unicode.normalize_string(v1) == ""
-    @test Unicode.normalize_string(v2) == "café"
-    @test Unicode.normalize_string(v2, :NFKD) == "café"
+    @test Unicode.normalize(v1) == ""
+    @test Unicode.normalize(v2) == "café"
+    @test Unicode.normalize(v2, :NFKD) == "café"
 
     @test isempty(collect(graphemes(v1)))
     @test collect(graphemes(v2)) == collect(graphemes("café"))
@@ -138,10 +138,10 @@ using CategoricalArrays
     @test match(r"af", v2, 2).offset === 2
     @test match(r"af", v2, 2, UInt32(0)).offset === 2
 
-    @test matchall(r"af", v1) == []
-    @test matchall(r"af", v2) == ["af"]
+    @test collect((m.match for m ∈ eachmatch(r"af", v1))) == []
+    @test collect((m.match for m ∈ eachmatch(r"af", v2))) == ["af"]
     if VERSION > v"0.7.0-DEV.3526"
-        @test matchall(r"af", v2, overlap=true) == ["af"]
+        @test collect((m.match for m ∈ eachmatch(r"af", v2, overlap=true))) == ["af"]
     else
         @test matchall(r"af", v2, overlap=true) == ["af"]
         @test matchall(r"af", v2, true) == ["af"]
