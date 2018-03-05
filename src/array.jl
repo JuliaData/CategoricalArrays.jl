@@ -345,8 +345,8 @@ function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
     res = Vector{T}(uninitialized, 0)
 
-    nonempty_lv = findfirst(!isempty, levels)
-    if nonempty_lv == 0
+    nonempty_lv = Compat.findfirst(!isempty, levels)
+    if nonempty_lv === nothing
         # no levels
         return res, ordered
     elseif all(l -> isempty(l) || l == levels[nonempty_lv], levels)
@@ -360,10 +360,18 @@ function mergelevels(ordered, levels...)
 
         i = length(res)+1
         for j = length(l):-1:1
-            if levelsmap[j] == 0
-                insert!(res, i, l[j])
+            @static if VERSION >= v"0.7.0-DEV.3627"
+                if levelsmap[j] === nothing
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
             else
-                i = levelsmap[j]
+                if levelsmap[j] == 0
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
             end
         end
     end
@@ -579,11 +587,13 @@ function levels!(A::CategoricalArray{T}, newlevels::Vector; allow_missing=false)
     levels!(A.pool, newlevels)
 
     if index(A.pool) != oldindex
-        # indexin returns 0 when not found, which maps to a missing value
-        levelsmap = indexin(oldindex, index(A.pool))
+        levelsmap = similar(A.refs, length(oldindex)+1)
+        # 0 maps to a missing value
+        levelsmap[1] = 0
+        levelsmap[2:end] .= coalesce.(indexin(oldindex, index(A.pool)), 0)
 
         @inbounds for (i, x) in enumerate(A.refs)
-            x > 0 && (A.refs[i] = levelsmap[x])
+            A.refs[i] = levelsmap[x+1]
         end
     end
 
