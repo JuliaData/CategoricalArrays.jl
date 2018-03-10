@@ -126,23 +126,59 @@ end
         y = similar(x)
         @test typeof(x) === typeof(y)
         @test size(y) == size(x)
+        if T === Missing
+            @test all(ismissing, y)
+        else
+            @test !any(isassigned(y, i) for i in 1:length(y))
+        end
 
-        x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         y = similar(x, 3)
         @test typeof(x) === typeof(y)
         @test size(y) == (3,)
+        if T === Missing
+            @test all(ismissing, y)
+        else
+            @test !any(isassigned(y, i) for i in 1:length(y))
+        end
 
-        x = CategoricalArray{Union{T, String}, 1, UInt8}(["Old", "Young", "Middle", "Young"])
         y = similar(x, Int)
-        @test isa(y, CategoricalArray{Int, 1, UInt8})
+        @test isa(y, Vector{Int})
         @test size(y) == size(x)
 
-        x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         y = similar(x, Int, 3, 2)
-        @test isa(y, CategoricalArray{Int, 2, CategoricalArrays.DefaultRefType})
+        @test isa(y, Matrix{Int})
         @test size(y) == (3, 2)
-    end
 
+        x = CategoricalArray{Union{T, String}, 1, UInt8}(["Old", "Young", "Middle", "Young"])
+        y = similar(x, Union{T, CategoricalString})
+        @test typeof(x) === typeof(y)
+        @test size(y) == size(x)
+        T === Missing && @test all(ismissing, y)
+
+        y = similar(x, Union{T, CategoricalString{UInt32}})
+        @test isa(y, CategoricalVector{Union{T, String}, UInt32})
+        @test size(y) == size(x)
+        T === Missing && @test all(ismissing, y)
+
+        y = similar(x, Union{Missing, CategoricalString}, 3, 2)
+        @test isa(y, CategoricalMatrix{Union{String, Missing}, UInt8})
+        @test size(y) == (3, 2)
+        @test all(ismissing, y)
+
+        y = similar(x, CategoricalString)
+        @test isa(y, CategoricalVector{String, UInt8})
+        @test size(y) == size(x)
+        @test !any(isassigned(y, i) for i in 1:length(y))
+
+        y = similar(x, CategoricalString{UInt32})
+        @test isa(y, CategoricalVector{String, UInt32})
+        @test size(y) == size(x)
+        @test !any(isassigned(y, i) for i in 1:length(y))
+
+        y = similar(x, CategoricalValue{Int, UInt32})
+        @test isa(y, CategoricalVector{Int, UInt32})
+        @test size(y) == size(x)
+    end
 
     @testset "copy!()" begin
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
@@ -819,6 +855,47 @@ end
     @test z ≅ x
 end
 
+@testset "Array{T} and AbstractArray{T} constructors and convert" for A in (Array, AbstractArray)
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = A{Int}(y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+    z = convert(A{Int}, y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = A{Union{Int, Missing}}(y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+    z = convert(A{Union{Int, Missing}}, y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+end
+
+@testset "AbstractArray{T} constructors and convert are no-ops" for
+    x in (categorical([1,1,2,2]), categorical([1,1,2,missing]))
+    y = AbstractArray(x)
+    @test x === y
+    y = AbstractVector(x)
+    @test x === y
+    y = AbstractArray{eltype(x)}(x)
+    @test x === y
+    y = AbstractArray{eltype(x), 1}(x)
+    @test x === y
+
+    y = convert(AbstractArray, x)
+    @test x === y
+    y = convert(AbstractVector, x)
+    @test x === y
+    y = convert(AbstractArray{eltype(x)}, x)
+    @test x === y
+    y = convert(AbstractArray{eltype(x), 1}, x)
+    @test x === y
+end
+
 @testset "new levels can't be added through assignment when levels are ordered" begin
     x = categorical([1,2,3])
     ordered!(x, true)
@@ -834,6 +911,19 @@ end
     levels!(x, [3,4,1,2])
     x[1] = 4
     @test x == [4,2,3]
+end
+
+@testset "float() and complex()" begin
+    x = categorical([1,2,3])
+    @test float(x) == x
+    @test float(x) isa Vector{Float64}
+
+    x = categorical([1,2,3])
+    @test complex(x) == x
+    @test complex(x) isa Vector{Complex{Int}}
+
+    @test_throws ErrorException float(categorical(Union{Int,Missing}[1]))
+    @test_throws ErrorException complex(categorical(Union{Int,Missing}[1]))
 end
 
 end
