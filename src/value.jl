@@ -65,15 +65,29 @@ Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
 Base.convert(::Type{Union{T, Missing}}, x::T) where {T <: CatValue} = x # override the convert() below
 Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x)) # fallback
 
-function Base.show(io::IO, x::CatValue)
-    if get(io, :compact, false)
-        print(io, repr(x))
-    elseif isordered(pool(x))
-        @printf(io, "%s %s (%i/%i)",
-                typeof(x), repr(x),
-                order(x), length(pool(x)))
-    else
-        @printf(io, "%s %s", typeof(x), repr(x))
+if VERSION >= v"0.7.0-DEV.2797"
+    function Base.show(io::IO, x::CatValue)
+        if get(io, :typeinfo, Any) === typeof(x)
+            print(io, repr(x))
+        elseif isordered(pool(x))
+            @printf(io, "%s %s (%i/%i)",
+                    typeof(x), repr(x),
+                    order(x), length(pool(x)))
+        else
+            @printf(io, "%s %s", typeof(x), repr(x))
+        end
+    end
+else
+    function Base.show(io::IO, x::CatValue)
+        if get(io, :compact, false)
+            print(io, repr(x))
+        elseif isordered(pool(x))
+            @printf(io, "%s %s (%i/%i)",
+                    typeof(x), repr(x),
+                    order(x), length(pool(x)))
+        else
+            @printf(io, "%s %s", typeof(x), repr(x))
+        end
     end
 end
 
