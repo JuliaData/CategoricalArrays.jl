@@ -160,7 +160,7 @@ using CategoricalArrays
     @test Compat.findfirst(equalto('a'), v2) === 2
     @test Compat.findnext(equalto('a'), v2, 3) === nothing
 
-    @test Compat.findlast("a", v1) === 0:-1
+    @test Compat.findlast("a", v1) === nothing
     @test Compat.findlast("a", v2) === 2:2
     @test Compat.findlast(equalto('a'), v2) === 2
     @test Compat.findprev(equalto('a'), v2, 1) === nothing
