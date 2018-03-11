@@ -378,11 +378,11 @@ function mergelevels(ordered, levels...)
 
     # Check that result is ordered
     if ordered
-        levelsmaps = [indexin(res, l) for l in levels]
+        levelsmaps = [Compat.indexin(res, l) for l in levels]
 
         # Check that each original order is preserved
         for m in levelsmaps
-            issorted(m[m .!= 0]) || return res, false
+            issorted(Iterators.filter(x -> x != nothing, m)) || return res, false
         end
 
         # Check that all order relations between pairs of subsequent elements
@@ -390,7 +390,7 @@ function mergelevels(ordered, levels...)
         pairs = fill(false, length(res)-1)
         for m in levelsmaps
             @inbounds for i in eachindex(pairs)
-                pairs[i] |= (m[i] != 0) & (m[i+1] != 0)
+                pairs[i] |= (m[i] != nothing) & (m[i+1] != nothing)
             end
             all(pairs) && return res, true
         end

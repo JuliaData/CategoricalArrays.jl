@@ -332,7 +332,7 @@ end
             vdest = view(dest, 1:2)
             res = @test_throws ArgumentError copy!(vdest, src)
             @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
-                "Found when trying to set levels to String[\"e\", \"f\", \"g\", \"b\", \"a\"]."
+                "Found when trying to set levels to $(["e", "f", "g", "b", "a"])."
             @test dest[1:2] ==  ["e", "f"]
             @test levels(dest) == levels(vdest) == ["e", "f", "g"]
             @test isordered(dest) && isordered(vdest)
@@ -341,7 +341,7 @@ end
             vdest = view(dest, 1:2)
             res = @test_throws ArgumentError copy!(vdest, src)
             @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
-                "Found when trying to set levels to String[\"e\", \"f\", \"b\", \"a\"]."
+                "Found when trying to set levels to $(["e", "f", "b", "a"])."
             @test dest == ["e", "f"]
             @test levels(dest) == levels(vdest) == ["e", "f"]
             @test isordered(dest) && isordered(vdest)
@@ -750,11 +750,9 @@ end
 
 @testset "summary()" begin
     @test summary(CategoricalArray([1, 2, 3])) ==
-        "3-element CategoricalArrays.CategoricalArray{$Int,1,UInt32}"
-    # Ordering changed in Julia 0.7
-    @test summary(CategoricalArray{Union{Int, Missing}}([1 2 3])) in
-        ("1×3 CategoricalArrays.CategoricalArray{Union{Missings.Missing, $Int},2,UInt32}",
-         "1×3 CategoricalArrays.CategoricalArray{Union{$Int, Missings.Missing},2,UInt32}")
+        "3-element $CategoricalArray{$Int,1,UInt32}"
+    @test summary(CategoricalArray{Union{Int, Missing}}([1 2 3])) ==
+        "1×3 $CategoricalArray{$(Union{Missing, Int}),2,UInt32}"
 end
 
 @testset "vcat() takes into account element type even when array is empty" begin
