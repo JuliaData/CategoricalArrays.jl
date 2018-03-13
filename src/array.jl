@@ -24,7 +24,7 @@ end
     CategoricalArray{T}(undef, dims::Dims; ordered::Bool=false)
     CategoricalArray{T}(undef, dims::Int...; ordered::Bool=false)
 
-Construct an undef `CategoricalArray` with levels of type `T` and dimensions `dim`.
+Construct an uninitialized `CategoricalArray` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
