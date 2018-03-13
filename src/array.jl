@@ -54,7 +54,7 @@ function CategoricalArray end
 """
     CategoricalVector{T}(undef, m::Int; ordered::Bool=false)
 
-Construct an undef `CategoricalVector` with levels of type `T` and dimensions `dim`.
+Construct an uninitialized `CategoricalVector` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
@@ -83,7 +83,7 @@ function CategoricalVector end
 """
     CategoricalMatrix{T}(undef, m::Int, n::Int; ordered::Bool=false)
 
-Construct an undef `CategoricalMatrix` with levels of type `T` and dimensions `dim`.
+Construct an uninitialized `CategoricalMatrix` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
