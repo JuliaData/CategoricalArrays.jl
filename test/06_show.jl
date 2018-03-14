@@ -35,9 +35,19 @@ end
     @test sprint(show, ov2) == "$CategoricalString{UInt32} \"b\" (2/3)"
     @test sprint(show, ov3) == "$CategoricalString{UInt32} \"a\" (1/3)"
 
-    @test sprint(showcompact, nv1) == sprint(showcompact, ov1) == "\"c\""
-    @test sprint(showcompact, nv2) == sprint(showcompact, ov2) == "\"b\""
-    @test sprint(showcompact, nv3) == sprint(showcompact, ov3) == "\"a\""
+    if VERSION >= v"0.7.0-DEV.4524"
+        @test sprint(show, nv1, context=:typeinfo=>typeof(nv1)) == "\"c\""
+        @test sprint(show, nv2, context=:typeinfo=>typeof(nv2)) == "\"b\""
+        @test sprint(show, nv3, context=:typeinfo=>typeof(nv3)) == "\"a\""
+
+        @test sprint(show, ov1, context=:typeinfo=>typeof(ov1)) == "\"c\""
+        @test sprint(show, ov2, context=:typeinfo=>typeof(ov2)) == "\"b\""
+        @test sprint(show, ov3, context=:typeinfo=>typeof(ov3)) == "\"a\""
+    else
+        @test sprint(showcompact, nv1) == sprint(showcompact, ov1) == "\"c\""
+        @test sprint(showcompact, nv2) == sprint(showcompact, ov2) == "\"b\""
+        @test sprint(showcompact, nv3) == sprint(showcompact, ov3) == "\"a\""
+    end
 
     @test sprint(print, nv1) == sprint(print, ov1) == "c"
     @test sprint(print, nv2) == sprint(print, ov2) == "b"
@@ -77,9 +87,19 @@ end
     @test sprint(show, ov2) == "$CategoricalValue{$DateStr,UInt32} 1991-08-01 (1/3)"
     @test sprint(show, ov3) == "$CategoricalValue{$DateStr,UInt32} 1993-10-01 (2/3)"
 
-    @test sprint(showcompact, nv1) == sprint(showcompact, ov1) == "1999-12-01"
-    @test sprint(showcompact, nv2) == sprint(showcompact, ov2) == "1991-08-01"
-    @test sprint(showcompact, nv3) == sprint(showcompact, ov3) == "1993-10-01"
+    if VERSION >= v"0.7.0-DEV.4524"
+        @test sprint(show, nv1, context=:typeinfo=>typeof(nv1)) == "1999-12-01"
+        @test sprint(show, nv2, context=:typeinfo=>typeof(nv2)) == "1991-08-01"
+        @test sprint(show, nv3, context=:typeinfo=>typeof(nv3)) == "1993-10-01"
+
+        @test sprint(show, ov1, context=:typeinfo=>typeof(ov1)) == "1999-12-01"
+        @test sprint(show, ov2, context=:typeinfo=>typeof(ov2)) == "1991-08-01"
+        @test sprint(show, ov3, context=:typeinfo=>typeof(ov3)) == "1993-10-01"
+    else
+        @test sprint(showcompact, nv1) == sprint(showcompact, ov1) == "1999-12-01"
+        @test sprint(showcompact, nv2) == sprint(showcompact, ov2) == "1991-08-01"
+        @test sprint(showcompact, nv3) == sprint(showcompact, ov3) == "1993-10-01"
+    end
 
     @test sprint(print, nv1) == sprint(print, ov1) == "1999-12-01"
     @test sprint(print, nv2) == sprint(print, ov2) == "1991-08-01"
