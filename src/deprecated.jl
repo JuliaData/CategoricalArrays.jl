@@ -62,25 +62,25 @@ if VERSION < v"0.7.0-DEV.2581"
     CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} =
         CategoricalArray{T}((m, n), ordered=ordered)
 else
-    @deprecate CategoricalArray(dims::Int...; ordered=false) CategoricalArray(uninitialized, dims...; ordered=ordered)
+    @deprecate CategoricalArray(dims::Int...; ordered=false) CategoricalArray(undef, dims...; ordered=ordered)
 
-    @deprecate CategoricalArray{T, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R} CategoricalArray{T, N, R}(uninitialized, dims; ordered=ordered)
+    @deprecate CategoricalArray{T, N, R}(dims::NTuple{N,Int}; ordered=false) where {T, N, R} CategoricalArray{T, N, R}(undef, dims; ordered=ordered)
 
-    @deprecate CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T, N} CategoricalArray{T, N}(uninitialized, dims; ordered=ordered)
-    @deprecate CategoricalArray{T}(dims::NTuple{N,Int}; ordered=false) where {T, N} CategoricalArray{T}(uninitialized, dims; ordered=ordered)
-    @deprecate CategoricalArray{T, 1}(m::Int; ordered=false) where {T} CategoricalArray{T, 1}(uninitialized, m; ordered=ordered)
-    @deprecate CategoricalArray{T, 2}(m::Int, n::Int; ordered=false) where {T} CategoricalArray{T, 2}(uninitialized, m, n; ordered=ordered)
-    @deprecate CategoricalArray{T, 1, R}(m::Int; ordered=false) where {T, R} CategoricalArray{T, 1, R}(uninitialized, m; ordered=ordered)
+    @deprecate CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T, N} CategoricalArray{T, N}(undef, dims; ordered=ordered)
+    @deprecate CategoricalArray{T}(dims::NTuple{N,Int}; ordered=false) where {T, N} CategoricalArray{T}(undef, dims; ordered=ordered)
+    @deprecate CategoricalArray{T, 1}(m::Int; ordered=false) where {T} CategoricalArray{T, 1}(undef, m; ordered=ordered)
+    @deprecate CategoricalArray{T, 2}(m::Int, n::Int; ordered=false) where {T} CategoricalArray{T, 2}(undef, m, n; ordered=ordered)
+    @deprecate CategoricalArray{T, 1, R}(m::Int; ordered=false) where {T, R} CategoricalArray{T, 1, R}(undef, m; ordered=ordered)
     # R <: Integer is required to prevent default constructor from being called instead
-    @deprecate CategoricalArray{T, 2, R}(m::Int, n::Int; ordered=false) where {T, R <: Integer} CategoricalArray{T, 2, R}(uninitialized, m, n; ordered=ordered)
-    @deprecate CategoricalArray{T, 3, R}(m::Int, n::Int, o::Int; ordered=false) where {T, R} CategoricalArray{T, 3, R}(uninitialized, m, n, o; ordered=ordered)
-    @deprecate CategoricalArray{T}(m::Int; ordered=false) where {T} CategoricalArray{T}(uninitialized, m; ordered=ordered)
-    @deprecate CategoricalArray{T}(m::Int, n::Int; ordered=false) where {T} CategoricalArray{T}(uninitialized, m, n; ordered=ordered)
-    @deprecate CategoricalArray{T}(m::Int, n::Int, o::Int; ordered=false) where {T} CategoricalArray{T}(uninitialized, m, n, o; ordered=ordered)
+    @deprecate CategoricalArray{T, 2, R}(m::Int, n::Int; ordered=false) where {T, R <: Integer} CategoricalArray{T, 2, R}(undef, m, n; ordered=ordered)
+    @deprecate CategoricalArray{T, 3, R}(m::Int, n::Int, o::Int; ordered=false) where {T, R} CategoricalArray{T, 3, R}(undef, m, n, o; ordered=ordered)
+    @deprecate CategoricalArray{T}(m::Int; ordered=false) where {T} CategoricalArray{T}(undef, m; ordered=ordered)
+    @deprecate CategoricalArray{T}(m::Int, n::Int; ordered=false) where {T} CategoricalArray{T}(undef, m, n; ordered=ordered)
+    @deprecate CategoricalArray{T}(m::Int, n::Int, o::Int; ordered=false) where {T} CategoricalArray{T}(undef, m, n, o; ordered=ordered)
 
-    @deprecate CategoricalVector(m::Integer; ordered=false) CategoricalVector(uninitialized, m; ordered=ordered)
-    @deprecate CategoricalVector{T}(m::Int; ordered=false) where {T} CategoricalVector{T}(uninitialized, m; ordered=ordered)
+    @deprecate CategoricalVector(m::Integer; ordered=false) CategoricalVector(undef, m; ordered=ordered)
+    @deprecate CategoricalVector{T}(m::Int; ordered=false) where {T} CategoricalVector{T}(undef, m; ordered=ordered)
 
-    @deprecate CategoricalMatrix(m::Int, n::Int; ordered=false) CategoricalMatrix(uninitialized, m, n; ordered=ordered)
-    @deprecate CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} CategoricalMatrix{T}(uninitialized, m::Int, n::Int; ordered=ordered)
+    @deprecate CategoricalMatrix(m::Int, n::Int; ordered=false) CategoricalMatrix(undef, m, n; ordered=ordered)
+    @deprecate CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} CategoricalMatrix{T}(undef, m::Int, n::Int; ordered=ordered)
 end

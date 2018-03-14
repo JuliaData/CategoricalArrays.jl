@@ -146,7 +146,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
 
         # Remove recoded levels as they won't appear in result
         firsts = (p.first for p in pairs)
-        keptlevels = Vector{T}(uninitialized, 0)
+        keptlevels = Vector{T}(undef, 0)
         sizehint!(keptlevels, length(srclevels))
 
         for l in srclevels
@@ -177,7 +177,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     srefs = src.refs
 
     origmap = [get(dest.pool, v, 0) for v in srcindex]
-    indexmap = Vector{DefaultRefType}(uninitialized, length(srcindex)+1)
+    indexmap = Vector{DefaultRefType}(undef, length(srcindex)+1)
     # For missing values (0 if no missing in pairs' keys)
     indexmap[1] = 0
     for p in pairs
@@ -341,9 +341,9 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
     elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
-        dest = Array{Union{T, Missing}}(uninitialized, size(a))
+        dest = Array{Union{T, Missing}}(undef, size(a))
     else
-        dest = Array{Missings.T(T)}(uninitialized, size(a))
+        dest = Array{Missings.T(T)}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
 end
@@ -358,13 +358,13 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     # assume the caller wants to recode only some values to missing,
     # but accept original values
     if T === Missing && default !== missing
-        dest = CategoricalArray{Union{S, Missing}, N, R}(uninitialized, size(a))
+        dest = CategoricalArray{Union{S, Missing}, N, R}(undef, size(a))
     # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
     elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
-        dest = CategoricalArray{Union{T, Missing}, N, R}(uninitialized, size(a))
+        dest = CategoricalArray{Union{T, Missing}, N, R}(undef, size(a))
     else
-        dest = CategoricalArray{Missings.T(T), N, R}(uninitialized, size(a))
+        dest = CategoricalArray{Missings.T(T), N, R}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
 end
