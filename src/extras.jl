@@ -26,7 +26,7 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Missing},
     @inbounds for i in eachindex(X)
         ismissing(X[i]) && continue
 
-        x = unsafe_get(X[i])
+        x = X[i]
 
         if extend && x == upper
             refs[i] = n-1

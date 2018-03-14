@@ -54,7 +54,7 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
                 throw(MissingException("missing value found, but dest does not support them: " *
                                        "recode them to a supported value"))
             dest[i] = missing
-        elseif default === nothing
+        elseif default isa Nothing
             try
                 dest[i] = x
             catch err
@@ -332,15 +332,15 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
-    T = default === nothing ? V : promote_type(typeof(default), V)
+    T = default isa Nothing ? V : promote_type(typeof(default), V)
     # Exception 1: if T === Missing and default not missing,
     # assume the caller wants to recode only some values to missing,
     # but accept original values
-    if T === Missing && default !== missing
+    if T === Missing && !isa(default, Missing)
         dest = Array{Union{eltype(a), Missing}}(size(a))
     # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
-    elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+    elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
         dest = Array{Union{T, Missing}}(undef, size(a))
     else
         dest = Array{Missings.T(T)}(undef, size(a))
@@ -353,17 +353,16 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
-    T = default === nothing ? V : promote_type(typeof(default), V)
+    T = default isa Nothing ? V : promote_type(typeof(default), V)
     # Exception 1: if T === Missing and default not missing,
     # assume the caller wants to recode only some values to missing,
     # but accept original values
-    if T === Missing && default !== missing
+    if T === Missing && !isa(default, Missing)
         dest = CategoricalArray{Union{S, Missing}, N, R}(undef, size(a))
     # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
-    elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
-        dest = CategoricalArray{Union{T, Missing}, N, R}(undef, size(a))
-    else
+    elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+        dest = CategoricalArray{Union{T, Missing}, N, R}(undef, size(a))    else
         dest = CategoricalArray{Missings.T(T), N, R}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
