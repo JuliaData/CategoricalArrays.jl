@@ -467,14 +467,26 @@ copyto!(dest::CatArrOrSub, src::CatArrOrSub) =
 copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
     copyto!(dest, dstart, src, 1, length(src))
 
-similar(A::CategoricalArray{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) where {T, N, S, M, R} =
+similar(A::CategoricalArray{S, M, R}, ::Type{T},
+        dims::NTuple{N, Int}) where {T, N, S, M, R} =
     Array{T, N}(undef, dims)
-similar(A::CategoricalArray{S, M, R}, ::Type{Missing}, dims::NTuple{N, Int}) where {N, S, M, R} =
+similar(A::CategoricalArray{S, M, R}, ::Type{Missing},
+        dims::NTuple{N, Int}) where {N, S, M, R} =
     Array{Missing, N}(missing, dims)
-similar(A::CategoricalArray{S, M, Q}, ::Type{T}, dims::NTuple{N, Int}) where {R, T<:Union{CatValue{R}, Missing}, N, S, M, Q} =
+similar(A::CategoricalArray{S, M, Q}, ::Type{T},
+        dims::NTuple{N, Int}) where {R, T<:CatValue{R}, N, S, M, Q} =
     CategoricalArray{T, N, R}(undef, dims)
-similar(A::CategoricalArray{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) where {S, T<:Union{CatValue, Missing}, M, N, R} =
+similar(A::CategoricalArray{S, M, R}, ::Type{T},
+        dims::NTuple{N, Int}) where {S, T<:CatValue, M, N, R} =
     CategoricalArray{T, N, R}(undef, dims)
+# Union{T, Missing} is repeated even if theoretically redundant because of JuliaLang/julia#26405
+# Once that bug is fixed, Union{T, Missing} can be replaced with T and the two definitions above can be removed
+similar(A::CategoricalArray{S, M, Q}, ::Type{T},
+        dims::NTuple{N, Int}) where {R, T<:Union{CatValue{R}, Missing}, N, S, M, Q} =
+    CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
+similar(A::CategoricalArray{S, M, R}, ::Type{T},
+        dims::NTuple{N, Int}) where {S, T<:Union{CatValue, Missing}, M, N, R} =
+    CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
 
 """
     compress(A::CategoricalArray)
