@@ -855,45 +855,50 @@ end
     @test z ≅ x
 end
 
-@testset "Array{T} and AbstractArray{T} constructors and convert" for A in (Array, AbstractArray)
+@testset "Array{T} constructors and convert" begin
     x = [1,1,2,2]
     y = categorical(x)
-    z = A{Int}(y)
+    z = Array{Int}(y)
     @test typeof(x) == typeof(z)
     @test z == x
-    z = convert(A{Int}, y)
+    z = convert(Array{Int}, y)
     @test typeof(x) == typeof(z)
     @test z == x
 
     x = [1,1,2,missing]
     y = categorical(x)
-    z = A{Union{Int, Missing}}(y)
+    z = Array{Union{Int, Missing}}(y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
-    z = convert(A{Union{Int, Missing}}, y)
+    z = convert(Array{Union{Int, Missing}}, y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
 end
 
-@testset "AbstractArray{T} constructors and convert are no-ops" for
-    x in (categorical([1,1,2,2]), categorical([1,1,2,missing]))
-    y = AbstractArray(x)
-    @test x === y
-    y = AbstractVector(x)
-    @test x === y
-    y = AbstractArray{eltype(x)}(x)
-    @test x === y
-    y = AbstractArray{eltype(x), 1}(x)
-    @test x === y
+@testset "convert(AbstractArray{T}, x)" begin
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = convert(AbstractArray{Int}, y)
+    @test typeof(x) == typeof(z)
+    @test z == x
 
-    y = convert(AbstractArray, x)
-    @test x === y
-    y = convert(AbstractVector, x)
-    @test x === y
-    y = convert(AbstractArray{eltype(x)}, x)
-    @test x === y
-    y = convert(AbstractArray{eltype(x), 1}, x)
-    @test x === y
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = convert(AbstractArray{Union{Int, Missing}}, y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+
+    # Check that convert is a no-op when appropriate
+    for x in (categorical([1,1,2,2]), categorical([1,1,2,missing]))
+        y = convert(AbstractArray, x)
+        @test x === y
+        y = convert(AbstractVector, x)
+        @test x === y
+        y = convert(AbstractArray{eltype(x)}, x)
+        @test x === y
+        y = convert(AbstractArray{eltype(x), 1}, x)
+        @test x === y
+    end
 end
 
 @testset "new levels can't be added through assignment when levels are ordered" begin
