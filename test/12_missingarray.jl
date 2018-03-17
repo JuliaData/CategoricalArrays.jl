@@ -931,16 +931,16 @@ const ≅ = isequal
         end
 
         # Uninitialized array
-        v = Any[CategoricalArray{Union{String, Missing}}(2, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 1}(2, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 1, R}(2, ordered=ordered),
-                CategoricalVector{Union{String, Missing}}(2, ordered=ordered),
-                CategoricalVector{Union{String, Missing}, R}(2, ordered=ordered),
-                CategoricalArray{Union{String, Missing}}(2, 3, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 2}(2, 3, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 2, R}(2, 3, ordered=ordered),
-                CategoricalMatrix{Union{String, Missing}}(2, 3, ordered=ordered),
-                CategoricalMatrix{Union{String, Missing}, R}(2, 3, ordered=ordered)]
+        v = Any[CategoricalArray{Union{String, Missing}}(undef, 2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 1}(undef, 2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 1, R}(undef, 2, ordered=ordered),
+                CategoricalVector{Union{String, Missing}}(undef, 2, ordered=ordered),
+                CategoricalVector{Union{String, Missing}, R}(undef, 2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}}(undef, 2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 2}(undef, 2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 2, R}(undef, 2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Missing}}(undef, 2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Missing}, R}(undef, 2, 3, ordered=ordered)]
 
         @testset "Uninitialized $(typeof(x))" for x in v
         @test isordered(x) === ordered
