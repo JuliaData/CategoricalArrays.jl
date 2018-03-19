@@ -157,13 +157,13 @@ using CategoricalArrays
 
     @test Compat.findfirst("", v1) === 1:0
     @test Compat.findfirst("a", v2) === 2:2
-    @test Compat.findfirst(equalto('a'), v2) === 2
-    @test Compat.findnext(equalto('a'), v2, 3) === nothing
+    @test Compat.findfirst(==('a'), v2) === 2
+    @test Compat.findnext(==('a'), v2, 3) === nothing
 
     @test Compat.findlast("a", v1) === nothing
     @test Compat.findlast("a", v2) === 2:2
-    @test Compat.findlast(equalto('a'), v2) === 2
-    @test Compat.findprev(equalto('a'), v2, 1) === nothing
+    @test Compat.findlast(==('a'), v2) === 2
+    @test Compat.findprev(==('a'), v2, 1) === nothing
 
     @test !contains(v1, "a")
     @test contains(v1, "")
@@ -216,11 +216,11 @@ using CategoricalArrays
     @test titlecase(v1) == ""
     @test titlecase(v2) == "Café"
 
-    @test ucfirst(v1) == ""
-    @test ucfirst(v2) == "Café"
+    @test uppercasefirst(v1) == ""
+    @test uppercasefirst(v2) == "Café"
 
-    @test lcfirst(v1) == ""
-    @test lcfirst(v2) == "café"
+    @test lowercasefirst(v1) == ""
+    @test lowercasefirst(v2) == "café"
 
     @test join([v1, "a"]) == "a"
     @test join([v1, "a"], v2) == "caféa"

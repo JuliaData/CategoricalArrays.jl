@@ -18,7 +18,7 @@ using CategoricalArrays: DefaultRefType
         )
     )
 
-    order = Vector{DefaultRefType}(uninitialized, length(pool.index))
+    order = Vector{DefaultRefType}(undef, length(pool.index))
 
     CategoricalArrays.buildorder!(order, pool.invindex, ["b", "a", "c"])
 
