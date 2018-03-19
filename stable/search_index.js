@@ -36,7 +36,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.droplevels!",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.droplevels!",
-    "category": "Function",
+    "category": "function",
     "text": "droplevels!(A::CategoricalArray)\n\nDrop levels which do not appear in categorical array A (so that they will no longer be returned by levels).\n\n\n\n"
 },
 
@@ -44,7 +44,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#Missings.levels",
     "page": "Using CategoricalArrays",
     "title": "Missings.levels",
-    "category": "Function",
+    "category": "function",
     "text": "levels(A::CategoricalArray)\n\nReturn the levels of categorical array A. This may include levels which do not actually appear in the data (see droplevels!).\n\n\n\nlevels(x)\n\nReturn a vector of unique values which occur or could occur in collection x, omitting missing even if present. Values are returned in the preferred order for the collection, with the result of sort as a default.\n\nContrary to unique, this function may return values which do not actually occur in the data, and does not preserve their order of appearance in x.\n\n\n\n"
 },
 
@@ -52,7 +52,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.levels!",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.levels!",
-    "category": "Function",
+    "category": "function",
     "text": "levels!(A::CategoricalArray, newlevels::Vector; allow_missing::Bool=false)\n\nSet the levels categorical array A. The order of appearance of levels will be respected by levels, which may affect display of results in some operations; if A is ordered (see isordered), it will also be used for order comparisons using <, > and similar operators. Reordering levels will never affect the values of entries in the array.\n\nIf A accepts missing values (i.e. eltype(A) >: Missing) and allow_missing=true, entries corresponding to omitted levels will be set to missing. Else, newlevels must include all levels which appear in the data.\n\n\n\n"
 },
 
@@ -76,7 +76,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.categorical",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.categorical",
-    "category": "Function",
+    "category": "function",
     "text": "categorical{T}(A::AbstractArray{T}[, compress::Bool]; ordered::Bool=false)\n\nConstruct a categorical array with the values from A.\n\nIf the element type supports it, levels are sorted in ascending order; else, they are kept in their order of appearance in A. The ordered keyword argument determines whether the array values can be compared according to the ordering of levels or not (see isordered).\n\nIf compress is provided and set to true, the smallest reference type able to hold the number of unique values in A will be used. While this will reduce memory use, passing this parameter will also introduce a type instability which can affect performance inside the function where the call is made. Therefore, use this option with caution (the one-argument version does not suffer from this problem).\n\ncategorical{T}(A::CategoricalArray{T}[, compress::Bool]; ordered::Bool=isordered(A))\n\nIf A is already a CategoricalArray, its levels are preserved; the same applies to the ordered property, and to the reference type unless compress is passed.\n\n\n\n"
 },
 
@@ -84,7 +84,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.compress",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.compress",
-    "category": "Function",
+    "category": "function",
     "text": "compress(A::CategoricalArray)\n\nReturn a copy of categorical array A using the smallest reference type able to hold the number of levels of A.\n\nWhile this will reduce memory use, this function is type-unstable, which can affect performance inside the function where the call is made. Therefore, use it with caution.\n\n\n\n"
 },
 
@@ -92,7 +92,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.cut",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.cut",
-    "category": "Function",
+    "category": "function",
     "text": "cut(x::AbstractArray, breaks::AbstractVector;\n    extend::Bool=false, labels::AbstractVector=[], allow_missing::Bool=false)\n\nCut a numeric array into intervals and return an ordered CategoricalArray indicating the interval into which each entry falls. Intervals are of the form [lower, upper), i.e. the lower bound is included and the upper bound is excluded.\n\nIf x accepts missing values (i.e. eltype(x) >: Missing) the returned array will also accept them.\n\nArguments\n\nextend::Bool=false: when false, an error is raised if some values in x fall outside of the breaks; when true, breaks are automatically added to include all values in x, and the upper bound is included in the last interval.\nlabels::AbstractVector=[]: a vector of strings giving the names to use for the intervals; if empty, default labels are used.\nallow_missing::Bool=true: when true, values outside of breaks result in missing values. only supported when x accepts missing values.\n\n\n\ncut(x::AbstractArray, ngroups::Integer;\n    labels::AbstractVector=String[])\n\nCut a numeric array into ngroups quantiles, determined using quantile.\n\n\n\n"
 },
 
@@ -100,7 +100,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.decompress",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.decompress",
-    "category": "Function",
+    "category": "function",
     "text": "decompress(A::CategoricalArray)\n\nReturn a copy of categorical array A using the default reference type (UInt32). If A is using a small reference type (such as UInt8 or UInt16) the decompressed array will have room for more levels.\n\nTo avoid the need to call decompress, ensure compress is not called when creating the categorical array.\n\n\n\n"
 },
 
@@ -108,7 +108,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.isordered",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.isordered",
-    "category": "Function",
+    "category": "function",
     "text": "isordered(A::CategoricalArray)\n\nTest whether entries in A can be compared using <, > and similar operators, using the ordering of levels.\n\n\n\n"
 },
 
@@ -116,7 +116,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.ordered!",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.ordered!",
-    "category": "Function",
+    "category": "function",
     "text": "ordered!(A::CategoricalArray, ordered::Bool)\n\nSet whether entries in A can be compared using <, > and similar operators, using the ordering of levels. Return the modified A.\n\n\n\n"
 },
 
@@ -124,7 +124,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.recode",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.recode",
-    "category": "Function",
+    "category": "function",
     "text": "recode(a::AbstractArray[, default::Any], pairs::Pair...)\n\nReturn a copy of a, replacing elements matching a key of pairs with the corresponding value. The type of the array is chosen so that it can hold all recoded elements (but not necessarily original elements from a).\n\nFor each Pair in pairs, if the element is equal to (according to isequal) or in the key (first item of the pair), then the corresponding value (second item) is used. If the element matches no key and default is not provided or nothing, it is copied as-is; if default is specified, it is used in place of the original element. If an element matches more than one key, the first match is used.\n\nrecode(a::CategoricalArray[, default::Any], pairs::Pair...)\n\nIf a is a CategoricalArray then the ordering of resulting levels is determined by the order of passed pairs and default will be the last level if provided.\n\nExamples\n\njulia> using CategoricalArrays\n\njulia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1)\n10-element Array{Int64,1}:\n 100\n   0\n   0\n   0\n  -1\n   6\n   7\n   8\n  -1\n  -1\n\n\n recode(a::AbstractArray{>:Missing}[, default::Any], pairs::Pair...)\n\nIf a contains missing values, they are never replaced with default: use missing in a pair to recode them. If that\'s not the case, the returned array will accept missing values.\n\nExamples\n\njulia> using CategoricalArrays, Missings\n\njulia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>missing)\n10-element Array{Union{Int64, Missings.Missing},1}:\n 100    \n   0    \n   0    \n   0    \n  -1    \n    missing\n   7    \n   8    \n  -1    \n  -1    \n\n\n\n\n"
 },
 
@@ -132,7 +132,7 @@ var documenterSearchIndex = {"docs": [
     "location": "using.html#CategoricalArrays.recode!",
     "page": "Using CategoricalArrays",
     "title": "CategoricalArrays.recode!",
-    "category": "Function",
+    "category": "function",
     "text": "recode!(dest::AbstractArray, src::AbstractArray[, default::Any], pairs::Pair...)\n\nFill dest with elements from src, replacing those matching a key of pairs with the corresponding value.\n\nFor each Pair in pairs, if the element is equal to (according to isequal)) the key (first item of the pair) or to one of its entries if it is a collection, then the corresponding value (second item) is copied to dest. If the element matches no key and default is not provided or nothing, it is copied as-is; if default is specified, it is used in place of the original element. dest and src must be of the same length, but not necessarily of the same type. Elements of src as well as values from pairs will be converted when possible on assignment. If an element matches more than one key, the first match is used.\n\nrecode!(dest::CategoricalArray, src::AbstractArray[, default::Any], pairs::Pair...)\n\nIf dest is a CategoricalArray then the ordering of resulting levels is determined by the order of passed pairs and default will be the last level if provided.\n\nrecode!(dest::AbstractArray, src::AbstractArray{>:Missing}[, default::Any], pairs::Pair...)\n\nIf src contains missing values, they are never replaced with default: use missing in a pair to recode them.\n\n\n\n"
 },
 
