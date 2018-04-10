@@ -19,6 +19,7 @@ const ≅ = isequal
                 @test catvaluetype(x) === CategoricalArrays.CategoricalString{R}
                 @test isordered(x) === ordered
                 @test levels(x) == sort(unique(a))
+                @test unique(x) == unique(a)
                 @test size(x) === (3,)
                 @test length(x) === 3
 
@@ -250,6 +251,7 @@ const ≅ = isequal
 
             @test x ≅ a
             @test levels(x) == filter(x->!ismissing(x), unique(a))
+            @test unique(x) ≅ unique(a)
             @test size(x) === (3,)
             @test length(x) === 3
 
@@ -396,7 +398,7 @@ const ≅ = isequal
 
         @test x == collect(a)
         @test isordered(x) === ordered
-        @test levels(x) == unique(a)
+        @test levels(x) == unique(x) == unique(a)
         @test size(x) === (4,)
         @test length(x) === 4
         @test leveltype(x) === Float64
@@ -536,6 +538,7 @@ const ≅ = isequal
         @test x[3] === x.pool.valindex[3]
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == unique(a)
+        @test unique(x) == unique(collect(x))
 
         if ordered
             @test_throws OrderedLevelsException x[1:2] = -1
@@ -547,6 +550,7 @@ const ≅ = isequal
         @test x[3] === x.pool.valindex[3]
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == vcat(unique(a), -1)
+        @test unique(x) == unique(collect(x))
 
         if ordered
             @test_throws OrderedLevelsException push!(x, 2.0)
@@ -592,7 +596,7 @@ const ≅ = isequal
 
         @test x == a
         @test isordered(x) === ordered
-        @test levels(x) == unique(a)
+        @test levels(x) == unique(x) == unique(a)
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -733,6 +737,7 @@ const ≅ = isequal
         @test x ≅ a
         @test isordered(x) === ordered
         @test levels(x) == filter(x->!ismissing(x), unique(a))
+        @test unique(x) ≅ unique(a)
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -1062,16 +1067,16 @@ end
 @testset "unique() and levels()" begin
     x = CategoricalArray(["Old", "Young", "Middle", missing, "Young"])
     @test levels(x) == ["Middle", "Old", "Young"]
-    @test unique(x) ≅ ["Middle", "Old", "Young", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
-    @test unique(x) ≅ ["Young", "Middle", "Old", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
     @test levels!(x, ["Young", "Middle", "Old", "Unused"]) === x
     @test levels(x) == ["Young", "Middle", "Old", "Unused"]
-    @test unique(x) ≅ ["Young", "Middle", "Old", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
     @test levels!(x, ["Unused1", "Young", "Middle", "Old", "Unused2"]) === x
     @test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
-    @test unique(x) ≅["Young", "Middle", "Old", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
 
     x = CategoricalArray((Union{String, Missing})[missing])
     @test isa(levels(x), Vector{String}) && isempty(levels(x))
@@ -1080,14 +1085,14 @@ end
     @test levels(x) == ["Young", "Middle", "Old"]
     @test unique(x) ≅ [missing]
 
-    # To test short-circuit after 1000 elements
-    x = CategoricalArray{Union{Int, Missing}}(repeat(1:1500, inner=10))
-    @test levels(x) == collect(1:1500)
-    @test unique(x) == collect(1:1500)
-    @test levels!(x, [1600:-1:1; 2000]) === x
+    # To test short-circuiting
+    x = CategoricalArray{Union{Int, Missing}}(repeat(1:10, inner=10))
+    @test levels(x) == collect(1:10)
+    @test unique(x) == collect(1:10)
+    @test levels!(x, [19:-1:1; 20]) === x
     x[3] = missing
-    @test levels(x) == [1600:-1:1; 2000]
-    @test unique(x) ≅ [1500:-1:3; 2; 1; missing]
+    @test levels(x) == [19:-1:1; 20]
+    @test unique(x) ≅ [1; missing; 2:10]
 
     # in
     x = CategoricalArray{Int}(repeat(1:1500, inner=10))
