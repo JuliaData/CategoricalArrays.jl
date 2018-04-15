@@ -616,34 +616,26 @@ end
 function _unique(::Type{S},
                  refs::AbstractArray{T},
                  pool::CategoricalPool) where {S, T<:Integer}
-    seen = fill(false, length(index(pool))+1)
-    trackmissings = S >: Missing
+    nlevels = length(index(pool)) + 1
+    order = fill(0, nlevels) # 0 indicates not seen
     # If we don't track missings, short-circuit even if none has been seen
-    seen[1] = !trackmissings
-    batch = 0
+    count = S >: Missing ? 0 : 1
     @inbounds for i in refs
-        seen[i + 1] = true
-        # Only do a costly short-circuit check periodically
-        batch += 1
-        if batch > 1000
-            all(seen) && break
-            batch = 0
+        if order[i + 1] == 0
+            count += 1
+            order[i + 1] = count
+            count == nlevels && break
         end
     end
-    seenmissing = popfirst!(seen)
-    res = convert(Vector{S}, index(pool)[seen][sortperm(pool.order[seen])])
-    if trackmissings && seenmissing
-        push!(res, missing)
-    end
-    res
+    S[i == 1 ? missing : index(pool)[i - 1] for i in sortperm(order) if order[i] != 0]
 end
 
 """
     unique(A::CategoricalArray)
 
-Return levels which appear in `A`, in the same order as [`levels`](@ref)
-(and not in their order of appearance). This function is significantly slower than
-[`levels`](@ref) since it needs to check whether levels are used or not.
+Return levels which appear in `A` in their order of appearance.
+This function is significantly slower than [`levels`](@ref)
+since it needs to check whether levels are used or not.
 """
 unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
 
