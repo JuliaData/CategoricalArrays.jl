@@ -639,13 +639,23 @@ since it needs to check whether levels are used or not.
 """
 unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
 
-"""
-    droplevels!(A::CategoricalArray)
+if VERSION >= v"0.7.0-DEV.4882"
+    """
+        droplevels!(A::CategoricalArray)
 
-Drop levels which do not appear in categorical array `A` (so that they will no longer be
-returned by [`levels`](@ref)).
-"""
-droplevels!(A::CategoricalArray) = levels!(A, filter!(!ismissing, unique(A)))
+    Drop levels which do not appear in categorical array `A` (so that they will no longer be
+    returned by [`levels`](@ref)).
+    """
+    droplevels!(A::CategoricalArray) = levels!(A, intersect!(levels(A), unique(A)))
+else # intersect! method missing on Julia 0.6
+    """
+        droplevels!(A::CategoricalArray)
+
+    Drop levels which do not appear in categorical array `A` (so that they will no longer be
+    returned by [`levels`](@ref)).
+    """
+    droplevels!(A::CategoricalArray) = levels!(A, intersect(levels(A), filter!(!ismissing, unique(A))))
+end
 
 """
     isordered(A::CategoricalArray)

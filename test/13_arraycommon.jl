@@ -931,4 +931,14 @@ end
     @test_throws ErrorException complex(categorical(Union{Int,Missing}[1]))
 end
 
+@testset "droplevels" for a in (["a", "b", "c"], ["a", "b", missing, "c"])
+    x = categorical(a)
+    levels!(x, ["b", "c", "a"])
+    @test droplevels!(x) === x
+    @test levels(x) == ["b", "c", "a"]
+    x[2] = "a"
+    @test droplevels!(x) === x
+    @test levels(x) == ["c", "a"]
+end
+
 end
