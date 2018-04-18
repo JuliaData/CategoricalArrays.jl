@@ -33,30 +33,6 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "using.html#CategoricalArrays.droplevels!",
-    "page": "Using CategoricalArrays",
-    "title": "CategoricalArrays.droplevels!",
-    "category": "function",
-    "text": "droplevels!(A::CategoricalArray)\n\nDrop levels which do not appear in categorical array A (so that they will no longer be returned by levels).\n\n\n\n"
-},
-
-{
-    "location": "using.html#Missings.levels",
-    "page": "Using CategoricalArrays",
-    "title": "Missings.levels",
-    "category": "function",
-    "text": "levels(A::CategoricalArray)\n\nReturn the levels of categorical array A. This may include levels which do not actually appear in the data (see droplevels!).\n\n\n\nlevels(x)\n\nReturn a vector of unique values which occur or could occur in collection x, omitting missing even if present. Values are returned in the preferred order for the collection, with the result of sort as a default.\n\nContrary to unique, this function may return values which do not actually occur in the data, and does not preserve their order of appearance in x.\n\n\n\n"
-},
-
-{
-    "location": "using.html#CategoricalArrays.levels!",
-    "page": "Using CategoricalArrays",
-    "title": "CategoricalArrays.levels!",
-    "category": "function",
-    "text": "levels!(A::CategoricalArray, newlevels::Vector; allow_missing::Bool=false)\n\nSet the levels categorical array A. The order of appearance of levels will be respected by levels, which may affect display of results in some operations; if A is ordered (see isordered), it will also be used for order comparisons using <, > and similar operators. Reordering levels will never affect the values of entries in the array.\n\nIf A accepts missing values (i.e. eltype(A) >: Missing) and allow_missing=true, entries corresponding to omitted levels will be set to missing. Else, newlevels must include all levels which appear in the data.\n\n\n\n"
-},
-
-{
     "location": "using.html#Basic-usage-1",
     "page": "Using CategoricalArrays",
     "title": "Basic usage",
