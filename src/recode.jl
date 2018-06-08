@@ -348,24 +348,36 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     recode!(dest, a, default, pairs...)
 end
 
-function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) where {S, N, R}
+function recode(a::CategoricalArray{S, N, R, U}, default::Any, pairs::Pair...; allow_srctype=false) where {S, N, R, U}
     V = promote_valuetype(pairs...)
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
     T = default isa Nothing ? V : promote_type(typeof(default), V)
-    # Exception 1: if T === Missing and default not missing,
+    # Exception 1: use eltype(src) anyways if promote_src_type is true,
+    # this mimics the behaviour of replace(a::Array, pairs::Pair...)
+    if allow_srctype
+        T = promote_type(U, T)
+    end
+    # Exception 2: if T === Missing and default not missing,
     # assume the caller wants to recode only some values to missing,
     # but accept original values
     if T === Missing && !isa(default, Missing)
         dest = CategoricalArray{Union{S, Missing}, N, R}(undef, size(a))
-    # Exception 2: if original array accepted missing values and missing does not appear
+    # Exception 3: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
     elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
-        dest = CategoricalArray{Union{T, Missing}, N, R}(undef, size(a))    else
+        dest = CategoricalArray{Union{T, Missing}, N, R}(undef, size(a))
+    else
         dest = CategoricalArray{Missings.T(T), N, R}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
 end
 
-Base.replace(a::CategoricalArray, pairs::Pair...) = recode(a, pairs...)
+Base.replace(a::CategoricalArray, pairs::Pair...) = recode(a, nothing, pairs..., allow_srctype=true)
+
+if VERSION >= v"0.7.0-"
+    Base.replace!(a::CategoricalArray, pairs::Pair...) = recode!(a, pairs...)
+else
+    replace!(a::CategoricalArray, pairs::Pair...) = recode!(a, pairs...)
+end

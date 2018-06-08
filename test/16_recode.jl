@@ -4,6 +4,10 @@ using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 
+if VERSION < v"0.7.0-"
+    using CategoricalArrays: replace!
+end
+
 const ≅ = isequal
 
 ## Test recode!, used by recode
@@ -534,12 +538,64 @@ end
     @test !isordered(y)
 end
 
-@testset "replace should create an CategoricalArray" begin
-    x = categorical(["a", "b", missing, "a"])
-    y = ["a", "b", "", "a"]
-    z = replace(x, missing => "")
-    @test y == z
-    @test isa(z, CategoricalVector{String})
+@testset "replace with CategoricalArray" begin
+    function testf(f, T, x::CategoricalArray, y, pairs::Pair...)
+        ca = f(x, pairs...)
+        @test ca == y
+        @test ca isa CategoricalArray{T}
+
+        if VERSION >= v"0.7.0-"
+            a = f(Array(x), pairs...)
+            @test a == y
+            @test a isa Array{T}
+        end
+
+        ca
+    end
+
+    @testset "string with missings" begin
+        x = categorical(["a", "b", missing, "a"])
+
+        testf(replace, String, x, ["a", "b", "", "a"], missing => "")
+        y = testf(replace!, Union{String, Missing}, x, ["a", "b", "", "a"], missing => "")
+        @test y === x
+    end
+
+    @testset "int to float" begin
+        x = categorical([0, 2, 0])
+
+        @testset "replace" begin
+            testf(replace, Float64, x, [0.5, 1.5, 0.5], 2 => 1.5, 0 => 0.5)
+            testf(replace, Float64, x, [0, 1, 0], 2 => 1.0)
+        end
+
+        @testset "replace!" begin
+            @test_throws InexactError replace!(x, 2 => 1.5)
+            if VERSION >= v"0.7.0-"
+                @test_throws InexactError replace!(Array(x), 2 => 1.5)
+            end
+
+            y = testf(replace!, Int, x, [0, 1, 0], 2 => 1.0)
+            @test y === x
+        end
+    end
+
+    @testset "float to int" begin
+        x = categorical([0.5, 2.0, 0.5])
+
+        @testset "replace" begin
+            testf(replace, Float64, x, [0.5, 1, 0.5], 2 => 1)
+            testf(replace, Float64, x, [3, 2, 3], 0.5 => 3)
+        end
+
+        @testset "replace!" begin
+            y = testf(replace!, Float64, x, [0.5, 1, 0.5], 2 => 1)
+            @test x === y
+
+            y = testf(replace!, Float64, x, [3, 1, 3], 0.5 => 3)
+            @test x === x
+        end
+    end
 end
 
 end
