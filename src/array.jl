@@ -677,7 +677,7 @@ function Base.resize!(A::CategoricalVector, n::Integer)
     n_orig = length(A)
     resize!(A.refs, n)
     if n > n_orig
-        A.refs[n_orig+1:end] = 0
+        A.refs[n_orig+1:end] .= 0
     end
     A
 end

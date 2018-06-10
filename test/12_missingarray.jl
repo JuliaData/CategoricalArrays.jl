@@ -159,7 +159,7 @@ const ≅ = isequal
                 @test x[3] === x.pool.valindex[3]
                 @test levels(x) == ["a", "b", "c"]
 
-                x[2:3] = "b"
+                x[2:3] .= "b"
                 @test x[1] === x.pool.valindex[2]
                 @test x[2] === x.pool.valindex[1]
                 @test x[3] === x.pool.valindex[1]
@@ -383,7 +383,7 @@ const ≅ = isequal
             @test x[3] === x.pool.valindex[3]
             @test levels(x) == ["a", "b", "c"]
 
-            x[2:3] = missing
+            x[2:3] .= missing
             @test x[1] === missing
             @test x[2] === missing
             @test x[3] === missing
@@ -541,10 +541,10 @@ const ≅ = isequal
         @test unique(x) == unique(collect(x))
 
         if ordered
-            @test_throws OrderedLevelsException x[1:2] = -1
+            @test_throws OrderedLevelsException x[1:2] .= -1
             levels!(x, [levels(x); -1])
         end
-        x[1:2] = -1
+        x[1:2] .= -1
         @test x[1] === x.pool.valindex[5]
         @test x[2] === x.pool.valindex[5]
         @test x[3] === x.pool.valindex[3]
@@ -711,7 +711,7 @@ const ≅ = isequal
         @test x[6] === x.pool.valindex[3]
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,:] = "a"
+        x[1,:] .= "a"
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
@@ -720,7 +720,7 @@ const ≅ = isequal
         @test x[6] === x.pool.valindex[3]
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = "z"
+        x[1,1:2] .= "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[4]
@@ -871,7 +871,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,:] = "a"
+        x[1,:] .= "a"
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
@@ -880,7 +880,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = "z"
+        x[1,1:2] .= "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[4]
@@ -898,7 +898,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = missing
+        x[1,1:2] .= missing
         @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
         @test x[3] === missing
@@ -907,7 +907,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[:,2] = missing
+        x[:,2] .= missing
         @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
         @test x[3] === missing
