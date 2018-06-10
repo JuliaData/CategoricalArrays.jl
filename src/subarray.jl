@@ -27,3 +27,12 @@ else
 end
 
 pool(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = A.parent.pool
+
+function Base.fill!(A::SubArray{<:Any, <:Any, <:CategoricalArray}, v::Any)
+    r = get!(A.parent.pool, convert(leveltype(A.parent), v))
+    fill!(refs(A), r)
+    A
+end
+
+Base.fill!(A::SubArray{<:Any, <:Any, <:CategoricalArray{>:Missing}}, ::Missing) =
+    (fill!(refs(A), 0); A)
