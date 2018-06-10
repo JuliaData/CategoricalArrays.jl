@@ -165,12 +165,12 @@ using CategoricalArrays
     @test Compat.findlast(==('a'), v2) === 2
     @test Compat.findprev(==('a'), v2, 1) === nothing
 
-    @test !contains(v1, "a")
-    @test contains(v1, "")
-    @test contains(v2, "fé")
+    @test !occursin("a", v1)
+    @test occursin("", v1)
+    @test occursin("fé", v2)
 
-    @test !contains(v1, r"af")
-    @test contains(v2, r"af")
+    @test !occursin(r"af", v1)
+    @test occursin(r"af", v2)
 
     @test startswith(v1, "")
     @test !startswith(v1, "a")
