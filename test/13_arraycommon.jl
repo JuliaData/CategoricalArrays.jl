@@ -1,6 +1,9 @@
 module TestArrayCommon
 using Compat
 using Compat.Test
+@static if VERSION >= v"0.7.0-DEV.3208"
+    using Future: copy!
+end
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, index
 
@@ -84,8 +87,8 @@ end
         # Test vcat of multidimensional arrays
         a1 = Array{Int}(undef, 2, 3, 4, 5)
         a2 = Array{Int}(undef, 3, 3, 4, 5)
-        a1[1:end] = (length(a1):-1:1) + 2
-        a2[1:end] = (1:length(a2)) + 10
+        a1[1:end] = (length(a1):-1:1) .+ 2
+        a2[1:end] = (1:length(a2)) .+ 10
         ca1 = CategoricalArray{Union{T, Int}}(a1)
         ca2 = CategoricalArray{Union{T, Int}}(a2)
         cca1 = compress(ca1)
@@ -180,15 +183,18 @@ end
         @test size(y) == size(x)
     end
 
-    @testset "copy!()" begin
+    @testset "copy! and copyto!" begin
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
         ordered!(x, true)
-        y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
-        @test copy!(x, y) === x
-        @test x == y
-        @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
-        @test !isordered(x)
+
+        for copyf! in (copy!, copyto!)
+            y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
+            @test copyf!(x, y) === x
+            @test x == y
+            @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            @test !isordered(x)
+        end
 
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
@@ -200,23 +206,27 @@ end
             x[3] = missing
             y[3] = a[2] = missing
         end
-        @test copy!(x, 1, y, 2) === x
+        @test copyto!(x, 1, y, 2) === x
         @test x ≅ a
         @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
         @test !isordered(x)
 
-        @testset "0-length copy! does nothing (including bounds checks)" begin
+        @testset "0-length copy!/copyto! does nothing (including bounds checks)" begin
             u = x[1:0]
             v = y[1:0]
 
-            @test copy!(x, 1, y, 3, 0) === x
+            @test copyto!(x, 1, y, 3, 0) === x
             @test x ≅ a
-            @test copy!(x, 1, y, 5, 0) === x
+            @test copyto!(x, 1, y, 5, 0) === x
             @test x ≅ a
 
-            @test copy!(u, -5, v, 2, 0) === u
+            @test copyto!(u, -5, v, 2, 0) === u
             @test u ≅ v
-            @test copy!(x, -5, v, 2, 0) === x
+            @test copyto!(x, -5, v, 2, 0) === x
+            @test x ≅ a
+            @test copyto!(u, v) === u
+            @test u ≅ v
+            @test copyto!(x, v) === x
             @test x ≅ a
             @test copy!(u, v) === u
             @test u ≅ v
@@ -224,40 +234,44 @@ end
             @test x ≅ a
         end
 
-        @testset "nonzero-length copy! into/from empty array throws bounds error" begin
+        @testset "nonzero-length copy!/copyto! into/from empty array throws bounds error" begin
             u = x[1:0]
             v = y[1:0]
 
             @test_throws BoundsError copy!(u, x)
             @test u ≅ v
-            @test_throws BoundsError copy!(u, 1, v, 1, 1)
+            @test_throws BoundsError copyto!(u, x)
             @test u ≅ v
-            @test_throws BoundsError copy!(x, 1, v, 1, 1)
+            @test_throws BoundsError copyto!(u, 1, v, 1, 1)
+            @test u ≅ v
+            @test_throws BoundsError copyto!(x, 1, v, 1, 1)
             @test x ≅ a
         end
 
         @testset "no corruption happens in case of bounds error" begin
-            @test_throws BoundsError copy!(x, 10, y, 2)
+            @test_throws BoundsError copyto!(x, 10, y, 2)
             @test x ≅ a
-            @test_throws BoundsError copy!(x, 1, y, 10)
+            @test_throws BoundsError copyto!(x, 1, y, 10)
             @test x ≅ a
-            @test_throws BoundsError copy!(x, 10, y, 20)
+            @test_throws BoundsError copyto!(x, 10, y, 20)
             @test x ≅ a
-            @test_throws BoundsError copy!(x, 10, y, 2)
+            @test_throws BoundsError copyto!(x, 10, y, 2)
             @test x ≅ a
-            @test_throws BoundsError copy!(x, 1, y, 2, 10)
+            @test_throws BoundsError copyto!(x, 1, y, 2, 10)
             @test x ≅ a
-            @test_throws BoundsError copy!(x, 4, y, 1, 2)
+            @test_throws BoundsError copyto!(x, 4, y, 1, 2)
             @test x ≅ a
-            @test_throws BoundsError copy!(x, 1, y, 4, 2)
+            @test_throws BoundsError copyto!(x, 1, y, 4, 2)
             @test x ≅ a
         end
+    end
 
+    @testset "$copyf!" for copyf! in (copy!, copyto!)
         @testset "copy src not supporting missings into dest not supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{String}(3)
-            copy!(dest, src)
+            copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -266,7 +280,7 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector{Union{Missing, String}}(v), reverse(v))
             dest = CategoricalVector{String}(3)
-            copy!(dest, src)
+            copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -275,7 +289,7 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{Union{String, Missing}}(3)
-            copy!(dest, src)
+            copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -284,7 +298,7 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
             dest = CategoricalVector{Union{String, Missing}}(3)
-            copy!(dest, src)
+            copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -294,7 +308,7 @@ end
             src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:length(src))
             dest = CategoricalVector{String}(3)
-            copy!(dest, vsrc)
+            copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -304,7 +318,7 @@ end
             src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
             vsrc = view(src, 1:length(src))
             dest = CategoricalVector{String}(3)
-            copy!(dest, vsrc)
+            copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -314,7 +328,7 @@ end
             src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:length(src))
             dest = CategoricalVector{Union{String, Missing}}(3)
-            copy!(dest, vsrc)
+            copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -324,7 +338,7 @@ end
             src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
             vsrc = view(src, 1:length(src))
             dest = CategoricalVector{Union{String, Missing}}(3)
-            copy!(dest, vsrc)
+            copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -334,13 +348,13 @@ end
             src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:2)
             dest = CategoricalVector{String}(3)
-            copy!(dest, vsrc)
+            copyf!(dest, vsrc)
             @test dest[1:2] == src[1:2]
             @test levels(dest) == levels(src)
 
             vsrc = view(src, 1:2)
             dest = CategoricalVector{String}(2)
-            copy!(dest, vsrc)
+            copyf!(dest, vsrc)
             @test dest == src[1:2]
             @test levels(dest) == levels(src)
         end
@@ -350,13 +364,13 @@ end
             src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{String}(["e", "f", "g"])
             vdest = view(dest, 1:2)
-            copy!(vdest, src)
+            copyf!(vdest, src)
             @test dest[1:2] == src[1:2]
             @test levels(dest) == levels(vdest) == ["e", "f", "g", "b", "a"]
 
             dest = CategoricalVector{String}(["e", "f"])
             vdest = view(dest, 1:2)
-            copy!(vdest, src)
+            copyf!(vdest, src)
             @test vdest == src[1:2]
             @test levels(dest) == levels(vdest) == ["e", "f", "b", "a"]
         end
@@ -366,7 +380,7 @@ end
             src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{String}(["e", "f", "g"], ordered=true)
             vdest = view(dest, 1:2)
-            res = @test_throws ArgumentError copy!(vdest, src)
+            res = @test_throws ArgumentError copyf!(vdest, src)
             @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
                 "Found when trying to set levels to $(["e", "f", "g", "b", "a"])."
             @test dest[1:2] ==  ["e", "f"]
@@ -375,7 +389,7 @@ end
 
             dest = CategoricalVector{String}(["e", "f"], ordered=true)
             vdest = view(dest, 1:2)
-            res = @test_throws ArgumentError copy!(vdest, src)
+            res = @test_throws ArgumentError copyf!(vdest, src)
             @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
                 "Found when trying to set levels to $(["e", "f", "b", "a"])."
             @test dest == ["e", "f"]
@@ -388,26 +402,26 @@ end
             src = CategoricalVector{Union{eltype(v), Missing}}(v)
             levels!(src, reverse(v))
             dest = CategoricalVector{String}(3)
-            copy!(dest, src)
+            copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
 
             vsrc = view(src, 1:length(src))
-            copy!(dest, vsrc)
+            copyf!(dest, vsrc)
             @test dest == vsrc
             @test levels(dest) == levels(vsrc) == reverse(v)
 
             src = CategoricalVector{AbstractString}(v)
             levels!(src, reverse(v))
             dest = CategoricalVector{String}(3)
-            copy!(dest, src)
+            copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
 
             src = CategoricalVector{String}(v)
             levels!(src, reverse(v))
             dest = CategoricalVector{AbstractString}(3)
-            copy!(dest, src)
+            copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
         end
@@ -416,15 +430,15 @@ end
             v = ["a", "b", missing]
             src = CategoricalVector(v)
             dest = CategoricalVector{String}(3)
-            @test_throws MissingException copy!(dest, src)
+            @test_throws MissingException copyf!(dest, src)
 
             vsrc = view(src, 1:length(src))
-            @test_throws MissingException copy!(dest, vsrc)
+            @test_throws MissingException copyf!(dest, vsrc)
 
             v = Integer[-1, -2, -3]
             src = CategoricalVector(v)
             dest = CategoricalVector{UInt}(3)
-            @test_throws InexactError copy!(dest, src)
+            @test_throws InexactError copyf!(dest, src)
         end
     end
 
@@ -441,8 +455,9 @@ end
         end
     end
 
-    @testset "copy!() and conflicting orders sstart=$sstart dstart=$dstart n=$n" for
-        (sstart, dstart, n) in ((1, 1, 4), (1, 2, 3))
+    @testset "$copyf! and conflicting orders sstart=$sstart dstart=$dstart n=$n" for
+        (sstart, dstart, n) in ((1, 1, 4), (1, 2, 3)),
+        copyf! in (copy!, copyto!)
         # Conflicting orders: check that the destination wins and that result is not ordered
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
@@ -450,7 +465,7 @@ end
         y = CategoricalArray{Union{T, String}}(["Middle", "Middle", "Old", "Young"])
         levels!(y, ["Old", "Middle", "Young"])
         ordered!(x, true)
-        @test copy!(x, y) === x
+        @test copyf!(x, y) === x
         @test levels(x) == ["Young", "Middle", "Old"]
         @test !isordered(x)
 
@@ -460,7 +475,7 @@ end
         ordered!(x, true)
         y = CategoricalArray{Union{T, String}}(["Middle", "Middle", "Old", "Young"])
         levels!(y, ["Young", "Middle", "Old"])
-        @test copy!(x, y) === x
+        @test copyf!(x, y) === x
         @test levels(x) == ["Young", "Middle", "Old"]
         @test isordered(x)
 
@@ -470,7 +485,7 @@ end
         y = CategoricalArray{Union{T, String}}(["Middle", "Middle", "Old", "Young"])
         ordered!(y, true)
         levels!(y, ["Young", "Middle", "Old"])
-        @test copy!(x, y) === x
+        @test copyf!(x, y) === x
         @test levels(x) == ["Young", "Middle", "Old"]
         @test !isordered(x)
 
@@ -480,7 +495,7 @@ end
         levels!(y, ["Young", "Middle", "Old"])
         x = similar(x)
         ordered!(x, true)
-        @test copy!(x, y) === x
+        @test copyf!(x, y) === x
         @test levels(x) == ["Young", "Middle", "Old"]
         @test isordered(x)
 
@@ -490,7 +505,7 @@ end
         ordered!(x, true)
         y = CategoricalArray{Union{T, String}}(["Middle", "Middle", "Old", "Young"])
         levels!(y, ["X", "Young", "Middle", "Old"])
-        @test copy!(x, y) === x
+        @test copyf!(x, y) === x
         @test levels(x) == ["X", "Young", "Middle", "Old"]
         @test !isordered(x)
     end
