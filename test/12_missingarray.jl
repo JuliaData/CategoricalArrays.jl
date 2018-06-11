@@ -1034,7 +1034,7 @@ end
 end
 
 @testset "vcat with all empty array" begin
-    ca1 = CategoricalArray(0)
+    ca1 = CategoricalArray(undef, 0)
     ca2 = CategoricalArray([missing, "b"])
     r = vcat(ca1, ca2)
     @test r ≅ [missing, "b"]
@@ -1043,7 +1043,7 @@ end
 end
 
 @testset "vcat with all missings and empty" begin
-    ca1 = CategoricalArray(0)
+    ca1 = CategoricalArray(undef, 0)
     ca2 = CategoricalArray([missing, missing])
     r = vcat(ca1, ca2)
     @test r ≅ [missing, missing]
@@ -1056,7 +1056,7 @@ end
     @test isordered(r)
 
     ca1 = CategoricalArray(["a", missing])
-    ca2 = CategoricalArray{Union{String, Missing}}(2)
+    ca2 = CategoricalArray{Union{String, Missing}}(undef, 2)
     ordered!(ca1, true)
     @test isempty(levels(ca2))
     r = vcat(ca1, ca2)

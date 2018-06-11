@@ -91,8 +91,13 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
 
     n = length(breaks)
     if isempty(labels)
-        from = map(x -> sprint(showcompact, x), breaks[1:n-1])
-        to = map(x -> sprint(showcompact, x), breaks[2:n])
+        @static if VERSION >= v"0.7.0-DEV.4524"
+            from = map(x -> sprint(show, x, context=:compact=>true), breaks[1:n-1])
+            to = map(x -> sprint(show, x, context=:compact=>true), breaks[2:n])
+        else
+            from = map(x -> sprint(showcompact, x), breaks[1:n-1])
+            to = map(x -> sprint(showcompact, x), breaks[2:n])
+        end
         levs = Vector{String}(undef, n-1)
         for i in 1:n-2
             levs[i] = string("[", from[i], ", ", to[i], ")")
