@@ -270,7 +270,7 @@ end
         @testset "copy src not supporting missings into dest not supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -279,7 +279,7 @@ end
         @testset "copy src supporting missings into dest not supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector{Union{Missing, String}}(v), reverse(v))
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -288,7 +288,7 @@ end
         @testset "copy src not supporting missings into dest supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
-            dest = CategoricalVector{Union{String, Missing}}(3)
+            dest = CategoricalVector{Union{String, Missing}}(undef, 3)
             copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -297,7 +297,7 @@ end
         @testset "copy src supporting missings into dest supporting missings" begin
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
-            dest = CategoricalVector{Union{String, Missing}}(3)
+            dest = CategoricalVector{Union{String, Missing}}(undef, 3)
             copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -307,7 +307,7 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:length(src))
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -317,7 +317,7 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
             vsrc = view(src, 1:length(src))
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -327,7 +327,7 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:length(src))
-            dest = CategoricalVector{Union{String, Missing}}(3)
+            dest = CategoricalVector{Union{String, Missing}}(undef, 3)
             copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -337,7 +337,7 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector{Union{String, Missing}}(v), reverse(v))
             vsrc = view(src, 1:length(src))
-            dest = CategoricalVector{Union{String, Missing}}(3)
+            dest = CategoricalVector{Union{String, Missing}}(undef, 3)
             copyf!(dest, vsrc)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -347,13 +347,13 @@ end
             v = ["a", "b", "c"]
             src = levels!(CategoricalVector(v), reverse(v))
             vsrc = view(src, 1:2)
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             copyf!(dest, vsrc)
             @test dest[1:2] == src[1:2]
             @test levels(dest) == levels(src)
 
             vsrc = view(src, 1:2)
-            dest = CategoricalVector{String}(2)
+            dest = CategoricalVector{String}(undef, 2)
             copyf!(dest, vsrc)
             @test dest == src[1:2]
             @test levels(dest) == levels(src)
@@ -401,7 +401,7 @@ end
             v = ["a", "b", "c"]
             src = CategoricalVector{Union{eltype(v), Missing}}(v)
             levels!(src, reverse(v))
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -413,14 +413,14 @@ end
 
             src = CategoricalVector{AbstractString}(v)
             levels!(src, reverse(v))
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
 
             src = CategoricalVector{String}(v)
             levels!(src, reverse(v))
-            dest = CategoricalVector{AbstractString}(3)
+            dest = CategoricalVector{AbstractString}(undef, 3)
             copyf!(dest, src)
             @test dest == src
             @test levels(dest) == levels(src) == reverse(v)
@@ -429,7 +429,7 @@ end
         @testset "inviable mixed src and dest types" begin
             v = ["a", "b", missing]
             src = CategoricalVector(v)
-            dest = CategoricalVector{String}(3)
+            dest = CategoricalVector{String}(undef, 3)
             @test_throws MissingException copyf!(dest, src)
 
             vsrc = view(src, 1:length(src))
@@ -437,7 +437,7 @@ end
 
             v = Integer[-1, -2, -3]
             src = CategoricalVector(v)
-            dest = CategoricalVector{UInt}(3)
+            dest = CategoricalVector{UInt}(undef, 3)
             @test_throws InexactError copyf!(dest, src)
         end
     end
@@ -532,7 +532,7 @@ end
             @test x2 == x
         end
 
-        fill!(x2, :c)
+        fill!(x2, "c")
         @test x2 == ["c", "c", "c"]
         @test levels(x2) == ["a", "b", "c"]
 
@@ -727,7 +727,7 @@ end
 end
 
 @testset "converting from array with missings to array without missings CategoricalArray fails with missings" begin
-    x = CategoricalArray{Union{String, Missing}}(1)
+    x = CategoricalArray{Union{String, Missing}}(undef, 1)
     @test_throws MissingException CategoricalArray{String}(x)
     @test_throws MissingException convert(CategoricalArray{String}, x)
 end
@@ -808,8 +808,8 @@ end
 
 @testset "vcat() takes into account element type even when array is empty" begin
     # or when both arrays have the same levels but of different types
-    x = CategoricalVector{String}(0)
-    y = CategoricalVector{Int}(0)
+    x = CategoricalVector{String}(undef, 0)
+    y = CategoricalVector{Int}(undef, 0)
     z1 = CategoricalVector{Float64}([1.0])
     z2 = CategoricalVector{Int}([1])
     @inferred vcat(x, y)

@@ -337,7 +337,7 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     # assume the caller wants to recode only some values to missing,
     # but accept original values
     if T === Missing && !isa(default, Missing)
-        dest = Array{Union{eltype(a), Missing}}(size(a))
+        dest = Array{Union{eltype(a), Missing}}(undef, size(a))
     # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
     elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))

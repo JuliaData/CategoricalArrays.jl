@@ -410,7 +410,7 @@ function copyto!(dest::CatArrOrSub{T, N}, dstart::Integer,
                  n::Integer) where {T, N}
     n == 0 && return dest
     n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
-    destinds, srcinds = linearindices(dest), linearindices(src)
+    destinds, srcinds = LinearIndices(dest), LinearIndices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
 
@@ -526,8 +526,8 @@ function vcat(A::CategoricalArray...)
     newlevels, ordered = mergelevels(ordered, map(levels, A)...)
 
     refsvec = map(A) do a
-        ii = indexin(index(a.pool), newlevels)
-        [x==0 ? 0 : ii[x] for x in a.refs]
+        ii = convert(Vector{Int}, indexin(index(a.pool), newlevels))
+        [x==0 ? 0 : ii[x] for x in a.refs]::Array{Int,ndims(a)}
     end
 
     T = Base.promote_eltype(A...) >: Missing ?
@@ -609,7 +609,7 @@ function levels!(A::CategoricalArray{T}, newlevels::Vector; allow_missing=false)
         levelsmap = similar(A.refs, length(oldindex)+1)
         # 0 maps to a missing value
         levelsmap[1] = 0
-        levelsmap[2:end] .= coalesce.(indexin(oldindex, index(A.pool)), 0)
+        levelsmap[2:end] .= something.(indexin(oldindex, index(A.pool)), 0)
 
         @inbounds for (i, x) in enumerate(A.refs)
             A.refs[i] = levelsmap[x+1]
