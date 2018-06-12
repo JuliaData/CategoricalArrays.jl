@@ -541,12 +541,12 @@ end
 @testset "replace with CategoricalArray" begin
     function testf(f, T, x::CategoricalArray, y, pairs::Pair...)
         ca = f(x, pairs...)
-        @test ca == y
+        @test ca ≅ y
         @test ca isa CategoricalArray{T}
 
         if VERSION >= v"0.7.0-"
             a = f(Array(x), pairs...)
-            @test a == y
+            @test a ≅ y
             @test a isa Array{T}
         end
 
@@ -557,7 +557,13 @@ end
         x = categorical(["a", "b", missing, "a"])
 
         testf(replace, String, x, ["a", "b", "", "a"], missing => "")
-        y = testf(replace!, Union{String, Missing}, x, ["a", "b", "", "a"], missing => "")
+        testf(replace, Union{String, Missing}, x, ["a", "c", missing, "a"], "b" => "c")
+        testf(replace, Any, x, [1, 2, missing, 1], "a" => 1, "b" => 2)
+        testf(replace, Any, x, [1, 2, 3, 1], "a" => 1, "b" => 2, missing => 3)
+        y = testf(replace!, Union{String, Missing}, x, ["a", "c", missing, "a"], "b" => "c")
+        @test y === x
+
+        y = testf(replace!, Union{String, Missing}, x, ["a", "c", "", "a"], missing => "")
         @test y === x
     end
 
