@@ -68,7 +68,7 @@ Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x)) # fallback
 
 if VERSION >= v"0.7.0-DEV.2797"
     function Base.show(io::IO, x::CatValue)
-        if get(io, :typeinfo, Any) === typeof(x)
+        if Missings.T(get(io, :typeinfo, Any)) === Missings.T(typeof(x))
             print(io, repr(x))
         elseif isordered(pool(x))
             @printf(io, "%s %s (%i/%i)",

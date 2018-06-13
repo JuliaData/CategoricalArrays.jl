@@ -956,4 +956,21 @@ end
     @test levels(x) == ["c", "a"]
 end
 
+@testset "show" begin
+    x = categorical([2, 1])
+    @test sprint((io,a)->show(io, "text/plain", a), x) ==
+        """
+        2-element $CategoricalArray{$Int,1,UInt32}:
+         2
+         1"""
+
+    x = categorical([2, 1, missing])
+    @test sprint((io,a)->show(io, "text/plain", a), x) ==
+        """
+        3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
+         2      
+         1      
+         missing"""
+end
+
 end

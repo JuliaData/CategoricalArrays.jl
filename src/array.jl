@@ -780,8 +780,13 @@ function complex(A::CategoricalArray{T}) where T
 end
 
 # Override AbstractArray method to avoid printing useless type parameters
-summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
-    string(Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")
+if VERSION >= v"0.7.0-DEV.2657"
+    summary(io::IO, A::CategoricalArray{T, N, R}) where {T, N, R} =
+        print(io, Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")
+else
+    summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
+        string(Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")
+end
 
 refs(A::CategoricalArray) = A.refs
 pool(A::CategoricalArray) = A.pool
