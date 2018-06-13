@@ -56,6 +56,7 @@ Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalString, T <: AbstractString} =
     promote_type(leveltype(C), T)
 Base.promote_rule(::Type{C}, ::Type{Missing}) where {C <: CatValue} = Union{C, Missing}
+Base.promote_rule(::Type{C}, ::Type{Any}) where {C <: CatValue} = Any
 
 Base.convert(::Type{Ref}, x::CatValue) = RefValue{leveltype(x)}(x)
 Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))

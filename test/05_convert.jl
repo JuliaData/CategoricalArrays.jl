@@ -55,6 +55,7 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test promote_type(CategoricalValue{Int}, Missing) === Union{CategoricalValue{Int}, Missing}
     @test promote_type(CategoricalValue{Int, UInt32}, Missing) ===
         Union{CategoricalValue{Int, UInt32}, Missing}
+    @test promote_type(CategoricalValue{Int, UInt32}, Any) === Any
 end
 
 @testset "convert() preserves `ordered`" begin
