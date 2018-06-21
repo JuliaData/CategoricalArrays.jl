@@ -584,9 +584,6 @@ end
 
         @testset "replace!" begin
             @test_throws InexactError replace!(x, 2 => 1.5)
-            if VERSION >= v"0.7.0-"
-                @test_throws InexactError replace!(Array(x), 2 => 1.5)
-            end
 
             y = testf(replace!, Int, x, 2 => 1.0)
             @test y === x
