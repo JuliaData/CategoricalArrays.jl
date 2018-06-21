@@ -551,7 +551,7 @@ end
         ca
     end
 
-    @testset "string with missings" begin
+    @testset "strings with missings" begin
         x = categorical(["a", "b", missing, "a"])
 
         testf(replace, String, x, missing => "")
@@ -563,6 +563,15 @@ end
 
         y = testf(replace!, Union{String, Missing}, x, missing => "")
         @test y === x
+    end
+
+    @testset "strings without missings" begin
+        x = categorical(["a", "b", "", "a"])
+        testf(replace, Union{String, Missing}, x, "" => missing)
+        @test_throws MethodError replace!(x, "" => missing)
+
+        x = categorical(Union{String, Missing}["a", "b", "", "a"])
+        testf(replace!, Union{String, Missing}, x, "" => missing)
     end
 
     @testset "int to float" begin
