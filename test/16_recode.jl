@@ -539,15 +539,13 @@ end
 end
 
 @testset "replace with CategoricalArray" begin
-    function testf(replacef, T, x::CategoricalArray, y, pairs::Pair...)
+    function testf(replacef, T, x::CategoricalArray{S,R}, pairs::Pair...) where {S, R}
         ca = replacef(x, pairs...)
-        @test ca ≅ y
-        @test ca isa CategoricalArray{T}
+        @test ca isa CategoricalArray{T, R}
 
         if VERSION >= v"0.7.0-"
             a = replacef(Array(x), pairs...)
-            @test a ≅ y
-            @test a isa Array{T}
+            @test ca ≅ a
         end
 
         ca
@@ -556,14 +554,14 @@ end
     @testset "string with missings" begin
         x = categorical(["a", "b", missing, "a"])
 
-        testf(replace, String, x, ["a", "b", "", "a"], missing => "")
-        testf(replace, Union{String, Missing}, x, ["a", "c", missing, "a"], "b" => "c")
-        testf(replace, Any, x, [1, 2, missing, 1], "a" => 1, "b" => 2)
-        testf(replace, Any, x, [1, 2, 3, 1], "a" => 1, "b" => 2, missing => 3)
-        y = testf(replace!, Union{String, Missing}, x, ["a", "c", missing, "a"], "b" => "c")
+        testf(replace, String, x, missing => "")
+        testf(replace, Union{String, Missing}, x, "b" => "c")
+        testf(replace, Any, x, "a" => 1, "b" => 2)
+        testf(replace, Any, x, "a" => 1, "b" => 2, missing => 3)
+        y = testf(replace!, Union{String, Missing}, x, "b" => "c")
         @test y === x
 
-        y = testf(replace!, Union{String, Missing}, x, ["a", "c", "", "a"], missing => "")
+        y = testf(replace!, Union{String, Missing}, x, missing => "")
         @test y === x
     end
 
@@ -571,8 +569,8 @@ end
         x = categorical([0, 2, 0])
 
         @testset "replace" begin
-            testf(replace, Float64, x, [0.5, 1.5, 0.5], 2 => 1.5, 0 => 0.5)
-            testf(replace, Float64, x, [0, 1, 0], 2 => 1.0)
+            testf(replace, Float64, x, 2 => 1.5, 0 => 0.5)
+            testf(replace, Float64, x, 2 => 1.0)
         end
 
         @testset "replace!" begin
@@ -581,7 +579,7 @@ end
                 @test_throws InexactError replace!(Array(x), 2 => 1.5)
             end
 
-            y = testf(replace!, Int, x, [0, 1, 0], 2 => 1.0)
+            y = testf(replace!, Int, x, 2 => 1.0)
             @test y === x
         end
     end
@@ -590,15 +588,15 @@ end
         x = categorical([0.5, 2.0, 0.5])
 
         @testset "replace" begin
-            testf(replace, Float64, x, [0.5, 1, 0.5], 2 => 1)
-            testf(replace, Float64, x, [3, 2, 3], 0.5 => 3)
+            testf(replace, Float64, x, 2 => 1)
+            testf(replace, Float64, x, 0.5 => 3)
         end
 
         @testset "replace!" begin
-            y = testf(replace!, Float64, x, [0.5, 1, 0.5], 2 => 1)
+            y = testf(replace!, Float64, x, 2 => 1)
             @test x === y
 
-            y = testf(replace!, Float64, x, [3, 1, 3], 0.5 => 3)
+            y = testf(replace!, Float64, x, 0.5 => 3)
             @test x === x
         end
     end
