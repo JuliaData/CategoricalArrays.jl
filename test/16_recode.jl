@@ -539,13 +539,13 @@ end
 end
 
 @testset "replace with CategoricalArray" begin
-    function testf(f, T, x::CategoricalArray, y, pairs::Pair...)
-        ca = f(x, pairs...)
+    function testf(replacef, T, x::CategoricalArray, y, pairs::Pair...)
+        ca = replacef(x, pairs...)
         @test ca ≅ y
         @test ca isa CategoricalArray{T}
 
         if VERSION >= v"0.7.0-"
-            a = f(Array(x), pairs...)
+            a = replacef(Array(x), pairs...)
             @test a ≅ y
             @test a isa Array{T}
         end
