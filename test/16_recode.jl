@@ -4,6 +4,10 @@ using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 
+if VERSION < v"0.7.0-"
+    using CategoricalArrays: replace!
+end
+
 const ≅ = isequal
 
 ## Test recode!, used by recode
@@ -543,6 +547,76 @@ end
     @test isa(y, CategoricalVector{Union{String, Missing}, DefaultRefType})
     @test levels(y) == ["b", "a"]
     @test !isordered(y)
+end
+
+@testset "replace with CategoricalArray" begin
+    function testf(replacef, T, x::CategoricalArray{S,R}, pairs::Pair...) where {S, R}
+        ca = replacef(x, pairs...)
+        @test ca isa CategoricalArray{T, R}
+
+        if VERSION >= v"0.7.0-"
+            a = replacef(Array(x), pairs...)
+            @test ca ≅ a
+        end
+
+        ca
+    end
+
+    @testset "strings with missings" begin
+        x = categorical(["a", "b", missing, "a"])
+
+        testf(replace, String, x, missing => "")
+        testf(replace, Union{String, Missing}, x, "b" => "c")
+        testf(replace, Any, x, "a" => 1, "b" => 2)
+        testf(replace, Any, x, "a" => 1, "b" => 2, missing => 3)
+        y = testf(replace!, Union{String, Missing}, x, "b" => "c")
+        @test y === x
+
+        y = testf(replace!, Union{String, Missing}, x, missing => "")
+        @test y === x
+    end
+
+    @testset "strings without missings" begin
+        x = categorical(["a", "b", "", "a"])
+        testf(replace, Union{String, Missing}, x, "" => missing)
+        @test_throws MethodError replace!(x, "" => missing)
+
+        x = categorical(Union{String, Missing}["a", "b", "", "a"])
+        testf(replace!, Union{String, Missing}, x, "" => missing)
+    end
+
+    @testset "int to float" begin
+        x = categorical([0, 2, 0])
+
+        @testset "replace" begin
+            testf(replace, Float64, x, 2 => 1.5, 0 => 0.5)
+            testf(replace, Float64, x, 2 => 1.0)
+        end
+
+        @testset "replace!" begin
+            @test_throws InexactError replace!(x, 2 => 1.5)
+
+            y = testf(replace!, Int, x, 2 => 1.0)
+            @test y === x
+        end
+    end
+
+    @testset "float to int" begin
+        x = categorical([0.5, 2.0, 0.5])
+
+        @testset "replace" begin
+            testf(replace, Float64, x, 2 => 1)
+            testf(replace, Float64, x, 0.5 => 3)
+        end
+
+        @testset "replace!" begin
+            y = testf(replace!, Float64, x, 2 => 1)
+            @test x === y
+
+            y = testf(replace!, Float64, x, 0.5 => 3)
+            @test x === x
+        end
+    end
 end
 
 end
