@@ -63,8 +63,8 @@ Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CatValue) = x
 
 Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
-Base.convert(::Type{Union{T, Missing}}, x::T) where {T <: CatValue} = x # override the convert() below
-Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x)) # fallback
+Base.convert(::Type{S}, x::T) where {S, T <: CatValue} = # fallback
+    T <: S ? x : convert(S, get(x))
 
 if VERSION >= v"0.7.0-DEV.2797"
     function Base.show(io::IO, x::CatValue)

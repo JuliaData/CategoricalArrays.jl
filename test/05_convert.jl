@@ -2,7 +2,7 @@ module TestConvert
 using Compat
 using Compat.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue
+using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue, CatValue
 
 @testset "convert() for CategoricalPool{Int, DefaultRefType} and values" begin
     pool = CategoricalPool([1, 2, 3])
@@ -37,11 +37,16 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test convert(CategoricalValue, v1) === v1
     @test convert(CategoricalValue{Int}, v1) === v1
     @test convert(CategoricalValue{Int, DefaultRefType}, v1) === v1
-    @test convert(Any, v1) === v1
 
-    convert(Any, v1)
-    convert(Any, v2)
-    convert(Any, v3)
+    @test convert(Any, v1) === v1
+    @test convert(Any, v2) === v2
+    @test convert(Any, v3) === v3
+
+    for T in (typeof(v1), CatValue, CategoricalValue), U in (Missing, Nothing)
+        @test convert(Union{T, U}, v1) === v1
+        @test convert(Union{T, U}, v2) === v2
+        @test convert(Union{T, U}, v3) === v3
+    end
 
     @test get(v1) === 1
     @test get(v2) === 2
