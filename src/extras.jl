@@ -1,4 +1,4 @@
-using Statistics
+using Compat.Statistics
 
 function fill_refs!(refs::AbstractArray, X::AbstractArray,
                     breaks::AbstractVector, extend::Bool, allow_missing::Bool)
