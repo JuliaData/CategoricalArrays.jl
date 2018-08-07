@@ -1,3 +1,5 @@
+using Statistics
+
 function fill_refs!(refs::AbstractArray, X::AbstractArray,
                     breaks::AbstractVector, extend::Bool, allow_missing::Bool)
     n = length(breaks)
@@ -127,4 +129,4 @@ Cut a numeric array into `ngroups` quantiles, determined using
 """
 cut(x::AbstractArray, ngroups::Integer;
     labels::AbstractVector{U}=String[]) where {U<:AbstractString} =
-    cut(x, quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)
+    cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)

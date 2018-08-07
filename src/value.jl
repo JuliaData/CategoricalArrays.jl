@@ -162,6 +162,7 @@ Base.sizeof(x::CategoricalString) = sizeof(get(x))
 Base.nextind(x::CategoricalString, i::Int) = nextind(get(x), i)
 Base.prevind(x::CategoricalString, i::Int) = prevind(get(x), i)
 if VERSION > v"0.7.0-DEV.5126"
+    Base.iterate(x::CategoricalString) = iterate(get(x))
     Base.iterate(x::CategoricalString, i::Int) = iterate(get(x), i)
 else
     Base.next(x::CategoricalString, i::Int) = next(get(x), i)
@@ -175,8 +176,6 @@ Base.match(r::Regex, s::CategoricalString,
            idx::Integer=firstindex(s), add_opts::UInt32=UInt32(0)) =
     match(r, get(s), idx, add_opts)
 if VERSION > v"0.7.0-DEV.3526"
-    Base.matchall(r::Regex, s::CategoricalString; overlap::Bool=false) =
-        matchall(r, get(s); overlap=overlap)
 else
     Base.matchall(r::Regex, s::CategoricalString; overlap::Bool=false) =
         matchall(r, get(s), overlap)
