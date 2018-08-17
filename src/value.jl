@@ -143,10 +143,12 @@ function Base.isless(x::CatValue, y::CatValue)
     end
 end
 
-Base.isless(x::CategoricalString, y::AbstractString) = order(x) < order(x.pool[get(x.pool, y)])
-Base.isless(y::AbstractString, x::CategoricalString) = !(isless(x, y) || isequal(x, y))
-Base.isless(x::CategoricalValue{T}, y::T) where {T} = order(x) < order(x.pool[get(x.pool, y)])
-Base.isless(y::T, x::CategoricalValue{T}) where {T} = !(isless(x, y) || isequal(x, y))
+Base.isless(x::CatValue, y) = order(x) < order(x.pool[get(x.pool, y)])
+Base.isless(x::CatValue, y::AbstractString) = order(x) < order(x.pool[get(x.pool, y)])
+Base.isless(::CatValue, ::Missing) = true
+Base.isless(y, x::CatValue) = order(x.pool[get(x.pool, y)]) < order(x)
+Base.isless(y::AbstractString, x::CatValue) = order(x.pool[get(x.pool, y)]) < order(x)
+Base.isless(::Missing, ::CatValue) = false
 
 function Base.:<(x::CatValue, y::CatValue)
     if pool(x) !== pool(y)
@@ -158,17 +160,7 @@ function Base.:<(x::CatValue, y::CatValue)
     end
 end
 
-function Base.:<(x::CategoricalString, y::AbstractString)
-    if !isordered(pool(x))
-        throw(ArgumentError("Unordered CategoricalString objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
-    else
-        return order(x) < order(x.pool[get(x.pool, y)])
-    end
-end
-
-Base.:<(y::AbstractString, x::CategoricalString) = !(x ≤ y)
-
-function Base.:<(x::CategoricalValue{T}, y::T) where {T}
+function Base.:<(x::CatValue, y)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
@@ -176,7 +168,33 @@ function Base.:<(x::CategoricalValue{T}, y::T) where {T}
     end
 end
 
-Base.:<(y::T, x::CategoricalValue{T}) where {T} = !(x ≤ y)
+function Base.:<(x::CatValue, y::AbstractString)
+    if !isordered(pool(x))
+        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
+    else
+        return order(x) < order(x.pool[get(x.pool, y)])
+    end
+end
+
+Base.:<(::CatValue, ::Missing) = missing
+
+function Base.:<(y, x::CatValue)
+    if !isordered(pool(x))
+        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
+    else
+        return order(x.pool[get(x.pool, y)]) < order(x)
+    end
+end
+
+function Base.:<(y::AbstractString, x::CatValue)
+    if !isordered(pool(x))
+        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
+    else
+        return order(x.pool[get(x.pool, y)]) < order(x)
+    end
+end
+
+Base.:<(::Missing, ::CatValue) = missing
 
 # AbstractString interface for CategoricalString
 Base.string(x::CategoricalString) = get(x)
