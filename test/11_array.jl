@@ -17,6 +17,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test catvaluetype(x) === CategoricalArrays.CategoricalString{R}
     @test isordered(x) === ordered
     @test levels(x) == sort(unique(a))
+    @test unique(x) == unique(a)
     @test size(x) === (3,)
     @test length(x) === 3
 
@@ -148,7 +149,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test x[3] === x.pool.valindex[3]
     @test levels(x) == ["a", "b", "c"]
 
-    x[2:3] = "b"
+    x[2:3] .= "b"
     @test x[1] === x.pool.valindex[2]
     @test x[2] === x.pool.valindex[1]
     @test x[3] === x.pool.valindex[1]
@@ -200,6 +201,12 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test x[1] == x[end]
     @test levels(x) == ["e", "a", "b", "c", "zz"]
 
+    x2 = deepcopy(x)
+    @test_throws MethodError push!(x, 1)
+    @test x == x2
+    @test x.pool.index == x2.pool.index
+    @test x.pool.invindex == x2.pool.invindex
+
     append!(x, x)
     @test length(x) == 12
     @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c"]
@@ -225,7 +232,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
 
         @test x == collect(a)
         @test isordered(x) === ordered
-        @test levels(x) == unique(a)
+        @test levels(x) == unique(x) == unique(a)
         @test size(x) === (4,)
         @test length(x) === 4
         @test leveltype(x) === Float64
@@ -350,14 +357,24 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[3] === x.pool.valindex[3]
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == unique(a)
+        @test unique(x) == unique(collect(x))
 
-        x[1:2] = -1
+        if ordered
+            @test_throws OrderedLevelsException x[1:2] .= -1
+            levels!(x, [levels(x); -1])
+        end
+        x[1:2] .= -1
         @test x[1] === x.pool.valindex[5]
         @test x[2] === x.pool.valindex[5]
         @test x[3] === x.pool.valindex[3]
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == vcat(unique(a), -1)
+        @test unique(x) == unique(collect(x))
 
+        if ordered
+            @test_throws OrderedLevelsException push!(x, 2.0)
+            levels!(x, [levels(x); 2.0])
+        end
         push!(x, 2.0)
         @test length(x) == 5
         @test x[end] == 2.0
@@ -396,7 +413,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
 
         @test x == a
         @test isordered(x) === ordered
-        @test levels(x) == unique(a)
+        @test levels(x) == unique(x) == unique(a)
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -517,6 +534,10 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test_throws BoundsError x[1:1, -1:1]
         @test_throws BoundsError x[4, :]
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "z"
+            levels!(x, [levels(x); "z"])
+        end
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
@@ -526,7 +547,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[6] === x.pool.valindex[3]
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,:] = "a"
+        x[1,:] .= "a"
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
@@ -535,7 +556,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[6] === x.pool.valindex[3]
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = "z"
+        x[1,1:2] .= "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[4]
@@ -555,20 +576,20 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     end
 
     # Uninitialized array
-    v = Any[CategoricalArray(2, ordered=ordered),
-            CategoricalArray{String}(2, ordered=ordered),
-            CategoricalArray{String, 1}(2, ordered=ordered),
-            CategoricalArray{String, 1, R}(2, ordered=ordered),
-            CategoricalVector(2, ordered=ordered),
-            CategoricalVector{String}(2, ordered=ordered),
-            CategoricalVector{String, R}(2, ordered=ordered),
-            CategoricalArray(2, 3, ordered=ordered),
-            CategoricalArray{String}(2, 3, ordered=ordered),
-            CategoricalArray{String, 2}(2, 3, ordered=ordered),
-            CategoricalArray{String, 2, R}(2, 3, ordered=ordered),
-            CategoricalMatrix(2, 3, ordered=ordered),
-            CategoricalMatrix{String}(2, 3, ordered=ordered),
-            CategoricalMatrix{String, R}(2, 3, ordered=ordered)]
+    v = Any[CategoricalArray(undef, 2, ordered=ordered),
+            CategoricalArray{String}(undef, 2, ordered=ordered),
+            CategoricalArray{String, 1}(undef, 2, ordered=ordered),
+            CategoricalArray{String, 1, R}(undef, 2, ordered=ordered),
+            CategoricalVector(undef, 2, ordered=ordered),
+            CategoricalVector{String}(undef, 2, ordered=ordered),
+            CategoricalVector{String, R}(undef, 2, ordered=ordered),
+            CategoricalArray(undef, 2, 3, ordered=ordered),
+            CategoricalArray{String}(undef, 2, 3, ordered=ordered),
+            CategoricalArray{String, 2}(undef, 2, 3, ordered=ordered),
+            CategoricalArray{String, 2, R}(undef, 2, 3, ordered=ordered),
+            CategoricalMatrix(undef, 2, 3, ordered=ordered),
+            CategoricalMatrix{String}(undef, 2, 3, ordered=ordered),
+            CategoricalMatrix{String, R}(undef, 2, 3, ordered=ordered)]
 
     @testset "compress($(typeof(x))) and setindex!()" for x in v
         @test !isassigned(x, 1) && isdefined(x, 1)
@@ -586,12 +607,20 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test_throws UndefRefError x2[2]
         @test levels(x2) == []
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "c"
+            levels!(x, [levels(x); "c"])
+        end
         x[1] = "c"
         @test x[1] === x.pool.valindex[1]
         @test !isassigned(x, 2) && isdefined(x, 2)
         @test_throws UndefRefError x[2]
         @test levels(x) == ["c"]
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "a"
+            levels!(x, [levels(x); "a"])
+        end
         x[1] = "a"
         @test x[1] === x.pool.valindex[2]
         @test !isassigned(x, 2) && isdefined(x, 2)
@@ -604,6 +633,10 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[2] === x.pool.valindex[1]
         @test levels(x) == ["c", "a"]
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "b"
+            levels!(x, [levels(x); "b"])
+        end
         x[1] = "b"
         @test x[1] === x.pool.valindex[3]
         @test x[2] === x.pool.valindex[1]
@@ -615,13 +648,13 @@ end
     x = CategoricalArray(["Old", "Young", "Middle", "Young"])
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
-    @test unique(x) == levels(x) == ["Young", "Middle", "Old"]
+    @test unique(x) == ["Old", "Young", "Middle"]
     @test levels!(x, ["Young", "Middle", "Old", "Unused"]) === x
     @test levels(x) == ["Young", "Middle", "Old", "Unused"]
-    @test unique(x) == ["Young", "Middle", "Old"]
+    @test unique(x) == ["Old", "Young", "Middle"]
     @test levels!(x, ["Unused1", "Young", "Middle", "Old", "Unused2"]) === x
     @test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
-    @test unique(x) == ["Young", "Middle", "Old"]
+    @test unique(x) == ["Old", "Young", "Middle"]
 
     x = CategoricalArray(String[])
     @test isa(levels(x), Vector{String}) && isempty(levels(x))
@@ -630,13 +663,13 @@ end
     @test levels(x) == ["Young", "Middle", "Old"]
     @test isa(unique(x), Vector{String}) && isempty(unique(x))
 
-    # To test short-circuit after 1000 elements
-    x = CategoricalArray(repeat(1:1500, inner=10))
-    @test levels(x) == collect(1:1500)
-    @test unique(x) == collect(1:1500)
-    @test levels!(x, [1600:-1:1; 2000]) === x
-    @test levels(x) == [1600:-1:1; 2000]
-    @test unique(x) == collect(1500:-1:1)
+    # To test short-circuiting
+    x = CategoricalArray(repeat(1:10, inner=10))
+    @test levels(x) == collect(1:10)
+    @test unique(x) == collect(1:10)
+    @test levels!(x, [19:-1:1; 20]) === x
+    @test levels(x) == [19:-1:1; 20]
+    @test unique(x) == collect(1:10)
 end
 
 end

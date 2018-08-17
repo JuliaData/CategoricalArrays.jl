@@ -54,7 +54,7 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
                 throw(MissingException("missing value found, but dest does not support them: " *
                                        "recode them to a supported value"))
             dest[i] = missing
-        elseif default === nothing
+        elseif default isa Nothing
             try
                 dest[i] = x
             catch err
@@ -127,7 +127,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     # for consistency with CategoricalArray
     oldlevels = setdiff(levels(dest), vals)
     filter!(!ismissing, oldlevels)
-    if method_exists(isless, (eltype(oldlevels), eltype(oldlevels)))
+    if hasmethod(isless, (eltype(oldlevels), eltype(oldlevels)))
         sort!(oldlevels)
     end
     levels!(dest, union(oldlevels, levels(dest)))
@@ -146,7 +146,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
 
         # Remove recoded levels as they won't appear in result
         firsts = (p.first for p in pairs)
-        keptlevels = Vector{T}(uninitialized, 0)
+        keptlevels = Vector{T}(undef, 0)
         sizehint!(keptlevels, length(srclevels))
 
         for l in srclevels
@@ -177,7 +177,7 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     srefs = src.refs
 
     origmap = [get(dest.pool, v, 0) for v in srcindex]
-    indexmap = Vector{DefaultRefType}(uninitialized, length(srcindex)+1)
+    indexmap = Vector{DefaultRefType}(undef, length(srcindex)+1)
     # For missing values (0 if no missing in pairs' keys)
     indexmap[1] = 0
     for p in pairs
@@ -332,18 +332,18 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
-    T = default === nothing ? V : promote_type(typeof(default), V)
+    T = default isa Nothing ? V : promote_type(typeof(default), V)
     # Exception 1: if T === Missing and default not missing,
     # assume the caller wants to recode only some values to missing,
     # but accept original values
-    if T === Missing && default !== missing
-        dest = Array{Union{eltype(a), Missing}}(size(a))
+    if T === Missing && !isa(default, Missing)
+        dest = Array{Union{eltype(a), Missing}}(undef, size(a))
     # Exception 2: if original array accepted missing values and missing does not appear
     # in one of the pairs' LHS, result must accept missing values
-    elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
-        dest = Array{Union{T, Missing}}(size(a))
+    elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+        dest = Array{Union{T, Missing}}(undef, size(a))
     else
-        dest = Array{Missings.T(T)}(uninitialized, size(a))
+        dest = Array{Missings.T(T)}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
 end
@@ -353,18 +353,40 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
-    T = default === nothing ? V : promote_type(typeof(default), V)
+    T = default isa Nothing ? V : promote_type(typeof(default), V)
     # Exception 1: if T === Missing and default not missing,
     # assume the caller wants to recode only some values to missing,
     # but accept original values
-    if T === Missing && default !== missing
-        dest = CategoricalArray{Union{S, Missing}, N, R}(size(a))
-    # Exception 2: if original array accepted missing values and missing does not appear
-    # in one of the pairs' LHS, result must accept missing values
-    elseif T >: Missing || default === missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
-        dest = CategoricalArray{Union{T, Missing}, N, R}(size(a))
+    # Example: recode(categorical([0,1]), 0=>missing)
+    if T === Missing && !isa(default, Missing)
+        dest = CategoricalArray{Union{S, Missing}, N, R}(undef, size(a))
+    # Exception 2: if original array accepted missing values and missing does
+    # not appear in one of the pairs' LHS, result must accept missing values
+    # Example: recode(categorical([missing,1]), 1=>0)
+    elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
+        dest = CategoricalArray{Union{T, Missing}, N, R}(undef, size(a))
     else
-        dest = CategoricalArray{Missings.T(T), N, R}(size(a))
+        dest = CategoricalArray{Missings.T(T), N, R}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
+end
+
+function Base.replace(a::CategoricalArray{S, N, R}, pairs::Pair...) where {S, N, R}
+    # Base.replace(a::Array, pairs::Pair...) uses a wider type promotion than
+    # recode. It promotes the source type S with the replaced types T.
+    T = promote_valuetype(pairs...)
+    # Exception: replacing missings
+    # Example: replace(categorical([missing,1.5]), missing=>0)
+    if keytype_hasmissing(pairs...)
+        dest = CategoricalArray{promote_type(Missings.T(S), T), N, R}(undef, size(a))
+    else
+        dest = CategoricalArray{promote_type(S, T), N, R}(undef, size(a))
+    end
+    recode!(dest, a, nothing, pairs...)
+end
+
+if VERSION >= v"0.7.0-"
+    Base.replace!(a::CategoricalArray, pairs::Pair...) = recode!(a, pairs...)
+else
+    replace!(a::CategoricalArray, pairs::Pair...) = recode!(a, pairs...)
 end

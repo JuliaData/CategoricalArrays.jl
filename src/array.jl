@@ -1,7 +1,8 @@
 ## Code for CategoricalArray
 
-import Base: Array, convert, collect, copy, copy!, getindex, setindex!, similar, size,
-             unique, vcat, in, summary
+import Base: Array, convert, collect, copy, getindex, setindex!, similar, size,
+             unique, vcat, in, summary, float, complex
+import Compat: copyto!
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -20,15 +21,15 @@ function reftype(sz::Int)
 end
 
 """
-    CategoricalArray{T}(dims::Dims; ordered::Bool=false)
-    CategoricalArray{T}(dims::Int...; ordered::Bool=false)
+    CategoricalArray{T}(undef, dims::Dims; ordered::Bool=false)
+    CategoricalArray{T}(undef, dims::Int...; ordered::Bool=false)
 
 Construct an uninitialized `CategoricalArray` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalArray{T, N, R}(dims::Dims; ordered::Bool=false)
-    CategoricalArray{T, N, R}(dims::Int...; ordered::Bool=false)
+    CategoricalArray{T, N, R}(undef, dims::Dims; ordered::Bool=false)
+    CategoricalArray{T, N, R}(undef, dims::Int...; ordered::Bool=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
@@ -51,13 +52,13 @@ explicitly overriden.
 function CategoricalArray end
 
 """
-    CategoricalVector{T}(m::Int; ordered::Bool=false)
+    CategoricalVector{T}(undef, m::Int; ordered::Bool=false)
 
 Construct an uninitialized `CategoricalVector` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalVector{T, R}(m::Int; ordered::Bool=false)
+    CategoricalVector{T, R}(undef, m::Int; ordered::Bool=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
@@ -80,13 +81,13 @@ explicitly overriden.
 function CategoricalVector end
 
 """
-    CategoricalMatrix{T}(m::Int, n::Int; ordered::Bool=false)
+    CategoricalMatrix{T}(undef, m::Int, n::Int; ordered::Bool=false)
 
 Construct an uninitialized `CategoricalMatrix` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalMatrix{T, R}(m::Int, n::Int; ordered::Bool=false)
+    CategoricalMatrix{T, R}(undef, m::Int, n::Int; ordered::Bool=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
@@ -108,12 +109,12 @@ explicitly overriden.
 """
 function CategoricalMatrix end
 
-# Uninitialized array constructors
+# UndefInitializer array constructors
 
-CategoricalArray(dims::Int...; ordered=false) =
-    CategoricalArray{String}(dims, ordered=ordered)
+CategoricalArray(::UndefInitializer, dims::Int...; ordered=false) =
+    CategoricalArray{String}(undef, dims, ordered=ordered)
 
-function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
+function CategoricalArray{T, N, R}(::UndefInitializer, dims::NTuple{N,Int};
                                    ordered=false) where {T, N, R}
     C = catvaluetype(T, R)
     V = leveltype(C)
@@ -121,35 +122,37 @@ function CategoricalArray{T, N, R}(dims::NTuple{N,Int};
     CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
 end
 
-CategoricalArray{T, N}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
-    CategoricalArray{T, N, DefaultRefType}(dims, ordered=ordered)
-CategoricalArray{T}(dims::NTuple{N,Int}; ordered=false) where {T, N} =
-    CategoricalArray{T, N}(dims, ordered=ordered)
-CategoricalArray{T, 1}(m::Int; ordered=false) where {T} =
-    CategoricalArray{T, 1}((m,), ordered=ordered)
-CategoricalArray{T, 2}(m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T, 2}((m, n), ordered=ordered)
-CategoricalArray{T, 1, R}(m::Int; ordered=false) where {T, R} =
-    CategoricalArray{T, 1, R}((m,), ordered=ordered)
+CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
+    CategoricalArray{T, N, DefaultRefType}(undef, dims, ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
+    CategoricalArray{T, N}(undef, dims, ordered=ordered)
+CategoricalArray{T, 1}(::UndefInitializer, m::Int; ordered=false) where {T} =
+    CategoricalArray{T, 1}(undef, (m,), ordered=ordered)
+CategoricalArray{T, 2}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T} =
+    CategoricalArray{T, 2}(undef, (m, n), ordered=ordered)
+CategoricalArray{T, 1, R}(::UndefInitializer, m::Int; ordered=false) where {T, R} =
+    CategoricalArray{T, 1, R}(undef, (m,), ordered=ordered)
 # R <: Integer is required to prevent default constructor from being called instead
-CategoricalArray{T, 2, R}(m::Int, n::Int; ordered=false) where {T, R <: Integer} =
-    CategoricalArray{T, 2, R}((m, n), ordered=ordered)
-CategoricalArray{T, 3, R}(m::Int, n::Int, o::Int; ordered=false) where {T, R} =
-    CategoricalArray{T, 3, R}((m, n, o), ordered=ordered)
-CategoricalArray{T}(m::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m,), ordered=ordered)
-CategoricalArray{T}(m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m, n), ordered=ordered)
-CategoricalArray{T}(m::Int, n::Int, o::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m, n, o), ordered=ordered)
+CategoricalArray{T, 2, R}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T, R <: Integer} =
+    CategoricalArray{T, 2, R}(undef, (m, n), ordered=ordered)
+CategoricalArray{T, 3, R}(::UndefInitializer, m::Int, n::Int, o::Int; ordered=false) where {T, R} =
+    CategoricalArray{T, 3, R}(undef, (m, n, o), ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, m::Int; ordered=false) where {T} =
+    CategoricalArray{T}(undef, (m,), ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T} =
+    CategoricalArray{T}(undef, (m, n), ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, m::Int, n::Int, o::Int; ordered=false) where {T} =
+    CategoricalArray{T}(undef, (m, n, o), ordered=ordered)
 
-CategoricalVector(m::Integer; ordered=false) = CategoricalArray(m, ordered=ordered)
-CategoricalVector{T}(m::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m,), ordered=ordered)
+CategoricalVector(::UndefInitializer, m::Integer; ordered=false) =
+    CategoricalArray(undef, m, ordered=ordered)
+CategoricalVector{T}(::UndefInitializer, m::Int; ordered=false) where {T} =
+    CategoricalArray{T}(undef, (m,), ordered=ordered)
 
-CategoricalMatrix(m::Int, n::Int; ordered=false) = CategoricalArray(m, n, ordered=ordered)
-CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T}((m, n), ordered=ordered)
+CategoricalMatrix(::UndefInitializer, m::Int, n::Int; ordered=false) =
+    CategoricalArray(undef, m, n, ordered=ordered)
+CategoricalMatrix{T}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T} =
+    CategoricalArray{T}(undef, (m, n), ordered=ordered)
 
 
 ## Constructors from arrays
@@ -237,12 +240,12 @@ convert(::Type{CategoricalMatrix{T}}, A::CategoricalMatrix{T}) where {T} = A
 convert(::Type{CategoricalMatrix}, A::CategoricalMatrix) = A
 
 function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, N, R}
-    res = CategoricalArray{T, N, R}(size(A))
-    copy!(res, A)
+    res = CategoricalArray{T, N, R}(undef, size(A))
+    copyto!(res, A)
 
     # if order is defined for level type, automatically apply it
     L = leveltype(res)
-    if method_exists(isless, Tuple{L, L})
+    if hasmethod(isless, Tuple{L, L})
         levels!(res.pool, sort(levels(res.pool)))
     end
 
@@ -340,10 +343,10 @@ Base.fill!(A::CategoricalArray, v::Any) =
 
 function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
-    res = Vector{T}(uninitialized, 0)
+    res = Vector{T}(undef, 0)
 
-    nonempty_lv = findfirst(!isempty, levels)
-    if nonempty_lv == 0
+    nonempty_lv = Compat.findfirst(!isempty, levels)
+    if nonempty_lv === nothing
         # no levels
         return res, ordered
     elseif all(l -> isempty(l) || l == levels[nonempty_lv], levels)
@@ -357,21 +360,29 @@ function mergelevels(ordered, levels...)
 
         i = length(res)+1
         for j = length(l):-1:1
-            if levelsmap[j] == 0
-                insert!(res, i, l[j])
+            @static if VERSION >= v"0.7.0-DEV.3627"
+                if levelsmap[j] === nothing
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
             else
-                i = levelsmap[j]
+                if levelsmap[j] == 0
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
             end
         end
     end
 
     # Check that result is ordered
     if ordered
-        levelsmaps = [indexin(res, l) for l in levels]
+        levelsmaps = [Compat.indexin(res, l) for l in levels]
 
         # Check that each original order is preserved
         for m in levelsmaps
-            issorted(m[m .!= 0]) || return res, false
+            issorted(Iterators.filter(x -> x != nothing, m)) || return res, false
         end
 
         # Check that all order relations between pairs of subsequent elements
@@ -379,7 +390,7 @@ function mergelevels(ordered, levels...)
         pairs = fill(false, length(res)-1)
         for m in levelsmaps
             @inbounds for i in eachindex(pairs)
-                pairs[i] |= (m[i] != 0) & (m[i+1] != 0)
+                pairs[i] |= (m[i] != nothing) & (m[i+1] != nothing)
             end
             all(pairs) && return res, true
         end
@@ -394,12 +405,12 @@ copy(A::CategoricalArray) = deepcopy(A)
 CatArrOrSub{T, N} = Union{CategoricalArray{T, N},
                           SubArray{<:Any, N, <:CategoricalArray{T}}} where {T, N}
 
-function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
-               src::CatArrOrSub{<:Any, N}, sstart::Integer,
-               n::Integer) where {T, N}
+function copyto!(dest::CatArrOrSub{T, N}, dstart::Integer,
+                 src::CatArrOrSub{<:Any, N}, sstart::Integer,
+                 n::Integer) where {T, N}
     n == 0 && return dest
     n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
-    destinds, srcinds = linearindices(dest), linearindices(src)
+    destinds, srcinds = LinearIndices(dest), LinearIndices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
 
@@ -434,7 +445,7 @@ function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
         # Set final levels in their visible order
         levels!(dpool, newlevels)
 
-        copy!(drefs, srefs)
+        copyto!(drefs, srefs)
     else # More work to do: preserve some values (and therefore index)
         levels!(dpool, newlevels)
 
@@ -450,19 +461,38 @@ function copy!(dest::CatArrOrSub{T, N}, dstart::Integer,
     dest
 end
 
-copy!(dest::CatArrOrSub, src::CatArrOrSub) =
-    copy!(dest, 1, src, 1, length(src))
+copyto!(dest::CatArrOrSub, src::CatArrOrSub) =
+    copyto!(dest, 1, src, 1, length(src))
 
-copy!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
-    copy!(dest, dstart, src, 1, length(src))
+copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
+    copyto!(dest, dstart, src, 1, length(src))
 
-"""
-    similar(A::CategoricalArray, element_type=eltype(A), dims=size(A))
+@static if VERSION >= v"0.7.0-DEV.3208"
+    using Future
+    Future.copy!(dest::CatArrOrSub, src::CatArrOrSub) =
+        copyto!(dest, 1, src, 1, length(src))
+end
 
-For `CategoricalArray`, preserves the ordered property of `A` (see [`isordered`](@ref)).
-"""
-similar(A::CategoricalArray{S, M, R}, ::Type{T}, dims::NTuple{N, Int}) where {S, T, M, N, R} =
-    CategoricalArray{T, N, R}(dims; ordered=isordered(A))
+similar(A::CategoricalArray{S, M, R}, ::Type{T},
+        dims::NTuple{N, Int}) where {T, N, S, M, R} =
+    Array{T, N}(undef, dims)
+similar(A::CategoricalArray{S, M, R}, ::Type{Missing},
+        dims::NTuple{N, Int}) where {N, S, M, R} =
+    Array{Missing, N}(missing, dims)
+similar(A::CategoricalArray{S, M, Q}, ::Type{T},
+        dims::NTuple{N, Int}) where {R, T<:CatValue{R}, N, S, M, Q} =
+    CategoricalArray{T, N, R}(undef, dims)
+similar(A::CategoricalArray{S, M, R}, ::Type{T},
+        dims::NTuple{N, Int}) where {S, T<:CatValue, M, N, R} =
+    CategoricalArray{T, N, R}(undef, dims)
+# Union{T, Missing} is repeated even if theoretically redundant because of JuliaLang/julia#26405
+# Once that bug is fixed, Union{T, Missing} can be replaced with T and the two definitions above can be removed
+similar(A::CategoricalArray{S, M, Q}, ::Type{T},
+        dims::NTuple{N, Int}) where {R, T<:Union{CatValue{R}, Missing}, N, S, M, Q} =
+    CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
+similar(A::CategoricalArray{S, M, R}, ::Type{T},
+        dims::NTuple{N, Int}) where {S, T<:Union{CatValue, Missing}, M, N, R} =
+    CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
 
 """
     compress(A::CategoricalArray)
@@ -496,8 +526,8 @@ function vcat(A::CategoricalArray...)
     newlevels, ordered = mergelevels(ordered, map(levels, A)...)
 
     refsvec = map(A) do a
-        ii = indexin(index(a.pool), newlevels)
-        [x==0 ? 0 : ii[x] for x in a.refs]
+        ii = convert(Vector{Int}, indexin(index(a.pool), newlevels))
+        [x==0 ? 0 : ii[x] for x in a.refs]::Array{Int,ndims(a)}
     end
 
     T = Base.promote_eltype(A...) >: Missing ?
@@ -576,11 +606,13 @@ function levels!(A::CategoricalArray{T}, newlevels::Vector; allow_missing=false)
     levels!(A.pool, newlevels)
 
     if index(A.pool) != oldindex
-        # indexin returns 0 when not found, which maps to a missing value
-        levelsmap = indexin(oldindex, index(A.pool))
+        levelsmap = similar(A.refs, length(oldindex)+1)
+        # 0 maps to a missing value
+        levelsmap[1] = 0
+        levelsmap[2:end] .= something.(indexin(oldindex, index(A.pool)), 0)
 
         @inbounds for (i, x) in enumerate(A.refs)
-            x > 0 && (A.refs[i] = levelsmap[x])
+            A.refs[i] = levelsmap[x+1]
         end
     end
 
@@ -590,44 +622,46 @@ end
 function _unique(::Type{S},
                  refs::AbstractArray{T},
                  pool::CategoricalPool) where {S, T<:Integer}
-    seen = fill(false, length(index(pool))+1)
-    trackmissings = S >: Missing
+    nlevels = length(index(pool)) + 1
+    order = fill(0, nlevels) # 0 indicates not seen
     # If we don't track missings, short-circuit even if none has been seen
-    seen[1] = !trackmissings
-    batch = 0
+    count = S >: Missing ? 0 : 1
     @inbounds for i in refs
-        seen[i + 1] = true
-        # Only do a costly short-circuit check periodically
-        batch += 1
-        if batch > 1000
-            all(seen) && break
-            batch = 0
+        if order[i + 1] == 0
+            count += 1
+            order[i + 1] = count
+            count == nlevels && break
         end
     end
-    seenmissing = shift!(seen)
-    res = convert(Vector{S}, index(pool)[seen][sortperm(pool.order[seen])])
-    if trackmissings && seenmissing
-        push!(res, missing)
-    end
-    res
+    S[i == 1 ? missing : index(pool)[i - 1] for i in sortperm(order) if order[i] != 0]
 end
 
 """
     unique(A::CategoricalArray)
 
-Return levels which appear in `A`, in the same order as [`levels`](@ref)
-(and not in their order of appearance). This function is significantly slower than
-[`levels`](@ref) since it needs to check whether levels are used or not.
+Return levels which appear in `A` in their order of appearance.
+This function is significantly slower than [`levels`](@ref)
+since it needs to check whether levels are used or not.
 """
 unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
 
-"""
-    droplevels!(A::CategoricalArray)
+if VERSION >= v"0.7.0-DEV.4882"
+    """
+        droplevels!(A::CategoricalArray)
 
-Drop levels which do not appear in categorical array `A` (so that they will no longer be
-returned by [`levels`](@ref)).
-"""
-droplevels!(A::CategoricalArray) = levels!(A, filter!(!ismissing, unique(A)))
+    Drop levels which do not appear in categorical array `A` (so that they will no longer be
+    returned by [`levels`](@ref)).
+    """
+    droplevels!(A::CategoricalArray) = levels!(A, intersect!(levels(A), unique(A)))
+else # intersect! method missing on Julia 0.6
+    """
+        droplevels!(A::CategoricalArray)
+
+    Drop levels which do not appear in categorical array `A` (so that they will no longer be
+    returned by [`levels`](@ref)).
+    """
+    droplevels!(A::CategoricalArray) = levels!(A, intersect(levels(A), filter!(!ismissing, unique(A))))
+end
 
 """
     isordered(A::CategoricalArray)
@@ -649,15 +683,15 @@ function Base.resize!(A::CategoricalVector, n::Integer)
     n_orig = length(A)
     resize!(A.refs, n)
     if n > n_orig
-        A.refs[n_orig+1:end] = 0
+        A.refs[n_orig+1:end] .= 0
     end
     A
 end
 
 function Base.push!(A::CategoricalVector, item)
-    resize!(A.refs, length(A.refs) + 1)
-    A[end] = item
-    return A
+    r = get!(A.pool, item)
+    push!(A.refs, r)
+    A
 end
 
 function Base.append!(A::CategoricalVector, B::CategoricalArray)
@@ -732,9 +766,27 @@ end
 Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
 collect(A::CategoricalArray{T}) where {T} = Array{T}(A)
 
+function float(A::CategoricalArray{T}) where T
+    if !isconcretetype(T)
+        error("`float` not defined on abstractly-typed arrays; please convert to a more specific type")
+    end
+    convert(AbstractArray{typeof(float(zero(T)))}, A)
+end
+function complex(A::CategoricalArray{T}) where T
+    if !isconcretetype(T)
+        error("`complex` not defined on abstractly-typed arrays; please convert to a more specific type")
+    end
+    convert(AbstractArray{typeof(complex(zero(T)))}, A)
+end
+
 # Override AbstractArray method to avoid printing useless type parameters
-summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
-    string(Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")
+if VERSION >= v"0.7.0-DEV.2657"
+    summary(io::IO, A::CategoricalArray{T, N, R}) where {T, N, R} =
+        print(io, Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")
+else
+    summary(A::CategoricalArray{T, N, R}) where {T, N, R} =
+        string(Base.dims2string(size(A)), " $CategoricalArray{$T,$N,$R}")
+end
 
 refs(A::CategoricalArray) = A.refs
 pool(A::CategoricalArray) = A.pool

@@ -56,24 +56,39 @@ Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalString, T <: AbstractString} =
     promote_type(leveltype(C), T)
 Base.promote_rule(::Type{C}, ::Type{Missing}) where {C <: CatValue} = Union{C, Missing}
+Base.promote_rule(::Type{C}, ::Type{Any}) where {C <: CatValue} = Any
 
 Base.convert(::Type{Ref}, x::CatValue) = RefValue{leveltype(x)}(x)
 Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CatValue) = x
 
 Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
-Base.convert(::Type{Union{T, Missing}}, x::T) where {T <: CatValue} = x # override the convert() below
-Base.convert(::Type{S}, x::CatValue) where {S} = convert(S, get(x)) # fallback
+Base.convert(::Type{S}, x::T) where {S, T <: CatValue} = # fallback
+    T <: S ? x : convert(S, get(x))
 
-function Base.show(io::IO, x::CatValue)
-    if get(io, :compact, false)
-        print(io, repr(x))
-    elseif isordered(pool(x))
-        @printf(io, "%s %s (%i/%i)",
-                typeof(x), repr(x),
-                order(x), length(pool(x)))
-    else
-        @printf(io, "%s %s", typeof(x), repr(x))
+if VERSION >= v"0.7.0-DEV.2797"
+    function Base.show(io::IO, x::CatValue)
+        if Missings.T(get(io, :typeinfo, Any)) === Missings.T(typeof(x))
+            print(io, repr(x))
+        elseif isordered(pool(x))
+            @printf(io, "%s %s (%i/%i)",
+                    typeof(x), repr(x),
+                    order(x), length(pool(x)))
+        else
+            @printf(io, "%s %s", typeof(x), repr(x))
+        end
+    end
+else
+    function Base.show(io::IO, x::CatValue)
+        if get(io, :compact, false)
+            print(io, repr(x))
+        elseif isordered(pool(x))
+            @printf(io, "%s %s (%i/%i)",
+                    typeof(x), repr(x),
+                    order(x), length(pool(x)))
+        else
+            @printf(io, "%s %s", typeof(x), repr(x))
+        end
     end
 end
 
@@ -115,8 +130,6 @@ Base.isequal(x::Any, y::CatValue) = isequal(y, x)
 Base.isequal(::CatValue, ::Missing) = false
 Base.isequal(::Missing, ::CatValue) = false
 
-Base.in(x::CatValue, y::Any) = get(x) in y
-Base.in(x::CatValue, y::Set) = get(x) in y
 Base.in(x::CatValue, y::AbstractRange{T}) where {T<:Integer} = get(x) in y
 
 Base.hash(x::CatValue, h::UInt) = hash(get(x), h)
@@ -144,22 +157,34 @@ end
 Base.string(x::CategoricalString) = get(x)
 Base.eltype(x::CategoricalString) = Char
 Base.length(x::CategoricalString) = length(get(x))
-Base.endof(x::CategoricalString) = endof(get(x))
+Compat.lastindex(x::CategoricalString) = lastindex(get(x))
 Base.sizeof(x::CategoricalString) = sizeof(get(x))
-Base.nextind(x::CategoricalString, i::Integer) = nextind(get(x), i)
-Base.prevind(x::CategoricalString, i::Integer) = prevind(get(x), i)
-Base.next(x::CategoricalString, i::Int) = next(get(x), i)
+Base.nextind(x::CategoricalString, i::Int) = nextind(get(x), i)
+Base.prevind(x::CategoricalString, i::Int) = prevind(get(x), i)
+if VERSION > v"0.7.0-DEV.5126"
+    Base.iterate(x::CategoricalString) = iterate(get(x))
+    Base.iterate(x::CategoricalString, i::Int) = iterate(get(x), i)
+else
+    Base.next(x::CategoricalString, i::Int) = next(get(x), i)
+end
 Base.getindex(x::CategoricalString, i::Int) = getindex(get(x), i)
 Base.codeunit(x::CategoricalString, i::Integer) = codeunit(get(x), i)
 Base.ascii(x::CategoricalString) = ascii(get(x))
 Base.isvalid(x::CategoricalString) = isvalid(get(x))
 Base.isvalid(x::CategoricalString, i::Integer) = isvalid(get(x), i)
 Base.match(r::Regex, s::CategoricalString,
-           idx::Integer=start(s), add_opts::UInt32=UInt32(0)) =
+           idx::Integer=firstindex(s), add_opts::UInt32=UInt32(0)) =
     match(r, get(s), idx, add_opts)
-Base.matchall(r::Regex, s::CategoricalString, overlap::Bool=false) =
-    matchall(r, get(s), overlap)
+if VERSION > v"0.7.0-DEV.3526"
+else
+    Base.matchall(r::Regex, s::CategoricalString; overlap::Bool=false) =
+        matchall(r, get(s), overlap)
+    Base.matchall(r::Regex, s::CategoricalString, overlap::Bool) =
+        matchall(r, get(s), overlap)
+end
 Base.collect(x::CategoricalString) = collect(get(x))
+Base.reverse(x::CategoricalString) = reverse(get(x))
+Compat.ncodeunits(x::CategoricalString) = ncodeunits(get(x))
 
 # JSON of CatValue is JSON of the value it refers to
 JSON.lower(x::CatValue) = get(x)

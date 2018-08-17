@@ -1,3 +1,5 @@
+using Compat.Statistics
+
 function fill_refs!(refs::AbstractArray, X::AbstractArray,
                     breaks::AbstractVector, extend::Bool, allow_missing::Bool)
     n = length(breaks)
@@ -26,7 +28,7 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Missing},
     @inbounds for i in eachindex(X)
         ismissing(X[i]) && continue
 
-        x = unsafe_get(X[i])
+        x = X[i]
 
         if extend && x == upper
             refs[i] = n-1
@@ -69,14 +71,14 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
     if extend
         min_x, max_x = extrema(x)
         if !ismissing(min_x) && breaks[1] > min_x
-            unshift!(breaks, min_x)
+            breaks = [min_x; breaks]
         end
         if !ismissing(max_x) && breaks[end] < max_x
-            push!(breaks, max_x)
+            breaks = [breaks; max_x]
         end
     end
 
-    refs = Array{DefaultRefType, N}(uninitialized, size(x))
+    refs = Array{DefaultRefType, N}(undef, size(x))
     try
         fill_refs!(refs, x, breaks, extend, allow_missing)
     catch err
@@ -91,9 +93,14 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
 
     n = length(breaks)
     if isempty(labels)
-        from = map(x -> sprint(showcompact, x), breaks[1:n-1])
-        to = map(x -> sprint(showcompact, x), breaks[2:n])
-        levs = Vector{String}(uninitialized, n-1)
+        @static if VERSION >= v"0.7.0-DEV.4524"
+            from = map(x -> sprint(show, x, context=:compact=>true), breaks[1:n-1])
+            to = map(x -> sprint(show, x, context=:compact=>true), breaks[2:n])
+        else
+            from = map(x -> sprint(showcompact, x), breaks[1:n-1])
+            to = map(x -> sprint(showcompact, x), breaks[2:n])
+        end
+        levs = Vector{String}(undef, n-1)
         for i in 1:n-2
             levs[i] = string("[", from[i], ", ", to[i], ")")
         end
@@ -122,4 +129,4 @@ Cut a numeric array into `ngroups` quantiles, determined using
 """
 cut(x::AbstractArray, ngroups::Integer;
     labels::AbstractVector{U}=String[]) where {U<:AbstractString} =
-    cut(x, quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)
+    cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)

@@ -19,6 +19,7 @@ const ≅ = isequal
                 @test catvaluetype(x) === CategoricalArrays.CategoricalString{R}
                 @test isordered(x) === ordered
                 @test levels(x) == sort(unique(a))
+                @test unique(x) == unique(a)
                 @test size(x) === (3,)
                 @test length(x) === 3
 
@@ -158,7 +159,7 @@ const ≅ = isequal
                 @test x[3] === x.pool.valindex[3]
                 @test levels(x) == ["a", "b", "c"]
 
-                x[2:3] = "b"
+                x[2:3] .= "b"
                 @test x[1] === x.pool.valindex[2]
                 @test x[2] === x.pool.valindex[1]
                 @test x[3] === x.pool.valindex[1]
@@ -250,6 +251,7 @@ const ≅ = isequal
 
             @test x ≅ a
             @test levels(x) == filter(x->!ismissing(x), unique(a))
+            @test unique(x) ≅ unique(a)
             @test size(x) === (3,)
             @test length(x) === 3
 
@@ -365,6 +367,10 @@ const ≅ = isequal
             @test x[2] === x.pool.valindex[2]
             @test x[3] === missing
 
+            if ordered
+                @test_throws OrderedLevelsException x[3] = "c"
+                levels!(x, [levels(x); "c"])
+            end
             x[3] = "c"
             @test x[1] === x.pool.valindex[2]
             @test x[2] === x.pool.valindex[2]
@@ -377,7 +383,7 @@ const ≅ = isequal
             @test x[3] === x.pool.valindex[3]
             @test levels(x) == ["a", "b", "c"]
 
-            x[2:3] = missing
+            x[2:3] .= missing
             @test x[1] === missing
             @test x[2] === missing
             @test x[3] === missing
@@ -392,7 +398,7 @@ const ≅ = isequal
 
         @test x == collect(a)
         @test isordered(x) === ordered
-        @test levels(x) == unique(a)
+        @test levels(x) == unique(x) == unique(a)
         @test size(x) === (4,)
         @test length(x) === 4
         @test leveltype(x) === Float64
@@ -532,14 +538,24 @@ const ≅ = isequal
         @test x[3] === x.pool.valindex[3]
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == unique(a)
+        @test unique(x) == unique(collect(x))
 
-        x[1:2] = -1
+        if ordered
+            @test_throws OrderedLevelsException x[1:2] .= -1
+            levels!(x, [levels(x); -1])
+        end
+        x[1:2] .= -1
         @test x[1] === x.pool.valindex[5]
         @test x[2] === x.pool.valindex[5]
         @test x[3] === x.pool.valindex[3]
         @test x[4] === x.pool.valindex[4]
         @test levels(x) == vcat(unique(a), -1)
+        @test unique(x) == unique(collect(x))
 
+        if ordered
+            @test_throws OrderedLevelsException push!(x, 2.0)
+            levels!(x, [levels(x); 2.0])
+        end
         push!(x, 2.0)
         @test length(x) == 5
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0]
@@ -580,7 +596,7 @@ const ≅ = isequal
 
         @test x == a
         @test isordered(x) === ordered
-        @test levels(x) == unique(a)
+        @test levels(x) == unique(x) == unique(a)
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -682,6 +698,10 @@ const ≅ = isequal
         @test x[1:2,1] == ["a", "b"]
         @test isa(x[1:2,1], CategoricalVector{Union{String, Missing}, R})
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "z"
+            levels!(x, [levels(x); "z"])
+        end
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
@@ -691,7 +711,7 @@ const ≅ = isequal
         @test x[6] === x.pool.valindex[3]
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,:] = "a"
+        x[1,:] .= "a"
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
@@ -700,7 +720,7 @@ const ≅ = isequal
         @test x[6] === x.pool.valindex[3]
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = "z"
+        x[1,1:2] .= "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[4]
@@ -717,6 +737,7 @@ const ≅ = isequal
         @test x ≅ a
         @test isordered(x) === ordered
         @test levels(x) == filter(x->!ismissing(x), unique(a))
+        @test unique(x) ≅ unique(a)
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -837,6 +858,10 @@ const ≅ = isequal
         @test_throws BoundsError x[1:1, -1:1]
         @test_throws BoundsError x[4, :]
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "z"
+            levels!(x, [levels(x); "z"])
+        end
         x[1] = "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
@@ -846,7 +871,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,:] = "a"
+        x[1,:] .= "a"
         @test x[1] === x.pool.valindex[1]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[1]
@@ -855,7 +880,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = "z"
+        x[1,1:2] .= "z"
         @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[2]
         @test x[3] === x.pool.valindex[4]
@@ -873,7 +898,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[1,1:2] = missing
+        x[1,1:2] .= missing
         @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
         @test x[3] === missing
@@ -882,7 +907,7 @@ const ≅ = isequal
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
-        x[:,2] = missing
+        x[:,2] .= missing
         @test x[1] === missing
         @test x[2] === x.pool.valindex[2]
         @test x[3] === missing
@@ -911,16 +936,16 @@ const ≅ = isequal
         end
 
         # Uninitialized array
-        v = Any[CategoricalArray{Union{String, Missing}}(2, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 1}(2, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 1, R}(2, ordered=ordered),
-                CategoricalVector{Union{String, Missing}}(2, ordered=ordered),
-                CategoricalVector{Union{String, Missing}, R}(2, ordered=ordered),
-                CategoricalArray{Union{String, Missing}}(2, 3, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 2}(2, 3, ordered=ordered),
-                CategoricalArray{Union{String, Missing}, 2, R}(2, 3, ordered=ordered),
-                CategoricalMatrix{Union{String, Missing}}(2, 3, ordered=ordered),
-                CategoricalMatrix{Union{String, Missing}, R}(2, 3, ordered=ordered)]
+        v = Any[CategoricalArray{Union{String, Missing}}(undef, 2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 1}(undef, 2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 1, R}(undef, 2, ordered=ordered),
+                CategoricalVector{Union{String, Missing}}(undef, 2, ordered=ordered),
+                CategoricalVector{Union{String, Missing}, R}(undef, 2, ordered=ordered),
+                CategoricalArray{Union{String, Missing}}(undef, 2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 2}(undef, 2, 3, ordered=ordered),
+                CategoricalArray{Union{String, Missing}, 2, R}(undef, 2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Missing}}(undef, 2, 3, ordered=ordered),
+                CategoricalMatrix{Union{String, Missing}, R}(undef, 2, 3, ordered=ordered)]
 
         @testset "Uninitialized $(typeof(x))" for x in v
         @test isordered(x) === ordered
@@ -940,11 +965,19 @@ const ≅ = isequal
         @test isordered(x2) === isordered(x)
         @test levels(x2) == []
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "c"
+            levels!(x, [levels(x); "c"])
+        end
         x[1] = "c"
         @test x[1] === x.pool.valindex[1]
         @test ismissing(x[2])
         @test levels(x) == ["c"]
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "a"
+            levels!(x, [levels(x); "a"])
+        end
         x[1] = "a"
         @test x[1] === x.pool.valindex[2]
         @test ismissing(x[2])
@@ -955,6 +988,10 @@ const ≅ = isequal
         @test x[2] === missing
         @test levels(x) == ["c", "a"]
 
+        if ordered
+            @test_throws OrderedLevelsException x[1] = "b"
+            levels!(x, [levels(x); "b"])
+        end
         x[1] = "b"
         @test x[1] === x.pool.valindex[3]
         @test x[2] === missing
@@ -997,7 +1034,7 @@ end
 end
 
 @testset "vcat with all empty array" begin
-    ca1 = CategoricalArray(0)
+    ca1 = CategoricalArray(undef, 0)
     ca2 = CategoricalArray([missing, "b"])
     r = vcat(ca1, ca2)
     @test r ≅ [missing, "b"]
@@ -1006,7 +1043,7 @@ end
 end
 
 @testset "vcat with all missings and empty" begin
-    ca1 = CategoricalArray(0)
+    ca1 = CategoricalArray(undef, 0)
     ca2 = CategoricalArray([missing, missing])
     r = vcat(ca1, ca2)
     @test r ≅ [missing, missing]
@@ -1019,7 +1056,7 @@ end
     @test isordered(r)
 
     ca1 = CategoricalArray(["a", missing])
-    ca2 = CategoricalArray{Union{String, Missing}}(2)
+    ca2 = CategoricalArray{Union{String, Missing}}(undef, 2)
     ordered!(ca1, true)
     @test isempty(levels(ca2))
     r = vcat(ca1, ca2)
@@ -1030,16 +1067,16 @@ end
 @testset "unique() and levels()" begin
     x = CategoricalArray(["Old", "Young", "Middle", missing, "Young"])
     @test levels(x) == ["Middle", "Old", "Young"]
-    @test unique(x) ≅ ["Middle", "Old", "Young", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
-    @test unique(x) ≅ ["Young", "Middle", "Old", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
     @test levels!(x, ["Young", "Middle", "Old", "Unused"]) === x
     @test levels(x) == ["Young", "Middle", "Old", "Unused"]
-    @test unique(x) ≅ ["Young", "Middle", "Old", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
     @test levels!(x, ["Unused1", "Young", "Middle", "Old", "Unused2"]) === x
     @test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
-    @test unique(x) ≅["Young", "Middle", "Old", missing]
+    @test unique(x) ≅ ["Old", "Young", "Middle", missing]
 
     x = CategoricalArray((Union{String, Missing})[missing])
     @test isa(levels(x), Vector{String}) && isempty(levels(x))
@@ -1048,14 +1085,14 @@ end
     @test levels(x) == ["Young", "Middle", "Old"]
     @test unique(x) ≅ [missing]
 
-    # To test short-circuit after 1000 elements
-    x = CategoricalArray{Union{Int, Missing}}(repeat(1:1500, inner=10))
-    @test levels(x) == collect(1:1500)
-    @test unique(x) == collect(1:1500)
-    @test levels!(x, [1600:-1:1; 2000]) === x
+    # To test short-circuiting
+    x = CategoricalArray{Union{Int, Missing}}(repeat(1:10, inner=10))
+    @test levels(x) == collect(1:10)
+    @test unique(x) == collect(1:10)
+    @test levels!(x, [19:-1:1; 20]) === x
     x[3] = missing
-    @test levels(x) == [1600:-1:1; 2000]
-    @test unique(x) ≅ [1500:-1:3; 2; 1; missing]
+    @test levels(x) == [19:-1:1; 20]
+    @test unique(x) ≅ [1; missing; 2:10]
 
     # in
     x = CategoricalArray{Int}(repeat(1:1500, inner=10))

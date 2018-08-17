@@ -88,24 +88,41 @@ Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
-@inline function Base.get!(pool::CategoricalPool{T, R}, level::Any) where {T, R}
+"""
+add the returned value to pool.invindex, this function doesn't do this itself to
+avoid doing a dict lookup twice
+"""
+@inline function push_level!(pool::CategoricalPool{T, R}, level) where {T, R}
+    x = convert(T, level)
+    n = length(pool)
+    if n >= typemax(R)
+        throw(LevelsException{T, R}([level]))
+    end
+
+    i = R(n + 1)
+    push!(pool.index, x)
+    push!(pool.order, i)
+    push!(pool.levels, x)
+    push!(pool.valindex, catvalue(i, pool))
+    i
+end
+
+@inline function Base.get!(pool::CategoricalPool, level::Any)
     get!(pool.invindex, level) do
-        x = convert(T, level)
-        n = length(pool)
-        if n >= typemax(R)
-            throw(LevelsException{T, R}([level]))
+        if isordered(pool)
+            throw(OrderedLevelsException(level, pool.levels))
         end
 
-        i = R(n + 1)
-        push!(pool.index, x)
-        push!(pool.order, i)
-        push!(pool.levels, x)
-        push!(pool.valindex, catvalue(i, pool))
-        i
+        push_level!(pool, level)
     end
 end
 
-Base.push!(pool::CategoricalPool, level) = (get!(pool, level); pool)
+@inline function Base.push!(pool::CategoricalPool, level)
+    get!(pool.invindex, level) do
+        push_level!(pool, level)
+    end
+    return pool
+end
 
 # TODO: optimize for multiple additions
 function Base.append!(pool::CategoricalPool, levels)
@@ -187,4 +204,10 @@ ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
 function Base.showerror(io::IO, err::LevelsException{T, R}) where {T, R}
     levs = join(repr.(err.levels), ", ", " and ")
     print(io, "cannot store level(s) $levs since reference type $R can only hold $(typemax(R)) levels. Use the decompress function to make room for more levels.")
+end
+
+
+# OrderedLevelsException
+function Base.showerror(io::IO, err::OrderedLevelsException)
+    print(io, "cannot add new level $(err.newlevel) since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.")
 end

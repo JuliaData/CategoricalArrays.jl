@@ -1,5 +1,5 @@
 function buildindex(invindex::Dict{S, R}) where {S, R <: Integer}
-    index = Vector{S}(uninitialized, length(invindex))
+    index = Vector{S}(undef, length(invindex))
     for (v, i) in invindex
         index[i] = v
     end
@@ -37,6 +37,6 @@ function buildorder!(order::Array{R},
 end
 
 function buildorder(invindex::Dict{S, R}, levels::Vector) where {S, R <: Integer}
-    order = Vector{R}(uninitialized, length(invindex))
+    order = Vector{R}(undef, length(invindex))
     return buildorder!(order, invindex, levels)
 end
