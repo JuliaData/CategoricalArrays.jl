@@ -60,6 +60,28 @@ v3 = CategoricalArrays.catvalue(3, pool)
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
+    @testset "comparison with a value" begin
+        @test isless(v1, 1) === false
+        @test isless(v1, 2) === true
+        @test_throws KeyError isless(v1, 10)
+        @test_throws MethodError isless(v1, 1.0)
+        @test isless(1, v1) == false
+        @test_throws MethodError isless(1.0, v1)
+        @test_throws ArgumentError v1 < 1
+        @test_throws KeyError v1 < 10
+        @test_throws ArgumentError v1 < 2
+        @test_throws MethodError v1 < 1.0
+        @test_throws ArgumentError v1 <= 1
+        @test_throws ArgumentError v1 <= 2
+        @test_throws MethodError v1 <= 1.0
+        @test_throws ArgumentError v1 > 1
+        @test_throws ArgumentError v1 > 2
+        @test_throws MethodError v1 > 1.0
+        @test_throws ArgumentError v1 >= 1
+        @test_throws ArgumentError v1 >= 2
+        @test_throws MethodError v1 >= 1.0
+    end
+
     @testset "comparison with missing" begin
         @test isless(v1, missing)
         @test !isless(missing, v1)
@@ -127,6 +149,28 @@ end
     @test isless(v3, v1) === false
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
+
+    @testset "comparison with a value" begin
+        @test isless(v1, 1) === false
+        @test isless(v1, 2) === true
+        @test_throws KeyError isless(v1, 10)
+        @test_throws MethodError isless(v1, 1.0)
+        @test isless(1, v1) == false
+        @test_throws MethodError isless(1.0, v1)
+        @test (v1 < 1) === false
+        @test (v1 < 2) === true
+        @test_throws KeyError v1 < 10
+        @test_throws MethodError v1 < 1.0
+        @test (v1 <= 1) === true
+        @test (v1 <= 2) === true
+        @test_throws MethodError v1 <= 1.0
+        @test (v1 > 1) === false
+        @test (v1 > 2) === false
+        @test_throws MethodError v1 > 1.0
+        @test (v1 >= 1) === true
+        @test (v1 >= 2) === false
+        @test_throws MethodError v1 >= 1.0
+    end
 
     @testset "comparison with missing" begin
         @test isless(v1, missing)
@@ -248,6 +292,34 @@ end
     @test isless(v3, v1) === true
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
+
+    @testset "comparison with a value" begin
+        @test isless(v1, 1) === false
+        @test isless(v1, 2) === false
+        @test isless(v2, 1) === true
+        @test_throws KeyError isless(v1, 10)
+        @test_throws MethodError isless(v1, 1.0)
+        @test isless(1, v1) == false
+        @test isless(2, v1) == true
+        @test_throws MethodError isless(1.0, v1)
+        @test (v1 < 1) === false
+        @test (v1 < 2) === false
+        @test (v2 < 1) === true
+        @test_throws KeyError v1 < 10
+        @test_throws MethodError v1 < 1.0
+        @test (v1 <= 1) === true
+        @test (v1 <= 2) === false
+        @test (v2 <= 1) === false
+        @test_throws MethodError v1 <= 1.0
+        @test (v1 > 1) === false
+        @test (v1 > 2) === true
+        @test (v2 > 1) === true
+        @test_throws MethodError v1 > 1.0
+        @test (v1 >= 1) === true
+        @test (v1 >= 2) === true
+        @test (v2 >= 1) === false
+        @test_throws MethodError v1 >= 1.0
+    end
 end
 
 @testset "comparisons for CategoricalString" begin
@@ -308,6 +380,28 @@ end
     @test isless(v3, v1) === false
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
+
+    @testset "comparison with a value" begin
+        @test isless(v1, "a") === false
+        @test isless(v1, "b") === true
+        @test_throws KeyError isless(v1, "abc")
+        @test_throws MethodError isless(v1, 1.0)
+        @test isless("a", v1) == false
+        @test_throws MethodError isless(1.0, v1)
+        @test_throws ArgumentError v1 < "a"
+        @test_throws ArgumentError v1 < "b"
+        @test_throws KeyError v1 < "abc"
+        @test_throws MethodError v1 < 1.0
+        @test_throws ArgumentError v1 <= "a"
+        @test_throws ArgumentError v1 <= "b"
+        @test_throws MethodError v1 <= 1.0
+        @test_throws ArgumentError v1 > "a"
+        @test_throws ArgumentError v1 > "b"
+        @test_throws MethodError v1 > 1.0
+        @test_throws ArgumentError v1 >= "a"
+        @test_throws ArgumentError v1 >= "b"
+        @test_throws MethodError v1 >= 1.0
+    end
 end
 
 @testset "ordering comparisons between pools fail" begin
@@ -324,4 +418,58 @@ end
     @test_throws ArgumentError isless(v, v1)
 end
 
+@testset "values from ordered CategoricalString"
+    @testset "comparison with a value" begin
+        @test isless(v1, "a") === false
+        @test isless(v1, "b") === true
+        @test_throws KeyError isless(v1, "abc")
+        @test_throws MethodError isless(v1, 1.0)
+        @test isless("a", v1) == false
+        @test_throws MethodError isless(1.0, v1)
+        @test (v1 < "a") === false
+        @test (v1 < "b") === true
+        @test_throws KeyError v1 < "abc"
+        @test_throws MethodError v1 < 1.0
+        @test (v1 <= "a") === true
+        @test (v1 <= "b") === true
+        @test_throws MethodError v1 <= 1.0
+        @test (v1 > "a") === false
+        @test (v1 > "b") === false
+        @test_throws MethodError v1 > 1.0
+        @test (v1 >= "a") === true
+        @test (v1 >= "b") === false
+        @test_throws MethodError v1 >= 1.0
+    end
+end
+
+@testset "comparisons with reordered levels" begin
+    @test CategoricalArrays.levels!(pool, ["b", "c", "a"]) === pool
+
+    @testset "comparison with a value" begin
+        @test isless(v1, "a") === false
+        @test isless(v1, "b") === false
+        @test isless(v2, "a") === true
+        @test_throws KeyError isless(v1, "abc")
+        @test_throws MethodError isless(v1, 1.0)
+        @test isless("a", v1) == false
+        @test isless("b", v1) == true
+        @test_throws MethodError isless(1.0, v1)
+        @test (v1 < "a") === false
+        @test (v1 < "b") === false
+        @test (v2 < "a") === true
+        @test_throws KeyError v1 < "abc"
+        @test_throws MethodError v1 < 1.0
+        @test (v1 <= "a") === true
+        @test (v1 <= "b") === false
+        @test (v2 <= "a") === false
+        @test_throws MethodError v1 <= 1.0
+        @test (v1 > "a") === false
+        @test (v1 > "b") === true
+        @test (v2 > "a") === true
+        @test_throws MethodError v1 > 1.0
+        @test (v1 >= "a") === true
+        @test (v1 >= "b") === true
+        @test (v2 >= "a") === false
+        @test_throws MethodError v1 >= 1.0
+    end
 end
