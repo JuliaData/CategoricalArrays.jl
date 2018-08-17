@@ -322,6 +322,19 @@ end
     @test isless(v3, v3) === false
 end
 
+@testset "ordering comparisons between pools fail" begin
+    pool2 = CategoricalPool([1, 2, 3])
+    ordered!(pool2, true)
+
+    v = CategoricalArrays.catvalue(1, pool2)
+
+    @test_throws ArgumentError v < v1
+    @test_throws ArgumentError v <= v1
+    @test_throws ArgumentError v > v1
+    @test_throws ArgumentError v >= v1
+    @test_throws ArgumentError isless(v, v1)
+end
+
 pool = CategoricalPool(["a", "b", "c"])
 
 v1 = CategoricalArrays.catvalue(1, pool)
@@ -406,19 +419,6 @@ end
 
 @testset "comparisons with ordered levels" begin
     ordered!(pool, true)
-
-    @testset "ordering comparisons between pools fail" begin
-        pool2 = CategoricalPool([1, 2, 3])
-        ordered!(pool2, true)
-
-        v = CategoricalArrays.catvalue(1, pool2)
-
-        @test_throws ArgumentError v < v1
-        @test_throws ArgumentError v <= v1
-        @test_throws ArgumentError v > v1
-        @test_throws ArgumentError v >= v1
-        @test_throws ArgumentError isless(v, v1)
-    end
 
     @testset "comparison with a value" begin
         @test isless(v1, "a") === false
