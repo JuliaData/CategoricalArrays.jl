@@ -60,12 +60,12 @@ v3 = CategoricalArrays.catvalue(3, pool)
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
-    @testset "comparison with a value" begin
+    @testset "comparison with values of different types" begin
         @test isless(v1, 1) === false
         @test isless(v1, 2) === true
         @test_throws KeyError isless(v1, 10)
         @test_throws KeyError isless(v1, "a")
-        @test isless(1, v1) == false
+        @test isless(1, v1) === false
         @test_throws KeyError isless("a", v1)
         @test_throws ArgumentError v1 < 1
         @test_throws ArgumentError v1 < 10
@@ -150,12 +150,12 @@ end
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
-    @testset "comparison with a value" begin
+    @testset "comparison with values of different types" begin
         @test isless(v1, 1) === false
         @test isless(v1, 2) === true
         @test_throws KeyError isless(v1, 10)
         @test_throws KeyError isless(v1, "a")
-        @test isless(1, v1) == false
+        @test isless(1, v1) === false
         @test_throws KeyError isless("a", v1)
         @test (v1 < 1) === false
         @test (v1 < 2) === true
@@ -187,7 +187,7 @@ end
 end
 
 @testset "comparisons with reordered levels" begin
-    @test CategoricalArrays.levels!(pool, [2, 3, 1]) === pool
+    @test levels!(pool, [2, 3, 1]) === pool
     @test levels(pool) == [2, 3, 1]
 
     @test (v1 < v1) === false
@@ -240,14 +240,14 @@ end
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
-    @testset "comparison with a value" begin
+    @testset "comparison with values of different types" begin
         @test isless(v1, 1) === false
         @test isless(v1, 2) === false
         @test isless(v2, 1) === true
         @test_throws KeyError isless(v1, 10)
         @test_throws KeyError isless(v1, "a")
-        @test isless(1, v1) == false
-        @test isless(2, v1) == true
+        @test isless(1, v1) === false
+        @test isless(2, v1) === true
         @test_throws KeyError isless("a", v1)
         @test (v1 < 1) === false
         @test (v1 < 2) === false
@@ -394,12 +394,12 @@ v3 = CategoricalArrays.catvalue(3, pool)
     @test isless(v3, v2) === false
     @test isless(v3, v3) === false
 
-    @testset "comparison with a value" begin
+    @testset "comparison with values of different types" begin
         @test isless(v1, "a") === false
         @test isless(v1, "b") === true
         @test_throws KeyError isless(v1, "abc")
         @test_throws KeyError isless(v1, 1.0)
-        @test isless("a", v1) == false
+        @test isless("a", v1) === false
         @test_throws KeyError isless(1.0, v1)
         @test_throws ArgumentError v1 < "a"
         @test_throws ArgumentError v1 < "b"
@@ -420,12 +420,12 @@ end
 @testset "comparisons with ordered levels" begin
     ordered!(pool, true)
 
-    @testset "comparison with a value" begin
+    @testset "comparison with values of different types" begin
         @test isless(v1, "a") === false
         @test isless(v1, "b") === true
         @test_throws KeyError isless(v1, "abc")
         @test_throws KeyError isless(v1, 1.0)
-        @test isless("a", v1) == false
+        @test isless("a", v1) === false
         @test_throws KeyError isless(1.0, v1)
         @test (v1 < "a") === false
         @test (v1 < "b") === true
@@ -444,16 +444,67 @@ end
 end
 
 @testset "comparisons with reordered levels" begin
-    @test CategoricalArrays.levels!(pool, ["b", "c", "a"]) === pool
+    @test levels!(pool, ["b", "c", "a"]) === pool
+    @test levels(pool) == ["b", "c", "a"]
 
-    @testset "comparison with a value" begin
+    @test (v1 < v1) === false
+    @test (v1 < v2) === false
+    @test (v1 < v3) === false
+    @test (v2 < v1) === true
+    @test (v2 < v2) === false
+    @test (v2 < v3) === true
+    @test (v3 < v1) === true
+    @test (v3 < v2) === false
+    @test (v3 < v3) === false
+
+    @test (v1 <= v1) === true
+    @test (v1 <= v2) === false
+    @test (v1 <= v3) === false
+    @test (v2 <= v1) === true
+    @test (v2 <= v2) === true
+    @test (v2 <= v3) === true
+    @test (v3 <= v1) === true
+    @test (v3 <= v2) === false
+    @test (v3 <= v3) === true
+
+    @test (v1 > v1) === false
+    @test (v1 > v2) === true
+    @test (v1 > v3) === true
+    @test (v2 > v1) === false
+    @test (v2 > v2) === false
+    @test (v2 > v3) === false
+    @test (v3 > v1) === false
+    @test (v3 > v2) === true
+    @test (v3 > v3) === false
+
+    @test (v1 >= v1) === true
+    @test (v1 >= v2) === true
+    @test (v1 >= v3) === true
+    @test (v2 >= v1) === false
+    @test (v2 >= v2) === true
+    @test (v2 >= v3) === false
+    @test (v3 >= v1) === false
+    @test (v3 >= v2) === true
+    @test (v3 >= v3) === true
+
+    @test isless(v1, v1) === false
+    @test isless(v1, v2) === false
+    @test isless(v1, v3) === false
+    @test isless(v2, v1) === true
+    @test isless(v2, v2) === false
+    @test isless(v2, v3) === true
+    @test isless(v3, v1) === true
+    @test isless(v3, v2) === false
+    @test isless(v3, v3) === false
+
+    @testset "comparison with values of different types" begin
         @test isless(v1, "a") === false
         @test isless(v1, "b") === false
         @test isless(v2, "a") === true
         @test_throws KeyError isless(v1, "abc")
         @test_throws KeyError isless(v1, 1.0)
-        @test isless("a", v1) == false
-        @test isless("b", v1) == true
+        @test isless("a", v1) === false
+        @test isless("b", v1) === true
         @test_throws KeyError isless(1.0, v1)
         @test (v1 < "a") === false
         @test (v1 < "b") === false

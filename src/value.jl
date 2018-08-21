@@ -168,14 +168,7 @@ function Base.:<(x::CatValue, y)
     end
 end
 
-function Base.:<(x::CatValue, y::AbstractString)
-    if !isordered(pool(x))
-        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
-    else
-        return order(x) < order(x.pool[get(x.pool, y)])
-    end
-end
-
+Base.:<(x::CatValue, y::AbstractString) = invoke(<, Tuple{CatValue, Any}, x, y)
 Base.:<(::CatValue, ::Missing) = missing
 
 function Base.:<(y, x::CatValue)
@@ -186,14 +179,7 @@ function Base.:<(y, x::CatValue)
     end
 end
 
-function Base.:<(y::AbstractString, x::CatValue)
-    if !isordered(pool(x))
-        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
-    else
-        return order(x.pool[get(x.pool, y)]) < order(x)
-    end
-end
-
+Base.:<(y::AbstractString, x::CatValue) = invoke(<, Tuple{Any, CatValue}, y, x)
 Base.:<(::Missing, ::CatValue) = missing
 
 # AbstractString interface for CategoricalString
