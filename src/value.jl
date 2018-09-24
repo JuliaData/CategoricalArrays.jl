@@ -51,6 +51,32 @@ catvalue(level::Integer, pool::CategoricalPool{T, R, C}) where {T, R, C} =
     C(convert(R, level), pool)
 
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CatValue, T} = promote_type(leveltype(C), T)
+Base.promote_rule(::Type{C1}, ::Type{Union{C2, Missing}}) where {C1 <: CatValue, C2 <: CatValue} =
+    Union{promote_type(C1, C2), Missing}
+
+Base.promote_rule(::Type{CategoricalValue{S}},
+                  ::Type{CategoricalValue{T}}) where {S, T} =
+    CategoricalValue{promote_type(S, T)}
+
+Base.promote_rule(::Type{CategoricalValue{S, R1}},
+                  ::Type{CategoricalValue{T, R2}}) where {S, T, R1<:Integer, R2<:Integer} =
+    CategoricalValue{promote_type(S, T), promote_type(R1, R2)}
+Base.promote_rule(::Type{CategoricalString{R1}},
+                  ::Type{CategoricalString{R2}}) where {R1<:Integer, R2<:Integer} =
+    CategoricalString{promote_type(R1, R2)}
+
+Base.promote_rule(::Type{CategoricalValue{S, R}},
+                  ::Type{CategoricalValue{T}}) where {S, T, R<:Integer} =
+    CategoricalValue{promote_type(S, T), R}
+Base.promote_rule(::Type{CategoricalString{R}},
+                  ::Type{CategoricalString}) where {R<:Integer} =
+    CategoricalString{R}
+Base.promote_rule(::Type{CategoricalValue{S}},
+                  ::Type{CategoricalValue{T, R}}) where {S, T, R<:Integer} =
+    CategoricalValue{promote_type(S, T), R}
+Base.promote_rule(::Type{CategoricalString},
+                  ::Type{CategoricalString{R}}) where {R<:Integer} =
+    CategoricalString{R}
 
 # To fix ambiguities with definitions from Base
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalString, T <: AbstractString} =
