@@ -56,30 +56,30 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test promote(1.0, v1) === (1.0, 1.0)
     @test promote(0x1, v1) === (1, 1)
 
-    # Broken tests are due to JuliaLang/julia#29348
+    # Tests that return Any are due to JuliaLang/julia#29348
+    # It is not clear what would be the most appropriate promotion type for them,
+    # but at least they should not throw an error
     @test promote_type(CategoricalValue{Int}, CategoricalValue{Float64}) ===
         CategoricalValue{Float64}
     @test promote_type(CategoricalValue{Int, UInt8}, CategoricalValue{Float64, UInt32}) ===
         CategoricalValue{Float64, UInt32}
     @test promote_type(CategoricalValue{Int, UInt8}, CategoricalValue{Float64}) ===
-        CategoricalValue{Float64, UInt8}
-    @test promote_type(CategoricalValue{Int}, CategoricalValue{Float64, UInt8}) ===
-        CategoricalValue{Float64, UInt8}
-    @test_broken promote_type(CategoricalValue{Int},
-                              Union{CategoricalValue{Float64}, Missing}) ===
-        Union{CategoricalValue{Float64}, Missing}
+        CategoricalValue{Float64}
+    @test promote_type(CategoricalValue{Int},
+                       Union{CategoricalValue{Float64}, Missing}) ===
+        Any
     @test promote_type(CategoricalValue{Int, UInt8},
                        Union{CategoricalValue{Float64, UInt32}, Missing}) ===
         Union{CategoricalValue{Float64, UInt32}, Missing}
-    @test_broken promote_type(Union{CategoricalValue{Int}, Missing},
-                              CategoricalValue{Float64}) ===
-        Union{CategoricalValue{Float64}, Missing}
+    @test promote_type(Union{CategoricalValue{Int}, Missing},
+                       CategoricalValue{Float64}) ===
+        Any
     @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
                        CategoricalValue{Float64, UInt32}) ===
         Union{CategoricalValue{Float64, UInt32}, Missing}
-    @test_broken promote_type(Union{CategoricalValue{Int}, Missing},
-                              Union{CategoricalValue{Float64}, Missing}) ===
-        Union{CategoricalValue{Float64}, Missing}
+    @test promote_type(Union{CategoricalValue{Int}, Missing},
+                       Union{CategoricalValue{Float64}, Missing}) ===
+        Any
     @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
                        Union{CategoricalValue{Float64, UInt32}, Missing}) ===
         Union{CategoricalValue{Float64, UInt32}, Missing}
@@ -93,15 +93,16 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test promote_type(CategoricalString{UInt8}, CategoricalString{UInt32}) ===
         CategoricalString{UInt32}
     @test promote_type(CategoricalString, CategoricalString{UInt32}) ===
-        CategoricalString{UInt32}
-    @test promote_type(CategoricalString{UInt32}, CategoricalString) ===
-        CategoricalString{UInt32}
+        CategoricalString
     @test promote_type(Union{CategoricalString{UInt8}, Missing}, CategoricalString{UInt32}) ===
-        Union{CategoricalString{UInt32}, Missing}
-    @test promote_type(CategoricalString{UInt8}, Union{CategoricalString{UInt32}, Missing}) ===
         Union{CategoricalString{UInt32}, Missing}
     @test promote_type(Union{CategoricalString{UInt8}, Missing}, Union{CategoricalString{UInt32}, Missing}) ===
         Union{CategoricalString{UInt32}, Missing}
+
+    @test promote_type(CategoricalString{UInt8}, CategoricalValue{Int, UInt32}) ===
+        CategoricalValue{Any, UInt32}
+    @test promote_type(Union{CategoricalString{UInt8}, Missing}, CategoricalValue{Int, UInt32}) ===
+        Union{CategoricalValue{Any, UInt32}, Missing}
 end
 
 @testset "convert() preserves `ordered`" begin
