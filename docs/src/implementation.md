@@ -5,6 +5,21 @@
 - `refs`: an integer array that stores the position of the category level in the `index` field of `CategoricalPool` for each `CategoricalArray` element; `0` denotes a missing value (for `CategoricalArray{Union{T, Missing}}` only).
 - `pool`: the `CategoricalPool` object that maintains the levels of the array.
 
+!!! warning
+
+    Integer codes in the `x.refs` field *cannot* be used to index into the vector returned
+    by `levels(x)`. These codes refer to the position in the *index*, which can be accessed
+    using `CategoricalArrays.index(x.pool)`. That is,
+    `CategoricalArrays.index(x.pool)[x.refs] == x` always holds, but
+    `levels(x.pool)[x.refs] == x` is *not* correct in general. To obtain the position in
+    `levels(x)` of entries in `x`, use `CategoricalArrays.order(x.pool)[x.refs]`.
+
+    The reason for this subtlety is that it allows changing the order of levels without
+    having to reset all the underlying integer codes. This is especially useful for the
+    `CategoricalArray(::AbstractArray)` constructor, which needs to assign new codes as
+    new levels are encountered, potentially conflicting with the default ordering of
+    levels (based on `sort`).
+
 The `CategoricalPool{V,R,C}` type keeps track of the levels of type `V` and associates them with an integer reference code of type `R` (for internal use). It offers methods to set the levels, change their order while preserving the references, and efficiently get the integer index corresponding to a level and vice-versa. Whether the values of `CategoricalArray` are ordered or not is defined by an `ordered` field of the pool. Finally, `CategoricalPool` keeps a `valindex` vector of value objects of type `C` (`CategoricalString{R}` or `CategoricalValue{V, R}`), so that `getindex` can return the existing object instead of allocating a new one.
 
 The type parameters of `CategoricalArray{T, N, R <: Integer, V, C, U}` are a bit complex:
