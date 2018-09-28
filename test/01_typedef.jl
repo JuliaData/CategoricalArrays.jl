@@ -66,6 +66,8 @@ using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, i
 
         @test isa(CategoricalArrays.pool(x), CategoricalPool)
         @test CategoricalArrays.pool(x) === pool
+
+        @test typeof(x)(x) === x
     end
 end
 
@@ -118,6 +120,8 @@ end
 
         @test isa(CategoricalArrays.pool(y), CategoricalPool)
         @test CategoricalArrays.pool(y) === pool
+
+        @test typeof(y)(y) === y
     end
 end
 
