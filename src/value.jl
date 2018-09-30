@@ -238,6 +238,3 @@ end
 Base.collect(x::CategoricalString) = collect(get(x))
 Base.reverse(x::CategoricalString) = reverse(get(x))
 Compat.ncodeunits(x::CategoricalString) = ncodeunits(get(x))
-
-# JSON of CatValue is JSON of the value it refers to
-JSON.lower(x::CatValue) = get(x)

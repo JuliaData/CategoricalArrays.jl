@@ -2,4 +2,4 @@ julia 0.7
 Missings
 Reexport
 Compat 0.67.0
-JSON
+Requires
