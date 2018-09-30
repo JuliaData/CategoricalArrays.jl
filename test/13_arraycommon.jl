@@ -973,4 +973,10 @@ end
          missing"""
 end
 
+@testset "broadcast" for x in (CategoricalArray(1:3),
+                               CategoricalArray{Union{Int,Missing}}(1:3))
+    x[1:2] .= x[3]
+    @test x == [3, 3, 3]
+end
+
 end

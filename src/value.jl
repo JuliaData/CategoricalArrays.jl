@@ -88,6 +88,8 @@ Base.convert(::Type{S}, x::T) where {S, T <: CatValue} = # fallback
 
 (::Type{T})(x::T) where {T <: CatValue} = x
 
+Base.Broadcast.broadcastable(x::CatValue) = Ref(x)
+
 if VERSION >= v"0.7.0-DEV.2797"
     function Base.show(io::IO, x::CatValue)
         if Missings.T(get(io, :typeinfo, Any)) === Missings.T(typeof(x))
