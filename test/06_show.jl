@@ -114,4 +114,13 @@ end
     @test repr(nv3) == repr(ov3) == "1993-10-01"
 end
 
+using JSON
+@testset "JSON.lower" for pool in (CategoricalPool(["a"]),
+                                   CategoricalPool([1]),
+                                   CategoricalPool([1.0]))
+    v = CategoricalArrays.catvalue(1, pool)
+    @test JSON.lower(v) == JSON.lower(get(v))
+    @test typeof(JSON.lower(v)) == typeof(JSON.lower(get(v)))
+end
+
 end
