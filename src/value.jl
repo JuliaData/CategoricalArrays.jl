@@ -85,6 +85,10 @@ Base.convert(::Type{Any}, x::CatValue) = x
 Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
 Base.convert(::Type{S}, x::T) where {S, T <: CatValue} = # fallback
     T <: S ? x : convert(S, get(x))
+Base.convert(::Type{Union{Missing, S}}, x::T) where {S, T <: CatValue} =
+    T <: S ? x : convert(S, get(x))
+Base.convert(::Type{Union{Nothing, S}}, x::T) where {S, T <: CatValue} =
+    T <: S ? x : convert(S, get(x))
 
 (::Type{T})(x::T) where {T <: CatValue} = x
 
