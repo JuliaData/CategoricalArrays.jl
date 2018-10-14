@@ -8,7 +8,7 @@ Suppose that you have data about four individuals, with three different age grou
 julia> using CategoricalArrays
 
 julia> x = CategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
+4-element CategoricalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -26,7 +26,7 @@ julia> levels(x)
  "Young" 
 
 julia> levels!(x, ["Young", "Middle", "Old"])
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
+4-element CategoricalArray{String,1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -38,10 +38,10 @@ Thanks to this order, we can not only test for equality between two values, but 
 
 ```jldoctest using
 julia> x[1]
-CategoricalArrays.CategoricalString{UInt32} "Old" (3/3)
+CategoricalString{UInt32} "Old" (3/3)
 
 julia> x[2]
-CategoricalArrays.CategoricalString{UInt32} "Young" (1/3)
+CategoricalString{UInt32} "Young" (1/3)
 
 julia> x[2] == x[4]
 true
@@ -58,7 +58,7 @@ julia> x[1] = "Young"
 "Young"
 
 julia> x[1]
-CategoricalArrays.CategoricalString{UInt32} "Young" (1/3)
+CategoricalString{UInt32} "Young" (1/3)
 
 ```
 
@@ -74,7 +74,7 @@ julia> levels(x)
  "Old"   
 
 julia> droplevels!(x)
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
+4-element CategoricalArray{String,1,UInt32}:
  "Young" 
  "Young" 
  "Middle"
@@ -102,17 +102,17 @@ julia> x[3] = lowercase(x[3])
 "middle"
 
 julia> x[3]
-CategoricalArrays.CategoricalString{UInt32} "middle" (3/3)
+CategoricalString{UInt32} "middle" (3/3)
 
 julia> droplevels!(x)
-4-element CategoricalArrays.CategoricalArray{String,1,UInt32}:
+4-element CategoricalArray{String,1,UInt32}:
  "Young" 
  "Young" 
  "middle"
  "Young" 
 
 julia> x[3]
-CategoricalArrays.CategoricalString{UInt32} "middle" (2/2)
+CategoricalString{UInt32} "middle" (2/2)
 
 ```
 
@@ -130,7 +130,7 @@ Let's adapt the example developed above to support missing values. Since there a
 
 ```jldoctest using
 julia> y = CategoricalArray{Union{Missing, String}}(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -148,7 +148,7 @@ julia> levels(y)
  "Young" 
 
 julia> levels!(y, ["Young", "Middle", "Old"])
-4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -160,7 +160,7 @@ At this point, indexing into the array gives exactly the same result
 
 ```jldoctest using
 julia> y[1]
-CategoricalArrays.CategoricalString{UInt32} "Old" (3/3)
+CategoricalString{UInt32} "Old" (3/3)
 ```
 
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:
@@ -170,7 +170,7 @@ julia> y[1] = missing
 missing
 
 julia> y
-4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  missing
  "Young" 
  "Middle"
@@ -188,14 +188,14 @@ julia> y[1] = "Old"
 "Old"
 
 julia> y
-4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
  "Young" 
 
 julia> levels!(y, ["Young", "Middle"]; allow_missing=true)
-4-element CategoricalArrays.CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
  missing
  "Young" 
  "Middle"
