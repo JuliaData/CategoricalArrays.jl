@@ -1,5 +1,10 @@
 using Documenter, CategoricalArrays
 
+# Workaround for JuliaLang/julia/pull/28625
+if Base.HOME_PROJECT[] !== nothing
+    Base.HOME_PROJECT[] = abspath(Base.HOME_PROJECT[])
+end
+
 makedocs(
     modules = [CategoricalArrays],
     format = :html,
