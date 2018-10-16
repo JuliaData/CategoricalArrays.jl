@@ -306,10 +306,10 @@ will accept missing values.
 
 # Examples
 ```jldoctest
-julia> using CategoricalArrays, Missings
+julia> using CategoricalArrays
 
 julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>missing)
-10-element Array{Union{Int64, Missings.Missing},1}:
+10-element Array{Union{Missing, Int64},1}:
  100    
    0    
    0    

@@ -113,7 +113,7 @@ levels!
 
 ## Handling Missing Values
 
-The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Missing}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Missing}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a categorical value object (`CategoricalString` or `CategoricalValue{T}`) or `missing` if the value is missing. See [the Missings package](https://github.com/JuliaData/Missings.jl) for more information on the `Missing` type.
+The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Missing}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Missing}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a categorical value object (`CategoricalString` or `CategoricalValue{T}`) or `missing` if the value is missing. See [the Julia manual](https://docs.julialang.org/en/stable/manual/missing/) for more information on the `Missing` type.
 
 Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a `String` or `missing`:
 
