@@ -98,22 +98,11 @@ ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. 
 
 Note that entries in the `x` array can be treated as strings (that's because `CategoricalString <: AbstractString`):
 ```jldoctest using
-julia> x[3] = lowercase(x[3])
+julia> lowercase(x[3])
 "middle"
 
-julia> x[3]
-CategoricalString{UInt32} "middle" (3/3)
-
-julia> droplevels!(x)
-4-element CategoricalArray{String,1,UInt32}:
- "Young" 
- "Young" 
- "middle"
- "Young" 
-
-julia> x[3]
-CategoricalString{UInt32} "middle" (2/2)
-
+julia> replace(x[3], 'M'=>'R')
+"Riddle"
 ```
 
 ```@docs
@@ -130,7 +119,7 @@ Let's adapt the example developed above to support missing values. Since there a
 
 ```jldoctest using
 julia> y = CategoricalArray{Union{Missing, String}}(["Old", "Young", "Middle", "Young"], ordered=true)
-4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -148,7 +137,7 @@ julia> levels(y)
  "Young" 
 
 julia> levels!(y, ["Young", "Middle", "Old"])
-4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
@@ -170,7 +159,7 @@ julia> y[1] = missing
 missing
 
 julia> y
-4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  missing
  "Young" 
  "Middle"
@@ -188,14 +177,14 @@ julia> y[1] = "Old"
 "Old"
 
 julia> y
-4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  "Old"   
  "Young" 
  "Middle"
  "Young" 
 
 julia> levels!(y, ["Young", "Middle"]; allow_missing=true)
-4-element CategoricalArray{Union{Missings.Missing, String},1,UInt32}:
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  missing
  "Young" 
  "Middle"
