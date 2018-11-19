@@ -694,11 +694,11 @@ function Base.push!(A::CategoricalVector, item)
     A
 end
 
-function Base.append!(A::CategoricalVector, B::CategoricalArray)
+function Base.append!(A::CategoricalVector, B::CatArrOrSub)
     levels!(A, union(levels(A), levels(B)))
-    len = length(A.refs)
-    len2 = length(B.refs)
-    resize!(A.refs, len + length(B.refs))
+    len = length(A)
+    len2 = length(B)
+    resize!(A.refs, len + len2)
     for i = 1:len2
         A[len + i] = B[i]
     end

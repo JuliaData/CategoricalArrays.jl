@@ -237,6 +237,14 @@ const ≅ = isequal
                 @test isordered(x) === false
                 @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
                 @test x ≅ ["c", missing, missing, "e", "zz", "c", missing, "c", missing, missing, "e", "zz", "c", missing, "z", "y", "x"]
+                z1 = view(CategoricalVector{String, R}([missing, "ex2"]), 1)
+                z2 = view(CategoricalVector{String, R}(["ex3", "ex4"]), 1:1)
+                append!(x, z1)
+                append!(x, z2)
+                @test length(x) == 19
+                @test isordered(x) === false
+                @test levels(x) == ["e", "c", "zz", "x", "y", "z","ex2", "ex3", "ex4"]
+                @test x ≅ ["c", missing, missing, "e", "zz", "c", missing, "c", missing, missing, "e", "zz", "c", missing, "z", "y", "x", missing, "ex3"]
 
                 empty!(x)
                 @test isordered(x) === false
@@ -581,6 +589,14 @@ const ≅ = isequal
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
         @test isordered(x) === ordered
         @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
+        z1 = view(CategoricalVector{String, R}([missing, 101.0]), 1)
+        z2 = view(CategoricalVector{String, R}([102.0, 103.0]), 1:1)
+        append!(x, z1)
+        append!(x, z2)
+        @test length(x) == 17
+        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5, missing, 102.0]
+        @test isordered(x) === ordered
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0, 101.0, 102.0, 103.0]
 
         empty!(x)
         @test length(x) == 0

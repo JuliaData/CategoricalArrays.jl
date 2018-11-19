@@ -219,6 +219,13 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test length(x) == 15
     @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c", "z", "y", "x"]
     @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z"]
+    z1 = view(CategoricalVector{String, R}(["ex1", "ex2"]), 1)
+    z2 = view(CategoricalVector{String, R}(["ex3", "ex4"]), 1:1)
+    append!(x, z1)
+    append!(x, z2)
+    @test length(x) == 17
+    @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c", "z", "y", "x", "ex1", "ex3"]
+    @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z", "ex1", "ex2", "ex3", "ex4"]
 
     empty!(x)
     @test length(x) == 0
@@ -400,6 +407,14 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
         @test isordered(x) === ordered
         @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
+        z1 = view(CategoricalVector{String, R}([100.0, 101.0]), 1)
+        z2 = view(CategoricalVector{String, R}([102.0, 103.0]), 1:1)
+        append!(x, z1)
+        append!(x, z2)
+        @test length(x) == 17
+        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5, 100.0, 102.0]
+        @test isordered(x) === ordered
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0, 100.0, 101.0, 102.0, 103.0]
 
         empty!(x)
         @test length(x) == 0
