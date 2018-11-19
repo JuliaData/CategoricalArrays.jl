@@ -249,7 +249,7 @@ const ≅ = isequal
                 empty!(x)
                 @test isordered(x) === false
                 @test length(x) == 0
-                @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
+                @test levels(x) == ["e", "c", "zz", "x", "y", "z","ex2", "ex3", "ex4"]
             end
         end
 
@@ -601,7 +601,7 @@ const ≅ = isequal
         empty!(x)
         @test length(x) == 0
         @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0, 101.0, 102.0, 103.0]
     end
 
     @testset "Matrix $(typeof(a)) with no missing values" for a in

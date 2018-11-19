@@ -229,7 +229,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
 
     empty!(x)
     @test length(x) == 0
-    @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z"]
+    @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z", "ex1", "ex2", "ex3", "ex4"]
 
     @testset "Vector created from range" begin
         # (i.e. non-Array AbstractArray),
@@ -419,7 +419,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         empty!(x)
         @test length(x) == 0
         @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0, 100.0, 101.0, 102.0, 103.0]
     end
 
     @testset "Matrix" begin
