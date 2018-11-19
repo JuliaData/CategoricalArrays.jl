@@ -979,4 +979,121 @@ end
     @test x == [3, 3, 3]
 end
 
+@testset "append! ordered=$ordered reftype=$R" for ordered in (false, true),
+    R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
+
+    @testset "append! String" begin
+        a = ["a", "b", "c"]
+        x = CategoricalVector{String, R}(a, ordered=ordered)
+
+        append!(x, x)
+        @test length(x) == 6
+        @test x == ["a", "b", "c", "a", "b", "c"]
+        @test isordered(x) === ordered
+        @test levels(x) == ["a", "b", "c"]
+
+        b = ["z","y","x"]
+        y = CategoricalVector{String, R}(b)
+        append!(x, y)
+        @test isordered(x) === ordered
+        @test length(x) == 9
+        @test x == ["a", "b", "c", "a", "b", "c", "z", "y", "x"]
+        @test levels(x) == ["a", "b", "c", "x", "y", "z"]
+
+        z1 = view(CategoricalVector{String, R}(["ex1", "ex2"]), 1)
+        z2 = view(CategoricalVector{String, R}(["ex3", "ex4"]), 1:1)
+        append!(x, z1)
+        append!(x, z2)
+        @test isordered(x) === ordered
+        @test length(x) == 11
+        @test x == ["a", "b", "c", "a", "b", "c", "z", "y", "x", "ex1", "ex3"]
+        @test levels(x) == ["a", "b", "c", "x", "y", "z", "ex1", "ex2", "ex3", "ex4"]
+    end
+
+    @testset "append! Float64" begin
+        a = [-1.0, 0.0, 1.0]
+        x = CategoricalVector{Float64, R}(a, ordered=ordered)
+
+        append!(x, x)
+        @test length(x) == 6
+        @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0]
+        @test isordered(x) === ordered
+        @test levels(x) == [-1.0, 0.0, 1.0]
+
+        b = [2.5, 3.0, -3.5]
+        y = CategoricalVector{Float64, R}(b, ordered=ordered)
+        append!(x, y)
+        @test length(x) == 9
+        @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 2.5, 3.0, -3.5]
+        @test isordered(x) === ordered
+        @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, -3.5]
+
+        z1 = view(CategoricalVector{Float64, R}([100.0, 101.0]), 1)
+        z2 = view(CategoricalVector{Float64, R}([102.0, 103.0]), 1:1)
+        append!(x, z1)
+        append!(x, z2)
+        @test length(x) == 11
+        @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 2.5, 3.0, -3.5, 100.0, 102.0]
+        @test isordered(x) === ordered
+        @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, -3.5, 100.0, 102.0, 103.0, 104.0]
+    end
+end
+
+@testset "append! ordered=$ordered" for ordered in (false, true)
+    @testset "append! reftype=$R" for R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
+        @testset "String with $(any(ismissing.(a)))" for a in (["b", "a", missing], Union{String, Missing}["b", "a", "b"])
+            x = CategoricalVector{Union{String, Missing}, R}(a, ordered=ordered)
+
+            append!(x, x)
+            @test x ≅ [a; a]
+            @test levels(x) == ["b", "a"]
+            @test isordered(x) === ordered
+            @test length(x) == 6
+
+            b = ["x","y",missing]
+            y = CategoricalVector{Union{String, Missing}, R}(b)
+            append!(x, y)
+            @test length(x) == 9
+            @test isordered(x) === ordered
+            @test levels(x) == ["a", "b", "x", "y"]
+            @test x ≅ [a;a;b]
+            z1 = view(CategoricalVector{Union{String, Missing}, R}([missing, "ex2"]), 1)
+            z2 = view(CategoricalVector{Union{String, Missing}, R}(["ex3", "ex4"]), 1:1)
+            append!(x, z1)
+            append!(x, z2)
+            @test length(x) == 11
+            @test isordered(x) === ordered
+            @test levels(x) == ["a", "b", "x", "y", "ex2", "ex3", "ex4"]
+            @test x ≅ [a;a;b;missing;"ex3"]
+        end
+
+        @testset "Float64" begin
+            a = 0.0:0.5:1.0
+            x = CategoricalVector{Union{Float64, Missing}, R}(a, ordered=ordered)
+
+            append!(x, x)
+            @test length(x) == 6
+            @test x == [a;a]
+            @test isordered(x) === ordered
+            @test levels(x) == [0.0,  0.5,  1.0]
+
+            b = [2.5, 3.0, missing]
+            y = CategoricalVector{Union{Float64, Missing}, R}(b)
+            append!(x, y)
+            @test length(x) == 9
+            @test x == [a;a;b]
+            @test isordered(x) === ordered
+            @test levels(x) == [0.0, 0.5, 1.0, 2.5, 3.0]
+            z1 = view(CategoricalVector{Union{Float64, Missing}, R}([missing, 101.0]), 1)
+            z2 = view(CategoricalVector{Union{Float64, Missing}, R}([102.0, 103.0]), 1:1)
+            append!(x, z1)
+            append!(x, z2)
+            @test length(x) == 11
+            @test x ≅ [a;a;b;missing;102.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [0.0, 0.5, 1.0, 2.5, 3.0, 101.0, 102.0, 103.0]
+        end
+    end
+end
+
 end
