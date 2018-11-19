@@ -407,8 +407,8 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
         @test isordered(x) === ordered
         @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
-        z1 = view(CategoricalVector{String, R}([100.0, 101.0]), 1)
-        z2 = view(CategoricalVector{String, R}([102.0, 103.0]), 1:1)
+        z1 = view(CategoricalVector{Float64, R}([100.0, 101.0]), 1)
+        z2 = view(CategoricalVector{Float64, R}([102.0, 103.0]), 1:1)
         append!(x, z1)
         append!(x, z2)
         @test length(x) == 17
