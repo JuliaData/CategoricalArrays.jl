@@ -207,22 +207,9 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test x.pool.index == x2.pool.index
     @test x.pool.invindex == x2.pool.invindex
 
-    append!(x, x)
-    @test length(x) == 12
-    @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c"]
-    @test isordered(x) === false
-    @test levels(x) == ["e", "a", "b", "c", "zz"]
-
-    b = ["z","y","x"]
-    y = CategoricalVector{String, R}(b)
-    append!(x, y)
-    @test length(x) == 15
-    @test x == ["c", "b", "b", "a", "zz", "c", "c", "b", "b", "a", "zz", "c", "z", "y", "x"]
-    @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z"]
-
     empty!(x)
     @test length(x) == 0
-    @test levels(x) == ["e", "a", "b", "c", "zz", "x", "y", "z"]
+    @test levels(x) == ["e", "a", "b", "c", "zz"]
 
     @testset "Vector created from range" begin
         # (i.e. non-Array AbstractArray),
@@ -387,24 +374,10 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test isordered(x) === ordered
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
-        append!(x, x)
-        @test length(x) == 12
-        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0]
-        @test isordered(x) === ordered
-        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
-
-        b = [2.5, 3.0, -3.5]
-        y = CategoricalVector{Float64, R}(b, ordered=ordered)
-        append!(x, y)
-        @test length(x) == 15
-        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
-        @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
-
         empty!(x)
         @test length(x) == 0
         @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0]
     end
 
     @testset "Matrix" begin

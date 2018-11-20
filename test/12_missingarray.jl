@@ -224,24 +224,10 @@ const ≅ = isequal
                 @test x ≅ ["c", missing, missing, "e", "zz", "c", missing]
                 @test levels(x) == ["e", "c", "zz"]
 
-                append!(x, x)
-                @test x ≅ ["c", missing, missing, "e", "zz", "c", missing, "c", missing, missing, "e", "zz", "c", missing]
-                @test levels(x) == ["e", "c", "zz"]
-                @test isordered(x) === false
-                @test length(x) == 14
-
-                b = ["z","y","x"]
-                y = CategoricalVector{Union{String, Missing}, R}(b)
-                append!(x, y)
-                @test length(x) == 17
-                @test isordered(x) === false
-                @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
-                @test x ≅ ["c", missing, missing, "e", "zz", "c", missing, "c", missing, missing, "e", "zz", "c", missing, "z", "y", "x"]
-
                 empty!(x)
                 @test isordered(x) === false
                 @test length(x) == 0
-                @test levels(x) == ["e", "c", "zz", "x", "y", "z"]
+                @test levels(x) == ["e", "c", "zz"]
             end
         end
 
@@ -568,24 +554,10 @@ const ≅ = isequal
         @test isordered(x) === ordered
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
-        append!(x, x)
-        @test length(x) == 12
-        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0]
-        @test isordered(x) === ordered
-        @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
-
-        b = [2.5, 3.0, -3.5]
-        y = CategoricalVector{Union{Float64, Missing}, R}(b)
-        append!(x, y)
-        @test length(x) == 15
-        @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0, -1.0, -1.0, 1.0, 1.5, 2.0, -1.0, 2.5, 3.0, -3.5]
-        @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
-
         empty!(x)
         @test length(x) == 0
         @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0, -3.5, 2.5, 3.0]
+        @test levels(x) == [0.0, 0.5, 1.0, 1.5, -1.0, 2.0]
     end
 
     @testset "Matrix $(typeof(a)) with no missing values" for a in
