@@ -1039,8 +1039,8 @@ end
 end
 
 @testset "append! ordered=$ordered" for ordered in (false, true)
-        @testset "String" * any(ismissing.(a)) ? " with missing" : "" for a in (["b", "a", missing],
-                                                               Union{String, Missing}["b", "a", "b"])
+    cases = (["b", "a", missing], Union{String, Missing}["b", "a", "b"])
+    @testset "String, has missing: $(any(ismissing.(a)))" for a in cases
         x = CategoricalVector{Union{String, Missing}}(a, ordered=ordered)
 
         append!(x, x)
