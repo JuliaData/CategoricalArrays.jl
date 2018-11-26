@@ -415,10 +415,10 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
 
-    drefs = CategoricalArrays.refs(dest)
-    srefs = CategoricalArrays.refs(src)
-    dpool = CategoricalArrays.pool(dest)
-    spool = CategoricalArrays.pool(src)
+    drefs = refs(dest)
+    srefs = refs(src)
+    dpool = pool(dest)
+    spool = pool(src)
 
     if isordered(dest)
         remap = Vector{eltype(drefs)}(undef, length(levels(src)))
@@ -432,7 +432,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
                     throw(MissingException("cannot copy array with missing values to an array with element type $T"))
                 end
             else
-                if !seen[s]
+                if seen[s]
                     drefs[dstart+i] = remap[s]
                 else
                     seen[i] = true
@@ -454,7 +454,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
                     throw(MissingException("cannot copy array with missing values to an array with element type $T"))
                 end
             else
-                if !seen[s]
+                if seen[s]
                     drefs[dstart+i] = remap[s]
                 else
                     seen[i] = true
@@ -701,7 +701,7 @@ function Base.push!(A::CategoricalVector, item)
     A
 end
 
-function Base.append!(A::CategoricalVector, B::AbstractArary)
+function Base.append!(A::CategoricalVector, B::AbstractArray)
     len = length(A)
     len2 = length(B)
     resize!(A.refs, len + len2)
