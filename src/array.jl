@@ -425,7 +425,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
         seen = falses(length(levels(src))) # needed as we have to dynamically collect levels
         @inbounds for i in 0:n-1
             s = srefs[sstart+i]
-            if s == 0
+            if eltype(src) >: Missing && s == 0
                 if eltype(dest) >: Missing
                     drefs[dstart+i] = 0
                 else
@@ -435,7 +435,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
                 if seen[s]
                     drefs[dstart+i] = remap[s]
                 else
-                    seen[i] = true
+                    seen[s] = true
                     rm = dpool.invindex[s]
                     remap[s] = rm
                     drefs[dstart+i] = rm
@@ -447,7 +447,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
         seen = falses(length(levels(src))) # needed as we have to dynamically collect levels
         @inbounds for i in 0:n-1
             s = srefs[sstart+i]
-            if s == 0
+            if eltype(src) >: Missing && s == 0
                 if eltype(dest) >: Missing
                     drefs[dstart+i] = 0
                 else
@@ -457,7 +457,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
                 if seen[s]
                     drefs[dstart+i] = remap[s]
                 else
-                    seen[i] = true
+                    seen[s] = true
                     dest[dstart+i] = src[dstart+i]
                     remap[s] = drefs[dstart+i]
                 end
