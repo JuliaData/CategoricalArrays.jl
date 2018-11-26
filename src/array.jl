@@ -421,7 +421,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
     spool = pool(src)
 
     if isordered(dest)
-        remap = Vector{eltype(drefs)}(undef, length(levels(src)))
+        remap = similar(levels(src), eltype(drefs))
         seen = falses(length(levels(src))) # needed as we have to dynamically collect levels
         @inbounds for i in 0:n-1
             s = srefs[sstart+i]
