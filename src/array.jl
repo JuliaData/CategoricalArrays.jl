@@ -459,7 +459,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
                 else
                     seen[i] = true
                     dest[dstart+i] = src[dstart+i]
-                    remap[s] = dpool.invindex[drefs[dstart+i]]
+                    remap[s] = drefs[dstart+i]
                 end
             end
         end

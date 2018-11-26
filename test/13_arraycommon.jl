@@ -190,6 +190,14 @@ end
 
         for copyf! in (copy!, copyto!)
             y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
+            @test_throws KeyError copyf!(x, y)
+        end
+
+        x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
+
+        for copyf! in (copy!, copyto!)
+            y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
             @test copyf!(x, y) === x
             @test x == y
             @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
@@ -465,8 +473,7 @@ end
         @test_throws KeyError copyto!(x, 1, y, 1)
 
         x = categorical([1, 2, 3])
-        using Future
-        @test Future.copy!(x, [1, 1, 1]) == [1, 1, 1]
+        @test copy!(x, [1, 1, 1]) == [1, 1, 1]
     end
 
     @testset "resize!()" begin
