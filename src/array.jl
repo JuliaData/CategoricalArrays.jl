@@ -458,7 +458,7 @@ function copyto!(dest::CatArrOrSub, dstart::Integer,
                     drefs[dstart+i] = remap[s]
                 else
                     seen[s] = true
-                    dest[dstart+i] = src[dstart+i]
+                    dest[dstart+i] = src[sstart+i]
                     remap[s] = drefs[dstart+i]
                 end
             end
@@ -471,12 +471,11 @@ end
 copyto!(dest::CatArrOrSub, src::CatArrOrSub) =
     copyto!(dest, 1, src, 1, length(src))
 
-copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
-    copyto!(dest, dstart, src, 1, length(src))
-
 @static if VERSION >= v"0.7.0-DEV.3208"
     using Future
     Future.copy!(dest::CatArrOrSub, src::AbstractArray) =
+        copyto!(dest, 1, src, 1, length(src))
+    Future.copy!(dest::CatArrOrSub, src::CatArrOrSub) =
         copyto!(dest, 1, src, 1, length(src))
 end
 

@@ -200,13 +200,24 @@ end
             y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
             @test copyf!(x, y) === x
             @test x == y
-            @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            # the additional levels are added in order of appereance in y
+            @test levels(x) == ["Young", "Middle", "Old", "X", "Z", "Y"]
             @test !isordered(x)
         end
 
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
         ordered!(x, true)
+        y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
+        # Test with missing values
+        if T === Missing
+            x[3] = missing
+            y[3] = missing
+        end
+        @test_throws KeyError copyto!(x, 1, y, 2)
+
+        x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
         y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
         a = (Union{String, Missing})["Z", "Y", "X", "Young"]
         # Test with missing values
