@@ -442,6 +442,33 @@ end
         end
     end
 
+    @testset "copyto! and copy! corner cases" begin
+        x = categorical([1:255;1:255], true)
+        y = categorical([1, 1000], true)
+        @test copyto!(x, 1, y, 1, 1)[1] == y[1]
+        @test_throws ErrorException copyto!(x, 1, y, 1, 1)[2]
+
+        x = categorical([1,2,3])
+        y = categorical([5,6,7])
+        copyto!(x,y)
+        @test levels(x) = [1,2,3,5,6,7]
+
+        @test copy!(x, [1,1,1]) == [1,1,1]
+
+        x = categorical([1,2,3])
+        y = categorical([5,6,7])
+        @test copyto!(x, 1, y, 1, 1) == [5, 2, 3]
+        @test levels(x) == [1, 2, 3, 5]
+
+        x = categorical([1,2,3], ordered=true)
+        y = categorical([10])
+        @test_throws KeyError copyto!(x, 1, y, 1)
+
+        x = categorical([1, 2, 3])
+        using Future
+        @test Future.copy!(x, [1, 1, 1]) == [1, 1, 1]
+    end
+
     @testset "resize!()" begin
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         @test resize!(x, 3) === x

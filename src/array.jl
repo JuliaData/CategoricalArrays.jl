@@ -405,57 +405,64 @@ copy(A::CategoricalArray) = deepcopy(A)
 CatArrOrSub{T, N} = Union{CategoricalArray{T, N},
                           SubArray{<:Any, N, <:CategoricalArray{T}}} where {T, N}
 
-function copyto!(dest::CatArrOrSub{T, N}, dstart::Integer,
-                 src::CatArrOrSub{<:Any, N}, sstart::Integer,
-                 n::Integer) where {T, N}
+function copyto!(dest::CatArrOrSub, dstart::Integer,
+                 src::CatArrOrSub, sstart::Integer,
+                 n::Integer)
     n == 0 && return dest
-    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
+    n < 0 && throw(ArgumentError(string("tried to copy n=", n,
+                                        " elements, but n should be nonnegative")))
     destinds, srcinds = LinearIndices(dest), LinearIndices(src)
     (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
     (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
 
-    drefs = refs(dest)
-    srefs = refs(src)
-    dpool = pool(dest)
-    spool = pool(src)
+    drefs = CategoricalArrays.refs(dest)
+    srefs = CategoricalArrays.refs(src)
+    dpool = CategoricalArrays.pool(dest)
+    spool = CategoricalArrays.pool(src)
 
-    # try converting src to dest type to avoid partial copy corruption of dest
-    # in the event that the src cannot be copied into dest
-    slevs = convert(Vector{T}, levels(src))
-    if eltype(src) >: Missing && !(eltype(dest) >: Missing) && !all(x -> x > 0, srefs)
-        throw(MissingException("cannot copy array with missing values to an array with element type $T"))
-    end
-
-    newlevels, ordered = mergelevels(isordered(dest), levels(dest), slevs)
-    # Orderedness cannot be preserved if the source was unordered and new levels
-    # need to be added: new comparisons would only be based on the source's order
-    # (this is consistent with what happens when adding a new level via setindex!)
-    ordered &= isordered(src) | (length(newlevels) == length(levels(dest)))
-    if ordered != isordered(dest)
-        isa(dest, SubArray) && throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it would affect the parent. Found when trying to set levels to $newlevels."))
-        ordered!(dest, ordered)
-    end
-
-    # Simple case: replace all values
-    if !isa(dest, SubArray) && dstart == dstart == 1 && n == length(dest) == length(src)
-        # Set index to reflect refs
-        levels!(dpool, T[]) # Needed in case src and dest share some levels
-        levels!(dpool, index(spool))
-
-        # Set final levels in their visible order
-        levels!(dpool, newlevels)
-
-        copyto!(drefs, srefs)
-    else # More work to do: preserve some values (and therefore index)
-        levels!(dpool, newlevels)
-
-        indexmap = indexin(index(spool), index(dpool))
-
-        @inbounds for i = 0:(n-1)
-            x = srefs[sstart+i]
-            drefs[dstart+i] = x > 0 ? indexmap[x] : 0
+    if isordered(dest)
+        remap = Vector{eltype(drefs)}(undef, length(levels(src)))
+        seen = falses(length(levels(src))) # needed as we have to dynamically collect levels
+        @inbounds for i in 0:n-1
+            s = srefs[sstart+i]
+            if s == 0
+                if eltype(dest) >: Missing
+                    drefs[dstart+i] = 0
+                else
+                    throw(MissingException("cannot copy array with missing values to an array with element type $T"))
+                end
+            else
+                if !seen[s]
+                    drefs[dstart+i] = remap[s]
+                else
+                    seen[i] = true
+                    rm = dpool.invindex[s]
+                    remap[s] = rm
+                    drefs[dstart+i] = rm
+                end
+            end
         end
-
+    else
+        remap = Vector{eltype(drefs)}(undef, length(levels(src)))
+        seen = falses(length(levels(src))) # needed as we have to dynamically collect levels
+        @inbounds for i in 0:n-1
+            s = srefs[sstart+i]
+            if s == 0
+                if eltype(dest) >: Missing
+                    drefs[dstart+i] = 0
+                else
+                    throw(MissingException("cannot copy array with missing values to an array with element type $T"))
+                end
+            else
+                if !seen[s]
+                    drefs[dstart+i] = remap[s]
+                else
+                    seen[i] = true
+                    dest[dstart+i] = src[dstart+i]
+                    remap[s] = dpool.invindex[drefs[dstart+i]]
+                end
+            end
+        end
     end
 
     dest
@@ -469,7 +476,7 @@ copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
 
 @static if VERSION >= v"0.7.0-DEV.3208"
     using Future
-    Future.copy!(dest::CatArrOrSub, src::CatArrOrSub) =
+    Future.copy!(dest::CatArrOrSub, src::AbstractArray) =
         copyto!(dest, 1, src, 1, length(src))
 end
 
@@ -694,14 +701,12 @@ function Base.push!(A::CategoricalVector, item)
     A
 end
 
-function Base.append!(A::CategoricalVector, B::CatArrOrSub)
-    levels!(A, union(levels(A), levels(B)))
+function Base.append!(A::CategoricalVector, B::AbstractArary)
     len = length(A)
     len2 = length(B)
     resize!(A.refs, len + len2)
-    for i = 1:len2
-        A[len + i] = B[i]
-    end
+    # As in Base, A will be left modified if it is not possible to copy B to A
+    copyto!(A, len + 1, B)
     return A
 end
 
