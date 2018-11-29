@@ -82,8 +82,17 @@ Base.convert(::Type{Ref}, x::CatValue) = RefValue{leveltype(x)}(x)
 Base.convert(::Type{String}, x::CatValue) = convert(String, get(x))
 Base.convert(::Type{Any}, x::CatValue) = x
 
+# Defined separately to avoid ambiguities
+Base.convert(::Type{AbstractString}, x::CategoricalString) = x
 Base.convert(::Type{T}, x::T) where {T <: CatValue} = x
-Base.convert(::Type{S}, x::T) where {S, T <: CatValue} = # fallback
+Base.convert(::Type{Union{T, Missing}}, x::T) where {T <: CatValue} = x
+Base.convert(::Type{Union{T, Nothing}}, x::T) where {T <: CatValue} = x
+# General fallbacks
+Base.convert(::Type{S}, x::T) where {S, T <: CatValue} =
+    T <: S ? x : convert(S, get(x))
+Base.convert(::Type{Union{S, Missing}}, x::T) where {S, T <: CatValue} =
+    T <: S ? x : convert(S, get(x))
+Base.convert(::Type{Union{S, Nothing}}, x::T) where {S, T <: CatValue} =
     T <: S ? x : convert(S, get(x))
 
 (::Type{T})(x::T) where {T <: CatValue} = x
