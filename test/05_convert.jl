@@ -26,6 +26,10 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test reftype(typeof(v1)) === DefaultRefType
     @test v1 isa CategoricalArrays.CategoricalValue{Int, DefaultRefType}
 
+    @test convert(Int, v1) === 1
+    @test convert(Int, v2) === 2
+    @test convert(Int, v3) === 3
+
     @test convert(Int32, v1) === Int32(1)
     @test convert(Int32, v2) === Int32(2)
     @test convert(Int32, v3) === Int32(3)
@@ -55,7 +59,56 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test promote(1, v1) === (1, 1)
     @test promote(1.0, v1) === (1.0, 1.0)
     @test promote(0x1, v1) === (1, 1)
+end
 
+@testset "convert() for CategoricalPool{String, DefaultRefType} and values" begin
+    pool = CategoricalPool(["a", "b", "c"])
+    @test convert(CategoricalPool{String, DefaultRefType}, pool) === pool
+    @test convert(CategoricalPool{String}, pool) === pool
+    @test convert(CategoricalPool, pool) === pool
+    convert(CategoricalPool{String, UInt8}, pool)
+
+    v1 = catvalue(1, pool)
+    v2 = catvalue(2, pool)
+    v3 = catvalue(3, pool)
+    @test iscatvalue(v1)
+    @test iscatvalue(typeof(v1))
+    @test eltype(v1) === Char
+    @test eltype(typeof(v1)) === Char
+    @test leveltype(v1) === String
+    @test leveltype(typeof(v1)) === String
+    @test reftype(v1) === DefaultRefType
+    @test reftype(typeof(v1)) === DefaultRefType
+    @test v1 isa CategoricalArrays.CategoricalString{DefaultRefType}
+
+    @test convert(String, v1) == "a"
+    @test convert(String, v2) == "b"
+    @test convert(String, v3) == "c"
+
+    @test convert(AbstractString, v1) == "a"
+    @test convert(AbstractString, v2) == "b"
+    @test convert(AbstractString, v3) == "c"
+
+    @test convert(CategoricalString, v1) === v1
+    @test convert(CategoricalString{DefaultRefType}, v1) === v1
+
+    @test convert(Any, v1) === v1
+    @test convert(Any, v2) === v2
+    @test convert(Any, v3) === v3
+
+    for T in (typeof(v1), CatValue, CategoricalString, CategoricalString{DefaultRefType}),
+        U in (Missing, Nothing)
+        @test convert(Union{T, U}, v1) === v1
+        @test convert(Union{T, U}, v2) === v2
+        @test convert(Union{T, U}, v3) === v3
+    end
+
+    @test get(v1) === "a"
+    @test get(v2) === "b"
+    @test get(v3) === "c"
+end
+
+@testset "promote_type" begin
     # Tests that return Any are due to JuliaLang/julia#29348
     # It is not clear what would be the most appropriate promotion type for them,
     # but at least they should not throw an error

@@ -30,6 +30,11 @@ function recode! end
 
 recode!(dest::AbstractArray, src::AbstractArray, pairs::Pair...) =
     recode!(dest, src, nothing, pairs...)
+# To fix ambiguity
+recode!(dest::CategoricalArray, src::AbstractArray, pairs::Pair...) =
+    recode!(dest, src, nothing, pairs...)
+recode!(dest::CategoricalArray, src::CategoricalArray, pairs::Pair...) =
+    recode!(dest, src, nothing, pairs...)
 
 function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
     if length(dest) != length(src)
@@ -251,7 +256,8 @@ julia> x
   -1
 ```
 """
-recode!(a::AbstractArray, default::Any, pairs::Pair...) = recode!(a, a, default, pairs...)
+recode!(a::AbstractArray, default::Any, pairs::Pair...) =
+    recode!(a, a, default, pairs...)
 recode!(a::AbstractArray, pairs::Pair...) = recode!(a, a, nothing, pairs...)
 
 promote_valuetype(x::Pair{K, V}) where {K, V} = V
@@ -326,6 +332,8 @@ julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>missing)
 function recode end
 
 recode(a::AbstractArray, pairs::Pair...) = recode(a, nothing, pairs...)
+# To fix ambiguity
+recode(a::CategoricalArray, pairs::Pair...) = recode(a, nothing, pairs...)
 
 function recode(a::AbstractArray, default::Any, pairs::Pair...)
     V = promote_valuetype(pairs...)
