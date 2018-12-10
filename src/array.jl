@@ -790,3 +790,5 @@ end
 
 refs(A::CategoricalArray) = A.refs
 pool(A::CategoricalArray) = A.pool
+
+Base.deleteat!(A::CategoricalArray, inds) = (deleteat!(A.refs, inds); A)
