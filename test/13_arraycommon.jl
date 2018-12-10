@@ -1094,11 +1094,13 @@ end
     end
 end
 
-    @testset "Float64" begin
-        x = ['a':'z';]
-        y = categorical(x)
-        deleteat!(x, [1, 3])
-        deleteat!(y, [1, 3])
-        @test x == y
-    end
+@testset "deleteat!" begin
+    x = ['a':'z';]
+    y = categorical(x)
+    deleteat!(x, [1, 3])
+    deleteat!(y, [1, 3])
+    @test x == y
+    @test levels(y) == 'a':'z'
+end
+
 end
