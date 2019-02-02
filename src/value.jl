@@ -216,6 +216,8 @@ Base.:<(y::AbstractString, x::CatValue) = invoke(<, Tuple{Any, CatValue}, y, x)
 Base.:<(::Missing, ::CatValue) = missing
 
 # AbstractString interface for CategoricalString
+Base.String(x::CategoricalString) = get(x)
+Base.convert(::Type{String}, x::CategoricalString) = get(x)
 Base.string(x::CategoricalString) = get(x)
 Base.eltype(x::CategoricalString) = Char
 Base.length(x::CategoricalString) = length(get(x))

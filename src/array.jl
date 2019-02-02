@@ -335,6 +335,7 @@ Base.IndexStyle(::Type{<:CategoricalArray}) = IndexLinear()
 
 @inline function setindex!(A::CategoricalArray, v::Any, I::Real...)
     @boundscheck checkbounds(A, I...)
+    # get! has an optimized method for v::CatValue
     @inbounds A.refs[I...] = get!(A.pool, v)
 end
 

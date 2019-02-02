@@ -21,6 +21,12 @@ using CategoricalArrays
     @test Symbol(v1) === Symbol("")
     @test Symbol(v2) === :café
 
+    @test convert(String, v1)::String == ""
+    @test convert(String, v2)::String == "café"
+
+    @test string(v1)::String == ""
+    @test string(v2)::String == "café"
+
     @test v1 == ""
     @test v2 == "café"
     @test v2 != ""

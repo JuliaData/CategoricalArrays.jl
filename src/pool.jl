@@ -87,6 +87,15 @@ Base.length(pool::CategoricalPool) = length(pool.index)
 Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
+# Avoid a dict lookup when the value comes from the same pool
+@inline function Base.get(pool::CategoricalPool{T, R, V}, level::V) where
+    {T, R <: Integer, V}
+    pool === level.pool ? level.level : pool.invindex[level]
+end
+@inline function Base.get(pool::CategoricalPool{T, R, V}, level::V, default) where
+    {T, R <: Integer, V}
+    pool === level.pool ? level.level : get(pool.invindex, level, default)
+end
 
 """
 add the returned value to pool.invindex, this function doesn't do this itself to
@@ -114,6 +123,16 @@ end
         end
 
         push_level!(pool, level)
+    end
+end
+
+# Avoid a dict lookup when the value comes from the same pool
+@inline function Base.get!(pool::CategoricalPool{T, R, V}, level::V) where
+    {T, R <: Integer, V}
+    if pool === level.pool
+        return level.level
+    else
+        return invoke(get!, Tuple{CategoricalPool, Any}, pool, level)
     end
 end
 
