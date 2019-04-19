@@ -225,8 +225,8 @@ using CategoricalArrays
     @test join([v1, "a"]) == "a"
     @test join([v1, "a"], v2) == "caféa"
 
-    if VERSION >= v"0.7.0-DEV.3688" # Version known to throw an erro
-        @test_throws BoundsError chop(v1) == ""
+    if VERSION >= v"1.0.4" # Previous versions throw a BoundsError
+        @test chop(v1) == ""
     end
     @test chop(v2) == "caf"
 
