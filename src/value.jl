@@ -215,6 +215,9 @@ end
 Base.:<(y::AbstractString, x::CatValue) = invoke(<, Tuple{Any, CatValue}, y, x)
 Base.:<(::Missing, ::CatValue) = missing
 
+# JSON of CatValue is JSON of the value it refers to
+JSON.lower(x::CatValue) = JSON.lower(get(x))
+
 # AbstractString interface for CategoricalString
 Base.string(x::CategoricalString) = get(x)
 Base.eltype(x::CategoricalString) = Char
