@@ -217,6 +217,10 @@ Base.:<(::Missing, ::CatValue) = missing
 
 # JSON of CatValue is JSON of the value it refers to
 JSON.lower(x::CatValue) = JSON.lower(get(x))
+DataAPI.defaultarray(::Type{CategoricalString{R}}, N) where {R} = CategoricalArray{String, N, R}
+DataAPI.defaultarray(::Type{Union{CategoricalString{R}, Missing}}, N) where {R} = CategoricalArray{Union{String, Missing}, N, R}
+DataAPI.defaultarray(::Type{CategoricalValue{T, R}}, N) where {T, R} = CategoricalArray{T, N, R}
+DataAPI.defaultarray(::Type{Union{CategoricalValue{T, R}, Missing}}, N) where {T, R} = CategoricalArray{Union{T, Missing}, N, R}
 
 # AbstractString interface for CategoricalString
 Base.string(x::CategoricalString) = get(x)
