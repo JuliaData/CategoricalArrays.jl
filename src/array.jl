@@ -694,14 +694,12 @@ function Base.push!(A::CategoricalVector, item)
     A
 end
 
-function Base.append!(A::CategoricalVector, B::CatArrOrSub)
-    levels!(A, union(levels(A), levels(B)))
+function Base.append!(A::CategoricalVector, items::AbstractArray)
+    itemindices = eachindex(items)
     len = length(A)
-    len2 = length(B)
-    resize!(A.refs, len + len2)
-    for i = 1:len2
-        A[len + i] = B[i]
-    end
+    len2 = length(itemindices)
+    resize!(A, len+len2)
+    copyto!(A, len+1, items, first(itemindices), len2)
     return A
 end
 
