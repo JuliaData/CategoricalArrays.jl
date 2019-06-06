@@ -210,9 +210,10 @@ end
         @test isa(y, CategoricalVector{Union{Int, T}, UInt32})
         @test size(y) == (3,)
 
-        y = similar(Vector{Union{CategoricalString, T}}, (3,))
-        @test isa(y, CategoricalVector{Union{String, T}, UInt32})
-        @test size(y) == (3,)
+        # Disabled due to JuliaLang/julia#32262
+        # y = similar(Vector{Union{CategoricalString, T}}, (3,))
+        # @test isa(y, CategoricalVector{Union{String, T}, UInt32})
+        # @test size(y) == (3,)
 
         y = similar(Vector{Union{CategoricalValue{Int, UInt8}, T}}, (3,))
         @test isa(y, CategoricalVector{Union{Int, T}, UInt8})
