@@ -124,6 +124,9 @@ end
 
 CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
     CategoricalArray{T, N, DefaultRefType}(undef, dims, ordered=ordered)
+CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where
+    {R, T <: Union{Missing, CatValue{R}}, N} =
+    CategoricalArray{T, N, R}(undef, dims, ordered=ordered)
 CategoricalArray{T}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
     CategoricalArray{T, N}(undef, dims, ordered=ordered)
 CategoricalArray{T, 1}(::UndefInitializer, m::Int; ordered=false) where {T} =
@@ -494,11 +497,19 @@ similar(A::CategoricalArray{S, M, R}, ::Type{T},
         dims::NTuple{N, Int}) where {S, T<:Union{CatValue, Missing}, M, N, R} =
     CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
 
-similar(::Type{T}, dims::Dims) where {T<:AbstractArray{<:CategoricalValue}} =
+similar(::Type{T}, dims::Dims) where {U, R, T<:AbstractArray{CategoricalValue{U, R}}} =
+    CategoricalArray{eltype(T)}(undef, dims)
+similar(::Type{T}, dims::Dims) where {U, T<:AbstractArray{CategoricalValue{U}}} =
+    CategoricalArray{eltype(T)}(undef, dims)
+similar(::Type{T}, dims::Dims) where {U, R, T<:AbstractArray{Union{CategoricalValue{U, R}, Missing}}} =
     CategoricalArray{eltype(T)}(undef, dims)
 similar(::Type{T}, dims::Dims) where {U, T<:AbstractArray{Union{CategoricalValue{U}, Missing}}} =
     CategoricalArray{eltype(T)}(undef, dims)
-similar(::Type{T}, dims::Dims) where {T<:AbstractArray{<:CategoricalString}} =
+similar(::Type{T}, dims::Dims) where {R, T<:AbstractArray{CategoricalString{R}}} =
+    CategoricalArray{eltype(T)}(undef, dims)
+similar(::Type{T}, dims::Dims) where {T<:AbstractArray{CategoricalString}} =
+    CategoricalArray{eltype(T)}(undef, dims)
+similar(::Type{T}, dims::Dims) where {R, T<:AbstractArray{Union{<:CategoricalString{R}, Missing}}} =
     CategoricalArray{eltype(T)}(undef, dims)
 similar(::Type{T}, dims::Dims) where {T<:AbstractArray{Union{<:CategoricalString, Missing}}} =
     CategoricalArray{eltype(T)}(undef, dims)
