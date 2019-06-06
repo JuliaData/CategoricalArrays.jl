@@ -812,19 +812,33 @@ end
     y = CategoricalVector{Int}(undef, 0)
     z1 = CategoricalVector{Float64}([1.0])
     z2 = CategoricalVector{Int}([1])
-    @inferred vcat(x, y)
+    if VERSION > v"1.2.0-DEV"
+        @inferred vcat(x, y)
+    end
     @test vcat(x, y) isa CategoricalVector{Any}
-    @inferred vcat(x, z1)
+    if VERSION > v"1.2.0-DEV"
+        @inferred vcat(x, z1)
+    end
     @test vcat(x, z1) isa CategoricalVector{Any}
-    @inferred vcat(y, z1)
+    if VERSION > v"1.2.0-DEV"
+        @inferred vcat(y, z1)
+    end
     @test vcat(y, z1) isa CategoricalVector{Float64}
-    @inferred vcat(x, x)
+    if VERSION > v"1.2.0-DEV"
+        @inferred vcat(x, x)
+    end
     @test vcat(x, x) isa CategoricalVector{String}
-    @inferred vcat(y, y)
+    if VERSION > v"1.2.0-DEV"
+        @inferred vcat(y, y)
+    end
     @test vcat(y, y) isa CategoricalVector{Int}
-    @inferred vcat(z1, z1)
+    if VERSION > v"1.2.0-DEV"
+        @inferred vcat(z1, z1)
+    end
     @test vcat(z1, z1) isa CategoricalVector{Float64}
-    @inferred vcat(z1, z2)
+    if VERSION > v"1.2.0-DEV"
+        @inferred vcat(z1, z2)
+    end
     @test vcat(z1, z2) isa CategoricalVector{Float64}
 end
 
