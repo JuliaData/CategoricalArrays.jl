@@ -494,10 +494,14 @@ similar(A::CategoricalArray{S, M, R}, ::Type{T},
         dims::NTuple{N, Int}) where {S, T<:Union{CatValue, Missing}, M, N, R} =
     CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
 
-similar(::Type{T}, dims::Dims) where {T<:AbstractArray{<:Union{CatValue,Missing}}} =
+similar(::Type{T}, dims::Dims) where {T<:AbstractArray{<:CategoricalValue}} =
     CategoricalArray{eltype(T)}(undef, dims)
-similar(::Type{T}, dims::Dims) where {T<:AbstractArray{Missing}} =
-    T(undef, dims)
+similar(::Type{T}, dims::Dims) where {U, T<:AbstractArray{Union{CategoricalValue{U}, Missing}}} =
+    CategoricalArray{eltype(T)}(undef, dims)
+similar(::Type{T}, dims::Dims) where {T<:AbstractArray{<:CategoricalString}} =
+    CategoricalArray{eltype(T)}(undef, dims)
+similar(::Type{T}, dims::Dims) where {T<:AbstractArray{Union{<:CategoricalString, Missing}}} =
+    CategoricalArray{eltype(T)}(undef, dims)
 
 """
     compress(A::CategoricalArray)

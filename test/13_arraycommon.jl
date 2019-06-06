@@ -190,6 +190,14 @@ end
         @test isa(y, CategoricalVector{Union{Int, Missing}, UInt32})
         @test size(y) == (3,)
 
+        y = similar(Vector{CategoricalString}, (3,))
+        @test isa(y, CategoricalVector{String, UInt32})
+        @test size(y) == (3,)
+
+        y = similar(Vector{Union{CategoricalString, Missing}}, (3,))
+        @test isa(y, CategoricalVector{Union{String, Missing}, UInt32})
+        @test size(y) == (3,)
+
         y = similar(Vector{Missing}, (3,))
         @test isa(y, Vector{Missing})
         @test size(y) == (3,)
