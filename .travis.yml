@@ -1,24 +1,34 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
+
 os:
   - linux
   - osx
+
 julia:
   - 0.7
   - 1.0
   - 1.1
   - nightly
+
+matrix:
+ allow_failures:
+ - julia: nightly
+
 notifications:
   email: false
+
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 #  - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("CategoricalArrays"); Pkg.test("CategoricalArrays"; coverage=true)'
+
 after_success:
   # push coverage results to Coveralls
   - julia -e 'using Pkg; cd(Pkg.dir("CategoricalArrays")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
   - julia -e 'using Pkg; cd(Pkg.dir("CategoricalArrays")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+
 jobs:
   include:
     - stage: "Documentation"
