@@ -482,20 +482,59 @@ similar(A::CategoricalArray{S, M, R}, ::Type{T},
 similar(A::CategoricalArray{S, M, R}, ::Type{Missing},
         dims::NTuple{N, Int}) where {N, S, M, R} =
     Array{Missing, N}(missing, dims)
-similar(A::CategoricalArray{S, M, Q}, ::Type{T},
-        dims::NTuple{N, Int}) where {R, T<:CatValue{R}, N, S, M, Q} =
+similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalValue{T, R}},
+        dims::NTuple{N, Int}) where {R, T, N, S, M, Q} =
     CategoricalArray{T, N, R}(undef, dims)
-similar(A::CategoricalArray{S, M, R}, ::Type{T},
-        dims::NTuple{N, Int}) where {S, T<:CatValue, M, N, R} =
-    CategoricalArray{T, N, R}(undef, dims)
-# Union{T, Missing} is repeated even if theoretically redundant because of JuliaLang/julia#26405
-# Once that bug is fixed, Union{T, Missing} can be replaced with T and the two definitions above can be removed
-similar(A::CategoricalArray{S, M, Q}, ::Type{T},
-        dims::NTuple{N, Int}) where {R, T<:Union{CatValue{R}, Missing}, N, S, M, Q} =
+similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalValue{T}},
+        dims::NTuple{N, Int}) where {T, N, S, M, Q} =
+    CategoricalArray{T, N}(undef, dims)
+similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalString{R}},
+        dims::NTuple{N, Int}) where {R, N, S, M, Q} =
+    CategoricalArray{String, N, R}(undef, dims)
+similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalString},
+        dims::NTuple{N, Int}) where {N, S, M, Q} =
+    CategoricalArray{String, N, Q}(undef, dims)
+similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalValue{T, R}, Missing}},
+        dims::NTuple{N, Int}) where {R, T, N, S, M, Q} =
     CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
-similar(A::CategoricalArray{S, M, R}, ::Type{T},
-        dims::NTuple{N, Int}) where {S, T<:Union{CatValue, Missing}, M, N, R} =
-    CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
+similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalValue{T}, Missing}},
+        dims::NTuple{N, Int}) where {T, N, S, M, Q} =
+    CategoricalArray{Union{T, Missing}, N, Q}(undef, dims)
+similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalString{R}, Missing}},
+        dims::NTuple{N, Int}) where {R, N, S, M, Q} =
+    CategoricalArray{Union{String, Missing}, N, R}(undef, dims)
+similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalString, Missing}},
+        dims::NTuple{N, Int}) where {N, S, M, Q} =
+    CategoricalArray{Union{String, Missing}, N, Q}(undef, dims)
+
+for A in (:AbstractArray, :Array, :Vector, :Matrix) # to fix ambiguities
+    @eval begin
+        similar(A::$A, ::Type{CategoricalValue{T, R}},
+                dims::NTuple{N, Int}=size(A)) where {T, R, N} =
+            CategoricalArray{T, N, R}(undef, dims)
+        similar(A::$A, ::Type{CategoricalValue{T}},
+                dims::NTuple{N, Int}=size(A)) where {T, N} =
+            CategoricalArray{T, N}(undef, dims)
+        similar(A::$A, ::Type{CategoricalString{R}},
+                dims::NTuple{N, Int}=size(A)) where {R, N} =
+            CategoricalArray{String, N, R}(undef, dims)
+        similar(A::$A, ::Type{CategoricalString},
+                dims::NTuple{N, Int}=size(A)) where {N} =
+            CategoricalArray{String, N}(undef, dims)
+        similar(A::$A, ::Type{Union{CategoricalValue{T, R}, Missing}},
+                dims::NTuple{N, Int}=size(A)) where {T, R, N} =
+            CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
+        similar(A::$A, ::Type{Union{CategoricalValue{T}, Missing}},
+                dims::NTuple{N, Int}=size(A)) where {T, N} =
+            CategoricalArray{Union{T, Missing}, N}(undef, dims)
+        similar(A::$A, ::Type{Union{CategoricalString{R}, Missing}},
+                dims::NTuple{N, Int}=size(A)) where {R, N} =
+            CategoricalArray{Union{String, Missing}, N, R}(undef, dims)
+        similar(A::$A, ::Type{Union{CategoricalString, Missing}},
+                dims::NTuple{N, Int}=size(A)) where {N} =
+            CategoricalArray{Union{String, Missing}, N}(undef, dims)
+    end
+end
 
 similar(::Type{T}, dims::Dims) where {U, R, T<:AbstractArray{CategoricalValue{U, R}}} =
     CategoricalArray{eltype(T)}(undef, dims)

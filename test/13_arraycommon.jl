@@ -190,6 +190,22 @@ end
         @test isa(y, CategoricalVector{Int, UInt32})
         @test size(y) == size(x)
 
+        y = similar([], Union{CategoricalValue{Int}, T}, (3,))
+        @test isa(y, CategoricalVector{Union{Int, T}, UInt32})
+        @test size(y) == (3,)
+
+        y = similar([], Union{CategoricalString, T}, (3,))
+        @test isa(y, CategoricalVector{Union{String, T}, UInt32})
+        @test size(y) == (3,)
+
+        y = similar([], Union{CategoricalValue{Int, UInt8}, T}, (3,))
+        @test isa(y, CategoricalVector{Union{Int, T}, UInt8})
+        @test size(y) == (3,)
+
+        y = similar([], Union{CategoricalString{UInt8}, T}, (3,))
+        @test isa(y, CategoricalVector{Union{String, T}, UInt8})
+        @test size(y) == (3,)
+
         y = similar(Vector{Union{CategoricalValue{Int}, T}}, (3,))
         @test isa(y, CategoricalVector{Union{Int, T}, UInt32})
         @test size(y) == (3,)
