@@ -1015,6 +1015,10 @@ end
     @test x !== y
     @test y isa CategoricalArray
 
+    y = broadcast(v->x[1], x)
+    @test x !== y
+    @test y isa CategoricalArray
+
     y = broadcast(v->1, x)
     @test y == [1, 1, 1]
     @test y isa Vector{Int}
