@@ -181,6 +181,18 @@ end
         y = similar(x, CategoricalValue{Int, UInt32})
         @test isa(y, CategoricalVector{Int, UInt32})
         @test size(y) == size(x)
+
+        y = similar(Vector{CategoricalValue{Int}}, (3,))
+        @test isa(y, CategoricalVector{Int, UInt32})
+        @test size(y) == (3,)
+
+        y = similar(Vector{Union{CategoricalValue{Int}, Missing}}, (3,))
+        @test isa(y, CategoricalVector{Union{Int, Missing}, UInt32})
+        @test size(y) == (3,)
+
+        y = similar(Vector{Missing}, (3,))
+        @test isa(y, Vector{Missing})
+        @test size(y) == (3,)
     end
 
     @testset "copy! and copyto!" begin
@@ -992,6 +1004,20 @@ end
                                CategoricalArray(["a", "b", "c"]))
     x[1:2] .= x[3]
     @test x == fill(get(x[3]), 3)
+
+    y = identity.(x)
+    @test x ≅ y
+    @test x !== y
+    @test y isa CategoricalArray
+
+    y = broadcast(v->v, x)
+    @test x ≅ y
+    @test x !== y
+    @test y isa CategoricalArray
+
+    y = broadcast(v->1, x)
+    @test y == [1, 1, 1]
+    @test y isa Vector{Int}
 end
 
 @testset "append! ordered=$ordered" for ordered in (false, true)
