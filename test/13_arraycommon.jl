@@ -124,6 +124,14 @@ end
         @test isordered(r) == false
     end
 
+    @testset "undef constructors preserve reftype" begin
+        x = CategoricalArray{Union{T, CategoricalValue{Int, UInt8}}}(undef, 3)
+        @test x isa CategoricalArray{Union{T, Int}, 1, UInt8}
+
+        x = CategoricalArray{Union{T, CategoricalValue{Int, UInt8}}, 1}(undef, 3)
+        @test x isa CategoricalArray{Union{T, Int}, 1, UInt8}
+    end
+
     @testset "similar()" begin
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         y = similar(x)
@@ -181,6 +189,43 @@ end
         y = similar(x, CategoricalValue{Int, UInt32})
         @test isa(y, CategoricalVector{Int, UInt32})
         @test size(y) == size(x)
+
+        y = similar([], Union{CategoricalValue{Int}, T}, (3,))
+        @test isa(y, CategoricalVector{Union{Int, T}, UInt32})
+        @test size(y) == (3,)
+
+        y = similar([], Union{CategoricalString, T}, (3,))
+        @test isa(y, CategoricalVector{Union{String, T}, UInt32})
+        @test size(y) == (3,)
+
+        y = similar([], Union{CategoricalValue{Int, UInt8}, T}, (3,))
+        @test isa(y, CategoricalVector{Union{Int, T}, UInt8})
+        @test size(y) == (3,)
+
+        y = similar([], Union{CategoricalString{UInt8}, T}, (3,))
+        @test isa(y, CategoricalVector{Union{String, T}, UInt8})
+        @test size(y) == (3,)
+
+        y = similar(Vector{Union{CategoricalValue{Int}, T}}, (3,))
+        @test isa(y, CategoricalVector{Union{Int, T}, UInt32})
+        @test size(y) == (3,)
+
+        # Disabled due to JuliaLang/julia#32262
+        # y = similar(Vector{Union{CategoricalString, T}}, (3,))
+        # @test isa(y, CategoricalVector{Union{String, T}, UInt32})
+        # @test size(y) == (3,)
+
+        y = similar(Vector{Union{CategoricalValue{Int, UInt8}, T}}, (3,))
+        @test isa(y, CategoricalVector{Union{Int, T}, UInt8})
+        @test size(y) == (3,)
+
+        y = similar(Vector{Union{CategoricalString{UInt8}, T}}, (3,))
+        @test isa(y, CategoricalVector{Union{String, T}, UInt8})
+        @test size(y) == (3,)
+
+        y = similar(Vector{T}, (3,))
+        @test isa(y, Vector{T})
+        @test size(y) == (3,)
     end
 
     @testset "copy! and copyto!" begin
@@ -989,9 +1034,29 @@ end
 
 @testset "broadcast" for x in (CategoricalArray(1:3),
                                CategoricalArray{Union{Int,Missing}}(1:3),
-                               CategoricalArray(["a", "b", "c"]))
+                               CategoricalArray(["a", "b", "c"]),
+                               CategoricalArray(["a", missing, "c"]),
+                               CategoricalArray([missing, "b", "c"]))
+    y = identity.(x)
+    @test x ≅ y
+    @test x !== y
+    @test y isa CategoricalArray
+
+    y = broadcast(v->v, x)
+    @test x ≅ y
+    @test x !== y
+    @test y isa CategoricalArray
+
+    y = broadcast(v->x[3], x)
+    @test x !== y
+    @test y isa CategoricalArray
+
+    y = broadcast(v->1, x)
+    @test y == [1, 1, 1]
+    @test y isa Vector{Int}
+
     x[1:2] .= x[3]
-    @test x == fill(get(x[3]), 3)
+    @test x == fill(x[3], 3)
 end
 
 @testset "append! ordered=$ordered" for ordered in (false, true)
