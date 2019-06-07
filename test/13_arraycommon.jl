@@ -1035,7 +1035,8 @@ end
 @testset "broadcast" for x in (CategoricalArray(1:3),
                                CategoricalArray{Union{Int,Missing}}(1:3),
                                CategoricalArray(["a", "b", "c"]),
-                               CategoricalArray{Union{String,Missing}}(["b", missing, "c"]))
+                               CategoricalArray(["a", missing, "c"]),
+                               CategoricalArray([missing, "b", "c"]))
     y = identity.(x)
     @test x ≅ y
     @test x !== y
@@ -1046,7 +1047,7 @@ end
     @test x !== y
     @test y isa CategoricalArray
 
-    y = broadcast(v->x[1], x)
+    y = broadcast(v->x[3], x)
     @test x !== y
     @test y isa CategoricalArray
 
