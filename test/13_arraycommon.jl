@@ -1182,4 +1182,11 @@ end
     @test levels(y) == 'a':'z'
 end
 
+@testset "DataAPI" begin
+    @test DataAPI.defaultarray(CategoricalString{UInt32}, 1) <: CategoricalArray{String,1,UInt32}
+    @test DataAPI.defaultarray(Union{Missing, CategoricalString{UInt32}}, 1) <: CategoricalArray{Union{Missing, String},1,UInt32}
+    @test DataAPI.defaultarray(CategoricalValue{Int, UInt32}, 1) <: CategoricalArray{Int,1,UInt32}
+    @test DataAPI.defaultarray(Union{Missing, CategoricalValue{Int, UInt32}}, 1) <: CategoricalArray{Union{Missing, Int},1,UInt32}
+end
+
 end
