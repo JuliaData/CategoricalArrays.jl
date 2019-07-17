@@ -4,7 +4,7 @@ using Compat.Test
 @static if VERSION >= v"0.7.0-DEV.3208"
     using Future: copy!
 end
-using CategoricalArrays
+using CategoricalArrays, DataAPI
 using CategoricalArrays: DefaultRefType, index
 
 const ≅ = isequal
