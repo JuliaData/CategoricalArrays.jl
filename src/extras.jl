@@ -58,11 +58,13 @@ also accept them.
   values in `x`, and the upper bound is included in the last interval.
 * `labels::AbstractVector=[]`: a vector of strings giving the names to use for the
   intervals; if empty, default labels are used.
+* `label_formatter::Function`: a function `f(from,to;extend=false)` that generates the labels from the left and right interval boundaries. Defaults to `string("[", from, ", ", to, extend ? "]" : ")")`, e.g. `"[1, 5)"`.
 * `allow_missing::Bool=true`: when `true`, values outside of breaks result in missing values.
   only supported when `x` accepts missing values.
 """
 function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
              extend::Bool=false, labels::AbstractVector{U}=String[],
+             label_formatter=_default_formatter_,
              allow_missing::Bool=false) where {T, N, U<:AbstractString}
     if !issorted(breaks)
         breaks = sort(breaks)
@@ -102,12 +104,12 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
         end
         levs = Vector{String}(undef, n-1)
         for i in 1:n-2
-            levs[i] = string("[", from[i], ", ", to[i], ")")
+            levs[i] = label_formatter(from[i], to[i])
         end
         if extend
-            levs[end] = string("[", from[end], ", ", to[end], "]")
+            levs[end] = label_formatter(from[end], to[end], extend=extend)
         else
-            levs[end] = string("[", from[end], ", ", to[end], ")")
+            levs[end] = label_formatter(from[end], to[end])
         end
     else
         length(labels) == n-1 || throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
@@ -128,5 +130,8 @@ Cut a numeric array into `ngroups` quantiles, determined using
 [`quantile`](@ref).
 """
 cut(x::AbstractArray, ngroups::Integer;
-    labels::AbstractVector{U}=String[]) where {U<:AbstractString} =
-    cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)
+    labels::AbstractVector{U}=String[], label_formatter=_default_formatter_) where {U<:AbstractString} =
+    cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels, label_formatter=label_formatter)
+
+_default_formatter_(from, to; extend=false) = string("[", from, ", ", to, extend ? "]" : ")")
+
