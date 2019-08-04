@@ -1,4 +1,3 @@
-__precompile__()
 module CategoricalArrays
     export CategoricalPool, CategoricalValue, CategoricalString
     export AbstractCategoricalArray, AbstractCategoricalVector, AbstractCategoricalMatrix,
@@ -13,6 +12,7 @@ module CategoricalArrays
 
     using Compat
     using JSON
+    using DataAPI
     using Reexport
 
     # TODO: cannot @reexport in conditional, the below should be removed when 0.6 is deprecated

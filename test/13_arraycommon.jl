@@ -4,7 +4,7 @@ using Compat.Test
 @static if VERSION >= v"0.7.0-DEV.3208"
     using Future: copy!
 end
-using CategoricalArrays
+using CategoricalArrays, DataAPI
 using CategoricalArrays: DefaultRefType, index
 
 const ≅ = isequal
@@ -1180,6 +1180,13 @@ end
     deleteat!(y, [1, 3])
     @test x == y
     @test levels(y) == 'a':'z'
+end
+
+@testset "DataAPI" begin
+    @test DataAPI.defaultarray(CategoricalString{UInt32}, 1) <: CategoricalArray{String,1,UInt32}
+    @test DataAPI.defaultarray(Union{Missing, CategoricalString{UInt32}}, 1) <: CategoricalArray{Union{Missing, String},1,UInt32}
+    @test DataAPI.defaultarray(CategoricalValue{Int, UInt32}, 1) <: CategoricalArray{Int,1,UInt32}
+    @test DataAPI.defaultarray(Union{Missing, CategoricalValue{Int, UInt32}}, 1) <: CategoricalArray{Union{Missing, Int},1,UInt32}
 end
 
 end
