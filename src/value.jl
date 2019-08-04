@@ -226,35 +226,6 @@ DataAPI.defaultarray(::Type{CategoricalValue{T, R}}, N) where {T, R} =
 DataAPI.defaultarray(::Type{Union{CategoricalValue{T, R}, Missing}}, N) where {T, R} =
   CategoricalArray{Union{T, Missing}, N, R}
 
-# AbstractString interface for CategoricalString
+# Efficient method equivalent to the fallback
 Base.string(x::CategoricalString) = get(x)
-Base.eltype(x::CategoricalString) = Char
-Base.length(x::CategoricalString) = length(get(x))
-Compat.lastindex(x::CategoricalString) = lastindex(get(x))
-Base.sizeof(x::CategoricalString) = sizeof(get(x))
-Base.nextind(x::CategoricalString, i::Int) = nextind(get(x), i)
-Base.prevind(x::CategoricalString, i::Int) = prevind(get(x), i)
-if VERSION > v"0.7.0-DEV.5126"
-    Base.iterate(x::CategoricalString) = iterate(get(x))
-    Base.iterate(x::CategoricalString, i::Int) = iterate(get(x), i)
-else
-    Base.next(x::CategoricalString, i::Int) = next(get(x), i)
-end
-Base.getindex(x::CategoricalString, i::Int) = getindex(get(x), i)
-Base.codeunit(x::CategoricalString, i::Integer) = codeunit(get(x), i)
-Base.ascii(x::CategoricalString) = ascii(get(x))
-Base.isvalid(x::CategoricalString) = isvalid(get(x))
-Base.isvalid(x::CategoricalString, i::Integer) = isvalid(get(x), i)
-Base.match(r::Regex, s::CategoricalString,
-           idx::Integer=firstindex(s), add_opts::UInt32=UInt32(0)) =
-    match(r, get(s), idx, add_opts)
-if VERSION > v"0.7.0-DEV.3526"
-else
-    Base.matchall(r::Regex, s::CategoricalString; overlap::Bool=false) =
-        matchall(r, get(s), overlap)
-    Base.matchall(r::Regex, s::CategoricalString, overlap::Bool) =
-        matchall(r, get(s), overlap)
-end
-Base.collect(x::CategoricalString) = collect(get(x))
-Base.reverse(x::CategoricalString) = reverse(get(x))
-Compat.ncodeunits(x::CategoricalString) = ncodeunits(get(x))
+Base.String(x::CategoricalString) = get(x)

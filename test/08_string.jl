@@ -41,20 +41,14 @@ using CategoricalArrays
     @test sizeof(v1) === 0
     @test sizeof(v2) === 5
 
-    if VERSION >= v"0.7.0-DEV.2949"
-        @test_throws BoundsError nextind(v1, 1)
-    else
-        @test nextind(v1, 1) === 2
-    end
+    @test_throws BoundsError nextind(v1, 1)
     @test nextind(v2, 4) === 6
 
     @test prevind(v1, 1) === 0
     @test prevind(v2, 6) === 4
 
-    if VERSION >= v"0.7.0-DEV.3583"
-        @test firstindex(v1) === 1
-        @test firstindex(v2) === 1
-    end
+    @test firstindex(v1) === 1
+    @test firstindex(v2) === 1
 
     @test lastindex(v1) === 0
     @test lastindex(v2) === 4
@@ -65,11 +59,7 @@ using CategoricalArrays
     @test v2[2] === 'a'
     @test v2[4] === 'é'
     @test_throws BoundsError v1[1]
-    if VERSION >= v"0.7.0-DEV.2949"
-        @test_throws StringIndexError v2[5]
-    else
-        @test_throws UnicodeError v2[5]
-    end
+    @test_throws StringIndexError v2[5]
 
     @test codeunit(v2, 2) === 0x61
     @test codeunit(v2, 5) === 0xa9
@@ -92,19 +82,11 @@ using CategoricalArrays
     @test isvalid(v2, 4)
     @test !isvalid(v2, 5)
 
-    if VERSION >= v"0.7.0-DEV.2949"
-        @test_throws BoundsError length(v1, 0, 0)
-        @test length(v2, 1, 4) === 4
+    @test_throws BoundsError length(v1, 0, 0)
+    @test length(v2, 1, 4) === 4
 
-        @test_throws BoundsError nextind(v1, 1, 1)
-        @test nextind(v2, 1, 2) === 3
-    else
-        @test_throws BoundsError ind2chr(v1, 0)
-        @test ind2chr(v2, 4) === 4
-
-        @test_throws BoundsError chr2ind(v1, 1)
-        @test chr2ind(v2, 2) === 2
-    end
+    @test_throws BoundsError nextind(v1, 1, 1)
+    @test nextind(v2, 1, 2) === 3
 
     @test string(v1) == ""
     @test string(v2) == "café"
@@ -140,12 +122,7 @@ using CategoricalArrays
 
     @test collect((m.match for m ∈ eachmatch(r"af", v1))) == []
     @test collect((m.match for m ∈ eachmatch(r"af", v2))) == ["af"]
-    if VERSION > v"0.7.0-DEV.3526"
-        @test collect((m.match for m ∈ eachmatch(r"af", v2, overlap=true))) == ["af"]
-    else
-        @test matchall(r"af", v2, overlap=true) == ["af"]
-        @test matchall(r"af", v2, true) == ["af"]
-    end
+    @test collect((m.match for m ∈ eachmatch(r"af", v2, overlap=true))) == ["af"]
 
     @test lpad(v1, 1) == " "
     @test lpad(v2, 1) == "café"
@@ -225,7 +202,7 @@ using CategoricalArrays
     @test join([v1, "a"]) == "a"
     @test join([v1, "a"], v2) == "caféa"
 
-    if VERSION >= v"1.0.4" # Previous versions throw a BoundsError
+    if VERSION >= v"1.1.1" # Previous versions throw a BoundsError
         @test chop(v1) == ""
     end
     @test chop(v2) == "caf"
