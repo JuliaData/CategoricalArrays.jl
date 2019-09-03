@@ -94,3 +94,7 @@ import Unicode: normalize, graphemes
 @deprecate textwidth(x::CategoricalString) textwidth(String(x))
 @deprecate isascii(x::CategoricalString) isascii(String(x))
 @deprecate escape_string(x::CategoricalString) escape_string(String(x))
+
+# Avoid printing a deprecation until CategoricalString is no longer AbstractString
+Base.string(io::IO, x::CategoricalString) = print(io, get(x))
+Base.escape_string(io::IO, x::CategoricalString, esc) = escape_string(io, get(x), esc)
