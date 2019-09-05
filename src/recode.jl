@@ -351,7 +351,7 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
     elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
         dest = Array{Union{T, Missing}}(undef, size(a))
     else
-        dest = Array{Missings.T(T)}(undef, size(a))
+        dest = Array{nonmissingtype(T)}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
 end
@@ -374,7 +374,7 @@ function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) wher
     elseif T >: Missing || default isa Missing || (eltype(a) >: Missing && !keytype_hasmissing(pairs...))
         dest = CategoricalArray{Union{T, Missing}, N, R}(undef, size(a))
     else
-        dest = CategoricalArray{Missings.T(T), N, R}(undef, size(a))
+        dest = CategoricalArray{nonmissingtype(T), N, R}(undef, size(a))
     end
     recode!(dest, a, default, pairs...)
 end
@@ -386,7 +386,7 @@ function Base.replace(a::CategoricalArray{S, N, R}, pairs::Pair...) where {S, N,
     # Exception: replacing missings
     # Example: replace(categorical([missing,1.5]), missing=>0)
     if keytype_hasmissing(pairs...)
-        dest = CategoricalArray{promote_type(Missings.T(S), T), N, R}(undef, size(a))
+        dest = CategoricalArray{promote_type(nonmissingtype(S), T), N, R}(undef, size(a))
     else
         dest = CategoricalArray{promote_type(S, T), N, R}(undef, size(a))
     end

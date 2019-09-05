@@ -23,14 +23,14 @@ level(x::CatValue) = x.level
 # extract the type of the original value from array eltype `T`
 unwrap_catvaluetype(::Type{T}) where {T} = T
 unwrap_catvaluetype(::Type{T}) where {T >: Missing} =
-    Union{unwrap_catvaluetype(Missings.T(T)), Missing}
+    Union{unwrap_catvaluetype(nonmissingtype(T)), Missing}
 unwrap_catvaluetype(::Type{Union{}}) = Union{} # prevent incorrect dispatch to T<:CatValue method
 unwrap_catvaluetype(::Type{Any}) = Any # prevent recursion in T>:Missing method
 unwrap_catvaluetype(::Type{T}) where {T <: CatValue} = leveltype(T)
 
 # get the categorical value type given value type `T` and reference type `R`
 catvaluetype(::Type{T}, ::Type{R}) where {T >: Missing, R} =
-    catvaluetype(Missings.T(T), R)
+    catvaluetype(nonmissingtype(T), R)
 catvaluetype(::Type{T}, ::Type{R}) where {T <: CatValue, R} =
     catvaluetype(leveltype(T), R)
 catvaluetype(::Type{Any}, ::Type{R}) where {R} =
@@ -43,7 +43,7 @@ catvaluetype(::Type{<:AbstractString}, ::Type{R}) where {R} =
 catvaluetype(::Type{Union{}}, ::Type{R}) where {R} = CategoricalValue{Union{}, R}
 
 # get the categorical value type given value type `T`
-catvaluetype(::Type{T}) where {T >: Missing} = catvaluetype(Missings.T(T))
+catvaluetype(::Type{T}) where {T >: Missing} = catvaluetype(nonmissingtype(T))
 catvaluetype(::Type{T}) where {T <: CatValue} = catvaluetype(leveltype(T))
 catvaluetype(::Type{Any}) = CategoricalValue{Any}  # prevent recursion in T>:Missing method
 catvaluetype(::Type{T}) where {T} = CategoricalValue{T}
@@ -101,7 +101,7 @@ Base.Broadcast.broadcastable(x::CatValue) = Ref(x)
 
 if VERSION >= v"0.7.0-DEV.2797"
     function Base.show(io::IO, x::CatValue)
-        if Missings.T(get(io, :typeinfo, Any)) === Missings.T(typeof(x))
+        if nonmissingtype(get(io, :typeinfo, Any)) === nonmissingtype(typeof(x))
             print(io, repr(x))
         elseif isordered(pool(x))
             @printf(io, "%s %s (%i/%i)",

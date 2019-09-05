@@ -261,15 +261,11 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
         throw(LevelsException{T, R}(levels(A)[typemax(R)+1:end]))
     end
 
-    if T >: Missing
-        U = Missings.T(T)
-    else
-        U = T
-        S >: Missing && any(iszero, A.refs) &&
-            throw(MissingException("cannot convert CategoricalArray with missing values to a CategoricalArray{$T}"))
+    if !(T >: Missing) && S >: Missing && any(iszero, A.refs)
+        throw(MissingException("cannot convert CategoricalArray with missing values to a CategoricalArray{$T}"))
     end
 
-    pool = convert(CategoricalPool{unwrap_catvaluetype(U), R}, A.pool)
+    pool = convert(CategoricalPool{unwrap_catvaluetype(nonmissingtype(T)), R}, A.pool)
     refs = convert(Array{R, N}, A.refs)
     CategoricalArray{unwrap_catvaluetype(T), N}(refs, pool)
 end
@@ -611,7 +607,7 @@ end
     end
 end
 
-catvaluetype(::Type{T}) where {T <: CategoricalArray} = Missings.T(eltype(T))
+catvaluetype(::Type{T}) where {T <: CategoricalArray} = nonmissingtype(eltype(T))
 catvaluetype(A::CategoricalArray) = catvaluetype(typeof(A))
 
 leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(catvaluetype(T))
