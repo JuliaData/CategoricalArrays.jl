@@ -109,30 +109,46 @@ end
 end
 
 @testset "promote_type" begin
-    # Tests that return Any are due to JuliaLang/julia#29348
-    # It is not clear what would be the most appropriate promotion type for them,
-    # but at least they should not throw an error
     @test promote_type(CategoricalValue{Int}, CategoricalValue{Float64}) ===
         CategoricalValue{Float64}
     @test promote_type(CategoricalValue{Int, UInt8}, CategoricalValue{Float64, UInt32}) ===
         CategoricalValue{Float64, UInt32}
     @test promote_type(CategoricalValue{Int, UInt8}, CategoricalValue{Float64}) ===
         CategoricalValue{Float64}
-    @test promote_type(CategoricalValue{Int},
-                       Union{CategoricalValue{Float64}, Missing}) ===
-        Any
-    @test promote_type(CategoricalValue{Int, UInt8},
-                       Union{CategoricalValue{Float64, UInt32}, Missing}) ===
-        Union{CategoricalValue{Float64, UInt32}, Missing}
-    @test promote_type(Union{CategoricalValue{Int}, Missing},
-                       CategoricalValue{Float64}) ===
-        Any
-    @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
-                       CategoricalValue{Float64, UInt32}) ===
-        Union{CategoricalValue{Float64, UInt32}, Missing}
-    @test promote_type(Union{CategoricalValue{Int}, Missing},
-                       Union{CategoricalValue{Float64}, Missing}) ===
-        Any
+    # Tests that return Any before Julia 1.3 are due to JuliaLang/julia#29348
+    if VERSION >= v"1.3.0-DEV"
+        @test promote_type(CategoricalValue{Int},
+                           Union{CategoricalValue{Float64}, Missing}) ===
+            Union{Missing, Float64}
+        @test promote_type(CategoricalValue{Int, UInt8},
+                           Union{CategoricalValue{Float64, UInt32}, Missing}) ===
+            Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                           CategoricalValue{Float64}) ===
+            Union{Missing, Float64}
+        @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
+                           CategoricalValue{Float64, UInt32}) ===
+            Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                           Union{CategoricalValue{Float64}, Missing}) ===
+            Union{Missing, Float64}
+    else
+        @test promote_type(CategoricalValue{Int},
+                           Union{CategoricalValue{Float64}, Missing}) ===
+            Any
+        @test promote_type(CategoricalValue{Int, UInt8},
+                           Union{CategoricalValue{Float64, UInt32}, Missing}) ===
+            Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                           CategoricalValue{Float64}) ===
+            Any
+        @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
+                        CategoricalValue{Float64, UInt32}) ===
+            Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                        Union{CategoricalValue{Float64}, Missing}) ===
+            Any
+    end
     @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
                        Union{CategoricalValue{Float64, UInt32}, Missing}) ===
         Union{CategoricalValue{Float64, UInt32}, Missing}
