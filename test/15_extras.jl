@@ -108,4 +108,20 @@ end
     @test levels(x) == ["[2.0, 3.5)", "[3.5, 5.0]"]
 end
 
+@testset "formatter function" begin
+  my_formatter1(from,to,i;extend=false) = "group $i"
+  my_formatter2(from,to,i;extend=false) = "$i: $from -- $to"
+  function my_formatter3(from,to,i;extend=true)
+    percentile(x) = Int(round(100 * parse.(Float64,x),digits=0))
+    string("P",percentile(from),"P",percentile(to))
+  end
+
+  x = collect(0.15:0.20:0.95)
+  p = [0, 0.4, 0.8, 1.0]
+
+  @test cut(x, p, labels=my_formatter1) == ["group 1", "group 1", "group 2", "group 2", "group 3"]
+  @test cut(x, p, labels=my_formatter2) == ["1: 0.0 -- 0.4", "1: 0.0 -- 0.4", "2: 0.4 -- 0.8", "2: 0.4 -- 0.8", "3: 0.8 -- 1.0"]
+  @test cut(x, p, labels=my_formatter3) == ["P0P40"  , "P0P40"  , "P40P80" , "P40P80" , "P80P100"]
+end
+
 end
