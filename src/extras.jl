@@ -48,7 +48,7 @@ Provide the default label format for the `cut` function.
 """
 default_formatter(from, to, i; closed=false) = string("[", from, ", ", to, closed ? "]" : ")")
 
-"""
+@doc raw"""
     cut(x::AbstractArray, breaks::AbstractVector;
         labels::Union{AbstractVector{<:AbstractString},Function}, 
         extend::Bool=false, allow_missing::Bool=false)
@@ -70,6 +70,64 @@ also accept them.
   `string("[", from, ", ", to, extend ? "]" : ")")`, e.g. `"[1, 5)"`.
 * `allow_missing::Bool=true`: when `true`, values outside of breaks result in missing values.
   only supported when `x` accepts missing values.
+  
+# Examples
+```jldoctest
+julia> using CategoricalArrays
+
+julia> x = collect(-1:0.5:1);
+
+julia> cut(x, [0, 1], extend=true)
+5-element CategoricalArray{String,1,UInt32}:
+ "[-1.0, 0.0)"
+ "[-1.0, 0.0)"
+ "[0.0, 1.0]" 
+ "[0.0, 1.0]" 
+ "[0.0, 1.0]" 
+
+julia> cut(x, 2)
+5-element CategoricalArray{String,1,UInt32}:
+ "[-1.0, 0.0)"
+ "[-1.0, 0.0)"
+ "[0.0, 1.0]" 
+ "[0.0, 1.0]" 
+ "[0.0, 1.0]" 
+
+julia> cut(x, 2, labels=["A", "B"])
+5-element CategoricalArray{String,1,UInt32}:
+ "A"
+ "A"
+ "B"
+ "B"
+ "B"
+
+julia> fmt(from, to, i; closed) = "grp $i ($from//$to)"
+fmt (generic function with 1 method)
+
+julia> cut(x, 3, labels=fmt)
+5-element CategoricalArray{String,1,UInt32}:
+ "grp 1 (-1.0//-0.333333)"    
+ "grp 1 (-1.0//-0.333333)"    
+ "grp 2 (-0.333333//0.333333)"
+ "grp 3 (0.333333//1.0)"      
+ "grp 3 (0.333333//1.0)"      
+
+julia> using StatsBase: ecdf
+
+julia> percentile(x) = round(Int,100*parse(Float64,x))
+percentile (generic function with 1 method)
+
+julia> fmt2(from, to, i; closed) = "P$(percentile(from))P$(percentile(to))"
+fmt2 (generic function with 1 method)
+
+julia> cut(ecdf(x)(x), 3, labels=fmt2)
+5-element CategoricalArray{String,1,UInt32}:
+ "P20P47" 
+ "P20P47" 
+ "P47P73" 
+ "P73P100"
+ "P73P100"
+```
 """
 function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
              extend::Bool=false,
