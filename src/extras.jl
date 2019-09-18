@@ -42,11 +42,11 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Missing},
 end
 
 """
-    _default_formatter_
+    default_formatter(from, to, i; closed=false)
     
 Provide the default label format for the `cut` function.
 """
-default_formatter(from, to, i; extend=false) = string("[", from, ", ", to, extend ? "]" : ")")
+default_formatter(from, to, i; closed=false) = string("[", from, ", ", to, closed ? "]" : ")")
 
 """
     cut(x::AbstractArray, breaks::AbstractVector;
@@ -114,13 +114,9 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
         end
         levs = Vector{String}(undef, n-1)
         for i in 1:n-2
-            levs[i] = labels(from[i], to[i], i)
+            levs[i] = labels(from[i], to[i], i, closed=false)
         end
-        if extend
-            levs[end] = labels(from[end], to[end], n-1, extend=extend)
-        else
-            levs[end] = labels(from[end], to[end], n-1)
-        end
+        levs[end] = labels(from[end], to[end], n-1, closed=extend)
     else
         length(labels) == n-1 || throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
         # Levels must have element type String for type stability of the result
