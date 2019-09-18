@@ -109,9 +109,9 @@ end
 end
 
 @testset "formatter function" begin
-  my_formatter1(from,to,i;extend=false) = "group $i"
-  my_formatter2(from,to,i;extend=false) = "$i: $from -- $to"
-  function my_formatter3(from,to,i;extend=true)
+  my_formatter1(from, to, i; extend) = "group $i"
+  my_formatter2(from, to, i; extend) = "$i: $from -- $to"
+  function my_formatter3(from, to, i; extend)
     percentile(x) = Int(round(100 * parse.(Float64,x),digits=0))
     string("P",percentile(from),"P",percentile(to))
   end

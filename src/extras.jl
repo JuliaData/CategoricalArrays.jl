@@ -46,11 +46,12 @@ end
     
 Provide the default label format for the `cut` function.
 """
-_default_formatter_(from, to, i; extend=false) = string("[", from, ", ", to, extend ? "]" : ")")
+default_formatter(from, to, i; extend=false) = string("[", from, ", ", to, extend ? "]" : ")")
 
 """
     cut(x::AbstractArray, breaks::AbstractVector;
-        extend::Bool=false, labels::AbstractVector=[], allow_missing::Bool=false)
+        labels::Union{AbstractVector{<:AbstractString},Function}, 
+        extend::Bool=false, allow_missing::Bool=false)
 
 Cut a numeric array into intervals and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
@@ -63,15 +64,17 @@ also accept them.
 * `extend::Bool=false`: when `false`, an error is raised if some values in `x` fall
   outside of the breaks; when `true`, breaks are automatically added to include all
   values in `x`, and the upper bound is included in the last interval.
-* `labels::Union{AbstractVector,Function}=_default_formatter_`: a vector of strings giving the names to use for the
-  intervals; or a function `f(from,to,i;extend=false)` that generates the labels from the left and right interval boundaries and the group index. Defaults to `string("[", from, ", ", to, extend ? "]" : ")")`, e.g. `"[1, 5)"`.
+* `labels::Union{AbstractVector,Function}: a vector of strings giving the names to use for
+  the intervals; or a function `f(from, to, i; extend)` that generates the labels from the
+  left and right interval boundaries and the group index. Defaults to 
+  `string("[", from, ", ", to, extend ? "]" : ")")`, e.g. `"[1, 5)"`.
 * `allow_missing::Bool=true`: when `true`, values outside of breaks result in missing values.
   only supported when `x` accepts missing values.
 """
 function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
-             extend::Bool=false, labels=_default_formatter_,
-             allow_missing::Bool=false) where {T, N, U<:AbstractString}
-    (labels isa AbstractVector) || (labels isa Function) || throw(ArgumentError("labels must be a formatter function or an AbstractVector"))
+             extend::Bool=false,
+             labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
+             allow_missing::Bool=false) where {T, N}
     
     if !issorted(breaks)
         breaks = sort(breaks)
@@ -137,8 +140,5 @@ Cut a numeric array into `ngroups` quantiles, determined using
 [`quantile`](@ref).
 """
 cut(x::AbstractArray, ngroups::Integer;
-    labels=_default_formatter_) =
+    labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter) =
     cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)
-
-
-
