@@ -65,9 +65,9 @@ also accept them.
   outside of the breaks; when `true`, breaks are automatically added to include all
   values in `x`, and the upper bound is included in the last interval.
 * `labels::Union{AbstractVector,Function}: a vector of strings giving the names to use for
-  the intervals; or a function `f(from, to, i; extend)` that generates the labels from the
+  the intervals; or a function `f(from, to, i; closed)` that generates the labels from the
   left and right interval boundaries and the group index. Defaults to 
-  `string("[", from, ", ", to, extend ? "]" : ")")`, e.g. `"[1, 5)"`.
+  `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
 * `allow_missing::Bool=true`: when `true`, values outside of breaks result in missing values.
   only supported when `x` accepts missing values.
   
@@ -75,7 +75,7 @@ also accept them.
 ```jldoctest
 julia> using CategoricalArrays
 
-julia> x = collect(-1:0.5:1);
+julia> x = -1:0.5:1;
 
 julia> cut(x, [0, 1], extend=true)
 5-element CategoricalArray{String,1,UInt32}:
@@ -85,6 +85,8 @@ julia> cut(x, [0, 1], extend=true)
  "[0.0, 1.0]" 
  "[0.0, 1.0]" 
 
+julia> x = -1:0.5:1;
+
 julia> cut(x, 2)
 5-element CategoricalArray{String,1,UInt32}:
  "[-1.0, 0.0)"
@@ -92,6 +94,8 @@ julia> cut(x, 2)
  "[0.0, 1.0]" 
  "[0.0, 1.0]" 
  "[0.0, 1.0]" 
+
+julia> x = -1:0.5:1;
 
 julia> cut(x, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
@@ -111,22 +115,6 @@ julia> cut(x, 3, labels=fmt)
  "grp 2 (-0.333333//0.333333)"
  "grp 3 (0.333333//1.0)"      
  "grp 3 (0.333333//1.0)"      
-
-julia> using StatsBase: ecdf
-
-julia> percentile(x) = round(Int,100*parse(Float64,x))
-percentile (generic function with 1 method)
-
-julia> fmt2(from, to, i; closed) = "P$(percentile(from))P$(percentile(to))"
-fmt2 (generic function with 1 method)
-
-julia> cut(ecdf(x)(x), 3, labels=fmt2)
-5-element CategoricalArray{String,1,UInt32}:
- "P20P47" 
- "P20P47" 
- "P47P73" 
- "P73P100"
- "P73P100"
 ```
 """
 function cut(x::AbstractArray{T, N}, breaks::AbstractVector;

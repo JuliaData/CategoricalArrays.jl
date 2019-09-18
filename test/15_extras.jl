@@ -111,10 +111,11 @@ end
 @testset "formatter function" begin
   my_formatter(from, to, i; extend) = "$i: $from -- $to"
 
-  x = collect(0.15:0.20:0.95)
+  x = 0.15:0.20:0.95
   p = [0, 0.4, 0.8, 1.0]
 
-  @test cut(x, p, labels=my_formatter2) == ["1: 0.0 -- 0.4", "1: 0.0 -- 0.4", "2: 0.4 -- 0.8", "2: 0.4 -- 0.8", "3: 0.8 -- 1.0"]
+  @test cut(x, p, labels=my_formatter2) ==
+      ["1: 0.0 -- 0.4", "1: 0.0 -- 0.4", "2: 0.4 -- 0.8", "2: 0.4 -- 0.8", "3: 0.8 -- 1.0"]
 end
 
 end
