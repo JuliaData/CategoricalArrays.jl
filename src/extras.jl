@@ -134,7 +134,7 @@ end
 
 """
     cut(x::AbstractArray, ngroups::Integer;
-        labels::AbstractVector=String[])
+        labels::Union{AbstractVector{<:AbstractString},Function})
 
 Cut a numeric array into `ngroups` quantiles, determined using
 [`quantile`](@ref).
