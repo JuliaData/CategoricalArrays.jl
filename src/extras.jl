@@ -46,7 +46,7 @@ end
     
 Provide the default label format for the `cut` function.
 """
-default_formatter(from, to, i; closed=false) = string("[", from, ", ", to, closed ? "]" : ")")
+default_formatter(from, to, i; closed) = string("[", from, ", ", to, closed ? "]" : ")")
 
 @doc raw"""
     cut(x::AbstractArray, breaks::AbstractVector;
