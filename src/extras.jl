@@ -73,11 +73,7 @@ also accept them.
   
 # Examples
 ```jldoctest
-julia> using CategoricalArrays
-
-julia> x = -1:0.5:1;
-
-julia> cut(x, [0, 1], extend=true)
+julia> cut(-1:0.5:1, [0, 1], extend=true)
 5-element CategoricalArray{String,1,UInt32}:
  "[-1.0, 0.0)"
  "[-1.0, 0.0)"
@@ -85,9 +81,7 @@ julia> cut(x, [0, 1], extend=true)
  "[0.0, 1.0]" 
  "[0.0, 1.0]" 
 
-julia> x = -1:0.5:1;
-
-julia> cut(x, 2)
+julia> cut(-1:0.5:1, 2)
 5-element CategoricalArray{String,1,UInt32}:
  "[-1.0, 0.0)"
  "[-1.0, 0.0)"
@@ -95,9 +89,7 @@ julia> cut(x, 2)
  "[0.0, 1.0]" 
  "[0.0, 1.0]" 
 
-julia> x = -1:0.5:1;
-
-julia> cut(x, 2, labels=["A", "B"])
+julia> cut(-1:0.5:1, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
  "A"
  "A"
@@ -108,7 +100,7 @@ julia> cut(x, 2, labels=["A", "B"])
 julia> fmt(from, to, i; closed) = "grp $i ($from//$to)"
 fmt (generic function with 1 method)
 
-julia> cut(x, 3, labels=fmt)
+julia> cut(-1:0.5:1, 3, labels=fmt)
 5-element CategoricalArray{String,1,UInt32}:
  "grp 1 (-1.0//-0.333333)"    
  "grp 1 (-1.0//-0.333333)"    
@@ -121,7 +113,6 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
              extend::Bool=false,
              labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
              allow_missing::Bool=false) where {T, N}
-    
     if !issorted(breaks)
         breaks = sort(breaks)
     end

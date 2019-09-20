@@ -108,7 +108,7 @@ end
     @test levels(x) == ["[2.0, 3.5)", "[3.5, 5.0]"]
 end
 
-@testset "formatter function" begin
+@testset "cut with formatter function" begin
   my_formatter(from, to, i; closed) = "$i: $from -- $to"
 
   x = 0.15:0.20:0.95
