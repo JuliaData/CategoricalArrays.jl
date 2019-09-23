@@ -614,6 +614,16 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[1] === x.pool.valindex[3]
         @test x[2] === x.pool.valindex[1]
         @test levels(x) == ["c", "a", "b"]
+
+        v = CategoricalArrays.catvalue(2, CategoricalPool(["xyz", "b"]))
+        if ordered
+            @test_throws OrderedLevelsException x[1] = v
+            levels!(x, ["c", "a", "xyz", "b"])
+        end
+        x[1] = v
+        @test x[1] === x.pool.valindex[3]
+        @test x[2] === x.pool.valindex[1]
+        @test levels(x) == ["c", "a", "xyz", "b"]
     end
 end
 

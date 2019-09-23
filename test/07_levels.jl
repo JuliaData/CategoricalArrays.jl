@@ -203,6 +203,76 @@ using CategoricalArrays: DefaultRefType, levels!
         @test_throws KeyError get(pool, 6)
         @test pool.valindex == [CategoricalArrays.catvalue(i, pool) for i in 1:4]
     end
+
+    # get!
+    ordered!(pool, true)
+    @test_throws OrderedLevelsException get!(pool, 10)
+    ordered!(pool, false)
+
+    @test get!(pool, 10) === DefaultRefType(5)
+
+    @test isa(pool.index, Vector{Int})
+    @test length(pool) == 5
+    @test length(pool.valindex) == 5
+    @test levels(pool) == [5, 2, 3, 4, 10]
+    @test pool.index == [5, 4, 2, 3, 10]
+    @test pool.invindex == Dict(5=>1, 4=>2, 2=>3, 3=>4, 10=>5)
+    @test pool.order == [1, 4, 2, 3, 5]
+    @test pool.levels == [5, 2, 3, 4, 10]
+    @test get(pool, 10) === DefaultRefType(5)
+    @test pool.valindex == [CategoricalArrays.catvalue(i, pool) for i in 1:5]
+
+    # get! with CategoricalValue adding new levels
+    v = CategoricalArrays.catvalue(2, CategoricalPool([100, 99, 5, 2]))
+
+    ordered!(pool, true)
+    @test_throws OrderedLevelsException get!(pool, v)
+    ordered!(pool, false)
+
+    @test get!(pool, v) === DefaultRefType(7)
+
+    @test isa(pool.index, Vector{Int})
+    @test length(pool) == 7
+    @test length(pool.valindex) == 7
+    @test levels(pool) == [100, 99, 5, 2, 3, 4, 10]
+    @test pool.index == [5, 4, 2, 3, 10, 100, 99]
+    @test pool.invindex == Dict(5=>1, 4=>2, 2=>3, 3=>4, 10=>5, 100=>6, 99=>7)
+    @test pool.order == [3, 6, 4, 5, 7, 1, 2]
+    @test pool.levels == [100, 99, 5, 2, 3, 4, 10]
+    @test get(pool, 99) === DefaultRefType(7)
+    @test get(pool, 100) === DefaultRefType(6)
+    @test pool.valindex == [CategoricalArrays.catvalue(i, pool) for i in 1:7]
+
+    # get! with CategoricalValue not adding new levels
+    v = CategoricalArrays.catvalue(1, CategoricalPool([100, 2]))
+    @test get!(pool, v) === DefaultRefType(6)
+
+    @test isa(pool.index, Vector{Int})
+    @test length(pool) == 7
+    @test length(pool.valindex) == 7
+    @test levels(pool) == [100, 99, 5, 2, 3, 4, 10]
+    @test pool.index == [5, 4, 2, 3, 10, 100, 99]
+    @test pool.invindex == Dict(5=>1, 4=>2, 2=>3, 3=>4, 10=>5, 100=>6, 99=>7)
+    @test pool.order == [3, 6, 4, 5, 7, 1, 2]
+    @test pool.levels == [100, 99, 5, 2, 3, 4, 10]
+    @test get(pool, 99) === DefaultRefType(7)
+    @test get(pool, 100) === DefaultRefType(6)
+    @test pool.valindex == [CategoricalArrays.catvalue(i, pool) for i in 1:7]
+
+    # get! with CategoricalValue from same pool
+    @test get!(pool, pool[1]) === DefaultRefType(1)
+
+    @test isa(pool.index, Vector{Int})
+    @test length(pool) == 7
+    @test length(pool.valindex) == 7
+    @test levels(pool) == [100, 99, 5, 2, 3, 4, 10]
+    @test pool.index == [5, 4, 2, 3, 10, 100, 99]
+    @test pool.invindex == Dict(5=>1, 4=>2, 2=>3, 3=>4, 10=>5, 100=>6, 99=>7)
+    @test pool.order == [3, 6, 4, 5, 7, 1, 2]
+    @test pool.levels == [100, 99, 5, 2, 3, 4, 10]
+    @test get(pool, 99) === DefaultRefType(7)
+    @test get(pool, 100) === DefaultRefType(6)
+    @test pool.valindex == [CategoricalArrays.catvalue(i, pool) for i in 1:7]
 end
 
 @testset "overflow of reftype is detected and doesn't corrupt levels" begin
