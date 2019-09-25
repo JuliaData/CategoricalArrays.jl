@@ -228,6 +228,25 @@ end
         @test size(y) == (3,)
     end
 
+    @testset "copy" begin
+        x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
+        ordered!(x, true)
+
+        y = copy(x)
+        @test y == x
+        levels!(y, ["Z", "Middle", "Old", "Young"])
+        y[1] = "Z"
+        @test x == ["Old", "Young", "Middle", "Young"]
+        @test levels(x) == ["Young", "Middle", "Old"]
+
+        # Test with missing values
+        if T === Missing
+            x[3] = missing
+            @test copy(x) ≅ x
+        end
+    end
+
     @testset "copy! and copyto!" begin
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])

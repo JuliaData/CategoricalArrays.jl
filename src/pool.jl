@@ -1,3 +1,14 @@
+function CategoricalPool{T, R, V}(index::Vector{T},
+                                  invindex::Dict{T, R},
+                                  order::Vector{R},
+                                  ordered::Bool) where {T, R, V}
+    levels = similar(index)
+    levels[order] = index
+    pool = CategoricalPool{T, R, V}(index, invindex, order, levels, V[], ordered)
+    buildvalues!(pool)
+    return pool
+end
+
 function CategoricalPool(index::Vector{S},
                          invindex::Dict{S, T},
                          order::Vector{R},
@@ -74,6 +85,10 @@ function Base.convert(::Type{CategoricalPool{S, R}}, pool::CategoricalPool) wher
     order = convert(Vector{R}, pool.order)
     return CategoricalPool(indexS, invindexS, order, pool.ordered)
 end
+
+Base.copy(pool::CategoricalPool{T, R, V}) where {T, R, V} =
+    CategoricalPool{T, R, V}(copy(pool.index), copy(pool.invindex), copy(pool.order),
+                             copy(pool.levels), copy(pool.valindex), pool.ordered)
 
 function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
     @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
