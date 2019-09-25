@@ -273,6 +273,10 @@ using CategoricalArrays: DefaultRefType, levels!
     @test get(pool, 99) === DefaultRefType(7)
     @test get(pool, 100) === DefaultRefType(6)
     @test pool.valindex == [CategoricalArrays.catvalue(i, pool) for i in 1:7]
+
+    # get! with CategoricalValue not adding new levels
+    v = CategoricalArrays.catvalue(1, CategoricalPool(["a", "b"]))
+    @test_throws MethodError get!(pool, v)
 end
 
 @testset "overflow of reftype is detected and doesn't corrupt levels" begin
