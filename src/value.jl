@@ -1,7 +1,3 @@
-# union of all categorical value types
-const CatValue{R} = Union{CategoricalValue{T, R} where T,
-                          CategoricalString{R}}
-
 # checks whether the type is categorical value
 iscatvalue(::Type) = false
 iscatvalue(::Type{Union{}}) = false # prevent incorrect dispatch to Type{<:CatValue} method

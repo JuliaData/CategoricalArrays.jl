@@ -67,6 +67,10 @@ struct CategoricalString{R <: Integer} <: AbstractString
     pool::CategoricalPool{String, R, CategoricalString{R}}
 end
 
+# union of all categorical value types
+const CatValue{R} = Union{CategoricalValue{T, R} where T,
+                          CategoricalString{R}}
+
 ## Arrays
 
 # Type params:

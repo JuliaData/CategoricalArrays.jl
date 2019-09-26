@@ -107,6 +107,64 @@ avoid doing a dict lookup twice
     i
 end
 
+function mergelevels(ordered, levels...)
+    T = Base.promote_eltype(levels...)
+    res = Vector{T}(undef, 0)
+
+    nonempty_lv = Compat.findfirst(!isempty, levels)
+    if nonempty_lv === nothing
+        # no levels
+        return res, ordered
+    elseif all(l -> isempty(l) || l == levels[nonempty_lv], levels)
+        # Fast path if all non-empty levels are equal
+        append!(res, levels[nonempty_lv])
+        return res, ordered
+    end
+
+    for l in levels
+        levelsmap = indexin(l, res)
+
+        i = length(res)+1
+        for j = length(l):-1:1
+            @static if VERSION >= v"0.7.0-DEV.3627"
+                if levelsmap[j] === nothing
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
+            else
+                if levelsmap[j] == 0
+                    insert!(res, i, l[j])
+                else
+                    i = levelsmap[j]
+                end
+            end
+        end
+    end
+
+    # Check that result is ordered
+    if ordered
+        levelsmaps = [Compat.indexin(res, l) for l in levels]
+
+        # Check that each original order is preserved
+        for m in levelsmaps
+            issorted(Iterators.filter(x -> x != nothing, m)) || return res, false
+        end
+
+        # Check that all order relations between pairs of subsequent elements
+        # are defined in at least one set of original levels
+        pairs = fill(false, length(res)-1)
+        for m in levelsmaps
+            @inbounds for i in eachindex(pairs)
+                pairs[i] |= (m[i] != nothing) & (m[i+1] != nothing)
+            end
+            all(pairs) && return res, true
+        end
+    end
+
+    res, false
+end
+
 @inline function Base.get!(pool::CategoricalPool, level::Any)
     get!(pool.invindex, level) do
         if isordered(pool)
@@ -115,6 +173,20 @@ end
 
         push_level!(pool, level)
     end
+end
+
+@inline function Base.get!(pool::CategoricalPool{T}, level::CatValue) where T
+    pool === level.pool && return level.level
+    # Use invindex for O(1) lookup
+    # TODO: use a global table to cache this information for all pairs of pools
+    if level.pool.levels ⊈ keys(pool.invindex)
+        if isordered(pool)
+            throw(OrderedLevelsException(level, pool.levels))
+        end
+        newlevs, ordered = mergelevels(isordered(pool), pool.levels, level.pool.levels)
+        levels!(pool, newlevs)
+    end
+    get!(pool, convert(T, level))
 end
 
 @inline function Base.push!(pool::CategoricalPool, level)
