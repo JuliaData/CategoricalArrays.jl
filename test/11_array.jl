@@ -201,7 +201,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test x[1] == x[end]
     @test levels(x) == ["e", "a", "b", "c", "zz"]
 
-    x2 = deepcopy(x)
+    x2 = copy(x)
     @test_throws MethodError push!(x, 1)
     @test x == x2
     @test x.pool.index == x2.pool.index

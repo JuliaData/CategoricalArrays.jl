@@ -17,6 +17,8 @@ mutable struct CategoricalPool{T, R <: Integer, V}
     function CategoricalPool{T, R, V}(index::Vector{T},
                                       invindex::Dict{T, R},
                                       order::Vector{R},
+                                      levels::Vector{T},
+                                      valindex::Vector{V},
                                       ordered::Bool) where {T, R, V}
         if iscatvalue(T)
             throw(ArgumentError("Level type $T cannot be a categorical value type"))
@@ -30,11 +32,7 @@ mutable struct CategoricalPool{T, R <: Integer, V}
         if reftype(V) !== R
             throw(ArgumentError("Reference type of the categorical value ($(reftype(V))) and of the pool ($R) do not match"))
         end
-        levels = similar(index)
-        levels[order] = index
-        pool = new(index, invindex, order, levels, V[], ordered)
-        buildvalues!(pool)
-        return pool
+        new(index, invindex, order, levels, valindex, ordered)
     end
 end
 

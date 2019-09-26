@@ -164,8 +164,8 @@ function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
                                    ordered=_isordered(A)) where {S, T, N, Q, R}
     V = unwrap_catvaluetype(T)
     res = convert(CategoricalArray{V, N, R}, A)
-    refs = res.refs === A.refs ? deepcopy(res.refs) : res.refs
-    pool = res.pool === A.pool ? deepcopy(res.pool) : res.pool
+    refs = res.refs === A.refs ? copy(res.refs) : res.refs
+    pool = res.pool === A.pool ? copy(res.pool) : res.pool
     ordered!(CategoricalArray{V, N}(refs, pool), ordered)
 end
 
@@ -341,7 +341,8 @@ Base.fill!(A::CategoricalArray, v::Any) =
     (fill!(A.refs, get!(A.pool, convert(leveltype(A), v))); A)
 
 # Methods preserving levels and more efficient than AbstractArray fallbacks
-copy(A::CategoricalArray) = deepcopy(A)
+copy(A::CategoricalArray{T, N}) where {T, N} =
+    CategoricalArray{T, N}(copy(A.refs), copy(A.pool))
 
 CatArrOrSub{T, N} = Union{CategoricalArray{T, N},
                           SubArray{<:Any, N, <:CategoricalArray{T}}} where {T, N}
@@ -540,7 +541,7 @@ end
     @inbounds r = A.refs[I...]
 
     if isa(r, Array)
-        res = CategoricalArray{T, ndims(r)}(r, deepcopy(A.pool))
+        res = CategoricalArray{T, ndims(r)}(r, copy(A.pool))
         return ordered!(res, isordered(A))
     else
         r > 0 || throw(UndefRefError())

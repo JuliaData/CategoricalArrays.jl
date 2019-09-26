@@ -6,7 +6,7 @@ import Base: getindex, setindex!, push!, similar, in, collect
     @inbounds r = A.refs[I...]
 
     if isa(r, Array)
-        ret = CategoricalArray{T, ndims(r)}(r, deepcopy(A.pool))
+        ret = CategoricalArray{T, ndims(r)}(r, copy(A.pool))
         return ordered!(ret, isordered(A))
     else
         if r > 0
@@ -33,7 +33,7 @@ in(x::Missing, y::CategoricalArray) = false
 in(x::Missing, y::CategoricalArray{>:Missing}) = !all(v -> v > 0, y.refs)
 
 function Missings.replace(a::CategoricalArray{S, N, R, V, C}, replacement::V) where {S, N, R, V, C}
-    pool = deepcopy(a.pool)
+    pool = copy(a.pool)
     v = C(get!(pool, replacement), pool)
     Missings.replace(a, v)
 end
