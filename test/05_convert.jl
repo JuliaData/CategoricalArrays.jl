@@ -179,4 +179,14 @@ end
     @test convert(CategoricalPool{Float64, UInt8}, pool).ordered === true
 end
 
+@testset "convert() with Union{T, Nothing}" begin
+    pool = CategoricalPool([nothing, 2, 3])
+    v1 = catvalue(1, pool)
+    v2 = catvalue(2, pool)
+    @test convert(Union{Int, Nothing}, v1) === nothing
+    @test convert(Union{Int, Nothing}, v2) === 2
+    @test convert(Union{Float64, Nothing}, v2) === 2.0
+end
+
+
 end
