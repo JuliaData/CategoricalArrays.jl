@@ -87,9 +87,9 @@ Base.convert(::Type{Union{T, Nothing}}, x::T) where {T <: CatValue} = x
 Base.convert(::Type{S}, x::T) where {S, T <: CatValue} =
     T <: S ? x : convert(S, get(x))
 Base.convert(::Type{Union{S, Missing}}, x::T) where {S, T <: CatValue} =
-    T <: S ? x : convert(S, get(x))
+    T <: Union{S, Missing} ? x : convert(Union{S, Missing}, get(x))
 Base.convert(::Type{Union{S, Nothing}}, x::T) where {S, T <: CatValue} =
-    T <: S ? x : convert(S, get(x))
+    T <: Union{S, Nothing} ? x : convert(Union{S, Nothing}, get(x))
 
 (::Type{T})(x::T) where {T <: CatValue} = x
 
