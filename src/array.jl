@@ -561,7 +561,7 @@ leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(catvaluetype(T))
 Return the levels of categorical array `A`. This may include levels which do not actually appear
 in the data (see [`droplevels!`](@ref)).
 """
-Missings.levels(A::CategoricalArray) = levels(A.pool)
+DataAPI.levels(A::CategoricalArray) = levels(A.pool)
 
 """
     levels!(A::CategoricalArray, newlevels::Vector; allow_missing::Bool=false)
