@@ -15,6 +15,8 @@ module CategoricalArrays
     using DataAPI
     using Reexport
 
+    using DataAPI: levels
+
     # TODO: cannot @reexport in conditional, the below should be removed when 0.6 is deprecated
     @reexport using Missings
 

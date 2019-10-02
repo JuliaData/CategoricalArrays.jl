@@ -280,7 +280,7 @@ function levels!(pool::CategoricalPool{S, R}, newlevels::Vector) where {S, R}
 end
 
 index(pool::CategoricalPool) = pool.index
-Missings.levels(pool::CategoricalPool) = pool.levels
+DataAPI.levels(pool::CategoricalPool) = pool.levels
 order(pool::CategoricalPool) = pool.order
 
 isordered(pool::CategoricalPool) = pool.ordered
