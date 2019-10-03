@@ -13,14 +13,8 @@ module CategoricalArrays
     using Compat
     using JSON
     using DataAPI
-    using Reexport
-
-    # TODO: cannot @reexport in conditional, the below should be removed when 0.6 is deprecated
-    @reexport using Missings
-
-    if VERSION >= v"0.7.0-DEV.3052"
-        using Printf
-    end
+    using Missings
+    using Printf
 
     include("typedefs.jl")
 
