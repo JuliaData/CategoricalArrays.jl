@@ -1208,4 +1208,14 @@ end
     @test DataAPI.defaultarray(Union{Missing, CategoricalValue{Int, UInt32}}, 1) <: CategoricalArray{Union{Missing, Int},1,UInt32}
 end
 
+@testset "optimized broadcasting with ismissing" begin
+    x = categorical([1, missing, 3, 4, missing])
+    @test ismissing.(x) == [false, true, false, false, true]
+    @test ismissing.(view(x, 2:4)) == [true, false, false]
+
+    x = categorical([1, 0, 3, 4, 0])
+    @test ismissing.(x) == [false, false, false, false, false]
+    @test ismissing.(view(x, 2:4)) == [false, false, false]
+end
+
 end

@@ -6,25 +6,15 @@ isordered(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = isordered(paren
 levels!(sa::SubArray{T,N,P}, newlevels::Vector) where {T,N,P<:CategoricalArray} =
     levels!(parent(sa), levels)
 
-if VERSION ≥ v"0.7.0-DEV.3020"
-    function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
-        A = parent(sa)
-        refs = view(A.refs, sa.indices...)
-        S = eltype(P) >: Missing ? Union{eltype(index(A.pool)), Missing} : eltype(index(A.pool))
-        _unique(S, refs, A.pool)
-    end
-
-    refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = view(A.parent.refs, A.indices...)
-else
-    function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
-        A = parent(sa)
-        refs = view(A.refs, sa.indexes...)
-        S = eltype(P) >: Missing ? Union{eltype(index(A.pool)), Missing} : eltype(index(A.pool))
-        _unique(S, refs, A.pool)
-    end
-
-    refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = view(A.parent.refs, A.indexes...)
+function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
+    A = parent(sa)
+    refs = view(A.refs, sa.indices...)
+    S = eltype(P) >: Missing ? Union{eltype(index(A.pool)), Missing} : eltype(index(A.pool))
+    _unique(S, refs, A.pool)
 end
+
+refs(A::SubArray{<:Any, <:Any, <:CategoricalArray}) =
+    view(parent(A).refs, parentindices(A)...)
 
 pool(A::SubArray{<:Any, <:Any, <:CategoricalArray}) = A.parent.pool
 
@@ -36,3 +26,8 @@ end
 
 Base.fill!(A::SubArray{<:Any, <:Any, <:CategoricalArray{>:Missing}}, ::Missing) =
     (fill!(refs(A), 0); A)
+
+Base.Broadcast.broadcasted(::typeof(ismissing),
+                           A::SubArray{<:Any, <:Any, <:CategoricalArray{T}}) where {T} =
+    T >: Missing ? Base.Broadcast.broadcasted(==, refs(A), 0) :
+                   Base.Broadcast.broadcasted(_ -> false, A)
