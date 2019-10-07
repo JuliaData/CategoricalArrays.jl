@@ -7,6 +7,7 @@ var DOC_VERSIONS = [
   "release-0.3",
   "release-0.2",
   "release-0.1",
+  "v0.7.1",
   "v0.7.0",
   "v0.5.5",
   "v0.5.4",
