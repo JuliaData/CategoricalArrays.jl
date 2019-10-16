@@ -1212,10 +1212,14 @@ end
     x = categorical([1, missing, 3, 4, missing])
     @test ismissing.(x) == [false, true, false, false, true]
     @test ismissing.(view(x, 2:4)) == [true, false, false]
+    @test (!ismissing).(x) == [true, false, true, true, false]
+    @test (!ismissing).(view(x, 2:4)) == [false, true, true]
 
     x = categorical([1, 0, 3, 4, 0])
     @test ismissing.(x) == [false, false, false, false, false]
     @test ismissing.(view(x, 2:4)) == [false, false, false]
+    @test (!ismissing).(x) == [true, true, true, true, true]
+    @test (!ismissing).(view(x, 2:4)) == [true, true, true]
 end
 
 end
