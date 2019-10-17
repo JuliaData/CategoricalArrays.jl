@@ -30,4 +30,9 @@ Base.fill!(A::SubArray{<:Any, <:Any, <:CategoricalArray{>:Missing}}, ::Missing) 
 Base.Broadcast.broadcasted(::typeof(ismissing),
                            A::SubArray{<:Any, <:Any, <:CategoricalArray{T}}) where {T} =
     T >: Missing ? Base.Broadcast.broadcasted(==, refs(A), 0) :
-                   Base.Broadcast.broadcasted(_ -> false, A)
+                   Base.Broadcast.broadcasted(_ -> false, refs(A))
+
+Base.Broadcast.broadcasted(::typeof(!ismissing),
+                           A::SubArray{<:Any, <:Any, <:CategoricalArray{T}}) where {T} =
+    T >: Missing ? Base.Broadcast.broadcasted(>, refs(A), 0) :
+                   Base.Broadcast.broadcasted(_ -> true, refs(A))

@@ -793,4 +793,8 @@ Base.deleteat!(A::CategoricalArray, inds) = (deleteat!(A.refs, inds); A)
 
 Base.Broadcast.broadcasted(::typeof(ismissing), A::CategoricalArray{T}) where {T} =
     T >: Missing ? Base.Broadcast.broadcasted(==, A.refs, 0) :
-                   Base.Broadcast.broadcasted(_ -> false, A)
+                   Base.Broadcast.broadcasted(_ -> false, A.refs)
+
+Base.Broadcast.broadcasted(::typeof(!ismissing), A::CategoricalArray{T}) where {T} =
+    T >: Missing ? Base.Broadcast.broadcasted(>, A.refs, 0) :
+                   Base.Broadcast.broadcasted(_ -> true, A.refs)
