@@ -190,7 +190,7 @@ end
     end
 end
 
-@inline function Base.get!(pool::CategoricalPool{T}, level::CatValue) where T
+@inline function Base.get!(pool::CategoricalPool, level::CatValue)
     pool === level.pool && return level.level
     # Use invindex for O(1) lookup
     # TODO: use a global table to cache this information for all pairs of pools
@@ -201,7 +201,7 @@ end
         newlevs, ordered = mergelevels(isordered(pool), pool.levels, level.pool.levels)
         levels!(pool, newlevs)
     end
-    get!(pool, convert(T, level))
+    get!(pool, get(level))
 end
 
 @inline function Base.push!(pool::CategoricalPool, level)
