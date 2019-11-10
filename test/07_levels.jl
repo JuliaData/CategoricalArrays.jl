@@ -283,6 +283,17 @@ using CategoricalArrays: DefaultRefType, levels!
     p2 = CategoricalPool(Any['a', 'b', 'x'])
     @test get!(p1, p2[1]) === UInt32(1)
     @test get!(p1, p2[3]) === UInt32(4)
+
+    # get! with ordered CategoricalValue marks unordered empty pool as ordered
+    p1 = CategoricalPool(['b', 'c', 'a'])
+    ordered!(p1, true)
+    p2 = CategoricalPool(Char[])
+    @test get!(p2, p1[1]) === UInt32(1)
+    @test isordered(p2)
+    # But push! does not
+    p2 = CategoricalPool(Char[])
+    @test push!(p2, p1[1]) === p2
+    @test !isordered(p2)
 end
 
 @testset "overflow of reftype is detected and doesn't corrupt levels" begin
