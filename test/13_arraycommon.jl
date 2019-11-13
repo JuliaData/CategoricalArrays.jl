@@ -681,7 +681,7 @@ end
         end
     end
 
-    @testset "sort() on both unordered and ordered arrays" begin
+    @testset "sort" begin
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
         @test sort(x) == ["Young", "Young", "Middle", "Old"]
@@ -689,6 +689,39 @@ end
         @test sort(x) == ["Young", "Young", "Middle", "Old"]
         @test sort!(x) === x
         @test x == ["Young", "Young", "Middle", "Old"]
+
+        if T === Missing
+            v = rand(["a", "b", "c", "d"], 1000)
+        else
+            v = rand(["a", "b", "c", "d", missing], 1000)
+        end
+
+        for rev in (true, false)
+            cv = categorical(v)
+            sv = sort(v, rev=rev)
+
+            @test sort(cv, rev=rev) ≅ sv
+            @test sort!(cv, rev=rev) === cv ≅ sv
+
+            cv = categorical(v)
+            levels!(cv, ["b", "a", "c", "d"])
+            @test sort(cv, rev=rev) ≅
+                [levels(cv); missing][sort([5; CategoricalArrays.order(cv.pool)][cv.refs .+ 1], rev=rev)]
+
+            cv = categorical(v)
+            @test sort(cv, rev=rev, lt=(x, y) -> isless(y, x)) ≅
+                sort(cv, rev=!rev) ≅
+                sort(cv, order=Base.Sort.ord((x, y) -> isless(y, x), identity, rev))
+
+            # Function changing order
+            byf1 = x -> ismissing(x) ? "c" : (x == "a" ? "z" : "b")
+            @test sort(cv, rev=rev, by=byf1) ≅ sort(cv, rev=rev, by=byf1)
+
+            # Check that by function is not called on unused levels/missing
+            byf2 = x -> (@assert get(x) != "b"; x)
+            replace!(cv, missing=>"a", "b"=>"a")
+            @test sort(cv, rev=rev, by=byf2) ≅ sort(cv, rev=rev, by=byf2)
+        end
     end
 end
 

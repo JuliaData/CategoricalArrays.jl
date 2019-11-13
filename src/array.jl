@@ -798,3 +798,34 @@ Base.Broadcast.broadcasted(::typeof(ismissing), A::CategoricalArray{T}) where {T
 Base.Broadcast.broadcasted(::typeof(!ismissing), A::CategoricalArray{T}) where {T} =
     T >: Missing ? Base.Broadcast.broadcasted(>, A.refs, 0) :
                    Base.Broadcast.broadcasted(_ -> true, A.refs)
+
+function Base.sort!(v::CategoricalVector;
+                    # alg is ignored since counting sort is more efficient
+                    alg::Base.Algorithm=Base.Sort.defalg(v),
+                    lt=isless,
+                    by=identity,
+                    rev::Bool=false,
+                    order::Base.Ordering=Base.Forward)
+    counts = zeros(UInt, length(v.pool) + (eltype(v) >: Missing))
+
+    # do a count/histogram of the references
+    @inbounds for ref in v.refs
+        counts[ref + (eltype(v) >: Missing)] += 1
+    end
+
+    # compute the order in which to read from counts
+    ord = Base.Sort.ord(lt, by, rev, order)
+    index = eltype(v) >: Missing ? [missing; v.pool.valindex] : v.pool.valindex
+    seen = counts .> 0
+    anymissing = eltype(v) >: Missing && seen[1]
+    perm = sortperm(view(index, seen), order=ord)
+    nzcounts = counts[seen]
+    j = 0
+    @inbounds for ref in perm
+        tmpj = j + nzcounts[ref]
+        v.refs[(j+1):tmpj] .= ref - anymissing
+        j = tmpj
+    end
+
+    return v
+end
