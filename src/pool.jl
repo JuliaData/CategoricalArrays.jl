@@ -199,6 +199,10 @@ end
             throw(OrderedLevelsException(level, pool.levels))
         end
         newlevs, ordered = mergelevels(isordered(pool), pool.levels, level.pool.levels)
+        # Exception: empty pool marked as ordered if new value is ordered
+        if length(pool) == 0 && isordered(level.pool)
+            ordered!(pool, true)
+        end
         levels!(pool, newlevs)
     end
     get!(pool, get(level))

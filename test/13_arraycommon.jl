@@ -251,13 +251,14 @@ end
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
         ordered!(x, true)
+        y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
 
         for copyf! in (copy!, copyto!)
-            y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
-            @test copyf!(x, y) === x
-            @test x == y
-            @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
-            @test !isordered(x)
+            x2 = copy(x)
+            @test copyf!(x2, y) === x2
+            @test x2 == y
+            @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            @test !isordered(x2)
         end
 
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
@@ -503,6 +504,66 @@ end
             src = CategoricalVector(v)
             dest = CategoricalVector{UInt}(undef, 3)
             @test_throws InexactError copyf!(dest, src)
+        end
+    end
+
+    @testset "assigning into array with empty levels uses orderedness of source" begin
+        # destination is marked as ordered when source is ordered
+        x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
+        levels!(x, ["Young", "Middle", "Old"])
+        ordered!(x, true)
+
+        for copyf! in (copyto!, copy!)
+            y = CategoricalArray{Union{T, String}}(undef, 4)
+            copyf!(y, x)
+            @test isordered(y)
+            @test levels(y) == levels(x)
+            if T >: Missing
+                y = CategoricalArray{Union{T, String}}(fill(missing, 4))
+                copyf!(y, x)
+                @test isordered(y)
+                @test levels(y) == levels(x)
+            end
+        end
+
+        y = CategoricalArray{Union{T, String}}(undef, 4)
+        y[1] = x[1]
+        @test isordered(y)
+        @test levels(y) == levels(x)
+        if T >: Missing
+            y = CategoricalArray{Union{T, String}}(fill(missing, 4))
+            y[1] = x[1]
+            @test isordered(y)
+            @test levels(y) == levels(x)
+        end
+
+        # destination is marked as unordered when source is unordered
+        ordered!(x, false)
+
+        for copyf! in (copyto!, copy!)
+            y = CategoricalArray{Union{T, String}}(undef, 4)
+            ordered!(y, true)
+            copyf!(y, x)
+            @test !isordered(y)
+            @test levels(y) == levels(x)
+            if T >: Missing
+                y = CategoricalArray{Union{T, String}}(fill(missing, 4))
+                ordered!(y, true)
+                copyf!(y, x)
+                @test !isordered(y)
+                @test levels(y) == levels(x)
+            end
+        end
+
+        y = CategoricalArray{Union{T, String}}(undef, 4)
+        y[1] = x[1]
+        @test !isordered(y)
+        @test levels(y) == levels(x)
+        if T >: Missing
+            y = CategoricalArray{Union{T, String}}(fill(missing, 4))
+            y[1] = x[1]
+            @test !isordered(y)
+            @test levels(y) == levels(x)
         end
     end
 

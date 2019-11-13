@@ -364,15 +364,24 @@ function copyto!(dest::CatArrOrSub{T, N}, dstart::Integer,
     # try converting src to dest type to avoid partial copy corruption of dest
     # in the event that the src cannot be copied into dest
     slevs = convert(Vector{T}, levels(src))
+    dlevs = levels(dest)
     if eltype(src) >: Missing && !(eltype(dest) >: Missing) && !all(x -> x > 0, srefs)
         throw(MissingException("cannot copy array with missing values to an array with element type $T"))
     end
 
-    newlevels, ordered = mergelevels(isordered(dest), levels(dest), slevs)
-    # Orderedness cannot be preserved if the source was unordered and new levels
-    # need to be added: new comparisons would only be based on the source's order
-    # (this is consistent with what happens when adding a new level via setindex!)
-    ordered &= isordered(src) | (length(newlevels) == length(levels(dest)))
+    newlevels, ordered = mergelevels(isordered(dest), dlevs, slevs)
+    if isordered(dest) && (length(newlevels) != length(dlevs))
+        # Uncomment this when removing deprecation
+        # throw(OrderedLevelsException(newlevels[findfirst(!in(Set(dlevs)), newlevels)],
+        #                              dlevs))
+        Base.depwarn("adding new levels to ordered CategoricalArray destination " *
+                     "will throw an error in the future", :copyto!)
+        ordered &= isordered(src) | (length(newlevels) == length(dlevs))
+    end
+    # Exception: empty pool marked as ordered if new value is ordered
+    if isempty(dlevs) && isordered(src)
+        ordered = true
+    end
     if ordered != isordered(dest)
         isa(dest, SubArray) && throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it would affect the parent. Found when trying to set levels to $newlevels."))
         ordered!(dest, ordered)
@@ -409,11 +418,12 @@ copyto!(dest::CatArrOrSub, src::CatArrOrSub) =
 copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
     copyto!(dest, dstart, src, 1, length(src))
 
-@static if VERSION >= v"0.7.0-DEV.3208"
-    using Future
-    Future.copy!(dest::CatArrOrSub, src::CatArrOrSub) =
-        copyto!(dest, 1, src, 1, length(src))
+if VERSION >= v"1.1"
+    import Base: copy!
+else
+    import Future: copy!
 end
+copy!(dest::CatArrOrSub, src::CatArrOrSub) = copyto!(dest, 1, src, 1, length(src))
 
 similar(A::CategoricalArray{S, M, R}, ::Type{T},
         dims::NTuple{N, Int}) where {T, N, S, M, R} =
