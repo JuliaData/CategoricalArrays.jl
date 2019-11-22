@@ -1,6 +1,6 @@
 name = "CategoricalArrays"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
-version = "0.7.2"
+version = "0.7.3"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
