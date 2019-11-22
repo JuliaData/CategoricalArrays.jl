@@ -86,9 +86,12 @@ function Base.convert(::Type{CategoricalPool{S, R}}, pool::CategoricalPool) wher
     return CategoricalPool(indexS, invindexS, order, pool.ordered)
 end
 
-Base.copy(pool::CategoricalPool{T, R, V}) where {T, R, V} =
-    CategoricalPool{T, R, V}(copy(pool.index), copy(pool.invindex), copy(pool.order),
-                             copy(pool.levels), copy(pool.valindex), pool.ordered)
+function Base.copy(pool::CategoricalPool{T, R, V}) where {T, R, V}
+    newpool = CategoricalPool{T, R, V}(copy(pool.index), copy(pool.invindex), copy(pool.order),
+                                       copy(pool.levels), similar(pool.valindex), pool.ordered)
+    buildvalues!(newpool) # With a plain copy values would refer to the old pool
+    newpool
+end
 
 function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
     @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
