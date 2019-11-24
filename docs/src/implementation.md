@@ -20,14 +20,14 @@
     new levels are encountered, potentially conflicting with the default ordering of
     levels (based on `sort`).
 
-The `CategoricalPool{V,R,C}` type keeps track of the levels of type `V` and associates them with an integer reference code of type `R` (for internal use). It offers methods to set the levels, change their order while preserving the references, and efficiently get the integer index corresponding to a level and vice-versa. Whether the values of `CategoricalArray` are ordered or not is defined by an `ordered` field of the pool. Finally, `CategoricalPool` keeps a `valindex` vector of value objects of type `C` (`CategoricalString{R}` or `CategoricalValue{V, R}`), so that `getindex` can return the existing object instead of allocating a new one.
+The `CategoricalPool{V,R,C}` type keeps track of the levels of type `V` and associates them with an integer reference code of type `R` (for internal use). It offers methods to set the levels, change their order while preserving the references, and efficiently get the integer index corresponding to a level and vice-versa. Whether the values of `CategoricalArray` are ordered or not is defined by an `ordered` field of the pool. Finally, `CategoricalPool{V,R,C}` keeps a `valindex` vector of value objects of type `C == CategoricalValue{V, R}`, so that `getindex` can return the existing object instead of allocating a new one.
 
 The type parameters of `CategoricalArray{T, N, R <: Integer, V, C, U}` are a bit complex:
- - `T` is the type of array elements without `CategoricalString`/`CategoricalValue` wrappers; if `T >: Missing`, then the array supports missing values.
+ - `T` is the type of array elements without `CategoricalValue` wrappers; if `T >: Missing`, then the array supports missing values.
  - `N` is the number of array dimensions.
  - `R` is the reference type, the element type of the `refs` field; it allows optimizing memory usage depending on the number of levels (i.e. `CategoricalArray` with less than 256 levels can use `R = UInt8`).
  - `V` is the type of the levels, it is equal to `T` for arrays which do not support missing values; for arrays which support missing values, `T = Union{V, Missing}`
- - `C` is the type of categorical values, i.e. the objects returned when indexing non-missing elements of `CategoricalArray`. `C` is `CategoricalString{R}` if `V = String` and `CategoricalValue{V, R}` for any other `V`.
+ - `C` is the type of categorical values, i.e. of the objects returned when indexing non-missing elements of `CategoricalArray`. It is always equal to `CategoricalValue{V, R}`, and only present for technical reasons (to break the recursive dependency between `CategoricalArray` and `CategoricalValue`).
  - `U` can be either `Union{}` for arrays which do not support missing values, or `Missing` for those which support them.
 
 Only `T`, `N` and `R` could be specified upon construction. The last three parameters are chosen automatically, but are needed for the definition of the type. In particular, `U` allows expressing that `CategoricalArray{T, N}` inherits from `AbstractArray{Union{C, U}, N}` (which is equivalent to `AbstractArray{C, N}` for arrays which do not support missing values, and to `AbstractArray{Union{C, Missing}, N}` for those which support them).

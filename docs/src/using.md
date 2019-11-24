@@ -38,10 +38,10 @@ Thanks to this order, we can not only test for equality between two values, but 
 
 ```jldoctest using
 julia> x[1]
-CategoricalString{UInt32} "Old" (3/3)
+CategoricalValue{String,UInt32} "Old" (3/3)
 
 julia> x[2]
-CategoricalString{UInt32} "Young" (1/3)
+CategoricalValue{String,UInt32} "Young" (1/3)
 
 julia> x[2] == x[4]
 true
@@ -51,14 +51,14 @@ true
 
 ```
 
-Now let us imagine the first individual is actually in the "Young" group. Let's fix this (notice how the string `"Young"` is automatically converted to a `CategoricalString`):
+Now let us imagine the first individual is actually in the "Young" group. Let's fix this (notice how the string `"Young"` is automatically converted to a `CategoricalValue`):
 
 ```jldoctest using
 julia> x[1] = "Young"
 "Young"
 
 julia> x[1]
-CategoricalString{UInt32} "Young" (1/3)
+CategoricalValue{String,UInt32} "Young" (1/3)
 
 ```
 
@@ -96,14 +96,15 @@ ERROR: ArgumentError: cannot remove level "Middle" as it is used at position 3. 
 
 ```
 
-Note that entries in the `x` array can be treated as strings (that's because `CategoricalString <: AbstractString`):
+Note that entries in the `x` array cannot be treated as strings. Instead, they need to be converted to strings using `String(x[i])`:
 ```jldoctest using
-julia> lowercase(x[3])
+julia> lowercase(String(x[3]))
 "middle"
 
-julia> replace(x[3], 'M'=>'R')
+julia> replace(String(x[3]), 'M'=>'R')
 "Riddle"
 ```
+Note that the call to `String` does reduce performance compared with working with a `Vector{String}` as it simply returns the string object which is stored by the pool.
 
 ```@docs
 droplevels!
@@ -113,7 +114,7 @@ levels!
 
 ## Handling Missing Values
 
-The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Missing}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Missing}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a categorical value object (`CategoricalString` or `CategoricalValue{T}`) or `missing` if the value is missing. See [the Julia manual](https://docs.julialang.org/en/stable/manual/missing/) for more information on the `Missing` type.
+The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where `CategoricalArray{Union{T, Missing}}` comes into play. It is essentially the categorical-data equivalent of `Array{Union{T, Missing}}`. It behaves exactly as `CategoricalArray{T}`, except that when indexed it returns either a `CategoricalValue{T}` object or `missing` if the value is missing. See [the Julia manual](https://docs.julialang.org/en/stable/manual/missing/) for more information on the `Missing` type.
 
 Let's adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a `String` or `missing`:
 
@@ -149,7 +150,7 @@ At this point, indexing into the array gives exactly the same result
 
 ```jldoctest using
 julia> y[1]
-CategoricalString{UInt32} "Old" (3/3)
+CategoricalValue{String,UInt32} "Old" (3/3)
 ```
 
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:

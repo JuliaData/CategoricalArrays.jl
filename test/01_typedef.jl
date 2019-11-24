@@ -2,7 +2,7 @@ module TestTypeDef
 using Compat
 using Compat.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, iscatvalue
+using CategoricalArrays: DefaultRefType, level,  reftype, leveltype
 
 @testset "CategoricalPool, a b c order" begin
     pool = CategoricalPool(
@@ -17,10 +17,6 @@ using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, i
             "c" => DefaultRefType(3),
         )
     )
-
-    @test iscatvalue(Int) == false
-    @test iscatvalue(Any) == false
-    @test iscatvalue(Missing) == false
 
     @test isa(pool, CategoricalPool)
 
@@ -42,24 +38,19 @@ using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, i
     @test pool.order[2] === DefaultRefType(2)
     @test pool.order[3] === DefaultRefType(3)
 
-    # leveltype() only accepts categorical value type
-    @test_throws ArgumentError leveltype("abc")
-    @test_throws ArgumentError leveltype(String)
-    @test_throws ArgumentError leveltype(1.0)
-    @test_throws ArgumentError leveltype(Int)
+    @test leveltype("abc") === String
+    @test leveltype(String) === String
+    @test leveltype(1.0) === Float64
+    @test leveltype(Float64) === Float64
 
     for i in 1:3
-        x = catvalue(i, pool)
+        x = CategoricalValue(i, pool)
 
-        @test iscatvalue(x)
-        @test iscatvalue(typeof(x))
-        @test eltype(x) === Char
-        @test eltype(typeof(x)) === Char
         @test leveltype(x) === String
         @test leveltype(typeof(x)) === String
         @test reftype(x) === DefaultRefType
         @test reftype(typeof(x)) === DefaultRefType
-        @test x isa CategoricalArrays.CategoricalString{DefaultRefType}
+        @test x isa CategoricalValue{String, DefaultRefType}
 
         @test isa(level(x), DefaultRefType)
         @test level(x) === DefaultRefType(i)
@@ -68,6 +59,8 @@ using CategoricalArrays: DefaultRefType, level,  reftype, leveltype, catvalue, i
         @test CategoricalArrays.pool(x) === pool
 
         @test typeof(x)(x) === x
+
+        @test CategoricalValue(UInt8(i), pool) == x
     end
 end
 
@@ -111,9 +104,7 @@ end
     @test pool.order[3] === DefaultRefType(1)
 
     for i in 1:3
-        y = catvalue(i, pool)
-
-        @test iscatvalue(y)
+        y = CategoricalValue(i, pool)
 
         @test isa(level(y), DefaultRefType)
         @test level(y) === DefaultRefType(i)
@@ -122,6 +113,8 @@ end
         @test CategoricalArrays.pool(y) === pool
 
         @test typeof(y)(y) === y
+
+        @test CategoricalValue(UInt8(i), pool) == y
     end
 end
 

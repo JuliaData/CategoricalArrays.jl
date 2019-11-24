@@ -32,70 +32,96 @@
 @deprecate CategoricalMatrix(m::Int, n::Int; ordered=false) CategoricalMatrix(undef, m, n; ordered=ordered)
 @deprecate CategoricalMatrix{T}(m::Int, n::Int; ordered=false) where {T} CategoricalMatrix{T}(undef, m::Int, n::Int; ordered=ordered)
 
+Base.@deprecate_binding CategoricalString CategoricalValue{String, R} where R
+Base.@deprecate_binding CatValue Union{CategoricalValue{<:Any, R}, CategoricalValue{String, R}} where R
+
+@deprecate iscatvalue(x::Type) x <: CategoricalValue && x !== Union{}
+@deprecate iscatvalue(x::Any) typeof(x) <: CategoricalValue
+
+@deprecate(catvaluetype(::Type{T}, ::Type{R}) where {T >: Missing, R},
+    CategoricalValue{CategoricalArrays.leveltype(Base.nonmissingtype(T)), R})
+@deprecate(catvaluetype(::Type{<:CategoricalValue{T}}, ::Type{R}) where {T >: Missing, R},
+    CategoricalValue{CategoricalArrays.leveltype(Base.nonmissingtype(T)), R})
+
 # AbstractString interface for CategoricalString
 import Base: eltype, length, lastindex, sizeof, nextind, prevind,
     iterate, getindex, codeunit, ascii, isvalid, match, collect, reverse,
     ncodeunits, isempty, firstindex, lpad, rpad, occursin, startswith, endswith,
     repeat, split, rsplit, strip, lstrip, rstrip, eachmatch,
     uppercase, lowercase, titlecase, uppercasefirst, lowercasefirst,
-    chop, chomp, escape_string, textwidth, isascii
+    chop, chomp, escape_string, textwidth, isascii, *, ^, findfirst, findlast, keys, replace
 # NOTE: drop dependency on Unicode when removing these deprecations
 import Unicode: normalize, graphemes
-@deprecate eltype(x::CategoricalString) eltype(String(x))
-@deprecate length(x::CategoricalString) length(String(x))
-@deprecate lastindex(x::CategoricalString) lastindex(String(x))
-@deprecate sizeof(x::CategoricalString) sizeof(String(x))
-@deprecate nextind(x::CategoricalString, i::Int) nextind(String(x), i)
-@deprecate prevind(x::CategoricalString, i::Int) prevind(String(x), i)
-@deprecate iterate(x::CategoricalString) iterate(String(x))
-@deprecate iterate(x::CategoricalString, i::Int) iterate(String(x), i)
-@deprecate getindex(x::CategoricalString, i::Int) getindex(String(x), i)
-@deprecate codeunit(x::CategoricalString, i::Integer) codeunit(String(x), i)
-@deprecate ascii(x::CategoricalString) ascii(String(x))
-@deprecate isvalid(x::CategoricalString) isvalid(String(x))
-@deprecate isvalid(x::CategoricalString, i::Integer) isvalid(String(x), i)
-@deprecate match(r::Regex, s::CategoricalString,
+@deprecate eltype(x::CategoricalValue{String}) eltype(get(x))
+@deprecate eltype(T::Type{<:CategoricalValue{String}}) eltype(CategoricalArrays.leveltype(T))
+@deprecate length(x::CategoricalValue{String}) length(String(x))
+@deprecate lastindex(x::CategoricalValue{String}) lastindex(String(x))
+@deprecate sizeof(x::CategoricalValue{String}) sizeof(String(x))
+@deprecate nextind(x::CategoricalValue{String}, i::Int, j::Int=1) nextind(String(x), i, j)
+@deprecate prevind(x::CategoricalValue{String}, i::Int, j::Int=1) prevind(String(x), i, j)
+@deprecate iterate(x::CategoricalValue{String}) iterate(String(x))
+@deprecate iterate(x::CategoricalValue{String}, i::Int) iterate(String(x), i)
+@deprecate getindex(x::CategoricalValue{String}, i::Int) getindex(String(x), i)
+@deprecate codeunit(x::CategoricalValue{String}, i::Integer) codeunit(String(x), i)
+@deprecate ascii(x::CategoricalValue{String}) ascii(String(x))
+@deprecate isvalid(x::CategoricalValue{String}) isvalid(String(x))
+@deprecate isvalid(x::CategoricalValue{String}, i::Integer) isvalid(String(x), i)
+@deprecate match(r::Regex, s::CategoricalValue{String},
       idx::Integer=firstindex(s), add_opts::UInt32=UInt32(0); kwargs...) match(r, String(s), idx, add_opts; kwargs...)
-@deprecate collect(x::CategoricalString) collect(String(x))
-@deprecate reverse(x::CategoricalString) reverse(String(x))
-@deprecate ncodeunits(x::CategoricalString) ncodeunits(String(x))
+@deprecate collect(x::CategoricalValue{String}) collect(String(x))
+@deprecate reverse(x::CategoricalValue{String}) reverse(String(x))
+@deprecate ncodeunits(x::CategoricalValue{String}) ncodeunits(String(x))
+@deprecate keys(x::CategoricalValue{String}) keys(String(x))
 
-# Methods which are not strictly necessary
-# but which allow giving a single and accurate deprecation warning
-@deprecate isempty(x::CategoricalString) isempty(String(x))
-@deprecate firstindex(x::CategoricalString) firstindex(String(x))
-@deprecate normalize(x::CategoricalString, s::Symbol) normalize(String(x), s)
-@deprecate graphemes(x::CategoricalString) graphemes(String(x))
-@deprecate length(x::CategoricalString, i::Int, j::Int) length(String(x), i, j)
-@deprecate repeat(x::CategoricalString, i::Integer) repeat(String(x), i)
-@deprecate eachmatch(r::Regex, x::CategoricalString; overlap=false) eachmatch(r, String(x), overlap=overlap)
-@deprecate lpad(x::CategoricalString, n::Integer, c::Union{AbstractChar,AbstractString}=' ') lpad(String(x), n)
-@deprecate rpad(x::CategoricalString, n::Integer, c::Union{AbstractChar,AbstractString}=' ') rpad(String(x), n)
-@deprecate occursin(x::CategoricalString, y::AbstractString) occursin(String(x), y)
-@deprecate occursin(x::AbstractString, y::CategoricalString) occursin(x, String(y))
-@deprecate occursin(x::Regex, y::CategoricalString) occursin(x, String(y))
-@deprecate occursin(x::AbstractChar, y::CategoricalString) occursin(x, String(y))
-@deprecate startswith(x::CategoricalString, y::AbstractString) startswith(String(x), y)
-@deprecate startswith(x::AbstractString, y::CategoricalString) startswith(x, String(y))
-@deprecate endswith(x::CategoricalString, y::AbstractString) endswith(String(x), y)
-@deprecate endswith(x::AbstractString, y::CategoricalString) endswith(x, String(y))
-@deprecate split(x::CategoricalString; kwargs...) split(String(x); kwargs...)
-@deprecate rsplit(x::CategoricalString; kwargs...) rsplit(String(x); kwargs...)
-@deprecate strip(x::CategoricalString) strip(String(x))
-@deprecate lstrip(x::CategoricalString) lstrip(String(x))
-@deprecate rstrip(x::CategoricalString) rstrip(String(x))
-@deprecate lowercase(x::CategoricalString) lowercase(String(x))
-@deprecate uppercase(x::CategoricalString) uppercase(String(x))
-@deprecate lowercasefirst(x::CategoricalString) lowercasefirst(String(x))
-@deprecate uppercasefirst(x::CategoricalString) uppercasefirst(String(x))
-@deprecate titlecase(x::CategoricalString) titlecase(String(x))
-@deprecate chop(x::CategoricalString; kwargs...) chop(String(x); kwargs...)
-@deprecate chomp(x::CategoricalString) chomp(String(x))
-@deprecate textwidth(x::CategoricalString) textwidth(String(x))
-@deprecate isascii(x::CategoricalString) isascii(String(x))
-@deprecate escape_string(x::CategoricalString) escape_string(String(x))
-
-# Avoid printing a deprecation until CategoricalString is no longer AbstractString
-Base.write(io::IO, x::CategoricalString) = write(io, get(x))
-Base.escape_string(io::IO, x::CategoricalString, esc) = escape_string(io, get(x), esc)
-Base.tostr_sizehint(x::CategoricalString) = Base.tostr_sizehint(get(x))
+@deprecate isempty(x::CategoricalValue{String}) isempty(String(x))
+@deprecate firstindex(x::CategoricalValue{String}) firstindex(String(x))
+@deprecate normalize(x::CategoricalValue{String}, s::Symbol) normalize(String(x), s)
+@deprecate normalize(x::CategoricalValue{String}; kwargs...) normalize(String(x); kwargs...)
+@deprecate graphemes(x::CategoricalValue{String}) graphemes(String(x))
+@deprecate length(x::CategoricalValue{String}, i::Int, j::Int) length(String(x), i, j)
+@deprecate repeat(x::CategoricalValue{String}, i::Integer) repeat(String(x), i)
+@deprecate eachmatch(r::Regex, x::CategoricalValue{String}; overlap=false) eachmatch(r, String(x), overlap=overlap)
+@deprecate lpad(x::CategoricalValue{String}, n::Integer, c::Union{AbstractChar,AbstractString}=' ') lpad(String(x), n)
+@deprecate rpad(x::CategoricalValue{String}, n::Integer, c::Union{AbstractChar,AbstractString}=' ') rpad(String(x), n)
+@deprecate occursin(x::CategoricalValue{String}, y::AbstractString) occursin(String(x), y)
+@deprecate occursin(x::AbstractString, y::CategoricalValue{String}) occursin(x, String(y))
+@deprecate occursin(x::Regex, y::CategoricalValue{String}) occursin(x, String(y))
+@deprecate occursin(x::AbstractChar, y::CategoricalValue{String}) occursin(x, String(y))
+@deprecate startswith(x::CategoricalValue{String}, y::AbstractString) startswith(String(x), y)
+@deprecate startswith(x::AbstractString, y::CategoricalValue{String}) startswith(x, String(y))
+@deprecate endswith(x::CategoricalValue{String}, y::AbstractString) endswith(String(x), y)
+@deprecate endswith(x::AbstractString, y::CategoricalValue{String}) endswith(x, String(y))
+@deprecate split(x::CategoricalValue{String}; kwargs...) split(String(x); kwargs...)
+@deprecate split(x::CategoricalValue{String}, dlm; kwargs...) split(String(x), dlm; kwargs...)
+@deprecate rsplit(x::CategoricalValue{String},; kwargs...) rsplit(String(x); kwargs...)
+@deprecate rsplit(x::CategoricalValue{String}, dlm; kwargs...) rsplit(String(x), dlm; kwargs...)
+@deprecate strip(x::CategoricalValue{String}) strip(String(x))
+@deprecate lstrip(x::CategoricalValue{String}) lstrip(String(x))
+@deprecate rstrip(x::CategoricalValue{String}) rstrip(String(x))
+@deprecate lstrip(x::CategoricalValue{String}, chars::Base.Chars) lstrip(String(x), chars)
+@deprecate rstrip(x::CategoricalValue{String}, chars::Base.Chars) rstrip(String(x), chars)
+@deprecate strip(x::CategoricalValue{String}, chars::Base.Chars) strip(String(x), chars)
+@deprecate strip(pred, x::CategoricalValue{String}) strip(pred, String(x))
+@deprecate lstrip(pred, x::CategoricalValue{String}) lstrip(pred, String(x))
+@deprecate rstrip(pred, x::CategoricalValue{String}) rstrip(pred, String(x))
+@deprecate lowercase(x::CategoricalValue{String}) lowercase(String(x))
+@deprecate uppercase(x::CategoricalValue{String}) uppercase(String(x))
+@deprecate lowercasefirst(x::CategoricalValue{String}) lowercasefirst(String(x))
+@deprecate uppercasefirst(x::CategoricalValue{String}) uppercasefirst(String(x))
+@deprecate titlecase(x::CategoricalValue{String}) titlecase(String(x))
+@deprecate chop(x::CategoricalValue{String}; kwargs...) chop(String(x); kwargs...)
+@deprecate chomp(x::CategoricalValue{String}) chomp(String(x))
+@deprecate textwidth(x::CategoricalValue{String}) textwidth(String(x))
+@deprecate isascii(x::CategoricalValue{String}) isascii(String(x))
+@deprecate escape_string(x::CategoricalValue{String}) escape_string(String(x))
+@deprecate *(x::CategoricalValue{String}, y::AbstractString) String(x) * y
+@deprecate *(x::AbstractString, y::CategoricalValue{String}) x * String(y)
+@deprecate *(x::CategoricalValue{String}, y::CategoricalValue{String}) String(x) * String(y)
+@deprecate ^(x::CategoricalValue{String}, n::Integer) String(x)^n
+@deprecate findfirst(needle::AbstractString, haystack::CategoricalValue{String}) findfirst(needle, String(haystack))
+@deprecate findlast(needle::AbstractString, haystack::CategoricalValue{String}) findlast(needle, String(haystack))
+@deprecate findfirst(needle::Function, haystack::CategoricalValue{String}) findfirst(needle, String(haystack))
+@deprecate findlast(needle::Function, haystack::CategoricalValue{String}) findlast(needle, String(haystack))
+@deprecate findfirst(needle::Base.Fix2, haystack::CategoricalValue{String}) findfirst(needle, String(haystack))
+@deprecate findlast(needle::Base.Fix2, haystack::CategoricalValue{String}) findlast(needle, String(haystack))
+@deprecate replace(x::CategoricalValue{String}, old_new::Pair...; kwargs...) replace(String(x), old_new...; kwargs...)

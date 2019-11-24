@@ -1,5 +1,5 @@
 module CategoricalArrays
-    export CategoricalPool, CategoricalValue, CategoricalString
+    export CategoricalPool, CategoricalValue
     export AbstractCategoricalArray, AbstractCategoricalVector, AbstractCategoricalMatrix,
            CategoricalArray, CategoricalVector, CategoricalMatrix
     export AbstractMissingCategoricalArray, AbstractMissingCategoricalVector,

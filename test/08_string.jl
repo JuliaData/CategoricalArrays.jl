@@ -7,11 +7,8 @@ using CategoricalArrays
 @testset "AbstractString operations on values of CategoricalPool{String}" begin
     pool = CategoricalPool(["", "café"])
 
-    v1 = CategoricalArrays.catvalue(1, pool)
-    v2 = CategoricalArrays.catvalue(2, pool)
-
-    @test v1 isa AbstractString
-    @test v2 isa AbstractString
+    v1 = CategoricalValue(1, pool)
+    v2 = CategoricalValue(2, pool)
 
     @test typeof(promote("a", v1)) == Tuple{String,String}
 

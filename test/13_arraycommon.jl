@@ -161,27 +161,27 @@ end
         @test size(y) == (3, 2)
 
         x = CategoricalArray{Union{T, String}, 1, UInt8}(["Old", "Young", "Middle", "Young"])
-        y = similar(x, Union{T, CategoricalString})
+        y = similar(x, Union{T, CategoricalValue{String}})
         @test typeof(x) === typeof(y)
         @test size(y) == size(x)
         T === Missing && @test all(ismissing, y)
 
-        y = similar(x, Union{T, CategoricalString{UInt32}})
+        y = similar(x, Union{T, CategoricalValue{String, UInt32}})
         @test isa(y, CategoricalVector{Union{T, String}, UInt32})
         @test size(y) == size(x)
         T === Missing && @test all(ismissing, y)
 
-        y = similar(x, Union{Missing, CategoricalString}, 3, 2)
+        y = similar(x, Union{Missing, CategoricalValue{String}}, 3, 2)
         @test isa(y, CategoricalMatrix{Union{String, Missing}, UInt8})
         @test size(y) == (3, 2)
         @test all(ismissing, y)
 
-        y = similar(x, CategoricalString)
+        y = similar(x, CategoricalValue{String})
         @test isa(y, CategoricalVector{String, UInt8})
         @test size(y) == size(x)
         @test !any(isassigned(y, i) for i in 1:length(y))
 
-        y = similar(x, CategoricalString{UInt32})
+        y = similar(x, CategoricalValue{String, UInt32})
         @test isa(y, CategoricalVector{String, UInt32})
         @test size(y) == size(x)
         @test !any(isassigned(y, i) for i in 1:length(y))
@@ -194,7 +194,7 @@ end
         @test isa(y, CategoricalVector{Union{Int, T}, UInt32})
         @test size(y) == (3,)
 
-        y = similar([], Union{CategoricalString, T}, (3,))
+        y = similar([], Union{CategoricalValue{String}, T}, (3,))
         @test isa(y, CategoricalVector{Union{String, T}, UInt32})
         @test size(y) == (3,)
 
@@ -202,7 +202,7 @@ end
         @test isa(y, CategoricalVector{Union{Int, T}, UInt8})
         @test size(y) == (3,)
 
-        y = similar([], Union{CategoricalString{UInt8}, T}, (3,))
+        y = similar([], Union{CategoricalValue{String, UInt8}, T}, (3,))
         @test isa(y, CategoricalVector{Union{String, T}, UInt8})
         @test size(y) == (3,)
 
@@ -210,16 +210,15 @@ end
         @test isa(y, CategoricalVector{Union{Int, T}, UInt32})
         @test size(y) == (3,)
 
-        # Disabled due to JuliaLang/julia#32262
-        # y = similar(Vector{Union{CategoricalString, T}}, (3,))
-        # @test isa(y, CategoricalVector{Union{String, T}, UInt32})
-        # @test size(y) == (3,)
+        y = similar(Vector{Union{CategoricalValue{String}, T}}, (3,))
+        @test isa(y, CategoricalVector{Union{String, T}, UInt32})
+        @test size(y) == (3,)
 
         y = similar(Vector{Union{CategoricalValue{Int, UInt8}, T}}, (3,))
         @test isa(y, CategoricalVector{Union{Int, T}, UInt8})
         @test size(y) == (3,)
 
-        y = similar(Vector{Union{CategoricalString{UInt8}, T}}, (3,))
+        y = similar(Vector{Union{CategoricalValue{String, UInt8}, T}}, (3,))
         @test isa(y, CategoricalVector{Union{String, T}, UInt8})
         @test size(y) == (3,)
 
@@ -1296,8 +1295,8 @@ end
 end
 
 @testset "DataAPI" begin
-    @test DataAPI.defaultarray(CategoricalString{UInt32}, 1) <: CategoricalArray{String,1,UInt32}
-    @test DataAPI.defaultarray(Union{Missing, CategoricalString{UInt32}}, 1) <: CategoricalArray{Union{Missing, String},1,UInt32}
+    @test DataAPI.defaultarray(CategoricalValue{String, UInt32}, 1) <: CategoricalArray{String,1,UInt32}
+    @test DataAPI.defaultarray(Union{Missing, CategoricalValue{String, UInt32}}, 1) <: CategoricalArray{Union{Missing, String},1,UInt32}
     @test DataAPI.defaultarray(CategoricalValue{Int, UInt32}, 1) <: CategoricalArray{Int,1,UInt32}
     @test DataAPI.defaultarray(Union{Missing, CategoricalValue{Int, UInt32}}, 1) <: CategoricalArray{Union{Missing, Int},1,UInt32}
 end

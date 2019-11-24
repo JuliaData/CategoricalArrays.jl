@@ -2,7 +2,7 @@ module TestConvert
 using Compat
 using Compat.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, iscatvalue, CatValue
+using CategoricalArrays: DefaultRefType, level, reftype, leveltype
 
 @testset "convert() for CategoricalPool{Int, DefaultRefType} and values" begin
     pool = CategoricalPool([1, 2, 3])
@@ -13,11 +13,9 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     convert(CategoricalPool{Float64}, pool)
     convert(CategoricalPool, pool)
 
-    v1 = catvalue(1, pool)
-    v2 = catvalue(2, pool)
-    v3 = catvalue(3, pool)
-    @test iscatvalue(v1)
-    @test iscatvalue(typeof(v1))
+    v1 = CategoricalValue(1, pool)
+    v2 = CategoricalValue(2, pool)
+    v3 = CategoricalValue(3, pool)
     @test eltype(v1) === Any
     @test eltype(typeof(v1)) === Any
     @test leveltype(v1) === Int
@@ -46,7 +44,7 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test convert(Any, v2) === v2
     @test convert(Any, v3) === v3
 
-    for T in (typeof(v1), CatValue, CategoricalValue), U in (Missing, Nothing)
+    for T in (typeof(v1), CategoricalValue{Int}, CategoricalValue), U in (Missing, Nothing)
         @test convert(Union{T, U}, v1) === v1
         @test convert(Union{T, U}, v2) === v2
         @test convert(Union{T, U}, v3) === v3
@@ -59,53 +57,6 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype, catvalue, is
     @test promote(1, v1) === (1, 1)
     @test promote(1.0, v1) === (1.0, 1.0)
     @test promote(0x1, v1) === (1, 1)
-end
-
-@testset "convert() for CategoricalPool{String, DefaultRefType} and values" begin
-    pool = CategoricalPool(["a", "b", "c"])
-    @test convert(CategoricalPool{String, DefaultRefType}, pool) === pool
-    @test convert(CategoricalPool{String}, pool) === pool
-    @test convert(CategoricalPool, pool) === pool
-    convert(CategoricalPool{String, UInt8}, pool)
-
-    v1 = catvalue(1, pool)
-    v2 = catvalue(2, pool)
-    v3 = catvalue(3, pool)
-    @test iscatvalue(v1)
-    @test iscatvalue(typeof(v1))
-    @test eltype(v1) === Char
-    @test eltype(typeof(v1)) === Char
-    @test leveltype(v1) === String
-    @test leveltype(typeof(v1)) === String
-    @test reftype(v1) === DefaultRefType
-    @test reftype(typeof(v1)) === DefaultRefType
-    @test v1 isa CategoricalArrays.CategoricalString{DefaultRefType}
-
-    @test convert(String, v1) == "a"
-    @test convert(String, v2) == "b"
-    @test convert(String, v3) == "c"
-
-    @test convert(AbstractString, v1) == "a"
-    @test convert(AbstractString, v2) == "b"
-    @test convert(AbstractString, v3) == "c"
-
-    @test convert(CategoricalString, v1) === v1
-    @test convert(CategoricalString{DefaultRefType}, v1) === v1
-
-    @test convert(Any, v1) === v1
-    @test convert(Any, v2) === v2
-    @test convert(Any, v3) === v3
-
-    for T in (typeof(v1), CatValue, CategoricalString, CategoricalString{DefaultRefType}),
-        U in (Missing, Nothing)
-        @test convert(Union{T, U}, v1) === v1
-        @test convert(Union{T, U}, v2) === v2
-        @test convert(Union{T, U}, v3) === v3
-    end
-
-    @test get(v1) === "a"
-    @test get(v2) === "b"
-    @test get(v3) === "c"
 end
 
 @testset "promote_type" begin
@@ -158,20 +109,6 @@ end
     @test promote_type(CategoricalValue{Int, UInt32}, Missing) ===
         Union{CategoricalValue{Int, UInt32}, Missing}
     @test promote_type(CategoricalValue{Int, UInt32}, Any) === Any
-
-    @test promote_type(CategoricalString{UInt8}, CategoricalString{UInt32}) ===
-        CategoricalString{UInt32}
-    @test promote_type(CategoricalString, CategoricalString{UInt32}) ===
-        CategoricalString
-    @test promote_type(Union{CategoricalString{UInt8}, Missing}, CategoricalString{UInt32}) ===
-        Union{CategoricalString{UInt32}, Missing}
-    @test promote_type(Union{CategoricalString{UInt8}, Missing}, Union{CategoricalString{UInt32}, Missing}) ===
-        Union{CategoricalString{UInt32}, Missing}
-
-    @test promote_type(CategoricalString{UInt8}, CategoricalValue{Int, UInt32}) ===
-        CategoricalValue{Any, UInt32}
-    @test promote_type(Union{CategoricalString{UInt8}, Missing}, CategoricalValue{Int, UInt32}) ===
-        Union{CategoricalValue{Any, UInt32}, Missing}
 end
 
 @testset "convert() preserves `ordered`" begin
@@ -181,8 +118,8 @@ end
 
 @testset "convert() with Union{T, Nothing}" begin
     pool = CategoricalPool([nothing, 2, 3])
-    v1 = catvalue(1, pool)
-    v2 = catvalue(2, pool)
+    v1 = CategoricalValue(1, pool)
+    v2 = CategoricalValue(2, pool)
     @test convert(Union{Int, Nothing}, v1) === nothing
     @test convert(Union{Int, Nothing}, v2) === 2
     @test convert(Union{Float64, Nothing}, v2) === 2.0

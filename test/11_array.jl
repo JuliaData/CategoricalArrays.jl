@@ -2,7 +2,7 @@ module TestArray
 using Compat
 using Compat.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
+using CategoricalArrays: DefaultRefType, leveltype
 
 @testset "conversion ordered=$ordered reftype=$R" for ordered in (false, true),
     R in (CategoricalArrays.DefaultRefType, UInt8, UInt, Int8, Int)
@@ -13,8 +13,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
     @test x == a
     @test leveltype(typeof(x)) === String
     @test leveltype(x) === String
-    @test catvaluetype(typeof(x)) === CategoricalArrays.CategoricalString{R}
-    @test catvaluetype(x) === CategoricalArrays.CategoricalString{R}
+    @test eltype(x) === CategoricalValue{String, R}
     @test isordered(x) === ordered
     @test levels(x) == sort(unique(a))
     @test unique(x) == unique(a)
@@ -70,14 +69,14 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test isa(x2, CategoricalVector{String, R1})
         @test isordered(x2) === ordered
         @test leveltype(x2) === String
-        @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R1}
+        @test eltype(x2) === CategoricalValue{String, R1}
 
         x2 = categorical(y, comp, ordered=ordered)
         @test x2 == x
         @test isa(x2, CategoricalVector{String, R2})
         @test isordered(x2) === ordered
         @test leveltype(x2) === String
-        @test catvaluetype(x2) === CategoricalArrays.CategoricalString{R2}
+        @test eltype(x2) === CategoricalValue{String, R2}
     end
 
     x2 = compress(x)
@@ -223,7 +222,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test size(x) === (4,)
         @test length(x) === 4
         @test leveltype(x) === Float64
-        @test catvaluetype(x) <: CategoricalArrays.CategoricalValue{Float64}
+        @test eltype(x) <: CategoricalValue{Float64}
 
         @test convert(CategoricalArray, x) === x
         @test convert(CategoricalArray{Float64}, x) === x
@@ -288,14 +287,14 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
             @test isa(x2, CategoricalVector{Float64, R1})
             @test isordered(x2) === ordered
             @test leveltype(x2) === Float64
-            @test catvaluetype(x2) === CategoricalArrays.CategoricalValue{Float64, R1}
+            @test eltype(x2) === CategoricalValue{Float64, R1}
 
             x2 = categorical(y, comp, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalVector{Float64, R2})
             @test isordered(x2) === ordered
             @test leveltype(x2) === Float64
-            @test catvaluetype(x2) === CategoricalArrays.CategoricalValue{Float64, R2}
+            @test eltype(x2) === CategoricalValue{Float64, R2}
         end
 
         x2 = copy(x)
@@ -615,7 +614,7 @@ using CategoricalArrays: DefaultRefType, catvaluetype, leveltype
         @test x[2] === x.pool.valindex[1]
         @test levels(x) == ["c", "a", "b"]
 
-        v = CategoricalArrays.catvalue(2, CategoricalPool(["xyz", "b"]))
+        v = CategoricalValue(2, CategoricalPool(["xyz", "b"]))
         if ordered
             @test_throws OrderedLevelsException x[1] = v
             levels!(x, ["c", "a", "xyz", "b"])
