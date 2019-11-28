@@ -92,9 +92,6 @@ Base.:(==)(::Missing, ::CategoricalValue) = missing
 Base.:(==)(x::CategoricalValue, y::WeakRef) = get(x) == y
 Base.:(==)(x::WeakRef, y::CategoricalValue) = y == x
 
-Base.:(==)(x::CategoricalValue, y::AbstractString) = get(x) == y
-Base.:(==)(x::AbstractString, y::CategoricalValue) = y == x
-
 Base.:(==)(x::CategoricalValue, y::Any) = get(x) == y
 Base.:(==)(x::Any, y::CategoricalValue) = y == x
 
@@ -126,10 +123,8 @@ function Base.isless(x::CategoricalValue, y::CategoricalValue)
 end
 
 Base.isless(x::CategoricalValue, y) = order(x) < order(x.pool[get(x.pool, y)])
-Base.isless(x::CategoricalValue, y::AbstractString) = order(x) < order(x.pool[get(x.pool, y)])
 Base.isless(::CategoricalValue, ::Missing) = true
 Base.isless(y, x::CategoricalValue) = order(x.pool[get(x.pool, y)]) < order(x)
-Base.isless(y::AbstractString, x::CategoricalValue) = order(x.pool[get(x.pool, y)]) < order(x)
 Base.isless(::Missing, ::CategoricalValue) = false
 
 function Base.:<(x::CategoricalValue, y::CategoricalValue)
@@ -150,9 +145,6 @@ function Base.:<(x::CategoricalValue, y)
     end
 end
 
-Base.:<(x::CategoricalValue, y::AbstractString) = invoke(<, Tuple{CategoricalValue, Any}, x, y)
-Base.:<(::CategoricalValue, ::Missing) = missing
-
 function Base.:<(y, x::CategoricalValue)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
@@ -161,7 +153,7 @@ function Base.:<(y, x::CategoricalValue)
     end
 end
 
-Base.:<(y::AbstractString, x::CategoricalValue) = invoke(<, Tuple{Any, CategoricalValue}, y, x)
+Base.:<(::CategoricalValue, ::Missing) = missing
 Base.:<(::Missing, ::CategoricalValue) = missing
 
 # JSON of CategoricalValue is JSON of the value it refers to
