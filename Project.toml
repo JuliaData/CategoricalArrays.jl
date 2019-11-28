@@ -9,7 +9,6 @@ Future = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Missings = "e1d29d7a-bbdc-5cf2-9ac0-f12de2c33e28"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
-Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [compat]
@@ -17,7 +16,6 @@ Compat = "1.0, 2.0, 3.0"
 DataAPI = "1.1"
 JSON = "0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21"
 Missings = "0.4.3"
-Reexport = "0.1, 0.2"
 julia = "1"
 
 [extras]

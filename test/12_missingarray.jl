@@ -3,6 +3,7 @@ using Compat
 using Compat.Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, leveltype
+using Missings
 
 const ≅ = isequal
 
