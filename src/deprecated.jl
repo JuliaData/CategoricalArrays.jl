@@ -98,4 +98,6 @@ import Unicode: normalize, graphemes
 # Avoid printing a deprecation until CategoricalString is no longer AbstractString
 Base.write(io::IO, x::CategoricalString) = write(io, get(x))
 Base.escape_string(io::IO, x::CategoricalString, esc) = escape_string(io, get(x), esc)
-Base.tostr_sizehint(x::CategoricalString) = Base.tostr_sizehint(get(x))
+if isdefined(Base, :tostr_sizehint) # Not defined on Julia 1.4
+    Base.tostr_sizehint(x::CategoricalString) = Base.tostr_sizehint(get(x))
+end
