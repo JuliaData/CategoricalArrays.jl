@@ -2,7 +2,7 @@ module TestConstructors
 using Compat
 using Compat.Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, catvalue
+using CategoricalArrays: DefaultRefType
 
 @testset "Type parameter constraints" begin
     # cannot use categorical value as level type
@@ -11,7 +11,7 @@ using CategoricalArrays: DefaultRefType, catvalue
     # cannot use non-categorical value as categorical value type
     @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Int[], Dict{Int, UInt8}(), UInt8[], false)
     # level type of the pool and categorical value should match
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalString{UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{String, UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
     # reference type of the pool and categorical value should match
     @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
     # correct types combination
@@ -45,7 +45,7 @@ end
 @testset "CategoricalPool{String, DefaultRefType}(a b c)" begin
     pool = CategoricalPool(["a", "b", "c"])
 
-    @test isa(pool, CategoricalPool{String, UInt32, CategoricalString{UInt32}})
+    @test isa(pool, CategoricalPool{String, UInt32, CategoricalValue{String, UInt32}})
 
     @test isa(pool.index, Vector{String})
     @test length(pool.index) == 3
@@ -237,7 +237,7 @@ end
     pool = CategoricalPool{Float64, UInt8}([1.0, 2.0, 3.0])
 
     @test isa(pool, CategoricalPool{Float64, UInt8, CategoricalValue{Float64, UInt8}})
-    @test catvalue(1, pool) isa CategoricalValue{Float64, UInt8}
+    @test CategoricalValue(1, pool) isa CategoricalValue{Float64, UInt8}
 end
 
 end

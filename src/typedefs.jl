@@ -20,10 +20,10 @@ mutable struct CategoricalPool{T, R <: Integer, V}
                                       levels::Vector{T},
                                       valindex::Vector{V},
                                       ordered::Bool) where {T, R, V}
-        if iscatvalue(T)
+        if T <: CategoricalValue && T !== Union{}
             throw(ArgumentError("Level type $T cannot be a categorical value type"))
         end
-        if !iscatvalue(V)
+        if !(V <: CategoricalValue)
             throw(ArgumentError("Type $V is not a categorical value type"))
         end
         if leveltype(V) !== T
@@ -48,26 +48,22 @@ end
 ## Values
 
 """
-Default categorical value type for
-referencing values of type `T`.
+    CategoricalValue{T, R <: Integer}
+
+A wrapper around a value of type `T` corresponding to a level
+in a [`CategoricalPool`](@ref).
+
+`CategoricalValue` objects are considered as equal to the value of type `T`
+they wrap by `==` and `isequal`.
+However, order comparisons like `<` and `isless` are only possible
+if [`isordered`](@ref) is `true` for the value's pool, and in that case
+the order of the pool's [`levels`](@ref) is used rather than the standard
+ordering of values of type `T`.
 """
 struct CategoricalValue{T, R <: Integer}
     level::R
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
-
-"""
-`String` categorical value.
-Provides `AbstractString` interoperability.
-"""
-struct CategoricalString{R <: Integer} <: AbstractString
-    level::R
-    pool::CategoricalPool{String, R, CategoricalString{R}}
-end
-
-# union of all categorical value types
-const CatValue{R} = Union{CategoricalValue{T, R} where T,
-                          CategoricalString{R}}
 
 ## Arrays
 

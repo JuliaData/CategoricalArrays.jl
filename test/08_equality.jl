@@ -34,10 +34,10 @@ using CategoricalArrays
     @test (opool1 === opool2) === false
     @test (opool2 === opool2) === true
 
-    nv1a = CategoricalArrays.catvalue(1, pool1)
-    nv2a = CategoricalArrays.catvalue(1, pool2)
-    nv1b = CategoricalArrays.catvalue(2, pool1)
-    nv2b = CategoricalArrays.catvalue(2, pool2)
+    nv1a = CategoricalValue(1, pool1)
+    nv2a = CategoricalValue(1, pool2)
+    nv1b = CategoricalValue(2, pool1)
+    nv2b = CategoricalValue(2, pool2)
 
     @test isequal(nv1a, nv1a) == true
     @test isequal(nv1a, nv2a) == false
@@ -69,10 +69,10 @@ using CategoricalArrays
     @test isequal(nv1b, 2) == true
     @test isequal(nv2b, 2) == false
 
-    ov1a = CategoricalArrays.catvalue(1, opool1)
-    ov2a = CategoricalArrays.catvalue(1, opool2)
-    ov1b = CategoricalArrays.catvalue(2, opool1)
-    ov2b = CategoricalArrays.catvalue(2, opool2)
+    ov1a = CategoricalValue(1, opool1)
+    ov2a = CategoricalValue(1, opool2)
+    ov1b = CategoricalValue(2, opool1)
+    ov2b = CategoricalValue(2, opool2)
 
     @test isequal(ov1a, ov1a) == true
     @test isequal(ov1a, ov2a) == false
@@ -161,7 +161,7 @@ end
 
 @testset "in()" begin
     pool = CategoricalPool([5, 1, 3])
-    nv = CategoricalArrays.catvalue(2, pool)
+    nv = CategoricalValue(2, pool)
 
     @test (nv in 1:3) === true
     @test (nv in [1, 2, 3]) === true

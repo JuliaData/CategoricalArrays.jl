@@ -116,16 +116,16 @@ CategoricalArray(::UndefInitializer, dims::Int...; ordered=false) =
 
 function CategoricalArray{T, N, R}(::UndefInitializer, dims::NTuple{N,Int};
                                    ordered=false) where {T, N, R}
-    C = catvaluetype(T, R)
-    V = leveltype(C)
-    S = T >: Missing ? Union{V, Missing} : V
-    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{V, R, C}(ordered))
+    U = leveltype(nonmissingtype(T))
+    S = T >: Missing ? Union{U, Missing} : U
+    V = CategoricalValue{U, R}
+    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R, V}(ordered))
 end
 
 CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
     CategoricalArray{T, N, DefaultRefType}(undef, dims, ordered=ordered)
 CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where
-    {R, T <: Union{Missing, CatValue{R}}, N} =
+    {R, T <: Union{Missing, CategoricalValue{<:Any, R}}, N} =
     CategoricalArray{T, N, R}(undef, dims, ordered=ordered)
 CategoricalArray{T}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
     CategoricalArray{T, N}(undef, dims, ordered=ordered)
@@ -436,25 +436,13 @@ similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalValue{T, R}},
     CategoricalArray{T, N, R}(undef, dims)
 similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalValue{T}},
         dims::NTuple{N, Int}) where {T, N, S, M, Q} =
-    CategoricalArray{T, N}(undef, dims)
-similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalString{R}},
-        dims::NTuple{N, Int}) where {R, N, S, M, Q} =
-    CategoricalArray{String, N, R}(undef, dims)
-similar(A::CategoricalArray{S, M, Q}, ::Type{CategoricalString},
-        dims::NTuple{N, Int}) where {N, S, M, Q} =
-    CategoricalArray{String, N, Q}(undef, dims)
+    CategoricalArray{T, N, Q}(undef, dims)
 similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalValue{T, R}, Missing}},
         dims::NTuple{N, Int}) where {R, T, N, S, M, Q} =
     CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
 similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalValue{T}, Missing}},
         dims::NTuple{N, Int}) where {T, N, S, M, Q} =
     CategoricalArray{Union{T, Missing}, N, Q}(undef, dims)
-similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalString{R}, Missing}},
-        dims::NTuple{N, Int}) where {R, N, S, M, Q} =
-    CategoricalArray{Union{String, Missing}, N, R}(undef, dims)
-similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalString, Missing}},
-        dims::NTuple{N, Int}) where {N, S, M, Q} =
-    CategoricalArray{Union{String, Missing}, N, Q}(undef, dims)
 
 for A in (:Array, :Vector, :Matrix) # to fix ambiguities
     @eval begin
@@ -464,24 +452,12 @@ for A in (:Array, :Vector, :Matrix) # to fix ambiguities
         similar(A::$A, ::Type{CategoricalValue{T}},
                 dims::NTuple{N, Int}=size(A)) where {T, N} =
             CategoricalArray{T, N}(undef, dims)
-        similar(A::$A, ::Type{CategoricalString{R}},
-                dims::NTuple{N, Int}=size(A)) where {R, N} =
-            CategoricalArray{String, N, R}(undef, dims)
-        similar(A::$A, ::Type{CategoricalString},
-                dims::NTuple{N, Int}=size(A)) where {N} =
-            CategoricalArray{String, N}(undef, dims)
         similar(A::$A, ::Type{Union{CategoricalValue{T, R}, Missing}},
                 dims::NTuple{N, Int}=size(A)) where {T, R, N} =
             CategoricalArray{Union{T, Missing}, N, R}(undef, dims)
         similar(A::$A, ::Type{Union{CategoricalValue{T}, Missing}},
                 dims::NTuple{N, Int}=size(A)) where {T, N} =
             CategoricalArray{Union{T, Missing}, N}(undef, dims)
-        similar(A::$A, ::Type{Union{CategoricalString{R}, Missing}},
-                dims::NTuple{N, Int}=size(A)) where {R, N} =
-            CategoricalArray{Union{String, Missing}, N, R}(undef, dims)
-        similar(A::$A, ::Type{Union{CategoricalString, Missing}},
-                dims::NTuple{N, Int}=size(A)) where {N} =
-            CategoricalArray{Union{String, Missing}, N}(undef, dims)
     end
 end
 
@@ -492,14 +468,6 @@ similar(::Type{T}, dims::Dims) where {U, T<:Array{CategoricalValue{U}}} =
 similar(::Type{T}, dims::Dims) where {U, R, T<:Array{Union{CategoricalValue{U, R}, Missing}}} =
     CategoricalArray{eltype(T)}(undef, dims)
 similar(::Type{T}, dims::Dims) where {U, T<:Array{Union{CategoricalValue{U}, Missing}}} =
-    CategoricalArray{eltype(T)}(undef, dims)
-similar(::Type{T}, dims::Dims) where {R, T<:Array{CategoricalString{R}}} =
-    CategoricalArray{eltype(T)}(undef, dims)
-similar(::Type{T}, dims::Dims) where {T<:Array{CategoricalString}} =
-    CategoricalArray{eltype(T)}(undef, dims)
-similar(::Type{T}, dims::Dims) where {R, T<:Array{Union{<:CategoricalString{R}, Missing}}} =
-    CategoricalArray{eltype(T)}(undef, dims)
-similar(::Type{T}, dims::Dims) where {T<:Array{Union{<:CategoricalString, Missing}}} =
     CategoricalArray{eltype(T)}(undef, dims)
 
 """
@@ -560,10 +528,7 @@ end
     end
 end
 
-catvaluetype(::Type{T}) where {T <: CategoricalArray} = nonmissingtype(eltype(T))
-catvaluetype(A::CategoricalArray) = catvaluetype(typeof(A))
-
-leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(catvaluetype(T))
+leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(nonmissingtype(eltype(T)))
 
 """
     levels(A::CategoricalArray)
