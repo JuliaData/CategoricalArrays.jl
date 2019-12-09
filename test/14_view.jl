@@ -1,6 +1,5 @@
 module TestView
-using Compat
-using Compat.Test
+using Test
 using CategoricalArrays
 
 const ≅ = isequal

@@ -1,6 +1,5 @@
 module TestUpdateOrder
-using Compat
-using Compat.Test
+using Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
 

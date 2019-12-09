@@ -1,6 +1,5 @@
 module TestLength
-using Compat
-using Compat.Test
+using Test
 using CategoricalArrays
 
 @testset "length(pool)" begin
