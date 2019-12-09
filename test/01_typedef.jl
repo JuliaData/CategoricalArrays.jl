@@ -1,6 +1,5 @@
 module TestTypeDef
-using Compat
-using Compat.Test
+using Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType, level,  reftype, leveltype
 

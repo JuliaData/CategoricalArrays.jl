@@ -1,6 +1,5 @@
 module TestIsLess
-using Compat
-using Compat.Test
+using Test
 using CategoricalArrays
 
 pool = CategoricalPool([1, 2, 3])

@@ -7,8 +7,7 @@ module TestCategoricalArrays
     quiet = length(ARGS) > 0 && ARGS[1] == "-q"
     anyerrors = false
 
-    using Compat
-    using Compat.Test
+    using Test
     using CategoricalArrays
 
     tests = [

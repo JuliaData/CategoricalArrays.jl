@@ -128,7 +128,7 @@ function mergelevels(ordered, levels...)
     T = Base.promote_eltype(levels...)
     res = Vector{T}(undef, 0)
 
-    nonempty_lv = Compat.findfirst(!isempty, levels)
+    nonempty_lv = findfirst(!isempty, levels)
     if nonempty_lv === nothing
         # no levels
         return res, ordered
@@ -161,7 +161,7 @@ function mergelevels(ordered, levels...)
 
     # Check that result is ordered
     if ordered
-        levelsmaps = [Compat.indexin(res, l) for l in levels]
+        levelsmaps = [indexin(res, l) for l in levels]
 
         # Check that each original order is preserved
         for m in levelsmaps

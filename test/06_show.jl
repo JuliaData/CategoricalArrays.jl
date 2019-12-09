@@ -1,7 +1,6 @@
 module TestShow
-using Compat
-using Compat.Test
-using Compat.Dates
+using Test
+using Dates
 using CategoricalArrays
 
 @testset "show() for CategoricalPool{String} and its values" begin
