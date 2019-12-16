@@ -75,9 +75,9 @@ import Unicode: normalize, graphemes
 
 @deprecate isempty(x::CategoricalValue{String}) isempty(String(x))
 @deprecate firstindex(x::CategoricalValue{String}) firstindex(String(x))
-@deprecate normalize(x::CategoricalValue{String}, s::Symbol) normalize(String(x), s)
-@deprecate normalize(x::CategoricalValue{String}; kwargs...) normalize(String(x); kwargs...)
-@deprecate graphemes(x::CategoricalValue{String}) graphemes(String(x))
+@deprecate normalize(x::CategoricalValue{String}, s::Symbol) normalize(String(x), s) false
+@deprecate normalize(x::CategoricalValue{String}; kwargs...) normalize(String(x); kwargs...) false
+@deprecate graphemes(x::CategoricalValue{String}) graphemes(String(x)) false
 @deprecate length(x::CategoricalValue{String}, i::Int, j::Int) length(String(x), i, j)
 @deprecate repeat(x::CategoricalValue{String}, i::Integer) repeat(String(x), i)
 @deprecate eachmatch(r::Regex, x::CategoricalValue{String}; overlap=false) eachmatch(r, String(x), overlap=overlap)
