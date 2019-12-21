@@ -10,7 +10,6 @@ module CategoricalArrays
     export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!
     export cut, recode, recode!
 
-    using Compat
     using JSON
     using DataAPI
     using Missings

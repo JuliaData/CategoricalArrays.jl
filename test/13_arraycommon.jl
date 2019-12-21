@@ -1,9 +1,6 @@
 module TestArrayCommon
-using Compat
-using Compat.Test
-@static if VERSION >= v"0.7.0-DEV.3208"
-    using Future: copy!
-end
+using Test
+using Future: copy!
 using CategoricalArrays, DataAPI
 using CategoricalArrays: DefaultRefType, index
 

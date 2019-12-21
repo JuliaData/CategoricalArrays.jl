@@ -1,7 +1,6 @@
 module TestString
-using Compat
-using Compat.Test
-using Compat.Unicode
+using Test
+using Unicode
 using CategoricalArrays
 
 @testset "AbstractString operations on values of CategoricalPool{String}" begin
@@ -129,15 +128,15 @@ using CategoricalArrays
     @test rpad(v2, 1) == "café"
     @test rpad(v2, 5) == "café "
 
-    @test Compat.findfirst("", v1) === 1:0
-    @test Compat.findfirst("a", v2) === 2:2
-    @test Compat.findfirst(==('a'), v2) === 2
-    @test Compat.findnext(==('a'), v2, 3) === nothing
+    @test findfirst("", v1) === 1:0
+    @test findfirst("a", v2) === 2:2
+    @test findfirst(==('a'), v2) === 2
+    @test findnext(==('a'), v2, 3) === nothing
 
-    @test Compat.findlast("a", v1) === nothing
-    @test Compat.findlast("a", v2) === 2:2
-    @test Compat.findlast(==('a'), v2) === 2
-    @test Compat.findprev(==('a'), v2, 1) === nothing
+    @test findlast("a", v1) === nothing
+    @test findlast("a", v2) === 2:2
+    @test findlast(==('a'), v2) === 2
+    @test findprev(==('a'), v2, 1) === nothing
 
     @test !occursin("a", v1)
     @test occursin("", v1)

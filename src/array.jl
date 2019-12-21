@@ -1,8 +1,7 @@
 ## Code for CategoricalArray
 
 import Base: Array, convert, collect, copy, getindex, setindex!, similar, size,
-             unique, vcat, in, summary, float, complex
-import Compat: copyto!
+             unique, vcat, in, summary, float, complex, copyto!
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
