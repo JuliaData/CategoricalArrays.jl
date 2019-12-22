@@ -773,6 +773,15 @@ Base.Broadcast.broadcasted(::typeof(!ismissing), A::CategoricalArray{T}) where {
     T >: Missing ? Base.Broadcast.broadcasted(>, A.refs, 0) :
                    Base.Broadcast.broadcasted(_ -> true, A.refs)
 
+function Base.Broadcast.broadcasted(::typeof(levelindex), A::CategoricalArray{T}) where {T}
+    ord = order(A.pool)
+    if T >: Missing
+        Base.Broadcast.broadcasted(i -> i > 0 ? Signed(widen(ord[i])) : missing, A.refs)
+    else
+        Base.Broadcast.broadcasted(i -> Signed(widen(ord[i])), A.refs)
+    end
+end
+
 function Base.sort!(v::CategoricalVector;
                     # alg is ignored since counting sort is more efficient
                     alg::Base.Algorithm=Base.Sort.defalg(v),

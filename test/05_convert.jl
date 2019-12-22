@@ -124,5 +124,17 @@ end
     @test convert(Union{Float64, Nothing}, v2) === 2.0
 end
 
+@testset "levelindex" begin
+    pool = CategoricalPool{Int,UInt8}([3, 1, 2])
+    levels!(pool, [2, 1, 3])
+    for i in 1:3
+        v = CategoricalValue(i, pool)
+        @test levelindex(v) isa Int16
+        @test levels(pool)[levelindex(v)] == v
+    end
+
+    @test levelindex(missing) === missing
+end
+
 
 end

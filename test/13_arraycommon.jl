@@ -1298,7 +1298,7 @@ end
     @test DataAPI.defaultarray(Union{Missing, CategoricalValue{Int, UInt32}}, 1) <: CategoricalArray{Union{Missing, Int},1,UInt32}
 end
 
-@testset "optimized broadcasting with ismissing" begin
+@testset "optimized broadcasting with ismissing and levelindex" begin
     x = categorical([1, missing, 3, 4, missing])
     @test ismissing.(x) == [false, true, false, false, true]
     @test ismissing.(view(x, 2:4)) == [true, false, false]
@@ -1310,6 +1310,27 @@ end
     @test ismissing.(view(x, 2:4)) == [false, false, false]
     @test (!ismissing).(x) == [true, true, true, true, true]
     @test (!ismissing).(view(x, 2:4)) == [true, true, true]
+end
+
+@testset "optimized broadcasting with levelindex" begin
+    x = categorical([3, missing, 1, 4, missing])
+    levels!(x, [4, 1, 3])
+    @test levelindex.(x) ≅ [3, missing, 2, 1, missing]
+    @test levelindex.(x) isa Vector{Union{Missing,Int}}
+
+    replace!(x, missing=>1)
+    @test levelindex.(x) ≅ [3, 2, 2, 1, 2]
+    @test levelindex.(x) isa Vector{Int}
+
+    x = CategoricalVector{Int,UInt8}([3, 0, 1, 4, 0])
+    levels!(x, [4, 1, 3, 0])
+    @test levelindex.(x) ≅ [3, 4, 2, 1, 4]
+    @test levelindex.(x) isa Vector{Int16}
+
+    x = CategoricalVector{Union{Missing,Int},UInt8}([3, missing, 1, 4, missing])
+    levels!(x, [4, 1, 3])
+    @test levelindex.(x) ≅ [3, missing, 2, 1, missing]
+    @test levelindex.(x) isa Vector{Union{Missing,Int16}}
 end
 
 end
