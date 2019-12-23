@@ -39,6 +39,8 @@ Return `missing`.
 """
 levelindex(x::Missing) = missing
 
+DataAPI.levels(x::CategoricalValue) = levels(pool(x))
+
 Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalValue, T} = promote_type(leveltype(C), T)
 Base.promote_rule(::Type{C1}, ::Type{Union{C2, Missing}}) where {C1 <: CategoricalValue, C2 <: CategoricalValue} =
     Union{promote_type(C1, C2), Missing}

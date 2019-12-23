@@ -9,6 +9,7 @@ using CategoricalArrays: DefaultRefType, levels!
     @test isa(levels(pool), Vector{Int})
     @test length(levels(pool)) === 3
     @test levels(pool) == pool.index == [2, 1, 3]
+    @test all([levels(CategoricalValue(i, pool)) for i in 1:3] .=== Ref(levels(pool)))
     @test pool.invindex == Dict(1=>2, 2=>1, 3=>3)
     @test pool.order == [1, 2, 3]
     @test pool.valindex == [CategoricalValue(i, pool) for i in 1:3]

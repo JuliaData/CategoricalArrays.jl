@@ -530,10 +530,12 @@ end
 leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(nonmissingtype(eltype(T)))
 
 """
-    levels(A::CategoricalArray)
+    levels(x::CategoricalArray)
+    levels(x::CategoricalValue)
 
-Return the levels of categorical array `A`. This may include levels which do not actually appear
-in the data (see [`droplevels!`](@ref)).
+Return the levels of categorical array or value `x`.
+This may include levels which do not actually appear in the data
+(see [`droplevels!`](@ref)).
 """
 DataAPI.levels(A::CategoricalArray) = levels(A.pool)
 
