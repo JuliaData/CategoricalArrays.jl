@@ -1133,12 +1133,21 @@ end
          1"""
 
     x = categorical([2, 1, missing])
-    @test sprint((io,a)->show(io, "text/plain", a), x) ==
-        """
-        3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
-         2      
-         1      
-         missing"""
+    if VERSION >= v"1.4-DEV"
+        @test sprint((io,a)->show(io, "text/plain", a), x) ==
+            """
+            3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
+             2
+             1
+             missing"""
+    else
+        @test sprint((io,a)->show(io, "text/plain", a), x) ==
+            """
+            3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
+             2      
+             1      
+             missing"""
+    end
 end
 
 @testset "broadcast" for x in (CategoricalArray(1:3),
