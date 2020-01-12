@@ -4,7 +4,7 @@ module CategoricalArrays
            CategoricalArray, CategoricalVector, CategoricalMatrix
     export LevelsException, OrderedLevelsException
 
-    export categorical, compress, decompress, droplevels!, levels, levels!, levelindex,
+    export categorical, compress, decompress, droplevels!, levels, levels!, levelcode,
            isordered, ordered!
     export cut, recode, recode!
 

@@ -25,19 +25,19 @@ unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
 Base.get(x::CategoricalValue) = index(pool(x))[level(x)]
 
 """
-    levelindex(x::CategoricalValue)
+    levelcode(x::CategoricalValue)
 
-Get the index of categorical value `x` in the set of possible values
-returned by [`levels(x)`](@ref).
+Get the code of categorical value `x`, i.e. its index in the set
+of possible values returned by [`levels(x)`](@ref).
 """
-levelindex(x::CategoricalValue) = Signed(widen(order(pool(x))[level(x)]))
+levelcode(x::CategoricalValue) = Signed(widen(order(pool(x))[level(x)]))
 
 """
-    levelindex(x::Missing)
+    levelcode(x::Missing)
 
 Return `missing`.
 """
-levelindex(x::Missing) = missing
+levelcode(x::Missing) = missing
 
 DataAPI.levels(x::CategoricalValue) = levels(pool(x))
 
@@ -81,7 +81,7 @@ function Base.show(io::IO, x::CategoricalValue)
     elseif isordered(pool(x))
         @printf(io, "%s %s (%i/%i)",
                 typeof(x), repr(x),
-                levelindex(x), length(pool(x)))
+                levelcode(x), length(pool(x)))
     else
         @printf(io, "%s %s", typeof(x), repr(x))
     end
@@ -134,13 +134,13 @@ function Base.isless(x::CategoricalValue, y::CategoricalValue)
     if pool(x) !== pool(y)
         throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
     else
-        return levelindex(x) < levelindex(y)
+        return levelcode(x) < levelcode(y)
     end
 end
 
-Base.isless(x::CategoricalValue, y) = levelindex(x) < levelindex(x.pool[get(x.pool, y)])
+Base.isless(x::CategoricalValue, y) = levelcode(x) < levelcode(x.pool[get(x.pool, y)])
 Base.isless(::CategoricalValue, ::Missing) = true
-Base.isless(y, x::CategoricalValue) = levelindex(x.pool[get(x.pool, y)]) < levelindex(x)
+Base.isless(y, x::CategoricalValue) = levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
 Base.isless(::Missing, ::CategoricalValue) = false
 
 function Base.:<(x::CategoricalValue, y::CategoricalValue)
@@ -149,7 +149,7 @@ function Base.:<(x::CategoricalValue, y::CategoricalValue)
     elseif !isordered(pool(x)) # !isordered(pool(y)) is implied by pool(x) === pool(y)
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
-        return levelindex(x) < levelindex(y)
+        return levelcode(x) < levelcode(y)
     end
 end
 
@@ -157,7 +157,7 @@ function Base.:<(x::CategoricalValue, y)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
-        return levelindex(x) < levelindex(x.pool[get(x.pool, y)])
+        return levelcode(x) < levelcode(x.pool[get(x.pool, y)])
     end
 end
 
@@ -165,7 +165,7 @@ function Base.:<(y, x::CategoricalValue)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
-        return levelindex(x.pool[get(x.pool, y)]) < levelindex(x)
+        return levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
     end
 end
 
