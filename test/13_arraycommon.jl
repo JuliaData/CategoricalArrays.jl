@@ -1316,11 +1316,11 @@ end
     x = categorical([3, missing, 1, 4, missing])
     levels!(x, [4, 1, 3])
     @test levelcode.(x) ≅ [3, missing, 2, 1, missing]
-    @test levelcode.(x) isa Vector{Union{Missing,Int}}
+    @test levelcode.(x) isa Vector{Union{Missing,Int64}}
 
     replace!(x, missing=>1)
     @test levelcode.(x) ≅ [3, 2, 2, 1, 2]
-    @test levelcode.(x) isa Vector{Int}
+    @test levelcode.(x) isa Vector{Int64}
 
     x = CategoricalVector{Int,UInt8}([3, 0, 1, 4, 0])
     levels!(x, [4, 1, 3, 0])
