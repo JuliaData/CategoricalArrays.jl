@@ -188,5 +188,17 @@ end
     @test convert(Union{Float64, Nothing}, v2) === 2.0
 end
 
+@testset "levelcode" begin
+    pool = CategoricalPool{Int,UInt8}([3, 1, 2])
+    levels!(pool, [2, 1, 3])
+    for i in 1:3
+        v = CategoricalArrays.catvalue(i, pool)
+        @test levelcode(v) isa Int16
+        @test levels(pool)[levelcode(v)] == v
+    end
+
+    @test levelcode(missing) === missing
+end
+
 
 end

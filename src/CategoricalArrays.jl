@@ -2,12 +2,10 @@ module CategoricalArrays
     export CategoricalPool, CategoricalValue, CategoricalString
     export AbstractCategoricalArray, AbstractCategoricalVector, AbstractCategoricalMatrix,
            CategoricalArray, CategoricalVector, CategoricalMatrix
-    export AbstractMissingCategoricalArray, AbstractMissingCategoricalVector,
-           AbstractMissingCategoricalMatrix,
-           MissingCategoricalArray, MissingCategoricalVector, MissingCategoricalMatrix
     export LevelsException, OrderedLevelsException
 
-    export categorical, compress, decompress, droplevels!, levels, levels!, isordered, ordered!
+    export categorical, compress, decompress, droplevels!, levels, levels!, levelcode,
+           isordered, ordered!
     export cut, recode, recode!
 
     using Compat

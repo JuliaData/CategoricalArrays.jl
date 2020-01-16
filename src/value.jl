@@ -48,7 +48,23 @@ catvaluetype(::Type{<:AbstractString}) = CategoricalString
 catvaluetype(::Type{Union{}}) where {R} = CategoricalValue{Union{}}
 
 Base.get(x::CatValue) = index(pool(x))[level(x)]
-order(x::CatValue) = order(pool(x))[level(x)]
+
+"""
+    levelcode(x::Union{CategoricalValue, CategoricalString})
+
+Get the code of categorical value `x`, i.e. its index in the set
+of possible values returned by [`levels(x)`](@ref).
+"""
+levelcode(x::CatValue) = Signed(widen(order(pool(x))[level(x)]))
+
+"""
+    levelcode(x::Missing)
+
+Return `missing`.
+"""
+levelcode(x::Missing) = missing
+
+DataAPI.levels(x::CatValue) = levels(pool(x))
 
 # creates categorical value for `level` from the `pool`
 # The result is of type `C` that has "categorical value" trait
@@ -102,7 +118,7 @@ if VERSION >= v"0.7.0-DEV.2797"
         elseif isordered(pool(x))
             @printf(io, "%s %s (%i/%i)",
                     typeof(x), repr(x),
-                    order(x), length(pool(x)))
+                    levelcode(x), length(pool(x)))
         else
             @printf(io, "%s %s", typeof(x), repr(x))
         end
@@ -114,7 +130,7 @@ else
         elseif isordered(pool(x))
             @printf(io, "%s %s (%i/%i)",
                     typeof(x), repr(x),
-                    order(x), length(pool(x)))
+                    levelcode(x), length(pool(x)))
         else
             @printf(io, "%s %s", typeof(x), repr(x))
         end
@@ -168,15 +184,15 @@ function Base.isless(x::CatValue, y::CatValue)
     if pool(x) !== pool(y)
         throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
     else
-        return order(x) < order(y)
+        return levelcode(x) < levelcode(y)
     end
 end
 
-Base.isless(x::CatValue, y) = order(x) < order(x.pool[get(x.pool, y)])
-Base.isless(x::CatValue, y::AbstractString) = order(x) < order(x.pool[get(x.pool, y)])
+Base.isless(x::CatValue, y) = levelcode(x) < levelcode(x.pool[get(x.pool, y)])
+Base.isless(x::CatValue, y::AbstractString) = levelcode(x) < levelcode(x.pool[get(x.pool, y)])
 Base.isless(::CatValue, ::Missing) = true
-Base.isless(y, x::CatValue) = order(x.pool[get(x.pool, y)]) < order(x)
-Base.isless(y::AbstractString, x::CatValue) = order(x.pool[get(x.pool, y)]) < order(x)
+Base.isless(y, x::CatValue) = levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
+Base.isless(y::AbstractString, x::CatValue) = levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
 Base.isless(::Missing, ::CatValue) = false
 
 function Base.:<(x::CatValue, y::CatValue)
@@ -185,7 +201,7 @@ function Base.:<(x::CatValue, y::CatValue)
     elseif !isordered(pool(x)) # !isordered(pool(y)) is implied by pool(x) === pool(y)
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
-        return order(x) < order(y)
+        return levelcode(x) < levelcode(y)
     end
 end
 
@@ -193,7 +209,7 @@ function Base.:<(x::CatValue, y)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
-        return order(x) < order(x.pool[get(x.pool, y)])
+        return levelcode(x) < levelcode(x.pool[get(x.pool, y)])
     end
 end
 
@@ -204,7 +220,7 @@ function Base.:<(y, x::CatValue)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
-        return order(x.pool[get(x.pool, y)]) < order(x)
+        return levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
     end
 end
 
