@@ -530,10 +530,12 @@ end
 leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(nonmissingtype(eltype(T)))
 
 """
-    levels(A::CategoricalArray)
+    levels(x::CategoricalArray)
+    levels(x::CategoricalValue)
 
-Return the levels of categorical array `A`. This may include levels which do not actually appear
-in the data (see [`droplevels!`](@ref)).
+Return the levels of categorical array or value `x`.
+This may include levels which do not actually appear in the data
+(see [`droplevels!`](@ref)).
 """
 DataAPI.levels(A::CategoricalArray) = levels(A.pool)
 
@@ -772,6 +774,15 @@ Base.Broadcast.broadcasted(::typeof(ismissing), A::CategoricalArray{T}) where {T
 Base.Broadcast.broadcasted(::typeof(!ismissing), A::CategoricalArray{T}) where {T} =
     T >: Missing ? Base.Broadcast.broadcasted(>, A.refs, 0) :
                    Base.Broadcast.broadcasted(_ -> true, A.refs)
+
+function Base.Broadcast.broadcasted(::typeof(levelcode), A::CategoricalArray{T}) where {T}
+    ord = order(A.pool)
+    if T >: Missing
+        Base.Broadcast.broadcasted(i -> i > 0 ? Signed(widen(ord[i])) : missing, A.refs)
+    else
+        Base.Broadcast.broadcasted(i -> Signed(widen(ord[i])), A.refs)
+    end
+end
 
 function Base.sort!(v::CategoricalVector;
                     # alg is ignored since counting sort is more efficient
