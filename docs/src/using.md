@@ -205,7 +205,7 @@ julia> levels!(y, ["Young", "Middle"]; allow_missing=true)
 
 `isordered(A)` - Test whether entries in `A` can be compared using `<`, `>` and similar operators
 
-`ordered!(A)` - Set whether entries in `A` can be compared using `<`, `>` and similar operators
+`ordered!(A, ordered)` - Set whether entries in `A` can be compared using `<`, `>` and similar operators
 
 `recode(a[, default], pairs...)` - Return a copy of `a` after replacing one or more values
 
