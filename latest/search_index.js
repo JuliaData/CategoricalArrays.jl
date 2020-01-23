@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Using CategoricalArrays",
     "title": "Working with categorical arrays",
     "category": "section",
-    "text": "categorical(A) - Construct a categorical array with values from Acompress(A) - Return a copy of categorical array A using the smallest possible reference typecut(x) - Cut a numeric array into intervals and return an ordered CategoricalArraydecompress(A) - Return a copy of categorical array A using the default reference typeisordered(A) - Test whether entries in A can be compared using <, > and similar operatorsordered!(A) - Set whether entries in A can be compared using <, > and similar operatorsrecode(a[, default], pairs...) - Return a copy of a after replacing one or more valuesrecode!(a[, default], pairs...) - Replace one or more values in a in-placecategorical\ncompress\ncut\ndecompress\nisordered\nordered!\nrecode\nrecode!"
+    "text": "categorical(A) - Construct a categorical array with values from Acompress(A) - Return a copy of categorical array A using the smallest possible reference typecut(x) - Cut a numeric array into intervals and return an ordered CategoricalArraydecompress(A) - Return a copy of categorical array A using the default reference typeisordered(A) - Test whether entries in A can be compared using <, > and similar operatorsordered!(A, ordered) - Set whether entries in A can be compared using <, > and similar operatorsrecode(a[, default], pairs...) - Return a copy of a after replacing one or more valuesrecode!(a[, default], pairs...) - Replace one or more values in a in-placecategorical\ncompress\ncut\ndecompress\nisordered\nordered!\nrecode\nrecode!"
 },
 
 {
