@@ -113,9 +113,9 @@ const ≅ = isequal
                 @test_throws Exception x[1] > x[2]
                 @test_throws Exception x[3] > x[2]
 
-                @test x[1] === x.pool.valindex[1]
-                @test x[2] === x.pool.valindex[2]
-                @test x[3] === x.pool.valindex[1]
+                @test x[1] === x.pool.valindex[2]
+                @test x[2] === x.pool.valindex[1]
+                @test x[3] === x.pool.valindex[2]
                 @test_throws BoundsError x[4]
 
                 x2 = x[:]
@@ -148,20 +148,20 @@ const ≅ = isequal
                 @test isordered(x2) == isordered(x)
 
                 x[1] = x[2]
-                @test x[1] === x.pool.valindex[2]
-                @test x[2] === x.pool.valindex[2]
-                @test x[3] === x.pool.valindex[1]
+                @test x[1] === x.pool.valindex[1]
+                @test x[2] === x.pool.valindex[1]
+                @test x[3] === x.pool.valindex[2]
 
                 x[3] = "c"
-                @test x[1] === x.pool.valindex[2]
-                @test x[2] === x.pool.valindex[2]
+                @test x[1] === x.pool.valindex[1]
+                @test x[2] === x.pool.valindex[1]
                 @test x[3] === x.pool.valindex[3]
                 @test levels(x) == ["a", "b", "c"]
 
                 x[2:3] .= "b"
-                @test x[1] === x.pool.valindex[2]
-                @test x[2] === x.pool.valindex[1]
-                @test x[3] === x.pool.valindex[1]
+                @test x[1] === x.pool.valindex[1]
+                @test x[2] === x.pool.valindex[2]
+                @test x[3] === x.pool.valindex[2]
                 @test levels(x) == ["a", "b", "c"]
 
                 @test droplevels!(x) === x
@@ -173,9 +173,9 @@ const ≅ = isequal
 
                 @test levels!(x, ["b", "a"]) === x
                 @test levels(x) == ["b", "a"]
-                @test x[1] === x.pool.valindex[1]
-                @test x[2] === x.pool.valindex[2]
-                @test x[3] === x.pool.valindex[2]
+                @test x[1] === x.pool.valindex[2]
+                @test x[2] === x.pool.valindex[1]
+                @test x[3] === x.pool.valindex[1]
                 @test levels(x) == ["b", "a"]
 
                 @test_throws ArgumentError levels!(x, ["a"])
@@ -184,15 +184,15 @@ const ≅ = isequal
 
                 @test levels!(x, ["e", "a", "b"]) === x
                 @test levels(x) == ["e", "a", "b"]
-                @test x[1] === x.pool.valindex[1]
-                @test x[2] === x.pool.valindex[2]
-                @test x[3] === x.pool.valindex[2]
+                @test x[1] === x.pool.valindex[2]
+                @test x[2] === x.pool.valindex[3]
+                @test x[3] === x.pool.valindex[3]
                 @test levels(x) == ["e", "a", "b"]
 
                 x[1] = "c"
                 @test x[1] === x.pool.valindex[4]
-                @test x[2] === x.pool.valindex[2]
-                @test x[3] === x.pool.valindex[2]
+                @test x[2] === x.pool.valindex[3]
+                @test x[3] === x.pool.valindex[3]
                 @test levels(x) == ["e", "a", "b", "c"]
 
                 @test_throws ArgumentError levels!(x, ["e", "c"])

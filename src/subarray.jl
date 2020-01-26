@@ -4,12 +4,12 @@ DataAPI.levels(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = levels(par
 isordered(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = isordered(parent(sa))
 # This method cannot support allow_missing=true since that would modify the parent
 levels!(sa::SubArray{T,N,P}, newlevels::Vector) where {T,N,P<:CategoricalArray} =
-    levels!(parent(sa), levels)
+    levels!(parent(sa), newlevels)
 
 function unique(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray}
     A = parent(sa)
     refs = view(A.refs, sa.indices...)
-    S = eltype(P) >: Missing ? Union{eltype(index(A.pool)), Missing} : eltype(index(A.pool))
+    S = eltype(P) >: Missing ? Union{eltype(levels(A.pool)), Missing} : eltype(levels(A.pool))
     _unique(S, refs, A.pool)
 end
 

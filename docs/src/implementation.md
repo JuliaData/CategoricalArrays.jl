@@ -2,25 +2,12 @@
 
 `CategoricalArray` is made of the two fields:
 
-- `refs`: an integer array that stores the position of the category level in the `index` field of `CategoricalPool` for each `CategoricalArray` element; `0` denotes a missing value (for `CategoricalArray{Union{T, Missing}}` only).
+- `refs`: an integer array that stores the position of the category level in the `levels` field of `CategoricalPool` for each `CategoricalArray` element; `0` denotes a missing value (for `CategoricalArray{Union{T, Missing}}` only).
 - `pool`: the `CategoricalPool` object that maintains the levels of the array.
 
-!!! warning
+The `CategoricalPool{V,R,C}` type keeps track of the levels of type `V` and associates them with an integer reference code of type `R` (for internal use). It offers methods to add new levels, and efficiently get the integer index corresponding to a level and vice-versa. Whether the values of `CategoricalArray` are ordered or not is defined by an `ordered` field of the pool. Finally, `CategoricalPool{V,R,C}` keeps a `valindex` vector of value objects of type `C == CategoricalValue{V, R}`, so that `getindex` can return the existing object instead of allocating a new one.
 
-    Integer codes in the `x.refs` field *cannot* be used to index into the vector returned
-    by `levels(x)`. These codes refer to the position in the *index*, which can be accessed
-    using `CategoricalArrays.index(x.pool)`. That is,
-    `CategoricalArrays.index(x.pool)[x.refs] == x` always holds, but
-    `levels(x.pool)[x.refs] == x` is *not* correct in general. To obtain the position in
-    `levels(x)` of entries in `x`, use `CategoricalArrays.order(x.pool)[x.refs]`.
-
-    The reason for this subtlety is that it allows changing the order of levels without
-    having to reset all the underlying integer codes. This is especially useful for the
-    `CategoricalArray(::AbstractArray)` constructor, which needs to assign new codes as
-    new levels are encountered, potentially conflicting with the default ordering of
-    levels (based on `sort`).
-
-The `CategoricalPool{V,R,C}` type keeps track of the levels of type `V` and associates them with an integer reference code of type `R` (for internal use). It offers methods to set the levels, change their order while preserving the references, and efficiently get the integer index corresponding to a level and vice-versa. Whether the values of `CategoricalArray` are ordered or not is defined by an `ordered` field of the pool. Finally, `CategoricalPool{V,R,C}` keeps a `valindex` vector of value objects of type `C == CategoricalValue{V, R}`, so that `getindex` can return the existing object instead of allocating a new one.
+Do note that `CategoricalPool` levels are semi-mutable: it is only allowed to add new levels, but never to remove or reorder existing ones. This ensures existing `CategoricalValue` objects remain valid and always point to the same level as when they were created. Therefore, `CategoricalArray`s create a new pool each time some of their levels are removed or reordered. This happens when calling `levels!`, but also when assigning a `CategoricalValue` via `setindex!`, `push!`, `append!`, `copy!` or `copyto!`. This requires updating all reference codes to point to the new pool, and makes it impossible to compare existing ordered `CategoricalValue` objects with values from the array using `<` and `>`.
 
 The type parameters of `CategoricalArray{T, N, R <: Integer, V, C, U}` are a bit complex:
  - `T` is the type of array elements without `CategoricalValue` wrappers; if `T >: Missing`, then the array supports missing values.
@@ -33,5 +20,3 @@ The type parameters of `CategoricalArray{T, N, R <: Integer, V, C, U}` are a bit
 Only `T`, `N` and `R` could be specified upon construction. The last three parameters are chosen automatically, but are needed for the definition of the type. In particular, `U` allows expressing that `CategoricalArray{T, N}` inherits from `AbstractArray{Union{C, U}, N}` (which is equivalent to `AbstractArray{C, N}` for arrays which do not support missing values, and to `AbstractArray{Union{C, Missing}, N}` for those which support them).
 
 The `CategoricalPool` type is designed to limit the need to go over all elements of the vector, either for reading or for writing. This is why unused levels are not dropped automatically (this would force checking all elements on every modification or keeping a counts table), but only when `droplevels!` is called. `levels` is a (very fast) O(1) operation since it merely returns the (ordered) vector of levels without accessing the data at all.
-
-Another useful feature is that integer indices referring to levels are preserved when adding or reordering levels: the order of levels exposed to the user by the `levels` function does not necessarily match these internal indices, which are stored in the `index` field of the pool. This means a reordering of the levels is also an O(1) operation. On the other hand, deleting levels may change the indices and therefore requires iterating over all elements in the array to update the references.

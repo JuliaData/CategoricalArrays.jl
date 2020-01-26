@@ -125,8 +125,7 @@ end
 end
 
 @testset "levelcode" begin
-    pool = CategoricalPool{Int,UInt8}([3, 1, 2])
-    levels!(pool, [2, 1, 3])
+    pool = CategoricalPool{Int,UInt8}([2, 1, 3])
     for i in 1:3
         v = CategoricalValue(i, pool)
         @test levelcode(v) isa Int16

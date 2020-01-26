@@ -7,18 +7,40 @@ const DefaultRefType = UInt32
 # * `R` integer type for referencing category levels
 # * `V` categorical value type
 mutable struct CategoricalPool{T, R <: Integer, V}
-    index::Vector{T}        # category levels ordered by their reference codes
+    levels::Vector{T}       # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
-    order::Vector{R}        # 1-to-1 map from `index` to `level` (position of i-th category in `levels`)
-    levels::Vector{T}       # category levels ordered by externally specified order
     valindex::Vector{V}     # "category value" objects 1-to-1 matching `index`
     ordered::Bool
 
-    function CategoricalPool{T, R, V}(index::Vector{T},
+    function CategoricalPool{T, R, V}(levels::Vector{T},
+                                      ordered::Bool) where {T, R, V}
+        if length(levels) > typemax(R)
+            throw(LevelsException{T, R}(levels[Int(typemax(R))+1:end]))
+        end
+        invindex = Dict{T, R}(v => i for (i, v) in enumerate(levels))
+        if length(invindex) != length(levels)
+            throw(ArgumentError("Duplicate entries are not allowed in levels"))
+        end
+        CategoricalPool{T, R, V}(levels, invindex, ordered)
+    end
+    function CategoricalPool{T, R, V}(invindex::Dict{T, R},
+                                      ordered::Bool) where {T, R, V}
+        levels = Vector{T}(undef, length(invindex))
+        # If invindex contains non consecutive values, a BoundsError will be thrown
+        try
+            for (k, v) in invindex
+                levels[v] = k
+            end
+        catch BoundsError
+            throw(ArgumentError("Reference codes must be in 1:length(invindex)"))
+        end
+        if length(invindex) > typemax(R)
+            throw(LevelsException{T, R}(levels[typemax(R)+1:end]))
+        end
+        CategoricalPool{T, R, V}(levels, invindex, ordered)
+    end
+    function CategoricalPool{T, R, V}(levels::Vector{T},
                                       invindex::Dict{T, R},
-                                      order::Vector{R},
-                                      levels::Vector{T},
-                                      valindex::Vector{V},
                                       ordered::Bool) where {T, R, V}
         if T <: CategoricalValue && T !== Union{}
             throw(ArgumentError("Level type $T cannot be a categorical value type"))
@@ -26,13 +48,13 @@ mutable struct CategoricalPool{T, R <: Integer, V}
         if !(V <: CategoricalValue)
             throw(ArgumentError("Type $V is not a categorical value type"))
         end
-        if leveltype(V) !== T
-            throw(ArgumentError("Level type of the categorical value ($(leveltype(V))) and of the pool ($T) do not match"))
+        if V !== CategoricalValue{T, R}
+            throw(ArgumentError("V must be CategoricalValue{T, R}"))
         end
-        if reftype(V) !== R
-            throw(ArgumentError("Reference type of the categorical value ($(reftype(V))) and of the pool ($R) do not match"))
-        end
-        new(index, invindex, order, levels, valindex, ordered)
+        valindex = Vector{V}(undef, length(levels))
+        pool = new(levels, invindex, valindex, ordered)
+        pool.valindex .= CategoricalValue.(1:length(levels), Ref(pool))
+        return pool
     end
 end
 
@@ -78,7 +100,7 @@ abstract type AbstractCategoricalArray{T, N, R, V, C, U} <: AbstractArray{Union{
 const AbstractCategoricalVector{T, R, V, C, U} = AbstractCategoricalArray{T, 1, R, V, C, U}
 const AbstractCategoricalMatrix{T, R, V, C, U} = AbstractCategoricalArray{T, 2, R, V, C, U}
 
-struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray{T, N, R, V, C, U}
+mutable struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray{T, N, R, V, C, U}
     refs::Array{R, N}
     pool::CategoricalPool{V, R, C}
 
@@ -92,3 +114,7 @@ struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategoricalArray
 end
 const CategoricalVector{T, R, V, C, U} = CategoricalArray{T, 1, V, C, U}
 const CategoricalMatrix{T, R, V, C, U} = CategoricalArray{T, 2, V, C, U}
+
+CatArrOrSub{T, N, R} = Union{CategoricalArray{T, N, R},
+                             SubArray{<:Any, N, <:CategoricalArray{T, <:Any, R}}} where
+                             {T, N, R<:Integer}

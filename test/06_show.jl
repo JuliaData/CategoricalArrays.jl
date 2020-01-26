@@ -5,8 +5,7 @@ using CategoricalArrays
 
 @testset "show() for CategoricalPool{String} and its values" begin
     pool = CategoricalPool(["c", "b", "a"])
-
-    opool = CategoricalPool(["c", "b", "a"], ["a", "b", "c"], true)
+    opool = CategoricalPool(["c", "b", "a"], true)
 
     nv1 = CategoricalValue(1, pool)
     nv2 = CategoricalValue(2, pool)
@@ -17,15 +16,15 @@ using CategoricalArrays
     ov3 = CategoricalValue(3, opool)
 
     @test sprint(show, pool) == "$CategoricalPool{String,UInt32}([\"c\",\"b\",\"a\"])"
-    @test sprint(show, opool) == "$CategoricalPool{String,UInt32}([\"a\",\"b\",\"c\"]) with ordered levels"
+    @test sprint(show, opool) == "$CategoricalPool{String,UInt32}([\"c\",\"b\",\"a\"]) with ordered levels"
 
     @test sprint(show, nv1) == "$CategoricalValue{String,UInt32} \"c\""
     @test sprint(show, nv2) == "$CategoricalValue{String,UInt32} \"b\""
     @test sprint(show, nv3) == "$CategoricalValue{String,UInt32} \"a\""
 
-    @test sprint(show, ov1) == "$CategoricalValue{String,UInt32} \"c\" (3/3)"
+    @test sprint(show, ov1) == "$CategoricalValue{String,UInt32} \"c\" (1/3)"
     @test sprint(show, ov2) == "$CategoricalValue{String,UInt32} \"b\" (2/3)"
-    @test sprint(show, ov3) == "$CategoricalValue{String,UInt32} \"a\" (1/3)"
+    @test sprint(show, ov3) == "$CategoricalValue{String,UInt32} \"a\" (3/3)"
 
     @test sprint(show, nv1, context=:typeinfo=>typeof(nv1)) == "\"c\""
     @test sprint(show, nv2, context=:typeinfo=>typeof(nv2)) == "\"b\""
@@ -68,9 +67,7 @@ end
 
 @testset "show() for CategoricalPool{Date} and its values" begin
     pool = CategoricalPool([Date(1999, 12), Date(1991, 8), Date(1993, 10)])
-
-    opool = CategoricalPool([Date(1999, 12), Date(1991, 8), Date(1993, 10)],
-                            [Date(1991, 8), Date(1993, 10), Date(1999, 12)], true)
+    opool = CategoricalPool([Date(1999, 12), Date(1991, 8), Date(1993, 10)], true)
 
     nv1 = CategoricalValue(1, pool)
     nv2 = CategoricalValue(2, pool)
@@ -81,15 +78,15 @@ end
     ov3 = CategoricalValue(3, opool)
 
     @test sprint(show, pool) == "$CategoricalPool{Dates.Date,UInt32}([1999-12-01,1991-08-01,1993-10-01])"
-    @test sprint(show, opool) == "$CategoricalPool{Dates.Date,UInt32}([1991-08-01,1993-10-01,1999-12-01]) with ordered levels"
+    @test sprint(show, opool) == "$CategoricalPool{Dates.Date,UInt32}([1999-12-01,1991-08-01,1993-10-01]) with ordered levels"
 
     @test sprint(show, nv1) == "$CategoricalValue{Dates.Date,UInt32} 1999-12-01"
     @test sprint(show, nv2) == "$CategoricalValue{Dates.Date,UInt32} 1991-08-01"
     @test sprint(show, nv3) == "$CategoricalValue{Dates.Date,UInt32} 1993-10-01"
 
-    @test sprint(show, ov1) == "$CategoricalValue{Dates.Date,UInt32} 1999-12-01 (3/3)"
-    @test sprint(show, ov2) == "$CategoricalValue{Dates.Date,UInt32} 1991-08-01 (1/3)"
-    @test sprint(show, ov3) == "$CategoricalValue{Dates.Date,UInt32} 1993-10-01 (2/3)"
+    @test sprint(show, ov1) == "$CategoricalValue{Dates.Date,UInt32} 1999-12-01 (1/3)"
+    @test sprint(show, ov2) == "$CategoricalValue{Dates.Date,UInt32} 1991-08-01 (2/3)"
+    @test sprint(show, ov3) == "$CategoricalValue{Dates.Date,UInt32} 1993-10-01 (3/3)"
 
     @test sprint(show, nv1, context=:typeinfo=>typeof(nv1)) == "1999-12-01"
     @test sprint(show, nv2, context=:typeinfo=>typeof(nv2)) == "1991-08-01"

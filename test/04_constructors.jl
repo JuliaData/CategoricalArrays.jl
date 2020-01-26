@@ -6,15 +6,21 @@ using CategoricalArrays: DefaultRefType
 @testset "Type parameter constraints" begin
     # cannot use categorical value as level type
     @test_throws ArgumentError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
-            CategoricalValue{Int,UInt8}[], Dict{CategoricalValue{Int,UInt8}, UInt8}(), UInt8[], false)
+            Dict{CategoricalValue{Int,UInt8}, UInt8}(), false)
+    @test_throws ArgumentError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
+                CategoricalValue{Int,UInt8}[], false)
     # cannot use non-categorical value as categorical value type
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Int[], Dict{Int, UInt8}(), UInt8[], false)
-    # level type of the pool and categorical value should match
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{String, UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
-    # reference type of the pool and categorical value should match
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Int[], Dict{Int, UInt8}(), UInt8[], false)
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Int[], false)
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Dict{Int, UInt8}(), false)
+    # level type of the pool and categorical value must match
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{String, UInt8}}(Int[], false)
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{String, UInt8}}(Dict{Int, UInt8}(), false)
+    # reference type of the pool and categorical value must match
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Int[], false)
+    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Dict{Int, UInt8}(), false)
     # correct types combination
-    @test CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}}(Int[], Dict{Int, UInt8}(), UInt8[], false) isa CategoricalPool
+    @test CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}}(Int[], false) isa CategoricalPool
+    @test CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}}(Dict{Int, UInt8}(), false) isa CategoricalPool
 end
 
 @testset "empty CategoricalPool{String}" begin
@@ -22,8 +28,8 @@ end
 
     @test isa(pool, CategoricalPool{String})
 
-    @test isa(pool.index, Vector{String})
-    @test length(pool.index) == 0
+    @test isa(pool.levels, Vector{String})
+    @test length(pool.levels) == 0
 
     @test isa(pool.invindex, Dict{String, DefaultRefType})
     @test length(pool.invindex) == 0
@@ -34,8 +40,8 @@ end
 
     @test isa(pool, CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}})
 
-    @test isa(pool.index, Vector{Int})
-    @test length(pool.index) == 0
+    @test isa(pool.levels, Vector{Int})
+    @test length(pool.levels) == 0
 
     @test isa(pool.invindex, Dict{Int, UInt8})
     @test length(pool.invindex) == 0
@@ -46,11 +52,8 @@ end
 
     @test isa(pool, CategoricalPool{String, UInt32, CategoricalValue{String, UInt32}})
 
-    @test isa(pool.index, Vector{String})
-    @test length(pool.index) == 3
-    @test pool.index[1] == "a"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "c"
+    @test isa(pool.levels, Vector{String})
+    @test pool.levels == ["a", "b", "c"]
 
     @test isa(pool.invindex, Dict{String, DefaultRefType})
     @test length(pool.invindex) == 3
@@ -64,11 +67,8 @@ end
 
     @test isa(pool, CategoricalPool)
 
-    @test isa(pool.index, Vector{String})
-    @test length(pool.index) == 3
-    @test pool.index[1] == "a"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "c"
+    @test isa(pool.levels, Vector{String})
+    @test pool.levels == ["a", "b", "c"]
 
     @test isa(pool.invindex, Dict{String, UInt8})
     @test length(pool.invindex) == 3
@@ -77,7 +77,7 @@ end
     @test pool.invindex["c"] === UInt8(3)
 end
 
-@testset "CategoricalPool(a b c) with specified reference codes" begin
+@testset "CategoricalPool(a b c) with invindex" begin
     pool = CategoricalPool(
         Dict(
             "a" => DefaultRefType(1),
@@ -88,11 +88,8 @@ end
 
     @test isa(pool, CategoricalPool)
 
-    @test isa(pool.index, Vector{String})
-    @test length(pool.index) == 3
-    @test pool.index[1] == "a"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "c"
+    @test isa(pool.levels, Vector{String})
+    @test pool.levels == ["a", "b", "c"]
 
     @test isa(pool.invindex, Dict{String, DefaultRefType})
     @test length(pool.invindex) == 3
@@ -101,9 +98,7 @@ end
     @test pool.invindex["c"] === DefaultRefType(3)
 end
 
-@testset "CategoricalPool(a b c) with specified Int ref codes" begin
-    # TODO: Make sure that invindex input is exhaustive
-    # Raise an error if map misses any entries
+@testset "CategoricalPool(a b c) with invindex" begin
     pool = CategoricalPool(
         Dict(
             "a" => 1,
@@ -114,17 +109,14 @@ end
 
     @test isa(pool, CategoricalPool)
 
-    @test isa(pool.index, Vector{String})
-    @test length(pool.index) == 3
-    @test pool.index[1] == "a"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "c"
+    @test isa(pool.levels, Vector{String})
+    @test pool.levels == ["a", "b", "c"]
 
-    @test isa(pool.invindex, Dict{String, DefaultRefType})
+    @test isa(pool.invindex, Dict{String, Int})
     @test length(pool.invindex) == 3
-    @test pool.invindex["a"] === DefaultRefType(1)
-    @test pool.invindex["b"] === DefaultRefType(2)
-    @test pool.invindex["c"] === DefaultRefType(3)
+    @test pool.invindex["a"] === 1
+    @test pool.invindex["b"] === 2
+    @test pool.invindex["c"] === 3
 end
 
 @testset "CategoricalPool(c b a)" begin
@@ -132,22 +124,13 @@ end
 
     @test isa(pool, CategoricalPool)
 
-    @test length(pool.index) == 3
-    @test pool.index[1] == "c"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "a"
+    @test pool.levels == ["c", "b", "a"]
 
     @test isa(pool.invindex, Dict{String, DefaultRefType})
     @test length(pool.invindex) == 3
     @test pool.invindex["c"] === DefaultRefType(1)
     @test pool.invindex["b"] === DefaultRefType(2)
     @test pool.invindex["a"] === DefaultRefType(3)
-
-    @test isa(pool.order, Vector{DefaultRefType})
-    @test length(pool.order) == 3
-    @test pool.order[1] === DefaultRefType(1)
-    @test pool.order[2] === DefaultRefType(2)
-    @test pool.order[3] === DefaultRefType(3)
 end
 
 @testset "CategoricalPool(a b c) with ref codes not matching the natural order" begin
@@ -161,75 +144,13 @@ end
 
     @test isa(pool, CategoricalPool)
 
-    @test length(pool.index) == 3
-    @test pool.index[1] == "c"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "a"
+    @test pool.levels == ["c", "b", "a"]
 
     @test isa(pool.invindex, Dict{String, DefaultRefType})
     @test length(pool.invindex) == 3
     @test pool.invindex["c"] === DefaultRefType(1)
     @test pool.invindex["b"] === DefaultRefType(2)
     @test pool.invindex["a"] === DefaultRefType(3)
-
-    @test isa(pool.order, Vector{DefaultRefType})
-    @test length(pool.order) == 3
-    @test pool.order[1] === DefaultRefType(1)
-    @test pool.order[2] === DefaultRefType(2)
-    @test pool.order[3] === DefaultRefType(3)
-end
-
-@testset "CategoricalPool(a b c) with specified levels order" begin
-    pool = CategoricalPool(["c", "b", "a"], ["c", "b", "a"])
-
-    @test isa(pool, CategoricalPool)
-
-    @test length(pool.index) == 3
-    @test pool.index[1] == "c"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "a"
-
-    @test isa(pool.invindex, Dict{String, DefaultRefType})
-    @test length(pool.invindex) == 3
-    @test pool.invindex["c"] === DefaultRefType(1)
-    @test pool.invindex["b"] === DefaultRefType(2)
-    @test pool.invindex["a"] === DefaultRefType(3)
-
-    @test isa(pool.order, Vector{DefaultRefType})
-    @test length(pool.order) == 3
-    @test pool.order[1] === DefaultRefType(1)
-    @test pool.order[2] === DefaultRefType(2)
-    @test pool.order[3] === DefaultRefType(3)
-end
-
-@testset "CategoricalPool(a b c) with specified index and levels order" begin
-    pool = CategoricalPool(
-        Dict(
-            "a" => DefaultRefType(3),
-            "b" => DefaultRefType(2),
-            "c" => DefaultRefType(1),
-        ),
-        ["c", "b", "a"]
-    )
-
-    @test isa(pool, CategoricalPool)
-
-    @test length(pool.index) == 3
-    @test pool.index[1] == "c"
-    @test pool.index[2] == "b"
-    @test pool.index[3] == "a"
-
-    @test isa(pool.invindex, Dict{String, DefaultRefType})
-    @test length(pool.invindex) == 3
-    @test pool.invindex["c"] === DefaultRefType(1)
-    @test pool.invindex["b"] === DefaultRefType(2)
-    @test pool.invindex["a"] === DefaultRefType(3)
-
-    @test isa(pool.order, Vector{DefaultRefType})
-    @test length(pool.order) == 3
-    @test pool.order[1] === DefaultRefType(1)
-    @test pool.order[2] === DefaultRefType(2)
-    @test pool.order[3] === DefaultRefType(3)
 end
 
 @testset "CategoricalPool{Float64, UInt8}()" begin
@@ -237,6 +158,11 @@ end
 
     @test isa(pool, CategoricalPool{Float64, UInt8, CategoricalValue{Float64, UInt8}})
     @test CategoricalValue(1, pool) isa CategoricalValue{Float64, UInt8}
+end
+
+@testset "Invalid arguments" begin
+    @test_throws ArgumentError CategoricalPool(Dict("a" => 1, "b" => 3))
+    @test_throws ArgumentError CategoricalPool(["a", "a"])
 end
 
 end

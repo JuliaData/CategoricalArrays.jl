@@ -2,7 +2,7 @@ module TestArrayCommon
 using Test
 using Future: copy!
 using CategoricalArrays, DataAPI
-using CategoricalArrays: DefaultRefType, index
+using CategoricalArrays: DefaultRefType
 
 const ≅ = isequal
 const ≇ = !isequal
@@ -243,56 +243,132 @@ end
         end
     end
 
-    @testset "copy! and copyto!" begin
+    @testset "copy! and copyto!" for ordered in (false, true)
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
-        ordered!(x, true)
+        ordered!(x, ordered)
         y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
 
         for copyf! in (copy!, copyto!)
             x2 = copy(x)
-            @test copyf!(x2, y) === x2
-            @test x2 == y
-            @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
-            @test !isordered(x2)
+            if ordered
+                @test_throws OrderedLevelsException copyf!(x2, y)
+                @test x2 == x
+                @test levels(x2) == ["Young", "Middle", "Old"]
+                @test isordered(x2)
+            else
+                @test copyf!(x2, y) === x2
+                @test x2 == y
+                @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+                @test !isordered(x2)
+            end
         end
 
         x = CategoricalArray{Union{T, String}}(["Old", "Young", "Middle", "Young"])
         levels!(x, ["Young", "Middle", "Old"])
-        ordered!(x, true)
+        ordered!(x, ordered)
+        x2 = copy(x)
         y = CategoricalArray{Union{T, String}}(["X", "Z", "Y", "X"])
-        a = (Union{String, Missing})["Z", "Y", "X", "Young"]
+        a = Union{String, Missing}["Z", "Y", "X", "Young"]
         # Test with missing values
         if T === Missing
-            x[3] = missing
+            x[3] = x2[3] = missing
             y[3] = a[2] = missing
         end
-        @test copyto!(x, 1, y, 2) === x
-        @test x ≅ a
-        @test levels(x) == ["Young", "Middle", "Old", "X", "Y", "Z"]
-        @test !isordered(x)
+        if ordered
+            @test_throws OrderedLevelsException copyto!(x2, 1, y, 2)
+            @test x2 ≅ x
+            @test levels(x2) == ["Young", "Middle", "Old"]
+            @test isordered(x2)
+        else
+            @test copyto!(x2, 1, y, 2) === x2
+            @test x2 ≅ a
+            @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            @test !isordered(x2)
+        end
 
-        @testset "0-length copy!/copyto! does nothing (including bounds checks)" begin
+        @testset "0-length copy!/copyto! does nothing (including bounds checks) except setting levels" begin
             u = x[1:0]
             v = y[1:0]
 
-            @test copyto!(x, 1, y, 3, 0) === x
-            @test x ≅ a
-            @test copyto!(x, 1, y, 5, 0) === x
-            @test x ≅ a
+            x2 = copy(x)
+            if ordered
+                @test_throws OrderedLevelsException copyto!(x2, 1, y, 3, 0)
+            else
+                @test copyto!(x2, 1, y, 3, 0) === x2
+                @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test x2 ≅ x
 
-            @test copyto!(u, -5, v, 2, 0) === u
-            @test u ≅ v
-            @test copyto!(x, -5, v, 2, 0) === x
-            @test x ≅ a
-            @test copyto!(u, v) === u
-            @test u ≅ v
-            @test copyto!(x, v) === x
-            @test x ≅ a
-            @test copy!(u, v) === u
-            @test u ≅ v
-            @test copy!(x, v) === x
-            @test x ≅ a
+            x2 = copy(x)
+            if ordered
+                @test_throws OrderedLevelsException copyto!(x2, 1, y, 5, 0)
+                @test levels(x2) == ["Young", "Middle", "Old"]
+            else
+                @test copyto!(x2, 1, y, 5, 0) === x2
+                @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test x2 ≅ x
+
+            u2 = copy(u)
+            if ordered
+                @test_throws OrderedLevelsException copyto!(u2, -5, v, 2, 0)
+                @test levels(u2) == ["Young", "Middle", "Old"]
+            else
+                @test copyto!(u2, -5, v, 2, 0) === u2
+                @test levels(u2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test isempty(u2)
+
+            x2 = copy(x)
+            if ordered
+                @test_throws OrderedLevelsException copyto!(x2, -5, v, 2, 0)
+                @test levels(x2) == ["Young", "Middle", "Old"]
+            else
+                @test copyto!(x2, -5, v, 2, 0) === x2
+                @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test x2 ≅ x
+
+            u2 = copy(u)
+            if ordered
+                @test_throws OrderedLevelsException copyto!(u2, v)
+                @test levels(u2) == ["Young", "Middle", "Old"]
+            else
+                @test copyto!(u2, v) === u2
+                @test levels(u2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test isempty(u2)
+
+            x2 = copy(x)
+            if ordered
+                @test_throws OrderedLevelsException copyto!(x2, v)
+                @test levels(x2) == ["Young", "Middle", "Old"]
+            else
+                @test copyto!(x2, v) === x2
+                @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test x2 ≅ x
+
+            u2 = copy(u)
+            if ordered
+                @test_throws OrderedLevelsException copy!(u2, v)
+                @test levels(u2) == ["Young", "Middle", "Old"]
+            else
+                @test copy!(u2, v) === u2
+                @test levels(u2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test isempty(u2)
+
+            x2 = copy(x)
+            if ordered
+                @test_throws OrderedLevelsException copy!(x2, v)
+                @test levels(x2) == ["Young", "Middle", "Old"]
+            else
+                @test copy!(x2, v) === x2
+                @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
+            end
+            @test x2 ≅ x
         end
 
         @testset "nonzero-length copy!/copyto! into/from empty array throws bounds error" begin
@@ -305,25 +381,25 @@ end
             @test u ≅ v
             @test_throws BoundsError copyto!(u, 1, v, 1, 1)
             @test u ≅ v
-            @test_throws BoundsError copyto!(x, 1, v, 1, 1)
-            @test x ≅ a
+            @test_throws BoundsError copyto!(x2, 1, v, 1, 1)
+            @test x2 ≅ x
         end
 
         @testset "no corruption happens in case of bounds error" begin
-            @test_throws BoundsError copyto!(x, 10, y, 2)
-            @test x ≅ a
-            @test_throws BoundsError copyto!(x, 1, y, 10)
-            @test x ≅ a
-            @test_throws BoundsError copyto!(x, 10, y, 20)
-            @test x ≅ a
-            @test_throws BoundsError copyto!(x, 10, y, 2)
-            @test x ≅ a
-            @test_throws BoundsError copyto!(x, 1, y, 2, 10)
-            @test x ≅ a
-            @test_throws BoundsError copyto!(x, 4, y, 1, 2)
-            @test x ≅ a
-            @test_throws BoundsError copyto!(x, 1, y, 4, 2)
-            @test x ≅ a
+            @test_throws BoundsError copyto!(x2, 10, y, 2)
+            @test x2 ≅ x
+            @test_throws BoundsError copyto!(x2, 1, y, 10)
+            @test x2 ≅ x
+            @test_throws BoundsError copyto!(x2, 10, y, 20)
+            @test x2 ≅ x
+            @test_throws BoundsError copyto!(x2, 10, y, 2)
+            @test x2 ≅ x
+            @test_throws BoundsError copyto!(x2, 1, y, 2, 10)
+            @test x2 ≅ x
+            @test_throws BoundsError copyto!(x2, 4, y, 1, 2)
+            @test x2 ≅ x
+            @test_throws BoundsError copyto!(x2, 1, y, 4, 2)
+            @test x2 ≅ x
         end
     end
 
@@ -434,6 +510,18 @@ end
             copyf!(vdest, src)
             @test vdest == src[1:2]
             @test levels(dest) == levels(vdest) == ["e", "f", "b", "a"]
+
+            # Destination without any levels should be marked as ordered
+            src = levels!(CategoricalVector(v, ordered=true), reverse(v))
+            dest = CategoricalVector{Union{String,Missing}}([missing, missing])
+            dest2 = copy(dest)
+            vdest = view(dest2, 1:2)
+            res = @test_throws ArgumentError copyf!(vdest, src)
+            @test res.value.msg == "cannot set ordered=true on dest SubArray as it would " *
+                "affect the parent. Found when trying to set levels to [\"b\", \"a\"]."
+            @test dest2 ≅ dest
+            @test levels(dest2) == levels(vdest) == levels(dest)
+            @test !isordered(dest2) && !isordered(vdest)
         end
 
         @testset "copy a src into viewed dest and breaking orderedness" begin
@@ -441,18 +529,18 @@ end
             src = levels!(CategoricalVector(v), reverse(v))
             dest = CategoricalVector{String}(["e", "f", "g"], ordered=true)
             vdest = view(dest, 1:2)
-            res = @test_throws ArgumentError copyf!(vdest, src)
-            @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
-                "Found when trying to set levels to $(["e", "f", "g", "b", "a"])."
+            res = @test_throws OrderedLevelsException copyf!(vdest, src)
+            @test res.value.newlevel == "b"
+            @test res.value.levels == levels(dest)
             @test dest[1:2] ==  ["e", "f"]
             @test levels(dest) == levels(vdest) == ["e", "f", "g"]
             @test isordered(dest) && isordered(vdest)
 
             dest = CategoricalVector{String}(["e", "f"], ordered=true)
             vdest = view(dest, 1:2)
-            res = @test_throws ArgumentError copyf!(vdest, src)
-            @test res.value.msg == "cannot set ordered=false on dest SubArray as it would affect the parent. " *
-                "Found when trying to set levels to $(["e", "f", "b", "a"])."
+            res = @test_throws OrderedLevelsException copyf!(vdest, src)
+            @test res.value.newlevel == "b"
+            @test res.value.levels == levels(dest)
             @test dest == ["e", "f"]
             @test levels(dest) == levels(vdest) == ["e", "f"]
             @test isordered(dest) && isordered(vdest)
@@ -626,9 +714,10 @@ end
         ordered!(x, true)
         y = CategoricalArray{Union{T, String}}(["Middle", "Middle", "Old", "Young"])
         levels!(y, ["X", "Young", "Middle", "Old"])
-        @test copyf!(x, y) === x
-        @test levels(x) == ["X", "Young", "Middle", "Old"]
-        @test !isordered(x)
+        res = @test_throws OrderedLevelsException copyf!(x, y)
+        @test res.value.newlevel == "X"
+        @test levels(x) == ["Young", "Middle", "Old"]
+        @test isordered(x)
     end
 
     @testset "fill!()" begin
@@ -697,8 +786,8 @@ end
 
         x = CategoricalArray{Union{T, Int}, 1, UInt8}([1, 3, 256])
         res = @test_throws LevelsException{Int, UInt8} levels!(x, collect(1:256))
-        @test res.value.levels == [255]
-        @test sprint(showerror, res.value) == "cannot store level(s) 255 since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
+        @test res.value.levels == [256]
+        @test sprint(showerror, res.value) == "cannot store level(s) 256 since reference type UInt8 can only hold 255 levels. Use the decompress function to make room for more levels."
 
         x = CategoricalArray{Union{T, Int}}(30:2:131115)
         res = @test_throws LevelsException{Int, UInt16} CategoricalVector{Int, UInt16}(x)
@@ -760,7 +849,7 @@ end
         @test sort!(x) === x
         @test x == ["Young", "Young", "Middle", "Old"]
 
-        if T === Missing
+        if T !== Missing
             v = rand(["a", "b", "c", "d"], 1000)
         else
             v = rand(["a", "b", "c", "d", missing], 1000)
@@ -776,7 +865,7 @@ end
             cv = categorical(v)
             levels!(cv, ["b", "a", "c", "d"])
             @test sort(cv, rev=rev) ≅
-                [levels(cv); missing][sort([5; CategoricalArrays.order(cv.pool)][cv.refs .+ 1], rev=rev)]
+                ["b", "a", "c", "d", missing][sort([5, 1, 2, 3, 4][cv.refs .+ 1], rev=rev)]
 
             cv = categorical(v)
             @test sort(cv, rev=rev, lt=(x, y) -> isless(y, x)) ≅
@@ -827,7 +916,6 @@ end
         @test isordered(y) === isordered(x)
         @test isordered(x) === ordered_orig
         @test y.refs == x.refs
-        @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
         @test y.refs !== x.refs
         @test y.pool !== x.pool
@@ -839,7 +927,6 @@ end
         @test isordered(y) === isordered(x)
         @test isordered(x) === ordered_orig
         @test y.refs == x.refs
-        @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
         @test y.refs !== x.refs
         @test y.pool !== x.pool
@@ -859,7 +946,6 @@ end
         @test isordered(y) === ordered
         @test isordered(x) === ordered_orig
         @test y.refs == x.refs
-        @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
         @test y.refs !== x.refs
         @test y.pool !== x.pool
@@ -871,7 +957,6 @@ end
         @test isordered(y) === ordered
         @test isordered(x) === ordered_orig
         @test y.refs == x.refs
-        @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
         @test y.refs !== x.refs
         @test y.pool !== x.pool
@@ -886,7 +971,6 @@ end
         @test isordered(y) === isordered(x)
         @test isordered(x) === ordered_orig
         @test y.refs == x.refs
-        @test index(y.pool) == index(x.pool)
         @test levels(y) == levels(x)
         @test (y.refs === x.refs) == (eltype(x.refs) === eltype(y.refs))
         @test (y.pool === x.pool) == (eltype(x.refs) === eltype(y.refs))
@@ -1203,20 +1287,37 @@ end
 
         b = ["z","y","x"]
         y = CategoricalVector{String}(b)
-        append!(x, y)
-        @test isordered(x) === ordered
-        @test length(x) == 9
-        @test x == ["a", "b", "c", "a", "b", "c", "z", "y", "x"]
-        @test levels(x) == ["a", "b", "c", "x", "y", "z"]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, y)
+            @test isordered(x) === ordered
+            @test length(x) == 6
+            @test x == ["a", "b", "c", "a", "b", "c"]
+            @test levels(x) == ["a", "b", "c"]
+        else
+            append!(x, y)
+            @test isordered(x) === ordered
+            @test length(x) == 9
+            @test x == ["a", "b", "c", "a", "b", "c", "z", "y", "x"]
+            @test levels(x) == ["a", "b", "c", "x", "y", "z"]
+        end
 
         z1 = view(CategoricalVector{String}(["ex1", "ex2"]), 1)
         z2 = view(CategoricalVector{String}(["ex3", "ex4"]), 1:1)
-        append!(x, z1)
-        append!(x, z2)
-        @test isordered(x) === ordered
-        @test length(x) == 11
-        @test x == ["a", "b", "c", "a", "b", "c", "z", "y", "x", "ex1", "ex3"]
-        @test levels(x) == ["a", "b", "c", "x", "y", "z", "ex1", "ex2", "ex3", "ex4"]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, z1)
+            @test_throws OrderedLevelsException append!(x, z2)
+            @test isordered(x) === ordered
+            @test length(x) == 6
+            @test x == ["a", "b", "c", "a", "b", "c"]
+            @test levels(x) == ["a", "b", "c"]
+        else
+            append!(x, z1)
+            append!(x, z2)
+            @test isordered(x) === ordered
+            @test length(x) == 11
+            @test x == ["a", "b", "c", "a", "b", "c", "z", "y", "x", "ex1", "ex3"]
+            @test levels(x) == ["a", "b", "c", "x", "y", "z", "ex1", "ex2", "ex3", "ex4"]
+        end
     end
 
     @testset "append! Float64" begin
@@ -1231,20 +1332,36 @@ end
 
         b = [2.5, 3.0, 3.5]
         y = CategoricalVector{Float64}(b, ordered=ordered)
-        append!(x, y)
-        @test length(x) == 9
-        @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 2.5, 3.0, 3.5]
-        @test isordered(x) === ordered
-        @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, 3.5]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, y)
+            @test length(x) == 6
+            @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0]
+        else
+            append!(x, y)
+            @test length(x) == 9
+            @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 2.5, 3.0, 3.5]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, 3.5]
+        end
 
         z1 = view(CategoricalVector{Float64}([100.0, 101.0]), 1)
         z2 = view(CategoricalVector{Float64}([102.0, 103.0]), 1:1)
-        append!(x, z1)
-        append!(x, z2)
-        @test length(x) == 11
-        @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 2.5, 3.0, 3.5, 100.0, 102.0]
-        @test isordered(x) === ordered
-        @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, 3.5, 100.0, 101.0, 102.0, 103.0]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, y)
+            @test length(x) == 6
+            @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0]
+        else
+            append!(x, z1)
+            append!(x, z2)
+            @test length(x) == 11
+            @test x == [-1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 2.5, 3.0, 3.5, 100.0, 102.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, 3.5, 100.0, 101.0, 102.0, 103.0]
+        end
     end
 end
 
@@ -1261,19 +1378,37 @@ end
 
         b = ["x","y",missing]
         y = CategoricalVector{Union{String, Missing}}(b)
-        append!(x, y)
-        @test length(x) == 9
-        @test isordered(x) === ordered
-        @test levels(x) == ["a", "b", "x", "y"]
-        @test x ≅ [a; a; b]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, y)
+            @test x ≅ [a; a]
+            @test levels(x) == ["a", "b"]
+            @test isordered(x) === ordered
+            @test length(x) == 6
+        else
+            append!(x, y)
+            @test length(x) == 9
+            @test isordered(x) === ordered
+            @test levels(x) == ["a", "b", "x", "y"]
+            @test x ≅ [a; a; b]
+        end
+
         z1 = view(CategoricalVector{Union{String, Missing}}([missing, "ex2"]), 1)
         z2 = view(CategoricalVector{Union{String, Missing}}(["ex3", "ex4"]), 1:1)
-        append!(x, z1)
-        append!(x, z2)
-        @test length(x) == 11
-        @test isordered(x) === ordered
-        @test levels(x) == ["a", "b", "x", "y", "ex2", "ex3", "ex4"]
-        @test x ≅ [a; a; b; missing; "ex3"]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, z1)
+            @test_throws OrderedLevelsException append!(x, z2)
+            @test x ≅ [a; a]
+            @test levels(x) == ["a", "b"]
+            @test isordered(x) === ordered
+            @test length(x) == 6
+        else
+            append!(x, z1)
+            append!(x, z2)
+            @test length(x) == 11
+            @test isordered(x) === ordered
+            @test levels(x) == ["a", "b", "x", "y", "ex2", "ex3", "ex4"]
+            @test x ≅ [a; a; b; missing; "ex3"]
+        end
     end
 
     @testset "Float64" begin
@@ -1288,19 +1423,37 @@ end
 
         b = [2.5, 3.0, missing]
         y = CategoricalVector{Union{Float64, Missing}}(b)
-        append!(x, y)
-        @test length(x) == 9
-        @test x ≅ [a; a; b]
-        @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 2.5, 3.0]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, y)
+            @test length(x) == 6
+            @test x == [a; a]
+            @test isordered(x) === ordered
+            @test levels(x) == [0.0,  0.5,  1.0]
+        else
+            append!(x, y)
+            @test length(x) == 9
+            @test x ≅ [a; a; b]
+            @test isordered(x) === ordered
+            @test levels(x) == [0.0, 0.5, 1.0, 2.5, 3.0]
+        end
+
         z1 = view(CategoricalVector{Union{Float64, Missing}}([missing, 101.0]), 1)
         z2 = view(CategoricalVector{Union{Float64, Missing}}([102.0, 103.0]), 1:1)
-        append!(x, z1)
-        append!(x, z2)
-        @test length(x) == 11
-        @test x ≅ [a; a; b; missing; 102.0]
-        @test isordered(x) === ordered
-        @test levels(x) == [0.0, 0.5, 1.0, 2.5, 3.0, 101.0, 102.0, 103.0]
+        if ordered
+            @test_throws OrderedLevelsException append!(x, z1)
+            @test_throws OrderedLevelsException append!(x, z2)
+            @test length(x) == 6
+            @test x == [a; a]
+            @test isordered(x) === ordered
+            @test levels(x) == [0.0,  0.5,  1.0]
+        else
+            append!(x, z1)
+            append!(x, z2)
+            @test length(x) == 11
+            @test x ≅ [a; a; b; missing; 102.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [0.0, 0.5, 1.0, 2.5, 3.0, 101.0, 102.0, 103.0]
+        end
     end
 end
 

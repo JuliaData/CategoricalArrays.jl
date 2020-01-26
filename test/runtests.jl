@@ -11,14 +11,11 @@ module TestCategoricalArrays
     using CategoricalArrays
 
     tests = [
-        "01_typedef.jl",
-        "02_buildorder.jl",
-        "03_buildfields.jl",
+        "01_value.jl",
         "04_constructors.jl",
         "05_convert.jl",
         "05_copy.jl",
         "06_show.jl",
-        "06_length.jl",
         "07_levels.jl",
         "08_equality.jl",
         "08_string.jl",
