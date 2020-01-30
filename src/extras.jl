@@ -113,6 +113,10 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
              extend::Bool=false,
              labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
              allow_missing::Bool=false) where {T, N}
+    if !allunique(breaks)
+        throw(ArgumentError("all breaks must be unique"))
+    end
+
     if !issorted(breaks)
         breaks = sort(breaks)
     end
@@ -142,13 +146,8 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
 
     n = length(breaks)
     if labels isa Function
-        @static if VERSION >= v"0.7.0-DEV.4524"
-            from = map(x -> sprint(show, x, context=:compact=>true), breaks[1:n-1])
-            to = map(x -> sprint(show, x, context=:compact=>true), breaks[2:n])
-        else
-            from = map(x -> sprint(showcompact, x), breaks[1:n-1])
-            to = map(x -> sprint(showcompact, x), breaks[2:n])
-        end
+        from = map(x -> sprint(show, x, context=:compact=>true), breaks[1:n-1])
+        to = map(x -> sprint(show, x, context=:compact=>true), breaks[2:n])
         levs = Vector{String}(undef, n-1)
         for i in 1:n-2
             levs[i] = labels(from[i], to[i], i, closed=false)
@@ -158,6 +157,9 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
         length(labels) == n-1 || throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
         # Levels must have element type String for type stability of the result
         levs::Vector{String} = copy(labels)
+    end
+    if !allunique(levs)
+        throw(ArgumentError("all labels must be unique"))
     end
 
     pool = CategoricalPool(levs, true)
@@ -172,6 +174,13 @@ end
 Cut a numeric array into `ngroups` quantiles, determined using
 [`quantile`](@ref).
 """
-cut(x::AbstractArray, ngroups::Integer;
-    labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter) =
-    cut(x, Statistics.quantile(x, (1:ngroups-1)/ngroups); extend=true, labels=labels)
+function cut(x::AbstractArray, ngroups::Integer;
+             labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter)
+    breaks = Statistics.quantile(x, (1:ngroups-1)/ngroups)
+    if !allunique(breaks)
+        n = length(breaks)
+        throw(ArgumentError("cannot compute $ngroups quantiles: `quantile(x, $ngroups)` " *
+                            "returned only $n groups due to duplicated values in `x`"))
+    end
+    cut(x, breaks; extend=true, labels=labels)
+end
