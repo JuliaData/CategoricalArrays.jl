@@ -337,7 +337,7 @@ Base.IndexStyle(::Type{<:CategoricalArray}) = IndexLinear()
 end
 
 Base.fill!(A::CategoricalArray, v::Any) =
-    (fill!(A.refs, get!(A.pool, convert(leveltype(A), v))); A)
+    (fill!(A.refs, get!(A.pool, v)); A)
 
 # Methods preserving levels and more efficient than AbstractArray fallbacks
 copy(A::CategoricalArray{T, N}) where {T, N} =
