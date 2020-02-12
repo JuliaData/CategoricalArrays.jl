@@ -660,6 +660,19 @@ end
         fill!(x2, "0")
         @test x2 == ["0", "0", "0"]
         @test levels(x2) == ["a", "b", "c", "0"]
+
+        y = categorical(["d", "e"])
+        ordered!(y, true)
+        levels!(y, ["0", "e", "d"])
+        fill!(x2, y[1])
+        @test x2 == ["d", "d", "d"]
+        @test levels(x2) == ["a", "b", "c", "0", "e", "d"]
+
+        x3 = similar(x2)
+        fill!(x3, y[1])
+        @test x3 == ["d", "d", "d"]
+        @test levels(x3) == ["0", "e", "d"]
+        @test isordered(x3)
     end
 
     @testset "overflow of reftype is detected and doesn't corrupt data and levels" begin
