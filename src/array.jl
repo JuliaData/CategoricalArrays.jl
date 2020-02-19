@@ -443,7 +443,8 @@ similar(A::CategoricalArray{S, M, Q}, ::Type{Union{CategoricalValue{T}, Missing}
         dims::NTuple{N, Int}) where {T, N, S, M, Q} =
     CategoricalArray{Union{T, Missing}, N, Q}(undef, dims)
 
-for A in (:Array, :Vector, :Matrix) # to fix ambiguities
+# AbstractRange methods are needed since collect uses 1:1 as dummy array
+for A in (:Array, :Vector, :Matrix, :AbstractRange)
     @eval begin
         similar(A::$A, ::Type{CategoricalValue{T, R}},
                 dims::NTuple{N, Int}=size(A)) where {T, R, N} =
@@ -738,7 +739,7 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
 end
 
 Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
-collect(A::CategoricalArray{T}) where {T} = Array{T}(A)
+collect(A::CategoricalArray) = copy(A)
 
 function float(A::CategoricalArray{T}) where T
     if !isconcretetype(T)
