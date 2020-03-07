@@ -163,11 +163,9 @@ function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
                     push!(keptlevels, l)
                 catch err
                     isa(err, MethodError) || rethrow(err)
-                    throw(ArgumentError("cannot `convert` value $(repr(l)) (of type $(typeof(l))) " *
-                                        "to type of recoded levels ($T). This will happen with " *
-                                        "`recode` when not all original levels are recoded " *
-                                        "(i.e. some are preserved) and their type is incompatible " *
-                                        "with that of recoded levels."))
+                    throw(ArgumentError("cannot `convert` value $(repr(l)) (of type $(typeof(l))) to type of recoded levels ($T). " *
+                                        "This will happen with recode() when not all original levels are recoded " *
+                                        "(i.e. some are preserved) and their type is incompatible with that of recoded levels."))
                 end
             end
         end
