@@ -143,7 +143,8 @@ end
 function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
                  default::Any, pairs::Pair...) where {T, N, R<:Integer}
     if length(dest) != length(src)
-        throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
+        throw(DimensionMismatch("dest and src must be of the same length " *
+                                "(got $(length(dest)) and $(length(src)))"))
     end
 
     vals = T[p.second for p in pairs]
@@ -162,9 +163,11 @@ function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
                     push!(keptlevels, l)
                 catch err
                     isa(err, MethodError) || rethrow(err)
-                    throw(ArgumentError("cannot `convert` value $(repr(l)) (of type $(typeof(l))) to type of recoded levels ($T). " *
-                                        "This will happen with recode() when not all original levels are recoded " *
-                                        "(i.e. some are preserved) and their type is incompatible with that of recoded levels."))
+                    throw(ArgumentError("cannot `convert` value $(repr(l)) (of type $(typeof(l))) " *
+                                        "to type of recoded levels ($T). This will happen with " *
+                                        "`recode` when not all original levels are recoded " *
+                                        "(i.e. some are preserved) and their type is incompatible " *
+                                        "with that of recoded levels."))
                 end
             end
         end

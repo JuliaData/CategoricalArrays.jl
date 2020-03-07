@@ -357,7 +357,10 @@ function merge_pools!(A::CatArrOrSub,
     newlevels = levels(newpool)
     ordered = isordered(newpool)
     if isordered(A) != ordered
-        A isa SubArray && throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it would affect the parent. Found when trying to set levels to $newlevels."))
+        A isa SubArray &&
+            throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it " *
+                                "would affect the parent. "*
+                                "Found when trying to set levels to $newlevels."))
         ordered!(A, ordered)
     end
     pA = A isa SubArray ? parent(A) : A
@@ -420,8 +423,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
 
     # For partial copy, need to recompute existing refs
     # TODO: for performance, avoid ajusting refs which are going to be overwritten
-    updaterefs = isa(dest, SubArray) ||
-        !(dstart == dstart == 1 && n == length(dest) == length(src))
+    updaterefs = isa(dest, SubArray) || !(n == length(dest) == length(src))
     newpool = merge_pools!(dest, src, updaterefs=updaterefs)
     newlevels = levels(newpool)
 
@@ -603,11 +605,14 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector; allow_missing=
         @inbounds for (i, x) in enumerate(A.refs)
             if T >: Missing
                 !allow_missing && x > 0 && deleted[x] &&
-                    throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it is used at position $i and allow_missing=false."))
+                    throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it " *
+                                        "is used at position $i and allow_missing=false."))
             else
                 deleted[x] &&
-                    throw(ArgumentError("cannot remove level $(repr(levels(A.pool)[x])) as it is used at position $i. " *
-                                        "Change the array element type to Union{$T, Missing} using convert if you want to transform some levels to missing values."))
+                    throw(ArgumentError("cannot remove level $(repr(levels(A.pool)[x])) as it " *
+                                        "is used at position $i. Change the array element " *
+                                        "type to Union{$T, Missing} using convert if you want " *
+                                        "to transform some levels to missing values."))
             end
         end
     end

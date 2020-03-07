@@ -161,23 +161,6 @@ function Base.append!(pool::CategoricalPool, levels)
     return pool
 end
 
-function Base.delete!(pool::CategoricalPool{S}, levels...) where S
-    for level in levels
-        levelS = convert(S, level)
-        if haskey(pool.invindex, levelS)
-            ind = pool.invindex[levelS]
-            delete!(pool.invindex, levelS)
-            splice!(pool.levels, ind)
-            splice!(pool.valindex, ind)
-            for i in ind:length(pool)
-                pool.invindex[pool.levels[i]] -= 1
-                pool.valindex[i] = CategoricalValue(i, pool)
-            end
-        end
-    end
-    return pool
-end
-
 # Do not override Base.merge as for internal use we need to use the type and orderedness
 # of the first pool rather than promoting both pools
 function merge_pools(a::CategoricalPool{T, R}, b::CategoricalPool) where {T, R}

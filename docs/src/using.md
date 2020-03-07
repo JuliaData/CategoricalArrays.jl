@@ -193,7 +193,116 @@ julia> levels!(y, ["Young", "Middle"]; allow_missing=true)
 
 ```
 
-## Working with categorical arrays
+## Combining levels
+
+Some operations imply combining levels of two categorical arrays: this is the case when concatenating arrays (`vcat`, `hcat` and `cat`) and when assigning a `CategoricalValue` from another categorical array.
+
+For example, imagine we have two sets of observations, one with only the younger part of the population and one with the older part:
+```jldoctest using
+julia> x = categorical(["Middle", "Old", "Middle"], ordered=true);
+
+julia> y = categorical(["Young", "Middle", "Middle"], ordered=true);
+
+julia> levels!(y, ["Young", "Middle"]);
+```
+
+If we concatenate the two sets, the levels of the resulting categorical vector are chosen so that the relative orders of levels in `x` and `y` are preserved, if possible. In that case, comparisons with `<` and `>` are still valid, and resulting vector is marked as ordered:
+```jldoctest
+julia> xy = vcat(x, y)
+6-element CategoricalArray{String,1,UInt32}:
+ "Middle"
+ "Old"   
+ "Middle"
+ "Young" 
+ "Middle"
+ "Middle"
+
+julia> levels(xy)
+3-element Array{String,1}:
+ "Young" 
+ "Middle"
+ "Old"   
+
+julia> isordered(xy)
+true
+```
+
+Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x`, *adding a new level to the front to respect the ordering of levels in both vectors*. The new level is added even if the assigned value belongs to another level which is already present in `x`. Note that adding new levels requires marking `x` as unordered:
+```jldoctest
+julia> x[1] = y[1]
+ERROR: cannot add new level Young since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.
+Stacktrace:
+[...]
+
+julia> ordered!(x, false);
+
+julia> levels(x)
+2-element Array{String,1}:
+ "Middle"
+ "Old"   
+
+julia> x[1] = y[1]
+CategoricalValue{String,UInt32} "Old" (3/3)
+
+julia> levels(x)
+3-element Array{String,1}:
+ "Young" 
+ "Middle"
+ "Old"   
+```
+
+In cases where levels with incompatible orderings are combined, the ordering of the first array wins and the resulting array is marked as unordered:
+```jldoctest using
+julia> a = categorical(["a", "b", "c"], ordered=true);
+
+julia> b = categorical(["a", "b", "c"], ordered=true);
+
+julia> ab = vcat(a, b)
+6-element CategoricalArray{String,1,UInt32}:
+ "a"
+ "b"
+ "c"
+ "a"
+ "b"
+ "c"
+
+julia> levels(ab)
+3-element Array{String,1}:
+ "a"
+ "b"
+ "c"
+
+julia> isordered(ab)
+true
+
+julia> levels!(b, ["c", "b", "a"])
+3-element CategoricalArray{String,1,UInt32}:
+ "a"
+ "b"
+ "c"
+
+julia> ab2 = vcat(a, b)
+6-element CategoricalArray{String,1,UInt32}:
+ "a"
+ "b"
+ "c"
+ "a"
+ "b"
+ "c"
+
+julia> levels(ab2)
+3-element Array{String,1}:
+ "a"
+ "b"
+ "c"
+
+julia> isordered(ab2)
+false
+```
+
+Do note that in some cases the two sets of levels may have compatible orderings, but it is not possible to determine in what order should levels appear in the merged set. This is the case for example with `["a, "b", "d"]` and `["c", "d", "e"]`: there is no way to detect that `"c"` should be inserted exactly after `"b"` (lexicographic ordering is not relevant here). In such cases, the resulting array is marked as unordered. This situation can only happen when working with data subsets selected based on non-contiguous subsets of levels.
+
+## Exported functions
 
 `categorical(A)` - Construct a categorical array with values from `A`
 
