@@ -168,13 +168,14 @@ function merge_pools(a::CategoricalPool{T, R}, b::CategoricalPool) where {T, R}
         newlevs = T[]
         ordered = isordered(a)
     elseif length(a) == 0
-        newlevs = copyto!(similar(levels(b), T), levels(b))
+        newlevs = Vector{T}(levels(b))
         ordered = isordered(b)
     elseif length(b) == 0
         newlevs = copy(levels(a))
         ordered = isordered(a)
     else
-        newlevs, ordered = mergelevels(isordered(a), a.levels, b.levels)
+        nl, ordered = mergelevels(isordered(a), a.levels, b.levels)
+        newlevs = convert(Vector{T}, nl)
     end
     CategoricalPool{T, R}(newlevs, ordered)
 end

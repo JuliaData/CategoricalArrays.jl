@@ -428,7 +428,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     newlevels = levels(newpool)
 
     # If destination levels are an ordered superset of source, no need to recompute refs
-    if length(dlevs) > length(slevs) && view(dlevs, 1:length(slevs)) == slevs
+    if length(dlevs) >= length(slevs) && view(dlevs, 1:length(slevs)) == slevs
         newlevels != dlevs && levels!(dpool, newlevels)
         copyto!(drefs, srefs)
     else # Otherwise, recompute refs according to new levels

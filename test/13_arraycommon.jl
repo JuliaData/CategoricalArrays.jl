@@ -287,17 +287,20 @@ end
             @test !isordered(x2)
         end
 
-        @testset "0-length copy!/copyto! does nothing (including bounds checks) except setting levels" begin
+        @testset "0-length copy!/copyto!" begin
+            # 0-length copy!/copyto! does nothing (including bounds checks) except setting levels
             u = x[1:0]
             v = y[1:0]
 
             x2 = copy(x)
             if ordered
                 @test_throws OrderedLevelsException copyto!(x2, 1, y, 3, 0)
+                @test levels(x2) == ["Young", "Middle", "Old"]
             else
                 @test copyto!(x2, 1, y, 3, 0) === x2
                 @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test x2 ≅ x
 
             x2 = copy(x)
@@ -308,6 +311,7 @@ end
                 @test copyto!(x2, 1, y, 5, 0) === x2
                 @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test x2 ≅ x
 
             u2 = copy(u)
@@ -318,6 +322,7 @@ end
                 @test copyto!(u2, -5, v, 2, 0) === u2
                 @test levels(u2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test isempty(u2)
 
             x2 = copy(x)
@@ -328,6 +333,7 @@ end
                 @test copyto!(x2, -5, v, 2, 0) === x2
                 @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test x2 ≅ x
 
             u2 = copy(u)
@@ -338,6 +344,7 @@ end
                 @test copyto!(u2, v) === u2
                 @test levels(u2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test isempty(u2)
 
             x2 = copy(x)
@@ -348,6 +355,7 @@ end
                 @test copyto!(x2, v) === x2
                 @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test x2 ≅ x
 
             u2 = copy(u)
@@ -358,6 +366,7 @@ end
                 @test copy!(u2, v) === u2
                 @test levels(u2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test isempty(u2)
 
             x2 = copy(x)
@@ -368,12 +377,41 @@ end
                 @test copy!(x2, v) === x2
                 @test levels(x2) == ["Young", "Middle", "Old", "X", "Y", "Z"]
             end
+            @test isordered(x2) === ordered
             @test x2 ≅ x
+
+            # test with zero-levels source
+            x2 = copy(x)
+            @test copy!(x2, categorical(String[])) === x2
+            @test levels(x2) == ["Young", "Middle", "Old"]
+            @test isordered(x2) === ordered
+            @test x2 ≅ x
+
+            # test with zero-levels destination
+            for ordered2 in (true, false)
+                x2 = CategoricalArray{String}(undef, 2, ordered=ordered2)
+                @test copy!(x2, u) === x2
+                @test levels(x2) == ["Young", "Middle", "Old"]
+                @test isordered(x2) === ordered
+                @test length(x2) == 2
+                @test !any(isassigned(x2, i) for i in eachindex(x2))
+            end
+
+            # test with zero-levels source and destination
+            for ordered2 in (true, false)
+                x2 = CategoricalArray{String}(undef, 2, ordered=ordered2)
+                @test copy!(x2, categorical(String[], ordered=ordered)) === x2
+                @test isempty(levels(x2))
+                @test isordered(x2) === ordered2
+                @test length(x2) == 2
+                @test !any(isassigned(x2, i) for i in eachindex(x2))
+            end
         end
 
         @testset "nonzero-length copy!/copyto! into/from empty array throws bounds error" begin
             u = x[1:0]
             v = y[1:0]
+            x2 = copy(x)
 
             @test_throws BoundsError copy!(u, x)
             @test u ≅ v
@@ -1454,6 +1492,102 @@ end
             @test isordered(x) === ordered
             @test levels(x) == [0.0, 0.5, 1.0, 2.5, 3.0, 101.0, 102.0, 103.0]
         end
+    end
+end
+
+@testset "push! ordered=$ordered" for ordered in (false, true)
+    @testset "push! String" begin
+        a = ["a", "b", "c"]
+        x = CategoricalVector{String}(a, ordered=ordered)
+
+        push!(x, "a")
+        @test x == ["a", "b", "c", "a"]
+        @test isordered(x) === ordered
+        @test levels(x) == ["a", "b", "c"]
+
+        if ordered
+            @test_throws OrderedLevelsException push!(x, "z")
+            @test isordered(x) === ordered
+            @test x == ["a", "b", "c", "a"]
+            @test levels(x) == ["a", "b", "c"]
+        else
+            push!(x, "z")
+            @test isordered(x) === ordered
+            @test x == ["a", "b", "c", "a", "z"]
+            @test levels(x) == ["a", "b", "c", "z"]
+        end
+
+        b = ["z","y","x"]
+        y = CategoricalVector{String}(b)
+        if ordered
+            @test_throws OrderedLevelsException push!(x, y[1])
+            @test isordered(x) === ordered
+            @test x == ["a", "b", "c", "a"]
+            @test levels(x) == ["a", "b", "c"]
+        else
+            push!(x, y[1])
+            @test isordered(x) === ordered
+            @test x == ["a", "b", "c", "a", "z", "z"]
+            @test levels(x) == ["a", "b", "c", "x", "y", "z"]
+        end
+    end
+
+    @testset "push! Float64" begin
+        a = [-1.0, 0.0, 1.0]
+        x = CategoricalVector{Float64}(a, ordered=ordered)
+
+        push!(x, 0.0)
+        @test x == [-1.0, 0.0, 1.0, 0.0]
+        @test isordered(x) === ordered
+        @test levels(x) == [-1.0, 0.0, 1.0]
+
+        if ordered
+            @test_throws OrderedLevelsException push!(x, 3.0)
+            @test x == [-1.0, 0.0, 1.0, 0.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0]
+        else
+            push!(x, 3.0)
+            @test x == [-1.0, 0.0, 1.0, 0.0, 3.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0, 3.0]
+        end
+
+        b = [2.5, 3.0, 3.5]
+        y = CategoricalVector{Float64}(b, ordered=ordered)
+        if ordered
+            @test_throws OrderedLevelsException push!(x, y[1])
+            @test x == [-1.0, 0.0, 1.0, 0.0]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0]
+        else
+            push!(x, y[1])
+            @test x == [-1.0, 0.0, 1.0, 0.0, 3.0, 2.5]
+            @test isordered(x) === ordered
+            @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, 3.5]
+        end
+    end
+end
+
+@testset "append! ordered=$ordered" for ordered in (false, true)
+    cases = (["b", "a", missing], Union{String, Missing}["b", "a", "b"])
+    @testset "String, has missing: $(any(ismissing.(a)))" for a in cases
+        x = CategoricalVector{Union{String, Missing}}(a, ordered=ordered)
+
+        push!(x, missing)
+        @test x ≅ [a; missing]
+        @test levels(x) == ["a", "b"]
+        @test isordered(x) === ordered
+    end
+
+    @testset "Float64" begin
+        a = 0.0:0.5:1.0
+        x = CategoricalVector{Union{Float64, Missing}}(a, ordered=ordered)
+
+        push!(x, missing)
+        @test x ≅ [a; missing]
+        @test isordered(x) === ordered
+        @test levels(x) == [0.0, 0.5, 1.0]
     end
 end
 
