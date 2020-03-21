@@ -13,6 +13,7 @@ reftype(x::Any) = reftype(typeof(x))
 
 pool(x::CategoricalValue) = x.pool
 level(x::CategoricalValue) = x.level
+isordered(x::CategoricalValue) = isordered(x.pool)
 
 # extract the type of the original value from array eltype `T`
 unwrap_catvaluetype(::Type{T}) where {T} = T

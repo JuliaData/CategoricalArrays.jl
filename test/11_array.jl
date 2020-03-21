@@ -14,6 +14,7 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test leveltype(x) === String
     @test eltype(x) === CategoricalValue{String, R}
     @test isordered(x) === ordered
+    @test isordered(x[1]) === ordered
     @test levels(x) == sort(unique(a))
     @test unique(x) == unique(a)
     @test size(x) === (3,)
