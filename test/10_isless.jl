@@ -98,6 +98,9 @@ end
 @testset "values from ordered CategoricalPool" begin
     @test ordered!(pool, true) === pool
     @test isordered(pool) === true
+    @test isordered(v1) === true
+    @test isordered(v2) === true
+    @test isordered(v3) === true
 
     @test (v1 < v1) === false
     @test (v1 < v2) === true
