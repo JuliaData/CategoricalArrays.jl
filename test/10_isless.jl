@@ -9,6 +9,10 @@ v2 = CategoricalValue(2, pool)
 v3 = CategoricalValue(3, pool)
 
 @testset "values from unordered CategoricalPool" begin
+    @test isordered(v1) === false
+    @test isordered(v2) === false
+    @test isordered(v3) === false
+
     @test_throws ArgumentError v1 < v1
     @test_throws ArgumentError v1 < v2
     @test_throws ArgumentError v1 < v3
