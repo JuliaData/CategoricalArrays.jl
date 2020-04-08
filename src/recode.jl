@@ -140,9 +140,11 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     dest
 end
 
-function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any, pairs::Pair...) where {T}
+function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
+                 default::Any, pairs::Pair...) where {T, N, R<:Integer}
     if length(dest) != length(src)
-        throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
+        throw(DimensionMismatch("dest and src must be of the same length " *
+                                "(got $(length(dest)) and $(length(src)))"))
     end
 
     vals = T[p.second for p in pairs]
@@ -175,20 +177,24 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
         ordered = false
     end
 
-    srcindex = src.pool === dest.pool ? copy(index(src.pool)) : index(src.pool)
-    levels!(dest.pool, levs)
+    srclevels = src.pool === dest.pool ? copy(levels(src.pool)) : levels(src.pool)
+    if length(levs) > length(srclevels) && view(levs, 1:length(srclevels)) == srclevels
+        levels!(dest.pool, levs)
+    else
+        dest.pool = CategoricalPool{nonmissingtype(T), R}(levs, isordered(dest))
+    end
 
     drefs = dest.refs
     srefs = src.refs
 
-    origmap = [get(dest.pool, v, 0) for v in srcindex]
-    indexmap = Vector{DefaultRefType}(undef, length(srcindex)+1)
+    origmap = [get(dest.pool, v, 0) for v in srclevels]
+    levelsmap = Vector{DefaultRefType}(undef, length(srclevels)+1)
     # For missing values (0 if no missing in pairs' keys)
-    indexmap[1] = 0
+    levelsmap[1] = 0
     for p in pairs
         if ((isa(p.first, Union{AbstractArray, Tuple}) && any(ismissing, p.first)) ||
             ismissing(p.first))
-            indexmap[1] = get(dest.pool, p.second)
+            levelsmap[1] = get(dest.pool, p.second)
             break
         end
     end
@@ -197,28 +203,28 @@ function recode!(dest::CategoricalArray{T}, src::CategoricalArray, default::Any,
     ordered && (ordered = issorted(pairmap))
     ordered!(dest, ordered)
     defaultref = default === nothing || ismissing(default) ? 0 : get(dest.pool, default)
-    @inbounds for (i, l) in enumerate(srcindex)
+    @inbounds for (i, l) in enumerate(srclevels)
         for j in 1:length(pairs)
             p = pairs[j]
             if ((isa(p.first, Union{AbstractArray, Tuple}) && any(l ≅ y for y in p.first)) ||
                 l ≅ p.first)
-                indexmap[i+1] = pairmap[j]
+                levelsmap[i+1] = pairmap[j]
                 @goto nextitem
             end
         end
 
         # Value not in any of the pairs
         if default === nothing
-            indexmap[i+1] = origmap[i]
+            levelsmap[i+1] = origmap[i]
         else
-            indexmap[i+1] = defaultref
+            levelsmap[i+1] = defaultref
         end
 
         @label nextitem
     end
 
     @inbounds for i in eachindex(drefs)
-        v = indexmap[srefs[i]+1]
+        v = levelsmap[srefs[i]+1]
         if !(eltype(dest) >: Missing)
             v > 0 || throw(MissingException("missing value found, but dest does not support them: " *
                                             "recode them to a supported value"))

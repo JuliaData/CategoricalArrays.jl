@@ -248,7 +248,7 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) wher
     # if order is defined for level type, automatically apply it
     L = leveltype(res)
     if hasmethod(isless, Tuple{L, L})
-        levels!(res.pool, sort(levels(res.pool)))
+        levels!(res, sort(levels(res)))
     end
 
     res
@@ -331,29 +331,80 @@ end
 size(A::CategoricalArray) = size(A.refs)
 Base.IndexStyle(::Type{<:CategoricalArray}) = IndexLinear()
 
+function update_refs!(A::CategoricalArray, newlevels::AbstractVector)
+    oldlevels = levels(A)
+    levelsmap = similar(A.refs, length(oldlevels)+1)
+    # 0 maps to a missing value
+    levelsmap[1] = 0
+    levelsmap[2:end] .= something.(indexin(oldlevels, newlevels), 0)
+
+    refs = A.refs
+    @inbounds for (i, x) in enumerate(refs)
+        refs[i] = levelsmap[x+1]
+    end
+    A
+end
+
+function merge_pools!(A::CatArrOrSub,
+                      B::Union{CategoricalValue, CatArrOrSub};
+                      updaterefs::Bool=true)
+    if isordered(A) && length(pool(A)) > 0 && pool(B) ⊈ pool(A)
+        lev = A isa CategoricalValue ? get(B) : first(setdiff(levels(B), levels(A)))
+        throw(OrderedLevelsException(lev, levels(A)))
+    end
+    newpool = merge_pools(pool(A), pool(B))
+    oldlevels = levels(A)
+    newlevels = levels(newpool)
+    ordered = isordered(newpool)
+    if isordered(A) != ordered
+        A isa SubArray &&
+            throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it " *
+                                "would affect the parent. "*
+                                "Found when trying to set levels to $newlevels."))
+        ordered!(A, ordered)
+    end
+    pA = A isa SubArray ? parent(A) : A
+    # If A's levels are an ordered superset of new (merged) pool, no need to recompute refs
+    if updaterefs &&
+        (length(newlevels) < length(oldlevels) ||
+         view(newlevels, 1:length(oldlevels)) != oldlevels)
+        update_refs!(pA, newlevels)
+    end
+    pA.pool = newpool
+    A
+end
+
 @inline function setindex!(A::CategoricalArray, v::Any, I::Real...)
     @boundscheck checkbounds(A, I...)
+    # TODO: use a global table to cache subset relations for all pairs of pools
+    if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
+        merge_pools!(A, v)
+    end
     @inbounds A.refs[I...] = get!(A.pool, v)
 end
 
-Base.fill!(A::CategoricalArray, v::Any) =
-    (fill!(A.refs, get!(A.pool, v)); A)
+function Base.fill!(A::CategoricalArray, v::Any)
+    # TODO: use a global table to cache subset relations for all pairs of pools
+    if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
+        merge_pools!(A, v, updaterefs=false)
+    end
+    fill!(A.refs, get!(A.pool, v))
+    A
+end
 
 # Methods preserving levels and more efficient than AbstractArray fallbacks
 copy(A::CategoricalArray{T, N}) where {T, N} =
     CategoricalArray{T, N}(copy(A.refs), copy(A.pool))
 
-CatArrOrSub{T, N} = Union{CategoricalArray{T, N},
-                          SubArray{<:Any, N, <:CategoricalArray{T}}} where {T, N}
-
-function copyto!(dest::CatArrOrSub{T, N}, dstart::Integer,
+function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
                  src::CatArrOrSub{<:Any, N}, sstart::Integer,
-                 n::Integer) where {T, N}
-    n == 0 && return dest
+                 n::Integer) where {T, N, R}
     n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
     destinds, srcinds = LinearIndices(dest), LinearIndices(src)
-    (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
-    (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
+    if n > 0
+        (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
+        (sstart ∈ srcinds  && sstart+n-1 ∈ srcinds)  || throw(BoundsError(src,  sstart:sstart+n-1))
+    end
 
     drefs = refs(dest)
     srefs = refs(src)
@@ -368,44 +419,30 @@ function copyto!(dest::CatArrOrSub{T, N}, dstart::Integer,
         throw(MissingException("cannot copy array with missing values to an array with element type $T"))
     end
 
-    newlevels, ordered = mergelevels(isordered(dest), dlevs, slevs)
-    if isordered(dest) && (length(newlevels) != length(dlevs))
-        # Uncomment this when removing deprecation
-        # throw(OrderedLevelsException(newlevels[findfirst(!in(Set(dlevs)), newlevels)],
-        #                              dlevs))
-        Base.depwarn("adding new levels to ordered CategoricalArray destination " *
-                     "will throw an error in the future", :copyto!)
-        ordered &= isordered(src) | (length(newlevels) == length(dlevs))
-    end
-    # Exception: empty pool marked as ordered if new value is ordered
-    if isempty(dlevs) && isordered(src)
-        ordered = true
-    end
-    if ordered != isordered(dest)
-        isa(dest, SubArray) && throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it would affect the parent. Found when trying to set levels to $newlevels."))
-        ordered!(dest, ordered)
-    end
+    destp = dest isa SubArray ? parent(dest) : dest
 
-    # Simple case: replace all values
-    if !isa(dest, SubArray) && dstart == dstart == 1 && n == length(dest) == length(src)
-        # Set index to reflect refs
-        levels!(dpool, T[]) # Needed in case src and dest share some levels
-        levels!(dpool, index(spool))
+    # For partial copy, need to recompute existing refs
+    # TODO: for performance, avoid ajusting refs which are going to be overwritten
+    updaterefs = isa(dest, SubArray) || !(n == length(dest) == length(src))
+    newpool = merge_pools!(dest, src, updaterefs=updaterefs)
+    newlevels = levels(newpool)
 
-        # Set final levels in their visible order
-        levels!(dpool, newlevels)
-
+    # If destination levels are an ordered superset of source, no need to recompute refs
+    if length(dlevs) >= length(slevs) && view(dlevs, 1:length(slevs)) == slevs
+        newlevels != dlevs && levels!(dpool, newlevels)
         copyto!(drefs, srefs)
-    else # More work to do: preserve some values (and therefore index)
-        levels!(dpool, newlevels)
-
-        indexmap = indexin(index(spool), index(dpool))
+    else # Otherwise, recompute refs according to new levels
+        # Then adjust refs from source
+        levelsmap = similar(drefs, length(slevs)+1)
+        # 0 maps to a missing value
+        levelsmap[1] = 0
+        levelsmap[2:end] = indexin(slevs, newlevels)
 
         @inbounds for i = 0:(n-1)
             x = srefs[sstart+i]
-            drefs[dstart+i] = x > 0 ? indexmap[x] : 0
+            drefs[dstart+i] = levelsmap[x+1]
         end
-
+        destp.pool = CategoricalPool{nonmissingtype(T), R}(newlevels, isordered(newpool))
     end
 
     dest
@@ -479,7 +516,7 @@ While this will reduce memory use, this function is type-unstable, which can aff
 performance inside the function where the call is made. Therefore, use it with caution.
 """
 function compress(A::CategoricalArray{T, N}) where {T, N}
-    R = reftype(length(index(A.pool)))
+    R = reftype(length(levels(A.pool)))
     convert(CategoricalArray{T, N, R}, A)
 end
 
@@ -501,7 +538,7 @@ function vcat(A::CategoricalArray...)
     newlevels, ordered = mergelevels(ordered, map(levels, A)...)
 
     refsvec = map(A) do a
-        ii = convert(Vector{Int}, indexin(index(a.pool), newlevels))
+        ii = convert(Vector{Int}, indexin(levels(a.pool), newlevels))
         [x==0 ? 0 : ii[x] for x in a.refs]::Array{Int,ndims(a)}
     end
 
@@ -552,42 +589,39 @@ If `A` accepts missing values (i.e. `eltype(A) >: Missing`) and `allow_missing=t
 entries corresponding to omitted levels will be set to `missing`.
 Else, `newlevels` must include all levels which appear in the data.
 """
-function levels!(A::CategoricalArray{T}, newlevels::Vector; allow_missing=false) where {T}
+function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector; allow_missing=false) where {T, N, R}
     if !allunique(newlevels)
         throw(ArgumentError(string("duplicated levels found: ",
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
     end
 
+    oldlevels = levels(A.pool)
+
     # first pass to check whether, if some levels are removed, changes can be applied without error
     # TODO: save original levels and undo changes in case of error to skip this step
     # equivalent to issubset but faster due to JuliaLang/julia#24624
-    if !isempty(setdiff(index(A.pool), newlevels))
-        deleted = [!(l in newlevels) for l in index(A.pool)]
+    if !isempty(setdiff(oldlevels, newlevels))
+        deleted = [!(l in newlevels) for l in oldlevels]
         @inbounds for (i, x) in enumerate(A.refs)
             if T >: Missing
                 !allow_missing && x > 0 && deleted[x] &&
-                    throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i and allow_missing=false."))
+                    throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it " *
+                                        "is used at position $i and allow_missing=false."))
             else
                 deleted[x] &&
-                    throw(ArgumentError("cannot remove level $(repr(index(A.pool)[x])) as it is used at position $i. " *
-                                        "Change the array element type to Union{$T, Missing} using convert if you want to transform some levels to missing values."))
+                    throw(ArgumentError("cannot remove level $(repr(levels(A.pool)[x])) as it " *
+                                        "is used at position $i. Change the array element " *
+                                        "type to Union{$T, Missing} using convert if you want " *
+                                        "to transform some levels to missing values."))
             end
         end
     end
 
-    # actually apply changes
-    oldindex = copy(index(A.pool))
-    levels!(A.pool, newlevels)
-
-    if index(A.pool) != oldindex
-        levelsmap = similar(A.refs, length(oldindex)+1)
-        # 0 maps to a missing value
-        levelsmap[1] = 0
-        levelsmap[2:end] .= something.(indexin(oldindex, index(A.pool)), 0)
-
-        @inbounds for (i, x) in enumerate(A.refs)
-            A.refs[i] = levelsmap[x+1]
-        end
+    # replace the pool and recode refs to reflect new pool
+    if newlevels != oldlevels
+        newpool = CategoricalPool{nonmissingtype(T), R}(newlevels, isordered(A.pool))
+        update_refs!(A, newlevels)
+        A.pool = newpool
     end
 
     A
@@ -596,7 +630,7 @@ end
 function _unique(::Type{S},
                  refs::AbstractArray{T},
                  pool::CategoricalPool) where {S, T<:Integer}
-    nlevels = length(index(pool)) + 1
+    nlevels = length(levels(pool)) + 1
     order = fill(0, nlevels) # 0 indicates not seen
     # If we don't track missings, short-circuit even if none has been seen
     count = S >: Missing ? 0 : 1
@@ -607,7 +641,7 @@ function _unique(::Type{S},
             count == nlevels && break
         end
     end
-    S[i == 1 ? missing : index(pool)[i - 1] for i in sortperm(order) if order[i] != 0]
+    S[i == 1 ? missing : levels(pool)[i - 1] for i in sortperm(order) if order[i] != 0]
 end
 
 """
@@ -662,14 +696,22 @@ function Base.resize!(A::CategoricalVector, n::Integer)
     A
 end
 
-function Base.push!(A::CategoricalVector, item)
-    r = get!(A.pool, item)
+function Base.push!(A::CategoricalVector, v::Any)
+    # TODO: use a global table to cache subset relations for all pairs of pools
+    if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
+        merge_pools!(A, v)
+    end
+    r = get!(A.pool, v)
     push!(A.refs, r)
     A
 end
 
 function Base.append!(A::CategoricalVector, B::CatArrOrSub)
-    levels!(A, union(levels(A), levels(B)))
+    # TODO: use a global table to cache subset relations for all pairs of pools
+    if pool(B) !== pool(A) && pool(B) ⊈ pool(A)
+        merge_pools!(A, B)
+    end
+    # TODO: optimize recoding
     len = length(A)
     len2 = length(B)
     resize!(A.refs, len + len2)
@@ -732,7 +774,7 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
     if x.pool === y.pool
         return x.level in y.refs
     else
-        ref = get(y.pool, index(x.pool)[x.level], zero(R))
+        ref = get(y.pool, levels(x.pool)[x.level], zero(R))
         return ref != 0 ? ref in y.refs : false
     end
 end
@@ -776,11 +818,10 @@ Base.Broadcast.broadcasted(::typeof(!ismissing), A::CategoricalArray{T}) where {
                    Base.Broadcast.broadcasted(_ -> true, A.refs)
 
 function Base.Broadcast.broadcasted(::typeof(levelcode), A::CategoricalArray{T}) where {T}
-    ord = order(A.pool)
     if T >: Missing
-        Base.Broadcast.broadcasted(i -> i > 0 ? Signed(widen(ord[i])) : missing, A.refs)
+        Base.Broadcast.broadcasted(r -> r > 0 ? Signed(widen(r)) : missing, A.refs)
     else
-        Base.Broadcast.broadcasted(i -> Signed(widen(ord[i])), A.refs)
+        Base.Broadcast.broadcasted(r -> Signed(widen(r)), A.refs)
     end
 end
 
@@ -806,9 +847,10 @@ function Base.sort!(v::CategoricalVector;
     perm = sortperm(view(index, seen), order=ord)
     nzcounts = counts[seen]
     j = 0
+    refs = v.refs
     @inbounds for ref in perm
         tmpj = j + nzcounts[ref]
-        v.refs[(j+1):tmpj] .= ref - anymissing
+        refs[(j+1):tmpj] .= ref - anymissing
         j = tmpj
     end
 

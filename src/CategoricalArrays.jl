@@ -15,8 +15,6 @@ module CategoricalArrays
 
     include("typedefs.jl")
 
-    include("buildfields.jl")
-
     include("pool.jl")
     include("value.jl")
 

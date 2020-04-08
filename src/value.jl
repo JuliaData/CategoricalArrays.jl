@@ -23,7 +23,7 @@ unwrap_catvaluetype(::Type{Union{}}) = Union{} # prevent incorrect dispatch to T
 unwrap_catvaluetype(::Type{Any}) = Any # prevent recursion in T>:Missing method
 unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
 
-Base.get(x::CategoricalValue) = index(pool(x))[level(x)]
+Base.get(x::CategoricalValue) = levels(x)[level(x)]
 
 """
     levelcode(x::CategoricalValue)
@@ -31,7 +31,7 @@ Base.get(x::CategoricalValue) = index(pool(x))[level(x)]
 Get the code of categorical value `x`, i.e. its index in the set
 of possible values returned by [`levels(x)`](@ref).
 """
-levelcode(x::CategoricalValue) = Signed(widen(order(pool(x))[level(x)]))
+levelcode(x::CategoricalValue) = Signed(widen(level(x)))
 
 """
     levelcode(x::Missing)

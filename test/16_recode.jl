@@ -434,7 +434,7 @@ end
     end
 end
 
-@testset "Recoding from $(typeof(x)) to Int/String (i.e. Any), with index and levels in different orders" for
+@testset "Recoding from $(typeof(x)) to Int/String (i.e. Any), with levels in custom order" for
     x in (10:-1:1, CategoricalArray(10:-1:1))
 
     y = @inferred recode(x, 0, 1=>"a", 2:4=>"c", [5; 9:10]=>"b")
@@ -447,7 +447,7 @@ end
         @test typeof(y) === Vector{Any}
     end
 
-    # Recoding from Int to String via default, with index and levels in different orders
+    # Recoding from Int to String via default, with levels in custom order
     y = @inferred recode(x, "x", 1=>"a", 2:4=>"c", [5; 9:10]=>"b")
     @test y == ["b", "b", "x", "x", "x", "b", "c", "c", "c", "a"]
     if isa(x, CategoricalArray)

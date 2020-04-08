@@ -102,9 +102,9 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test_throws Exception x[1] > x[2]
     @test_throws Exception x[3] > x[2]
 
-    @test x[1] === x.pool.valindex[1]
-    @test x[2] === x.pool.valindex[2]
-    @test x[3] === x.pool.valindex[1]
+    @test x[1] === x.pool.valindex[2]
+    @test x[2] === x.pool.valindex[1]
+    @test x[3] === x.pool.valindex[2]
     @test_throws BoundsError x[4]
 
     x2 = x[:]
@@ -137,35 +137,33 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test isordered(x2) == isordered(x)
 
     x[1] = x[2]
-    @test x[1] === x.pool.valindex[2]
-    @test x[2] === x.pool.valindex[2]
-    @test x[3] === x.pool.valindex[1]
+    @test x[1] === x.pool.valindex[1]
+    @test x[2] === x.pool.valindex[1]
+    @test x[3] === x.pool.valindex[2]
 
     x[3] = "c"
-    @test x[1] === x.pool.valindex[2]
-    @test x[2] === x.pool.valindex[2]
-    @test x[3] === x.pool.valindex[3]
     @test levels(x) == ["a", "b", "c"]
+    @test x[1] === x.pool.valindex[1]
+    @test x[2] === x.pool.valindex[1]
+    @test x[3] === x.pool.valindex[3]
 
     x[2:3] .= "b"
-    @test x[1] === x.pool.valindex[2]
-    @test x[2] === x.pool.valindex[1]
-    @test x[3] === x.pool.valindex[1]
     @test levels(x) == ["a", "b", "c"]
+    @test x[1] === x.pool.valindex[1]
+    @test x[2] === x.pool.valindex[2]
+    @test x[3] === x.pool.valindex[2]
 
     @test droplevels!(x) === x
     @test levels(x) == ["a", "b"]
     @test x[1] === x.pool.valindex[1]
     @test x[2] === x.pool.valindex[2]
     @test x[3] === x.pool.valindex[2]
-    @test levels(x) == ["a", "b"]
 
     @test levels!(x, ["b", "a"]) === x
     @test levels(x) == ["b", "a"]
-    @test x[1] === x.pool.valindex[1]
-    @test x[2] === x.pool.valindex[2]
-    @test x[3] === x.pool.valindex[2]
-    @test levels(x) == ["b", "a"]
+    @test x[1] === x.pool.valindex[2]
+    @test x[2] === x.pool.valindex[1]
+    @test x[3] === x.pool.valindex[1]
 
     @test_throws ArgumentError levels!(x, ["a"])
     @test_throws ArgumentError levels!(x, ["e", "b"])
@@ -173,15 +171,14 @@ using CategoricalArrays: DefaultRefType, leveltype
 
     @test levels!(x, ["e", "a", "b"]) === x
     @test levels(x) == ["e", "a", "b"]
-    @test x[1] === x.pool.valindex[1]
-    @test x[2] === x.pool.valindex[2]
-    @test x[3] === x.pool.valindex[2]
-    @test levels(x) == ["e", "a", "b"]
+    @test x[1] === x.pool.valindex[2]
+    @test x[2] === x.pool.valindex[3]
+    @test x[3] === x.pool.valindex[3]
 
     x[1] = "c"
     @test x[1] === x.pool.valindex[4]
-    @test x[2] === x.pool.valindex[2]
-    @test x[3] === x.pool.valindex[2]
+    @test x[2] === x.pool.valindex[3]
+    @test x[3] === x.pool.valindex[3]
     @test levels(x) == ["e", "a", "b", "c"]
 
     push!(x, "a")
@@ -202,7 +199,7 @@ using CategoricalArrays: DefaultRefType, leveltype
     x2 = copy(x)
     @test_throws MethodError push!(x, 1)
     @test x == x2
-    @test x.pool.index == x2.pool.index
+    @test x.pool.levels == x2.pool.levels
     @test x.pool.invindex == x2.pool.invindex
 
     empty!(x)
@@ -619,7 +616,7 @@ using CategoricalArrays: DefaultRefType, leveltype
             levels!(x, ["c", "a", "xyz", "b"])
         end
         x[1] = v
-        @test x[1] === x.pool.valindex[3]
+        @test x[1] === x.pool.valindex[4]
         @test x[2] === x.pool.valindex[1]
         @test levels(x) == ["c", "a", "xyz", "b"]
     end

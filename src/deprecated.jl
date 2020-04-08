@@ -125,3 +125,6 @@ import Unicode: normalize, graphemes
 @deprecate findfirst(needle::Base.Fix2, haystack::CategoricalValue{String}) findfirst(needle, String(haystack))
 @deprecate findlast(needle::Base.Fix2, haystack::CategoricalValue{String}) findlast(needle, String(haystack))
 @deprecate replace(x::CategoricalValue{String}, old_new::Pair...; kwargs...) replace(String(x), old_new...; kwargs...)
+
+@deprecate index(pool::CategoricalPool) levels(pool) false
+@deprecate order(pool::CategoricalPool) 1:length(levels(pool)) false
