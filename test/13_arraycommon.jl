@@ -222,6 +222,14 @@ end
         y = similar(Vector{T}, (3,))
         @test isa(y, Vector{T})
         @test size(y) == (3,)
+
+        y = similar(1:1, Union{CategoricalValue{String, UInt8}, T})
+        @test isa(y, CategoricalVector{Union{String, T}, UInt8})
+        @test size(y) == (1,)
+
+        y = similar(1:1, Union{CategoricalValue{String, UInt8}, T}, (3,))
+        @test isa(y, CategoricalVector{Union{String, T}, UInt8})
+        @test size(y) == (3,)
     end
 
     @testset "copy" begin
@@ -1145,18 +1153,20 @@ end
     end
 end
 
-@testset "collect of CategoricalArray produces Array" begin
+@testset "collect of CategoricalArray produces CategoricalArray" begin
     x = [1,1,2,2]
     y = categorical(x)
-    z = collect(y)
-    @test typeof(x) == typeof(z)
-    @test z == x
+    for z in (collect(y), collect(eltype(y), y), collect(Iterators.take(y, 4)))
+        @test typeof(y) == typeof(z)
+        @test z == y == x
+    end
 
     x = [1,1,2,missing]
     y = categorical(x)
-    z = collect(y)
-    @test typeof(x) == typeof(z)
-    @test z ≅ x
+    for z in (collect(y), collect(eltype(y), y), collect(Iterators.take(y, 4)))
+        @test typeof(y) == typeof(z)
+        @test z ≅ y ≅ x
+    end
 end
 
 @testset "Array(::CategoricalArray{T}) produces Array{T}" begin
