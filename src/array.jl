@@ -383,6 +383,13 @@ end
     @inbounds A.refs[I...] = get!(A.pool, v)
 end
 
+Base.fill(v::CategoricalValue{T}, dims::NTuple{N, Integer}) where {T, N} =
+    CategoricalArray{T, N}(fill(level(v), dims), copy(pool(v)))
+
+# to avoid ambiguity
+Base.fill(v::CategoricalValue, dims::Tuple{}) =
+    invoke(fill, Tuple{CategoricalValue{T}, NTuple{N, Integer}} where {T, N}, v, dims)
+
 function Base.fill!(A::CategoricalArray, v::Any)
     # TODO: use a global table to cache subset relations for all pairs of pools
     if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)

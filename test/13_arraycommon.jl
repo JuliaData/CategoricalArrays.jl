@@ -1652,4 +1652,18 @@ end
     @test levelcode.(x) isa Vector{Union{Missing,Int16}}
 end
 
+@testset "fill()" begin
+    for ordered in (false, true), dims in ([1], [(1,)], [2, 3], [(2, 3)], [], [()])
+        x = CategoricalArray{String, 1, UInt8}(["a", "b", "c"],
+                                            ordered=ordered)
+
+        y = fill(x[1], dims...)
+        yref = fill("a", dims...)
+        @test y == yref
+        @test y isa CategoricalArray{String, ndims(yref), UInt8}
+        @test levels(y) == levels(x)
+        @test isordered(y) === isordered(x)
+    end
+end
+
 end
