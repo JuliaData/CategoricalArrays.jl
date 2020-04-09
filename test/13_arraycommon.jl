@@ -1643,7 +1643,7 @@ end
 end
 
 @testset "fill()" begin
-    for ordered in (false, true), dims in ([1], [2, 3], [(2, 3)], [])
+    for ordered in (false, true), dims in ([1], [(1,)], [2, 3], [(2, 3)], [], [()])
         x = CategoricalArray{String, 1, UInt8}(["a", "b", "c"],
                                             ordered=ordered)
 

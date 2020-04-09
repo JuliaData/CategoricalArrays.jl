@@ -383,12 +383,8 @@ end
     @inbounds A.refs[I...] = get!(A.pool, v)
 end
 
-function Base.fill(v::CategoricalValue{T, R}, dims::NTuple{N, Integer}) where {T, R, N}
-    A = CategoricalArray{T, N, R}(undef, dims)
-    merge_pools!(A, v, updaterefs=false)
-    fill!(A.refs, get!(A.pool, v))
-    A
-end
+Base.fill(v::CategoricalValue{T}, dims::NTuple{N, Integer}) where {T, N} =
+    CategoricalArray{T, N}(fill(level(v), dims), copy(pool(v)))
 
 # to avoid ambiguity
 Base.fill(v::CategoricalValue, dims::Tuple{}) =
