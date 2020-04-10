@@ -42,16 +42,17 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Missing},
 end
 
 """
-    default_formatter(from, to, i; closed=false)
-    
-Provide the default label format for the `cut` function.
+    default_formatter(from, to, i; leftclosed, rightclosed)
+
+Provide the default label format for the `cut(x, breaks)` method.
 """
-default_formatter(from, to, i; closed) = string("[", from, ", ", to, closed ? "]" : ")")
+default_formatter(from, to, i; leftclosed, rightclosed) =
+    string(leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
 
 @doc raw"""
     cut(x::AbstractArray, breaks::AbstractVector;
-        labels::Union{AbstractVector{<:AbstractString},Function}, 
-        extend::Bool=false, allow_missing::Bool=false)
+        labels::Union{AbstractVector{<:AbstractString},Function},
+        extend::Bool=false, allow_missing::Bool=false, allowempty::Bool=false)
 
 Cut a numeric array into intervals and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
@@ -60,17 +61,21 @@ i.e. the lower bound is included and the upper bound is excluded.
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
 also accept them.
 
-# Arguments
+# Keyword arguments
 * `extend::Bool=false`: when `false`, an error is raised if some values in `x` fall
   outside of the breaks; when `true`, breaks are automatically added to include all
   values in `x`, and the upper bound is included in the last interval.
 * `labels::Union{AbstractVector,Function}: a vector of strings giving the names to use for
-  the intervals; or a function `f(from, to, i; closed)` that generates the labels from the
-  left and right interval boundaries and the group index. Defaults to 
+  the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
+  the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
 * `allow_missing::Bool=true`: when `true`, values outside of breaks result in missing values.
   only supported when `x` accepts missing values.
-  
+* `allowempty::Bool=false`: when `false`, an error is raised if some breaks appear
+  multiple times, generating empty intervals; when `true`, duplicate breaks are allowed
+  and the intervals they generate are kept as unused levels
+  (but duplicate labels are not allowed).
+
 # Examples
 ```jldoctest
 julia> cut(-1:0.5:1, [0, 1], extend=true)
@@ -97,7 +102,7 @@ julia> cut(-1:0.5:1, 2, labels=["A", "B"])
  "B"
  "B"
 
-julia> fmt(from, to, i; closed) = "grp $i ($from//$to)"
+julia> fmt(from, to, i; leftclosed, rightclosed) = "grp $i ($from//$to)"
 fmt (generic function with 1 method)
 
 julia> cut(-1:0.5:1, 3, labels=fmt)
@@ -112,9 +117,10 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
 function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
              extend::Bool=false,
              labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
-             allow_missing::Bool=false) where {T, N}
-    if !allunique(breaks)
-        throw(ArgumentError("all breaks must be unique"))
+             allow_missing::Bool=false,
+             allowempty::Bool=false) where {T, N}
+    if !allowempty && !allunique(breaks)
+        throw(ArgumentError("all breaks must be unique unless `allowempty=true`"))
     end
 
     if !issorted(breaks)
@@ -150,16 +156,23 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
         to = map(x -> sprint(show, x, context=:compact=>true), breaks[2:n])
         levs = Vector{String}(undef, n-1)
         for i in 1:n-2
-            levs[i] = labels(from[i], to[i], i, closed=false)
+            levs[i] = labels(from[i], to[i], i,
+                             leftclosed=breaks[i] != breaks[i+1], rightclosed=false)
         end
-        levs[end] = labels(from[end], to[end], n-1, closed=extend)
+        levs[end] = labels(from[end], to[end], n-1,
+                           leftclosed=breaks[end-1] != breaks[end], rightclosed=extend)
     else
         length(labels) == n-1 || throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
         # Levels must have element type String for type stability of the result
         levs::Vector{String} = copy(labels)
     end
     if !allunique(levs)
-        throw(ArgumentError("all labels must be unique"))
+        if labels === default_formatter
+            throw(ArgumentError("all labels must be unique, but `breaks` contains duplicates: " *
+                                "specify custom `labels` with unique names"))
+        else
+            throw(ArgumentError("all labels must be unique"))
+        end
     end
 
     pool = CategoricalPool(levs, true)
@@ -168,19 +181,41 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
 end
 
 """
+    quantile_formatter(from, to, i; leftclosed, rightclosed)
+
+Provide the default label format for the `cut(x, ngroups)` method.
+"""
+quantile_formatter(from, to, i; leftclosed, rightclosed) =
+    string("Q", i, ": ", leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
+
+"""
     cut(x::AbstractArray, ngroups::Integer;
-        labels::Union{AbstractVector{<:AbstractString},Function})
+        labels::Union{AbstractVector{<:AbstractString},Function},
+        allowempty::Bool=false)
 
 Cut a numeric array into `ngroups` quantiles, determined using
 [`quantile`](@ref).
+
+# Keyword arguments
+* `labels::Union{AbstractVector,Function}: a vector of strings giving the names to use for
+  the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
+  the labels from the left and right interval boundaries and the group index. Defaults to
+  `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval if `extend == true`).
+* `allowempty::Bool=false`: when `false`, an error is raised if some breaks appear
+  multiple times, generating empty intervals; when `true`, duplicate breaks are allowed
+  and the intervals they generate are kept as unused levels
+  (but duplicate labels are not allowed).
 """
 function cut(x::AbstractArray, ngroups::Integer;
-             labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter)
+             labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
+             allowempty::Bool=false)
     breaks = Statistics.quantile(x, (1:ngroups-1)/ngroups)
-    if !allunique(breaks)
-        n = length(breaks)
-        throw(ArgumentError("cannot compute $ngroups quantiles: `quantile(x, $ngroups)` " *
-                            "returned only $n groups due to duplicated values in `x`"))
+    if !allowempty && !allunique(breaks)
+        n = length(unique(breaks)) - 1
+        throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
+                            "returned only $n groups due to duplicated values in `x`." *
+                            "Pass `allowempty=true` to allow empty quantiles or " *
+                            "choose a lower value for `ngroups`."))
     end
-    cut(x, breaks; extend=true, labels=labels)
+    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty)
 end

@@ -121,6 +121,57 @@ end
     x = [zeros(10); ones(10)]
     @test_throws ArgumentError cut(x, [0, 0.1, 0.1, 10])
     @test_throws ArgumentError cut(x, 10)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 11])
+    y = cut(1:10, [1, 5, 5, 11], allowempty=true)
+    @test y == cut(1:10, [1, 5, 11])
+    @test levels(y) == ["[1, 5)", "(5, 5)", "[5, 11)"]
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11])
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 11],
+                                   labels=["[1, 5)", "(5, 5)", "(5, 5)", "[5, 11)"])
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11], allowempty=true)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 5, 11])
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 5, 11], allowempty=true)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 11], labels=string.(1:3))
+    y = cut(1:10, [1, 5, 5, 11], allowempty=true, labels=string.(1:3))
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "3")
+    @test levels(y) == string.(1:3)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11], labels=string.(1:4))
+    y = cut(1:10, [1, 5, 5, 5, 11], allowempty=true, labels=string.(1:4))
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "4")
+    @test levels(y) == string.(1:4)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 5, 11], labels=string.(1:5))
+    y = cut(1:10, [1, 5, 5, 5, 5, 11], allowempty=true, labels=string.(1:5))
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "5")
+    @test levels(y) == string.(1:5)
+
+    @test_throws ArgumentError cut(1:10, [1, 3, 3, 5, 5, 11], labels=string.(1:5))
+    y = cut(1:10, [1, 3, 3, 5, 5, 11], allowempty=true, labels=string.(1:5))
+    @test y == recode(cut(1:10, [1, 3, 5, 11]),
+                      "[1, 3)" => "1", "[3, 5)" => "3", "[5, 11)" => "5")
+    @test levels(y) == string.(1:5)
+
+    @test_throws ArgumentError cut(1:10, [1, 3, 3, 3, 5, 5, 5, 11], labels=string.(1:7))
+    y = cut(1:10, [1, 3, 3, 3, 5, 5, 5, 11], allowempty=true, labels=string.(1:7))
+    @test y == recode(cut(1:10, [1, 3, 5, 11]),
+                      "[1, 3)" => "1", "[3, 5)" => "4", "[5, 11)" => "7")
+    @test levels(y) == string.(1:7)
+
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 5, 11],
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 5, 11], allowempty=true,
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 7, 11],
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 7, 11], allowempty=true,
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 3, 5, 5, 11], allowempty=true,
+                                   labels=["1", "2", "3", "2", "4"])
 end
 
 end
