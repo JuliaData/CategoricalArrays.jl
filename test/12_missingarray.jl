@@ -66,7 +66,7 @@ const ≅ = isequal
                      (x, R, UInt8, true),
                      (x, R, R, false))
 
-                    x2 = categorical(y, ordered=ordered)
+                    x2 = @inferred categorical(y, ordered=ordered)
                     @test leveltype(x2) === String
                     @test nonmissingtype(eltype(x2)) === CategoricalValue{String, R1}
                     @test x2 == y
@@ -77,7 +77,7 @@ const ≅ = isequal
                     end
                     @test isordered(x2) === ordered
 
-                    x2 = categorical(y, comp, ordered=ordered)
+                    x2 = categorical(y, compress=comp, ordered=ordered)
                     @test x2 == y
                     @test leveltype(x2) === String
                     @test nonmissingtype(eltype(x2)) === CategoricalValue{String, R2}
@@ -284,7 +284,7 @@ const ≅ = isequal
                  (x, R, UInt8, true),
                  (x, R, R, false))
 
-                x2 = categorical(y, ordered=ordered)
+                x2 = @inferred categorical(y, ordered=ordered)
                 @test x2 ≅ y
                 if eltype(y) >: Missing
                     @test isa(x2, CategoricalVector{Union{String, Missing}, R1})
@@ -293,7 +293,7 @@ const ≅ = isequal
                 end
                 @test isordered(x2) === ordered
 
-                x2 = categorical(y, comp, ordered=ordered)
+                x2 = categorical(y, compress=comp, ordered=ordered)
                 @test x2 ≅ y
                 if eltype(y) >: Missing
                     @test isa(x2, CategoricalVector{Union{String, Missing}, R2})
@@ -447,7 +447,7 @@ const ≅ = isequal
              (x, R, UInt8, true),
              (x, R, R, false))
 
-            x2 = categorical(y, ordered=ordered)
+            x2 = @inferred categorical(y, ordered=ordered)
             @test x2 == collect(y)
             if eltype(y) >: Missing
                 @test isa(x2, CategoricalVector{Union{Float64, Missing}, R1})
@@ -458,7 +458,7 @@ const ≅ = isequal
             @test leveltype(x2) === Float64
             @test nonmissingtype(eltype(x2)) === CategoricalValue{Float64, R1}
 
-            x2 = categorical(y, comp, ordered=ordered)
+            x2 = categorical(y, compress=comp, ordered=ordered)
             @test x2 == collect(y)
             if eltype(y) >: Missing
                 @test isa(x2, CategoricalVector{Union{Float64, Missing}, R2})
@@ -615,7 +615,7 @@ const ≅ = isequal
              (x, R, UInt8, true),
              (x, R, R, false))
 
-            x2 = categorical(y, ordered=ordered)
+            x2 = @inferred categorical(y, ordered=ordered)
             @test x2 == y
             if eltype(y) >: Missing
                 @test isa(x2, CategoricalMatrix{Union{String, Missing}, R1})
@@ -624,7 +624,7 @@ const ≅ = isequal
             end
             @test isordered(x2) === ordered
 
-            x2 = categorical(y, comp, ordered=ordered)
+            x2 = categorical(y, compress=comp, ordered=ordered)
             @test x2 == y
             if eltype(y) >: Missing
                 @test isa(x2, CategoricalMatrix{Union{String, Missing}, R2})
@@ -756,12 +756,12 @@ const ≅ = isequal
              (x, R, UInt8, true),
              (x, R, R, false))
 
-            x2 = categorical(y, ordered=ordered)
+            x2 = @inferred categorical(y, ordered=ordered)
             @test x2 ≅ y
             @test isa(x2, CategoricalMatrix{Union{String, Missing}, R1})
             @test isordered(x2) === ordered
 
-            x2 = categorical(y, comp, ordered=ordered)
+            x2 = categorical(y, compress=comp, ordered=ordered)
             @test x2 ≅ y
             @test isa(x2, CategoricalMatrix{Union{String, Missing}, R2})
             @test isordered(x2) === ordered

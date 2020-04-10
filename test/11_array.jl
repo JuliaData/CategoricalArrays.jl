@@ -63,14 +63,14 @@ using CategoricalArrays: DefaultRefType, leveltype
          (x, R, UInt8, true),
          (x, R, R, false))
 
-        x2 = categorical(y, ordered=ordered)
+        x2 = @inferred categorical(y, ordered=ordered)
         @test x2 == x
         @test isa(x2, CategoricalVector{String, R1})
         @test isordered(x2) === ordered
         @test leveltype(x2) === String
         @test eltype(x2) === CategoricalValue{String, R1}
 
-        x2 = categorical(y, comp, ordered=ordered)
+        x2 = categorical(y, compress=comp, ordered=ordered)
         @test x2 == x
         @test isa(x2, CategoricalVector{String, R2})
         @test isordered(x2) === ordered
@@ -278,14 +278,14 @@ using CategoricalArrays: DefaultRefType, leveltype
              (x, R, UInt8, true),
              (x, R, R, false))
 
-            x2 = categorical(y, ordered=ordered)
+            x2 = @inferred categorical(y, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalVector{Float64, R1})
             @test isordered(x2) === ordered
             @test leveltype(x2) === Float64
             @test eltype(x2) === CategoricalValue{Float64, R1}
 
-            x2 = categorical(y, comp, ordered=ordered)
+            x2 = categorical(y, compress=comp, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalVector{Float64, R2})
             @test isordered(x2) === ordered
@@ -429,12 +429,12 @@ using CategoricalArrays: DefaultRefType, leveltype
              (x, R, UInt8, true),
              (x, R, R, false))
 
-            x2 = categorical(y, ordered=ordered)
+            x2 = @inferred categorical(y, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalMatrix{String, R1})
             @test isordered(x2) === ordered
 
-            x2 = categorical(y, comp, ordered=ordered)
+            x2 = categorical(y, compress=comp, ordered=ordered)
             @test x2 == x
             @test isa(x2, CategoricalMatrix{String, R2})
             @test isordered(x2) === ordered

@@ -128,3 +128,5 @@ import Unicode: normalize, graphemes
 
 @deprecate index(pool::CategoricalPool) levels(pool) false
 @deprecate order(pool::CategoricalPool) 1:length(levels(pool)) false
+
+@deprecate categorical(A::AbstractArray, compress::Bool; kwargs...) categorical(A; compress=compress, kwargs...)
