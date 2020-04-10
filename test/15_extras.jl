@@ -108,7 +108,7 @@ end
 end
 
 @testset "cut with formatter function" begin
-  my_formatter(from, to, i; closed) = "$i: $from -- $to"
+  my_formatter(from, to, i; leftclosed, rightclosed) = "$i: $from -- $to"
 
   x = 0.15:0.20:0.95
   p = [0, 0.4, 0.8, 1.0]
