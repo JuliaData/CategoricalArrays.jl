@@ -831,7 +831,7 @@ function Base.reshape(A::CategoricalArray{T, N}, dims::Dims) where {T, N}
 end
 
 """
-    categorical{T}(A::AbstractArray{T}[, compress::Bool]; levels=nothing, ordered=false)
+    categorical(A::AbstractArray; compress=false, levels=nothing, ordered=false)
 
 Construct a categorical array with the values from `A`.
 
@@ -843,27 +843,25 @@ in ascending order; else, they are kept in their order of appearance in `A`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-If `compress` is provided and set to `true`, the smallest reference type able to hold the
+If `compress` is `true`, the smallest reference type able to hold the
 number of unique values in `A` will be used. While this will reduce memory use, passing
 this parameter will also introduce a type instability which can affect performance inside
 the function where the call is made. Therefore, use this option with caution (the
 one-argument version does not suffer from this problem).
 
-    categorical(A::CategoricalArray, compress::Bool]; levels=nothing, ordered=false)
+    categorical(A::CategoricalArray; compress=false, levels=nothing, ordered=false)
 
 If `A` is already a `CategoricalArray`, its levels, orderedness and reference type
 are preserved unless explicitly overriden.
 """
-function categorical end
-
-categorical(A::AbstractArray; ordered=_isordered(A)) = CategoricalArray(A, ordered=ordered)
-
-# Type-unstable methods
-function categorical(A::AbstractArray{T, N}, compress; ordered=_isordered(A)) where {T, N}
+# @inline is needed so that return type is inferred when compress is not provided
+@inline function categorical(A::AbstractArray{T, N};
+                             compress::Bool=false, ordered=_isordered(A)) where {T, N}
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
-function categorical(A::CategoricalArray{T, N, R}, compress; ordered=_isordered(A)) where {T, N, R}
+@inline function categorical(A::CategoricalArray{T, N, R};
+                             compress::Bool=false, ordered=_isordered(A)) where {T, N, R}
     RefType = compress ? reftype(length(levels(A))) : R
     CategoricalArray{T, N, RefType}(A, ordered=ordered)
 end
