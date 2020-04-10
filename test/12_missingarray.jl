@@ -196,7 +196,7 @@ const ≅ = isequal
                 @test levels(x) == ["e", "a", "b", "c"]
 
                 @test_throws ArgumentError levels!(x, ["e", "c"])
-                @test levels!(x, ["e", "c"], allow_missing=true) === x
+                @test levels!(x, ["e", "c"], allowmissing=true) === x
                 @test levels(x) == ["e", "c"]
                 @test x[1] === x.pool.valindex[2]
                 @test x[2] === missing

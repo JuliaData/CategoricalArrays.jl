@@ -171,7 +171,7 @@ missing
 
 ```
 
-It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the `"Old"` group. Let's first restore the original value for the first element, and then set it to missing again using the `allow_missing` argument to `levels!`:
+It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the `"Old"` group. Let's first restore the original value for the first element, and then set it to missing again using the `allowmissing` argument to `levels!`:
 
 ```jldoctest using
 julia> y[1] = "Old"
@@ -184,7 +184,7 @@ julia> y
  "Middle"
  "Young" 
 
-julia> levels!(y, ["Young", "Middle"]; allow_missing=true)
+julia> levels!(y, ["Young", "Middle"]; allowmissing=true)
 4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  missing
  "Young" 

@@ -13,7 +13,7 @@ const ≅ = isequal
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6])
     if T === Missing
-        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allow_missing=true"
+        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allowmissing=true"
     else
         @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
@@ -21,19 +21,19 @@ const ≅ = isequal
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5])
     if T === Missing
-        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allow_missing=true"
+        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allowmissing=true"
     else
         @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
 
     if T === Missing
-        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allow_missing=true)
+        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allowmissing=true)
         @test x ≅ ["[2, 5)", "[2, 5)", missing]
         @test isa(x, CategoricalVector{Union{String, T}})
         @test isordered(x)
         @test levels(x) == ["[2, 5)"]
     else
-        err = @test_throws ArgumentError cut(Vector{Int}([2, 3, 5]), [2, 5], allow_missing=true)
+        err = @test_throws ArgumentError cut(Vector{Int}([2, 3, 5]), [2, 5], allowmissing=true)
         @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
 
@@ -96,6 +96,14 @@ const ≅ = isequal
     @test isa(x, CategoricalMatrix{Union{String, T}})
     @test isordered(x)
     @test levels(x) == ["[-2.134, 3.0)", "[3.0, 12.5)"]
+end
+
+@testset "cut with missing values in input" begin
+    # use a large vector since values can be zero by chance
+    x = [1; fill(missing, 100)]
+    y = cut(x, [1, 5])
+    y[1] = missing
+    @test all(ismissing, y)
 end
 
 # TODO: test on arrays supporting missing values once a quantile() method is provided for them
