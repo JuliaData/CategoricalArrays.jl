@@ -20,201 +20,284 @@ function reftype(sz::Int)
 end
 
 """
-    CategoricalArray{T}(undef, dims::Dims; ordered::Bool=false)
-    CategoricalArray{T}(undef, dims::Int...; ordered::Bool=false)
+    CategoricalArray{T}(undef, dims::Dims; levels=nothing, ordered=false)
+    CategoricalArray{T}(undef, dims::Int...; levels=nothing, ordered=false)
 
 Construct an uninitialized `CategoricalArray` with levels of type `T` and dimensions `dim`.
+The `levels` keyword argument can be a vector specifying possible values for the data
+(this is equivalent to but more efficient than calling [`levels!`](@ref)
+on the resulting array).
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalArray{T, N, R}(undef, dims::Dims; ordered::Bool=false)
-    CategoricalArray{T, N, R}(undef, dims::Int...; ordered::Bool=false)
+    CategoricalArray{T, N, R}(undef, dims::Dims; levels=nothing, ordered=false)
+    CategoricalArray{T, N, R}(undef, dims::Int...; levels=nothing, ordered=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
 
-    CategoricalArray(A::AbstractArray; ordered::Bool=false)
+    CategoricalArray(A::AbstractArray; levels=nothing, ordered=false)
 
 Construct a new `CategoricalArray` with the values from `A` and the same element type.
 
-If the element type supports it, levels are sorted in ascending order;
-else, they are kept in their order of appearance in `A`. The `ordered` keyword
-argument determines whether the array values can be compared according to the
-ordering of levels or not (see [`isordered`](@ref)).
+The `levels` keyword argument can be a vector specifying possible values for the data
+(this is equivalent to but more efficient than calling [`levels!`](@ref)
+on the resulting array).
+If `levels` is omitted and the element type supports it, levels are sorted
+in ascending order; else, they are kept in their order of appearance in `A`.
+The `ordered` keyword argument determines whether the array values can be compared
+according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalArray(A::CategoricalArray; ordered::Bool=false)
+    CategoricalArray(A::CategoricalArray; levels=nothing, ordered=false)
 
-If `A` is already a `CategoricalArray`, its levels are preserved;
-the same applies to the ordered property and the reference type unless
-explicitly overriden.
+If `A` is already a `CategoricalArray`, its levels, orderedness and reference type
+are preserved unless explicitly overriden.
 """
 function CategoricalArray end
 
 """
-    CategoricalVector{T}(undef, m::Int; ordered::Bool=false)
+    CategoricalVector{T}(undef, m::Int; levels=nothing, ordered=false)
 
 Construct an uninitialized `CategoricalVector` with levels of type `T` and dimensions `dim`.
+
+The `levels` keyword argument can be a vector specifying possible values for the data
+(this is equivalent to but more efficient than calling [`levels!`](@ref)
+on the resulting array).
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalVector{T, R}(undef, m::Int; ordered::Bool=false)
+    CategoricalVector{T, R}(undef, m::Int; levels=nothing, ordered=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
 
-    CategoricalVector(A::AbstractVector; ordered::Bool=false)
+    CategoricalVector(A::AbstractVector; levels=nothing, ordered=false)
 
 Construct a `CategoricalVector` with the values from `A` and the same element type.
 
-If the element type supports it, levels are sorted in ascending order;
-else, they are kept in their order of appearance in `A`. The `ordered` keyword
-argument determines whether the array values can be compared according to the
-ordering of levels or not (see [`isordered`](@ref)).
+The `levels` keyword argument can be a vector specifying possible values for the data
+(this is equivalent to but more efficient than calling [`levels!`](@ref)
+on the resulting array).
+If `levels` is omitted and the element type supports it, levels are sorted
+in ascending order; else, they are kept in their order of appearance in `A`.
+The `ordered` keyword argument determines whether the array values can be compared
+according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalVector(A::CategoricalVector; ordered::Bool=false)
+    CategoricalVector(A::CategoricalVector; levels=nothing, ordered=false)
 
-If `A` is already a `CategoricalVector`, its levels are preserved;
-the same applies to the ordered property and the reference type unless
-explicitly overriden.
+If `A` is already a `CategoricalVector`, its levels, orderedness and reference type
+are preserved unless explicitly overriden.
 """
 function CategoricalVector end
 
 """
-    CategoricalMatrix{T}(undef, m::Int, n::Int; ordered::Bool=false)
+    CategoricalMatrix{T}(undef, m::Int, n::Int; levels=nothing, ordered=false)
 
 Construct an uninitialized `CategoricalMatrix` with levels of type `T` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalMatrix{T, R}(undef, m::Int, n::Int; ordered::Bool=false)
+    CategoricalMatrix{T, R}(undef, m::Int, n::Int; levels=nothing, ordered=false)
 
 Similar to definition above, but uses reference type `R` instead of the default type
 (`$DefaultRefType`).
 
-    CategoricalMatrix(A::AbstractVector; ordered::Bool=false)
+    CategoricalMatrix(A::AbstractMatrix; levels=nothing, ordered=false)
 
 Construct a `CategoricalMatrix` with the values from `A` and the same element type.
 
-If the element type supports it, levels are sorted in ascending order;
-else, they are kept in their order of appearance in `A`. The `ordered` keyword
-argument determines whether the array values can be compared according to the
-ordering of levels or not (see [`isordered`](@ref)).
+The `levels` keyword argument can be a vector specifying possible values for the data
+(this is equivalent to but more efficient than calling [`levels!`](@ref)
+on the resulting array).
+If `levels` is omitted and the element type supports it, levels are sorted
+in ascending order; else, they are kept in their order of appearance in `A`.
+The `ordered` keyword argument determines whether the array values can be compared
+according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalMatrix(A::CategoricalMatrix; ordered::Bool=isordered(A))
+    CategoricalMatrix(A::CategoricalMatrix; levels=nothing, ordered=isordered(A))
 
-If `A` is already a `CategoricalMatrix`, its levels are preserved;
-the same applies to the ordered property and the reference type unless
-explicitly overriden.
+If `A` is already a `CategoricalMatrix`, its levels, orderedness and reference type
+are preserved unless explicitly overriden.
 """
 function CategoricalMatrix end
 
 # UndefInitializer array constructors
 
-CategoricalArray(::UndefInitializer, dims::Int...; ordered=false) =
-    CategoricalArray{String}(undef, dims, ordered=ordered)
+CategoricalArray(::UndefInitializer, dims::Int...;
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=false) =
+    CategoricalArray{String}(undef, dims, levels=levels, ordered=ordered)
 
 function CategoricalArray{T, N, R}(::UndefInitializer, dims::NTuple{N,Int};
-                                   ordered=false) where {T, N, R}
+                                   levels::Union{AbstractVector, Nothing}=nothing,
+                                   ordered::Bool=false) where {T, N, R}
     U = leveltype(nonmissingtype(T))
     S = T >: Missing ? Union{U, Missing} : U
     V = CategoricalValue{U, R}
-    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R, V}(ordered))
+    levs = levels === nothing ? U[] : collect(U, levels)
+    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R, V}(levs, ordered))
 end
 
-CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
-    CategoricalArray{T, N, DefaultRefType}(undef, dims, ordered=ordered)
-CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where
+CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int};
+                       levels::Union{AbstractVector, Nothing}=nothing,
+                       ordered::Bool=false) where {T, N} =
+    CategoricalArray{T, N, DefaultRefType}(undef, dims, levels=levels, ordered=ordered)
+CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int};
+                       levels::Union{AbstractVector, Nothing}=nothing,
+                       ordered::Bool=false) where
     {R, T <: Union{Missing, CategoricalValue{<:Any, R}}, N} =
-    CategoricalArray{T, N, R}(undef, dims, ordered=ordered)
-CategoricalArray{T}(::UndefInitializer, dims::NTuple{N,Int}; ordered=false) where {T, N} =
-    CategoricalArray{T, N}(undef, dims, ordered=ordered)
-CategoricalArray{T, 1}(::UndefInitializer, m::Int; ordered=false) where {T} =
-    CategoricalArray{T, 1}(undef, (m,), ordered=ordered)
-CategoricalArray{T, 2}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T, 2}(undef, (m, n), ordered=ordered)
-CategoricalArray{T, 1, R}(::UndefInitializer, m::Int; ordered=false) where {T, R} =
-    CategoricalArray{T, 1, R}(undef, (m,), ordered=ordered)
+    CategoricalArray{T, N, R}(undef, dims, levels=levels, ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, dims::NTuple{N,Int};
+                    levels::Union{AbstractVector, Nothing}=nothing,
+                    ordered::Bool=false) where {T, N} =
+    CategoricalArray{T, N}(undef, dims, levels=levels, ordered=ordered)
+CategoricalArray{T, 1}(::UndefInitializer, m::Int;
+                       levels::Union{AbstractVector, Nothing}=nothing,
+                       ordered::Bool=false) where {T} =
+    CategoricalArray{T, 1}(undef, (m,), levels=levels, ordered=ordered)
+CategoricalArray{T, 2}(::UndefInitializer, m::Int, n::Int;
+                       levels::Union{AbstractVector, Nothing}=nothing,
+                       ordered::Bool=false) where {T} =
+    CategoricalArray{T, 2}(undef, (m, n), levels=levels, ordered=ordered)
+CategoricalArray{T, 1, R}(::UndefInitializer, m::Int;
+                          levels::Union{AbstractVector, Nothing}=nothing,
+                          ordered=false) where {T, R} =
+    CategoricalArray{T, 1, R}(undef, (m,), levels=levels, ordered=ordered)
 # R <: Integer is required to prevent default constructor from being called instead
-CategoricalArray{T, 2, R}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T, R <: Integer} =
-    CategoricalArray{T, 2, R}(undef, (m, n), ordered=ordered)
-CategoricalArray{T, 3, R}(::UndefInitializer, m::Int, n::Int, o::Int; ordered=false) where {T, R} =
-    CategoricalArray{T, 3, R}(undef, (m, n, o), ordered=ordered)
-CategoricalArray{T}(::UndefInitializer, m::Int; ordered=false) where {T} =
-    CategoricalArray{T}(undef, (m,), ordered=ordered)
-CategoricalArray{T}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T}(undef, (m, n), ordered=ordered)
-CategoricalArray{T}(::UndefInitializer, m::Int, n::Int, o::Int; ordered=false) where {T} =
-    CategoricalArray{T}(undef, (m, n, o), ordered=ordered)
+CategoricalArray{T, 2, R}(::UndefInitializer, m::Int, n::Int;
+                          levels::Union{AbstractVector, Nothing}=nothing,
+                          ordered::Bool=false) where {T, R <: Integer} =
+    CategoricalArray{T, 2, R}(undef, (m, n), levels=levels, ordered=ordered)
+CategoricalArray{T, 3, R}(::UndefInitializer, m::Int, n::Int, o::Int;
+                          levels::Union{AbstractVector, Nothing}=nothing,
+                          ordered::Bool=false) where {T, R} =
+    CategoricalArray{T, 3, R}(undef, (m, n, o), levels=levels, ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, m::Int;
+                    levels::Union{AbstractVector, Nothing}=nothing,
+                    ordered::Bool=false) where {T} =
+    CategoricalArray{T}(undef, (m,), levels=levels, ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, m::Int, n::Int;
+                    levels::Union{AbstractVector, Nothing}=nothing,
+                    ordered::Bool=false) where {T} =
+    CategoricalArray{T}(undef, (m, n), levels=levels, ordered=ordered)
+CategoricalArray{T}(::UndefInitializer, m::Int, n::Int, o::Int;
+                    levels::Union{AbstractVector, Nothing}=nothing,
+                    ordered::Bool=false) where {T} =
+    CategoricalArray{T}(undef, (m, n, o), levels=levels, ordered=ordered)
 
-CategoricalVector(::UndefInitializer, m::Integer; ordered=false) =
-    CategoricalArray(undef, m, ordered=ordered)
-CategoricalVector{T}(::UndefInitializer, m::Int; ordered=false) where {T} =
-    CategoricalArray{T}(undef, (m,), ordered=ordered)
+CategoricalVector(::UndefInitializer, m::Integer;
+                  levels::Union{AbstractVector, Nothing}=nothing,
+                  ordered::Bool=false) =
+    CategoricalArray(undef, m, levels=levels, ordered=ordered)
+CategoricalVector{T}(::UndefInitializer, m::Int;
+                     levels::Union{AbstractVector, Nothing}=nothing,
+                     ordered::Bool=false) where {T} =
+    CategoricalArray{T}(undef, (m,), levels=levels, ordered=ordered)
 
-CategoricalMatrix(::UndefInitializer, m::Int, n::Int; ordered=false) =
-    CategoricalArray(undef, m, n, ordered=ordered)
-CategoricalMatrix{T}(::UndefInitializer, m::Int, n::Int; ordered=false) where {T} =
-    CategoricalArray{T}(undef, (m, n), ordered=ordered)
+CategoricalMatrix(::UndefInitializer, m::Int, n::Int;
+                  levels::Union{AbstractVector, Nothing}=nothing,
+                  ordered::Bool=false) =
+    CategoricalArray(undef, m, n, levels=levels, ordered=ordered)
+CategoricalMatrix{T}(::UndefInitializer, m::Int, n::Int;
+                     levels::Union{AbstractVector, Nothing}=nothing,
+                     ordered::Bool=false) where {T} =
+    CategoricalArray{T}(undef, (m, n), levels=levels, ordered=ordered)
 
 
 ## Constructors from arrays
 
 function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
-                                   ordered=_isordered(A)) where {S, T, N, Q, R}
+                                   levels::Union{AbstractVector, Nothing}=nothing,
+                                   ordered::Bool=_isordered(A)) where {S, T, N, Q, R}
     V = unwrap_catvaluetype(T)
     res = convert(CategoricalArray{V, N, R}, A)
     refs = res.refs === A.refs ? copy(res.refs) : res.refs
     pool = res.pool === A.pool ? copy(res.pool) : res.pool
-    ordered!(CategoricalArray{V, N}(refs, pool), ordered)
+    ordered!(pool, ordered)
+    res = CategoricalArray{V, N}(refs, pool)
+    if levels !== nothing
+        # Calling levels! is faster than checking beforehand which values are used
+        try
+            levels!(res, levels)
+        catch err
+            err isa LevelsException || rethrow(err)
+            throw(ArgumentError("encountered value(s) not in specified `levels`: " *
+                                "$(setdiff(CategoricalArrays.levels(res), levels))"))
+        end
+    end
+    return res
 end
 
-function CategoricalArray{T, N, R}(A::AbstractArray; ordered=_isordered(A)) where {T, N, R}
+function CategoricalArray{T, N, R}(A::AbstractArray;
+                                   levels::Union{AbstractVector, Nothing}=nothing,
+                                   ordered::Bool=_isordered(A)) where {T, N, R}
     V = unwrap_catvaluetype(T)
-    ordered!(convert(CategoricalArray{V, N, R}, A), ordered)
+    ordered!(_convert(CategoricalArray{V, N, R}, A, levels=levels), ordered)
 end
 
 # From AbstractArray
-CategoricalArray{T, N}(A::AbstractArray{S, N}; ordered=_isordered(A)) where {S, T, N} =
-    CategoricalArray{T, N, DefaultRefType}(A, ordered=ordered)
-CategoricalArray{T}(A::AbstractArray{S, N}; ordered=_isordered(A)) where {S, T, N} =
-    CategoricalArray{T, N}(A, ordered=ordered)
-CategoricalArray(A::AbstractArray{T, N}; ordered=_isordered(A)) where {T, N} =
-    CategoricalArray{T, N}(A, ordered=ordered)
+CategoricalArray{T, N}(A::AbstractArray{S, N};
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=_isordered(A)) where {S, T, N} =
+    CategoricalArray{T, N, DefaultRefType}(A, levels=levels, ordered=ordered)
+CategoricalArray{T}(A::AbstractArray{S, N};
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=_isordered(A)) where {S, T, N} =
+    CategoricalArray{T, N}(A, levels=levels, ordered=ordered)
+CategoricalArray(A::AbstractArray{T, N};
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=_isordered(A)) where {T, N} =
+    CategoricalArray{T, N}(A, levels=levels, ordered=ordered)
 
-CategoricalVector{T}(A::AbstractVector{S}; ordered=_isordered(A)) where {S, T} =
-    CategoricalArray{T, 1}(A, ordered=ordered)
-CategoricalVector(A::AbstractVector{T}; ordered=_isordered(A)) where {T} =
-    CategoricalArray{T, 1}(A, ordered=ordered)
+CategoricalVector{T}(A::AbstractVector{S};
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered=_isordered(A)) where {S, T} =
+    CategoricalArray{T, 1}(A, levels=levels, ordered=ordered)
+CategoricalVector(A::AbstractVector{T};
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=_isordered(A)) where {T} =
+    CategoricalArray{T, 1}(A, levels=levels, ordered=ordered)
 
-CategoricalMatrix{T}(A::AbstractMatrix{S}; ordered=_isordered(A)) where {S, T} =
-    CategoricalArray{T, 2}(A, ordered=ordered)
-CategoricalMatrix(A::AbstractMatrix{T}; ordered=_isordered(A)) where {T} =
-    CategoricalArray{T, 2}(A, ordered=ordered)
+CategoricalMatrix{T}(A::AbstractMatrix{S};
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=_isordered(A)) where {S, T} =
+    CategoricalArray{T, 2}(A, levels=levels, ordered=ordered)
+CategoricalMatrix(A::AbstractMatrix{T};
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=_isordered(A)) where {T} =
+    CategoricalArray{T, 2}(A, levels=levels, ordered=ordered)
 
 # From CategoricalArray (preserve R)
 CategoricalArray{T, N}(A::CategoricalArray{S, N, R};
-                       ordered=_isordered(A)) where {S, T, N, R} =
-    CategoricalArray{T, N, R}(A, ordered=ordered)
+                       levels::Union{AbstractVector, Nothing}=nothing,
+                       ordered::Bool=_isordered(A)) where {S, T, N, R} =
+    CategoricalArray{T, N, R}(A, levels=levels, ordered=ordered)
 CategoricalArray{T}(A::CategoricalArray{S, N, R};
-                    ordered=_isordered(A)) where {S, T, N, R} =
-    CategoricalArray{T, N, R}(A, ordered=ordered)
+                    levels::Union{AbstractVector, Nothing}=nothing,
+                    ordered::Bool=_isordered(A)) where {S, T, N, R} =
+    CategoricalArray{T, N, R}(A, levels=levels, ordered=ordered)
 CategoricalArray(A::CategoricalArray{T, N, R};
-                 ordered=_isordered(A)) where {T, N, R} =
-    CategoricalArray{T, N, R}(A, ordered=ordered)
+                 levels::Union{AbstractVector, Nothing}=nothing,
+                 ordered::Bool=_isordered(A)) where {T, N, R} =
+    CategoricalArray{T, N, R}(A, levels=levels, ordered=ordered)
 
 CategoricalVector{T}(A::CategoricalArray{S, 1, R};
-                     ordered=_isordered(A)) where {S, T, R} =
-    CategoricalArray{T, 1, R}(A, ordered=ordered)
+                     levels::Union{AbstractVector, Nothing}=nothing,
+                     ordered::Bool=_isordered(A)) where {S, T, R} =
+    CategoricalArray{T, 1, R}(A, levels=levels, ordered=ordered)
 CategoricalVector(A::CategoricalArray{T, 1, R};
-                  ordered=_isordered(A)) where {T, R} =
-    CategoricalArray{T, 1, R}(A, ordered=ordered)
+                  levels::Union{AbstractVector, Nothing}=nothing,
+                  ordered::Bool=_isordered(A)) where {T, R} =
+    CategoricalArray{T, 1, R}(A, levels=levels, ordered=ordered)
 
 CategoricalMatrix{T}(A::CategoricalArray{S, 2, R};
-                     ordered=_isordered(A)) where {S, T, R} =
-    CategoricalArray{T, 2, R}(A, ordered=ordered)
+                     levels::Union{AbstractVector, Nothing}=nothing,
+                     ordered::Bool=_isordered(A)) where {S, T, R} =
+    CategoricalArray{T, 2, R}(A, levels=levels, ordered=ordered)
 CategoricalMatrix(A::CategoricalArray{T, 2, R};
-                  ordered=_isordered(A)) where {T, R} =
-    CategoricalArray{T, 2, R}(A, ordered=ordered)
+                  levels::Union{AbstractVector, Nothing}=nothing,
+                  ordered::Bool=_isordered(A)) where {T, R} =
+    CategoricalArray{T, 2, R}(A, levels=levels, ordered=ordered)
 
 
 ## Conversion methods
@@ -241,14 +324,24 @@ convert(::Type{CategoricalMatrix}, A::AbstractMatrix{T}) where {T} =
 convert(::Type{CategoricalMatrix{T}}, A::CategoricalMatrix{T}) where {T} = A
 convert(::Type{CategoricalMatrix}, A::CategoricalMatrix) = A
 
-function convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, N, R}
-    res = CategoricalArray{T, N, R}(undef, size(A))
+convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, N, R} =
+    _convert(CategoricalArray{T, N, R}, A)
+
+function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
+                  levels::Union{AbstractVector, Nothing}=nothing) where {S, T, N, R}
+    res = CategoricalArray{T, N, R}(undef, size(A), levels=levels)
     copyto!(res, A)
 
-    # if order is defined for level type, automatically apply it
-    L = leveltype(res)
-    if hasmethod(isless, Tuple{L, L})
-        levels!(res, sort(levels(res)))
+    if levels !== nothing
+        CategoricalArrays.levels(res) == levels ||
+            throw(ArgumentError("encountered value(s) not in specified `levels`: " *
+                                "$(setdiff(CategoricalArrays.levels(res), levels))"))
+    else
+        # if order is defined for level type, automatically apply it
+        L = leveltype(res)
+        if hasmethod(isless, Tuple{L, L})
+            levels!(res, sort(CategoricalArrays.levels(res)))
+        end
     end
 
     res
@@ -738,14 +831,17 @@ function Base.reshape(A::CategoricalArray{T, N}, dims::Dims) where {T, N}
 end
 
 """
-    categorical{T}(A::AbstractArray{T}[, compress::Bool]; ordered::Bool=false)
+    categorical{T}(A::AbstractArray{T}[, compress::Bool]; levels=nothing, ordered=false)
 
 Construct a categorical array with the values from `A`.
 
-If the element type supports it, levels are sorted in ascending order;
-else, they are kept in their order of appearance in `A`. The `ordered` keyword
-argument determines whether the array values can be compared according to the
-ordering of levels or not (see [`isordered`](@ref)).
+The `levels` keyword argument can be a vector specifying possible values for the data
+(this is equivalent to but more efficient than calling [`levels!`](@ref)
+on the resulting array).
+If `levels` is omitted and the element type supports it, levels are sorted
+in ascending order; else, they are kept in their order of appearance in `A`.
+The `ordered` keyword argument determines whether the array values can be compared
+according to the ordering of levels or not (see [`isordered`](@ref)).
 
 If `compress` is provided and set to `true`, the smallest reference type able to hold the
 number of unique values in `A` will be used. While this will reduce memory use, passing
@@ -753,11 +849,10 @@ this parameter will also introduce a type instability which can affect performan
 the function where the call is made. Therefore, use this option with caution (the
 one-argument version does not suffer from this problem).
 
-    categorical{T}(A::CategoricalArray{T}[, compress::Bool]; ordered::Bool=isordered(A))
+    categorical(A::CategoricalArray, compress::Bool]; levels=nothing, ordered=false)
 
-If `A` is already a `CategoricalArray`, its levels are preserved;
-the same applies to the ordered property, and to the reference type
-unless `compress` is passed.
+If `A` is already a `CategoricalArray`, its levels, orderedness and reference type
+are preserved unless explicitly overriden.
 """
 function categorical end
 

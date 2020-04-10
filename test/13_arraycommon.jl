@@ -1023,6 +1023,88 @@ end
     end
 end
 
+
+    @testset "levels argument to constructors" begin
+        for T in (String, Union{String, Missing}),
+            ord in (false, true),
+            levs in (nothing, [], ["a"], ["b", "c", "a"])
+            for (U, x) in ((String, CategoricalArray(undef, 2, levels=levs, ordered=ord)),
+                           (T, CategoricalArray{T}(undef, 2, levels=levs, ordered=ord)),
+                           (T, CategoricalArray{T, 1}(undef, 2, levels=levs, ordered=ord)),
+                           (T, CategoricalArray{T, 1, UInt32}(undef, 2, levels=levs, ordered=ord)),
+                           (String, CategoricalVector(undef, 2, levels=levs, ordered=ord)),
+                           (T, CategoricalVector{T}(undef, 2, levels=levs, ordered=ord)),
+                           (T, CategoricalVector{T, UInt32}(undef, 2, levels=levs, ordered=ord)),
+                           (String, CategoricalArray(undef, 2, 3, levels=levs, ordered=ord)),
+                           (T, CategoricalArray{T}(undef, 2, 3, levels=levs, ordered=ord)),
+                           (T, CategoricalArray{T, 2}(undef, 2, 3, levels=levs, ordered=ord)),
+                           (T, CategoricalArray{T, 2, UInt32}(undef, 2, 3, levels=levs, ordered=ord)),
+                           (String, CategoricalMatrix(undef, 2, 3, levels=levs, ordered=ord)),
+                           (T, CategoricalMatrix{T}(undef, 2, 3, levels=levs, ordered=ord)),
+                           (T, CategoricalMatrix{T, UInt32}(undef, 2, 3, levels=levs, ordered=ord)))
+                @test x isa CategoricalArray{U, <:Any, UInt32}
+                if U >: Missing
+                    @test all(ismissing, x)
+                else
+                    @test !any(i -> isassigned(x, i), eachindex(x))
+                end
+                @test levels(x) == something(levs, [])
+                @test isordered(x) === ord
+                @test CategoricalArrays.pool(x).levels !== levs
+            end
+
+            v = T["b", "c", "a"]
+            if levs === nothing || unique(v) ⊆ levs
+                for x in (CategoricalArray(v, levels=levs, ordered=ord),
+                          CategoricalArray{T}(v, levels=levs, ordered=ord),
+                          CategoricalArray{T, 1}(v, levels=levs, ordered=ord),
+                          CategoricalArray{T, 1, UInt32}(v, levels=levs, ordered=ord),
+                          CategoricalVector(v, levels=levs, ordered=ord),
+                          CategoricalVector{T}(v, levels=levs, ordered=ord),
+                          CategoricalVector{T, UInt32}(v, levels=levs, ordered=ord),
+                          CategoricalArray(v, levels=levs, ordered=ord))
+                        @test x isa CategoricalVector{T, UInt32}
+                        @test x == v
+                        @test levels(x) == something(levs, sort!(unique(x)))
+                        @test isordered(x) === ord
+                        @test CategoricalArrays.pool(x).levels !== levs
+                end
+            else
+                @test_throws ArgumentError CategoricalArray(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 1}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 1, UInt32}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalVector(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalVector{T}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalVector{T, UInt32}(v, levels=levs, ordered=ord)
+            end
+
+            m = T["c" "b"; "a" "b"]
+            if levs === nothing || unique(m) ⊆ levs
+                for x in (CategoricalArray{T}(m, levels=levs, ordered=ord),
+                          CategoricalArray{T, 2}(m, levels=levs, ordered=ord),
+                          CategoricalArray{T, 2, UInt32}(m, levels=levs, ordered=ord),
+                          CategoricalMatrix(m, levels=levs, ordered=ord),
+                          CategoricalMatrix{T}(m, levels=levs, ordered=ord),
+                          CategoricalMatrix{T, UInt32}(m, levels=levs, ordered=ord))
+                    @test x isa CategoricalMatrix{T, UInt32}
+                    @test x == m
+                    @test levels(x) == something(levs, sort!(unique(x)))
+                    @test isordered(x) === ord
+                    @test CategoricalArrays.pool(x).levels !== levs
+                end
+            else
+                @test_throws ArgumentError CategoricalArray(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 2}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 2, UInt32}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalMatrix(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalMatrix{T}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalMatrix{T, UInt32}(m, levels=levs, ordered=ord)
+            end
+        end
+    end
+
 @testset "converting from array with missings to array without missings CategoricalArray fails with missings" begin
     x = CategoricalArray{Union{String, Missing}}(undef, 1)
     @test_throws MissingException CategoricalArray{String}(x)
