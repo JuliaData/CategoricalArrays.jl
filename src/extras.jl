@@ -201,13 +201,13 @@ Cut a numeric array into `ngroups` quantiles, determined using
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval if `extend == true`).
-* `allowempty::Bool=false`: when `false`, an error is raised if some breaks appear
-  multiple times, generating empty intervals; when `true`, duplicate breaks are allowed
+* `allowempty::Bool=false`: when `false`, an error is raised if some quantiles breakpoints
+  are equal, generating empty intervals; when `true`, duplicate breaks are allowed
   and the intervals they generate are kept as unused levels
   (but duplicate labels are not allowed).
 """
 function cut(x::AbstractArray, ngroups::Integer;
-             labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
+             labels::Union{AbstractVector{<:AbstractString},Function}=quantile_formatter,
              allowempty::Bool=false)
     breaks = Statistics.quantile(x, (1:ngroups-1)/ngroups)
     if !allowempty && !allunique(breaks)

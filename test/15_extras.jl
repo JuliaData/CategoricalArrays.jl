@@ -101,10 +101,10 @@ end
 # TODO: test on arrays supporting missing values once a quantile() method is provided for them
 @testset "cut([5, 4, 3, 2], 2)" begin
     x = @inferred cut([5, 4, 3, 2], 2)
-    @test x == ["[3.5, 5.0]", "[3.5, 5.0]", "[2.0, 3.5)", "[2.0, 3.5)"]
+    @test x == ["Q2: [3.5, 5.0]", "Q2: [3.5, 5.0]", "Q1: [2.0, 3.5)", "Q1: [2.0, 3.5)"]
     @test isa(x, CategoricalArray)
     @test isordered(x)
-    @test levels(x) == ["[2.0, 3.5)", "[3.5, 5.0]"]
+    @test levels(x) == ["Q1: [2.0, 3.5)", "Q2: [3.5, 5.0]"]
 end
 
 @testset "cut with formatter function" begin
