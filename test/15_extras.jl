@@ -101,20 +101,77 @@ end
 # TODO: test on arrays supporting missing values once a quantile() method is provided for them
 @testset "cut([5, 4, 3, 2], 2)" begin
     x = @inferred cut([5, 4, 3, 2], 2)
-    @test x == ["[3.5, 5.0]", "[3.5, 5.0]", "[2.0, 3.5)", "[2.0, 3.5)"]
+    @test x == ["Q2: [3.5, 5.0]", "Q2: [3.5, 5.0]", "Q1: [2.0, 3.5)", "Q1: [2.0, 3.5)"]
     @test isa(x, CategoricalArray)
     @test isordered(x)
-    @test levels(x) == ["[2.0, 3.5)", "[3.5, 5.0]"]
+    @test levels(x) == ["Q1: [2.0, 3.5)", "Q2: [3.5, 5.0]"]
 end
 
 @testset "cut with formatter function" begin
-  my_formatter(from, to, i; closed) = "$i: $from -- $to"
+  my_formatter(from, to, i; leftclosed, rightclosed) = "$i: $from -- $to"
 
   x = 0.15:0.20:0.95
   p = [0, 0.4, 0.8, 1.0]
 
   @test cut(x, p, labels=my_formatter) ==
       ["1: 0.0 -- 0.4", "1: 0.0 -- 0.4", "2: 0.4 -- 0.8", "2: 0.4 -- 0.8", "3: 0.8 -- 1.0"]
+end
+
+@testset "cut with duplicated breaks" begin
+    x = [zeros(10); ones(10)]
+    @test_throws ArgumentError cut(x, [0, 0.1, 0.1, 10])
+    @test_throws ArgumentError cut(x, 10)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 11])
+    y = cut(1:10, [1, 5, 5, 11], allowempty=true)
+    @test y == cut(1:10, [1, 5, 11])
+    @test levels(y) == ["[1, 5)", "(5, 5)", "[5, 11)"]
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11])
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 11],
+                                   labels=["[1, 5)", "(5, 5)", "(5, 5)", "[5, 11)"])
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11], allowempty=true)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 5, 11])
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 5, 11], allowempty=true)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 11], labels=string.(1:3))
+    y = cut(1:10, [1, 5, 5, 11], allowempty=true, labels=string.(1:3))
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "3")
+    @test levels(y) == string.(1:3)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11], labels=string.(1:4))
+    y = cut(1:10, [1, 5, 5, 5, 11], allowempty=true, labels=string.(1:4))
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "4")
+    @test levels(y) == string.(1:4)
+
+    @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 5, 11], labels=string.(1:5))
+    y = cut(1:10, [1, 5, 5, 5, 5, 11], allowempty=true, labels=string.(1:5))
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "5")
+    @test levels(y) == string.(1:5)
+
+    @test_throws ArgumentError cut(1:10, [1, 3, 3, 5, 5, 11], labels=string.(1:5))
+    y = cut(1:10, [1, 3, 3, 5, 5, 11], allowempty=true, labels=string.(1:5))
+    @test y == recode(cut(1:10, [1, 3, 5, 11]),
+                      "[1, 3)" => "1", "[3, 5)" => "3", "[5, 11)" => "5")
+    @test levels(y) == string.(1:5)
+
+    @test_throws ArgumentError cut(1:10, [1, 3, 3, 3, 5, 5, 5, 11], labels=string.(1:7))
+    y = cut(1:10, [1, 3, 3, 3, 5, 5, 5, 11], allowempty=true, labels=string.(1:7))
+    @test y == recode(cut(1:10, [1, 3, 5, 11]),
+                      "[1, 3)" => "1", "[3, 5)" => "4", "[5, 11)" => "7")
+    @test levels(y) == string.(1:7)
+
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 5, 11],
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 5, 11], allowempty=true,
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 7, 11],
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 5, 7, 11], allowempty=true,
+                                   labels=["1", "2", "2", "3"])
+    @test_throws ArgumentError cut(1:10, [1, 3, 3, 5, 5, 11], allowempty=true,
+                                   labels=["1", "2", "3", "2", "4"])
 end
 
 end
