@@ -19,6 +19,10 @@ function reftype(sz::Int)
     end
 end
 
+fixstringtype(T::Type) = T <: SubString || T === AbstractString ? String : T
+fixstringtype(T::Union) = Union{fixstringtype(T.a), fixstringtype(T.b)}
+fixstringtype(::Type{Union{}}) = Union{}
+
 """
     CategoricalArray{T}(undef, dims::Dims; levels=nothing, ordered=false)
     CategoricalArray{T}(undef, dims::Int...; levels=nothing, ordered=false)
@@ -237,35 +241,35 @@ end
 
 # From AbstractArray
 CategoricalArray{T, N}(A::AbstractArray{S, N};
-                 levels::Union{AbstractVector, Nothing}=nothing,
-                 ordered::Bool=_isordered(A)) where {S, T, N} =
+                       levels::Union{AbstractVector, Nothing}=nothing,
+                       ordered::Bool=_isordered(A)) where {S, T, N} =
     CategoricalArray{T, N, DefaultRefType}(A, levels=levels, ordered=ordered)
 CategoricalArray{T}(A::AbstractArray{S, N};
-                 levels::Union{AbstractVector, Nothing}=nothing,
-                 ordered::Bool=_isordered(A)) where {S, T, N} =
+                    levels::Union{AbstractVector, Nothing}=nothing,
+                    ordered::Bool=_isordered(A)) where {S, T, N} =
     CategoricalArray{T, N}(A, levels=levels, ordered=ordered)
 CategoricalArray(A::AbstractArray{T, N};
                  levels::Union{AbstractVector, Nothing}=nothing,
                  ordered::Bool=_isordered(A)) where {T, N} =
-    CategoricalArray{T, N}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixstringtype(T), N}(A, levels=levels, ordered=ordered)
 
 CategoricalVector{T}(A::AbstractVector{S};
-                 levels::Union{AbstractVector, Nothing}=nothing,
-                 ordered=_isordered(A)) where {S, T} =
+                     levels::Union{AbstractVector, Nothing}=nothing,
+                     ordered=_isordered(A)) where {S, T} =
     CategoricalArray{T, 1}(A, levels=levels, ordered=ordered)
 CategoricalVector(A::AbstractVector{T};
-                 levels::Union{AbstractVector, Nothing}=nothing,
-                 ordered::Bool=_isordered(A)) where {T} =
-    CategoricalArray{T, 1}(A, levels=levels, ordered=ordered)
+                  levels::Union{AbstractVector, Nothing}=nothing,
+                  ordered::Bool=_isordered(A)) where {T} =
+    CategoricalArray{fixstringtype(T), 1}(A, levels=levels, ordered=ordered)
 
 CategoricalMatrix{T}(A::AbstractMatrix{S};
-                 levels::Union{AbstractVector, Nothing}=nothing,
-                 ordered::Bool=_isordered(A)) where {S, T} =
+                     levels::Union{AbstractVector, Nothing}=nothing,
+                     ordered::Bool=_isordered(A)) where {S, T} =
     CategoricalArray{T, 2}(A, levels=levels, ordered=ordered)
 CategoricalMatrix(A::AbstractMatrix{T};
-                 levels::Union{AbstractVector, Nothing}=nothing,
-                 ordered::Bool=_isordered(A)) where {T} =
-    CategoricalArray{T, 2}(A, levels=levels, ordered=ordered)
+                  levels::Union{AbstractVector, Nothing}=nothing,
+                  ordered::Bool=_isordered(A)) where {T} =
+    CategoricalArray{fixstringtype(T), 2}(A, levels=levels, ordered=ordered)
 
 # From CategoricalArray (preserve R)
 CategoricalArray{T, N}(A::CategoricalArray{S, N, R};
@@ -865,12 +869,12 @@ are preserved unless explicitly overriden.
 @inline function categorical(A::AbstractArray{T, N};
                              compress::Bool=false, ordered=_isordered(A)) where {T, N}
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
-    CategoricalArray{T, N, RefType}(A, ordered=ordered)
+    CategoricalArray{fixstringtype(T), N, RefType}(A, ordered=ordered)
 end
 @inline function categorical(A::CategoricalArray{T, N, R};
                              compress::Bool=false, ordered=_isordered(A)) where {T, N, R}
     RefType = compress ? reftype(length(levels(A))) : R
-    CategoricalArray{T, N, RefType}(A, ordered=ordered)
+    CategoricalArray{fixstringtype(T), N, RefType}(A, ordered=ordered)
 end
 
 function in(x::Any, y::CategoricalArray{T, N, R}) where {T, N, R}
