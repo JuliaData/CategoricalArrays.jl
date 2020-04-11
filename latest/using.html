@@ -92,7 +92,7 @@ julia&gt; y
 
 julia&gt; y[1]
 missing
-</code></pre><p>It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the <code>&quot;Old&quot;</code> group. Let&#39;s first restore the original value for the first element, and then set it to missing again using the <code>allow_missing</code> argument to <code>levels!</code>:</p><pre><code class="language-julia-repl">julia&gt; y[1] = &quot;Old&quot;
+</code></pre><p>It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the <code>&quot;Old&quot;</code> group. Let&#39;s first restore the original value for the first element, and then set it to missing again using the <code>allowmissing</code> argument to <code>levels!</code>:</p><pre><code class="language-julia-repl">julia&gt; y[1] = &quot;Old&quot;
 &quot;Old&quot;
 
 julia&gt; y
@@ -102,7 +102,7 @@ julia&gt; y
  &quot;Middle&quot;
  &quot;Young&quot; 
 
-julia&gt; levels!(y, [&quot;Young&quot;, &quot;Middle&quot;]; allow_missing=true)
+julia&gt; levels!(y, [&quot;Young&quot;, &quot;Middle&quot;]; allowmissing=true)
 4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  missing
  &quot;Young&quot; 
