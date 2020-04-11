@@ -678,7 +678,7 @@ This may include levels which do not actually appear in the data
 DataAPI.levels(A::CategoricalArray) = levels(A.pool)
 
 """
-    levels!(A::CategoricalArray, newlevels::Vector; allow_missing::Bool=false)
+    levels!(A::CategoricalArray, newlevels::Vector; allowmissing::Bool=false)
 
 Set the levels categorical array `A`. The order of appearance of levels will be respected
 by [`levels`](@ref), which may affect display of results in some operations; if `A` is
@@ -686,11 +686,18 @@ ordered (see [`isordered`](@ref)), it will also be used for order comparisons
 using `<`, `>` and similar operators. Reordering levels will never affect the values
 of entries in the array.
 
-If `A` accepts missing values (i.e. `eltype(A) >: Missing`) and `allow_missing=true`,
+If `A` accepts missing values (i.e. `eltype(A) >: Missing`) and `allowmissing=true`,
 entries corresponding to omitted levels will be set to `missing`.
 Else, `newlevels` must include all levels which appear in the data.
 """
-function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector; allow_missing=false) where {T, N, R}
+function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector;
+                 allowmissing::Bool=false,
+                 allow_missing::Union{Bool, Nothing}=nothing) where {T, N, R}
+    if allow_missing !== nothing
+        Base.depwarn("allow_missing argument is deprecated, use allowmissing instead",
+                     :levels!)
+        allowmissing = allow_missing
+    end
     if !allunique(newlevels)
         throw(ArgumentError(string("duplicated levels found: ",
                                    join(unique(filter(x->sum(newlevels.==x)>1, newlevels)), ", "))))
@@ -705,12 +712,12 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector; allow_missing=
         deleted = [!(l in newlevels) for l in oldlevels]
         @inbounds for (i, x) in enumerate(A.refs)
             if T >: Missing
-                !allow_missing && x > 0 && deleted[x] &&
+                !allowmissing && x > 0 && deleted[x] &&
                     throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it " *
-                                        "is used at position $i and allow_missing=false."))
+                                        "is used at position $i and allowmissing=false."))
             else
                 deleted[x] &&
-                    throw(ArgumentError("cannot remove level $(repr(levels(A.pool)[x])) as it " *
+                    throw(ArgumentError("cannot remove level $(repr(oldlevels)[x])) as it " *
                                         "is used at position $i. Change the array element " *
                                         "type to Union{$T, Missing} using convert if you want " *
                                         "to transform some levels to missing values."))
