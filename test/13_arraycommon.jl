@@ -636,6 +636,20 @@ end
             dest = CategoricalVector{UInt}(undef, 3)
             @test_throws InexactError copyf!(dest, src)
         end
+
+        @testset "partial copyto! between arrays with identical levels" begin
+            v = ["a", "b", "c"]
+            src = CategoricalVector{Union{eltype(v), Missing}}(v)
+            levels!(src, reverse(v))
+            dest = CategoricalVector{Union{eltype(v), Missing}}(fill(missing, 6))
+            levels!(dest, levels(src))
+            copyto!(dest, 3, src)
+            @test dest ≅ [missing, missing, "a", "b", "c", missing]
+            @test levels(dest) == levels(src) == reverse(v)
+            copyto!(dest, 3, src, 2, 1)
+            @test dest ≅ [missing, missing, "b", "b", "c", missing]
+            @test levels(dest) == levels(src) == reverse(v)
+        end
     end
 
     @testset "assigning into array with empty levels uses orderedness of source" begin
