@@ -1377,6 +1377,9 @@ end
     x[2] = "a"
     @test droplevels!(x) === x
     @test levels(x) == ["c", "a"]
+    x .= "a"
+    @test droplevels!(x) === x
+    @test levels(x) == ["a"]
 end
 
 @testset "show" begin
