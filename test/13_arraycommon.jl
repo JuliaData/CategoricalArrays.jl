@@ -1,5 +1,6 @@
 module TestArrayCommon
 using Test
+using Missings
 using Future: copy!
 using CategoricalArrays, DataAPI
 using CategoricalArrays: DefaultRefType
@@ -1101,6 +1102,34 @@ end
             @test_throws ArgumentError CategoricalMatrix{T}(m, levels=levs, ordered=ord)
             @test_throws ArgumentError CategoricalMatrix{T, UInt32}(m, levels=levs, ordered=ord)
         end
+    end
+end
+
+@testset "constructors with SubString" begin
+    for x in ([SubString("ab", 1, 1), SubString("c", 1, 1)],
+              SubString[SubString("ab", 1, 1), SubString("c", 1, 1)],
+              [SubString("ab", 1, 1), "c"]),
+        f in (CategoricalArray, CategoricalVector, categorical)
+        y = @inferred f(x)
+        @test y isa CategoricalArray{String}
+        @test y == x
+
+        y = @inferred f(allowmissing(x))
+        @test y isa CategoricalArray{Union{String, Missing}}
+        @test y == x
+    end
+
+    for x in ([SubString("ab", 1, 1) SubString("c", 1, 1)],
+              SubString[SubString("ab", 1, 1) SubString("c", 1, 1)],
+              [SubString("ab", 1, 1) "c"]),
+        f in (CategoricalArray, CategoricalMatrix, categorical)
+        y = @inferred f(x)
+        @test y isa CategoricalArray{String}
+        @test y == x
+
+        y = @inferred f(allowmissing(x))
+        @test y isa CategoricalArray{Union{String, Missing}}
+        @test y == x
     end
 end
 
