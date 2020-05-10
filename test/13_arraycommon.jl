@@ -2027,4 +2027,35 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     @test levels(readx.var) == levels(x.var)
 end
 
+@testset "refarray, refvalue and refpool" begin
+    for y in (categorical(["b", "a", "c", "b"]),
+              view(categorical(["a", "a", "c", "b"]), 1:3),
+              categorical(["b" missing; "a" "c"; "b" missing]),
+              view(categorical(["b" missing; "a" "c"; "b" missing]), 2:3, 1))
+        @test DataAPI.refarray(y) === CategoricalArrays.refs(y)
+        @test DataAPI.refvalue.(Ref(y), DataAPI.refarray(y)) ≅ y
+        @test DataAPI.getindex.(Ref(DataAPI.refpool(y)), DataAPI.refarray(y)) ≅ y
+        @test_throws BoundsError DataAPI.refvalue(y, -1)
+        @test_throws BoundsError DataAPI.refvalue(y, length(levels(y))+1)
+        if !(eltype(y) >: Missing)
+            @test_throws BoundsError DataAPI.refvalue(y, 0)
+        end
+
+        rp = DataAPI.refpool(y)
+        @test rp isa AbstractVector{eltype(y)}
+        if eltype(y) >: Missing
+            @test collect(rp) ≅ [missing; levels(y)]
+            @test size(rp) == (length(levels(y)) + 1,)
+            @test axes(rp) == (0:length(levels(y)),)
+        else
+            @test collect(rp) == levels(y)
+            @test size(rp) == (length(levels(y)),)
+            @test axes(rp) == (1:length(levels(y)),)
+            @test_throws BoundsError rp[0]
+        end
+        @test_throws BoundsError rp[-1]
+        @test_throws BoundsError rp[end + 1]
+    end
+end
+
 end
