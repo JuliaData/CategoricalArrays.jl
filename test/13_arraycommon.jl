@@ -926,7 +926,11 @@ end
             cv = categorical(v)
             levels!(cv, ["b", "a", "c", "d"])
             @test sort(cv, rev=rev) ≅
-                ["b", "a", "c", "d", missing][sort([5, 1, 2, 3, 4][cv.refs .+ 1], rev=rev)]
+                ["b", "a", "c", "d", missing][sort([5; 1:4][cv.refs .+ 1], rev=rev)]
+
+            levels!(cv, ["x", "z", "b", "a", "y", "c", "d", "0"])
+            @test sort(cv, rev=rev) ≅
+                ["x", "z", "b", "a", "y", "c", "d", "0", missing][sort([9; 1:8][cv.refs .+ 1], rev=rev)]
 
             cv = categorical(v)
             @test sort(cv, rev=rev, lt=(x, y) -> isless(y, x)) ≅
