@@ -946,7 +946,7 @@ function Base.sort!(v::CategoricalVector;
     seen = counts .> 0
     anymissing = eltype(v) >: Missing && seen[1]
     levs = eltype(v) >: Missing ? [missing; v.pool.valindex] : v.pool.valindex
-    sortedlevs = sort(Vector(view(levs, seen)), order=ord)
+    sortedlevs = sort!(Vector(view(levs, seen)), order=ord)
     levelsmap = something.(indexin(sortedlevs, levs))
     j = 0
     refs = v.refs
