@@ -943,16 +943,17 @@ function Base.sort!(v::CategoricalVector;
 
     # compute the order in which to read from counts
     ord = Base.Sort.ord(lt, by, rev, order)
-    index = eltype(v) >: Missing ? [missing; v.pool.valindex] : v.pool.valindex
     seen = counts .> 0
     anymissing = eltype(v) >: Missing && seen[1]
-    perm = sortperm(view(index, seen), order=ord)
-    nzcounts = counts[seen]
+    levs = eltype(v) >: Missing ? [missing; v.pool.valindex] : v.pool.valindex
+    sortedlevs = sort(Vector(view(levs, seen)), order=ord)
+    levelsmap = something.(indexin(sortedlevs, levs))
     j = 0
     refs = v.refs
-    @inbounds for ref in perm
-        tmpj = j + nzcounts[ref]
-        refs[(j+1):tmpj] .= ref - anymissing
+    @inbounds for i in eachindex(levelsmap)
+        ref = levelsmap[i]
+        tmpj = j + counts[ref]
+        refs[(j+1):tmpj] .= ref - (eltype(v) >: Missing)
         j = tmpj
     end
 
