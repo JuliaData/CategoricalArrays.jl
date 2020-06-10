@@ -9,7 +9,7 @@ module CategoricalArrays
     export cut, recode, recode!
 
     using JSON
-    using JSON3
+    using StructTypes
     using DataAPI
     using Missings
     using Printf
