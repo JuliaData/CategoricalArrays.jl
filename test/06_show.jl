@@ -150,9 +150,14 @@ using JSON3
 @testset "JSON3.write" begin
     v = CategoricalValue(1, CategoricalPool(["a"]))
     @test JSON3.write(v) === "\"a\""
+    v = CategoricalValue(1, CategoricalPool([:a]))
+    @test JSON3.write(v) === "\"a\""
     v = CategoricalValue(1, CategoricalPool([1]))
     @test JSON3.write(v) === "1.0"
     v = CategoricalValue(1, CategoricalPool([2.0]))
     @test JSON3.write(v) === "2.0"
+    v = CategoricalValue(1, CategoricalPool([BigFloat(3.0,10)]))
+    @test JSON3.write(v) === "3.0"
 end
+
 end
