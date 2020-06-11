@@ -185,4 +185,5 @@ StructTypes.StructType(::Type{<:CategoricalValue{<:String}}) = StructTypes.Strin
 StructTypes.StructType(::Type{<:CategoricalValue{<:Symbol}}) = StructTypes.StringType()
 StructTypes.StructType(::Type{<:CategoricalValue{<:Number}}) = StructTypes.NumberType()
 StructTypes.numbertype(::Type{CategoricalValue{T}}) where {T <: Number} = T
-Base.Float64(x::CategoricalValue{<:Number}) = convert(Float64,x)
+
+(::Type{T})(x::CategoricalValue{<:Number}) where {T <: Number} = T(get(x))
