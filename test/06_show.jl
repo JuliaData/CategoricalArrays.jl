@@ -147,17 +147,25 @@ using JSON
 end
 
 using JSON3
+using StructTypes
 @testset "JSON3.write" begin
     v = CategoricalValue(1, CategoricalPool(["a"]))
     @test JSON3.write(v) === "\"a\""
+
     v = CategoricalValue(1, CategoricalPool([:a]))
     @test JSON3.write(v) === "\"a\""
+
     v = CategoricalValue(1, CategoricalPool([1]))
-    @test JSON3.write(v) === "1.0"
+    @test JSON3.write(v) === "1"
+    @test StructTypes.numbertype(typeof(v)) === Int
+
     v = CategoricalValue(1, CategoricalPool([2.0]))
     @test JSON3.write(v) === "2.0"
+    @test StructTypes.numbertype(typeof(v)) === Float64
+
     v = CategoricalValue(1, CategoricalPool([BigFloat(3.0,10)]))
     @test JSON3.write(v) === "3.0"
+    @test StructTypes.numbertype(typeof(v)) === BigFloat
 end
 
 end
