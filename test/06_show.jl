@@ -166,6 +166,10 @@ using StructTypes
     v = CategoricalValue(1, CategoricalPool([BigFloat(3.0,10)]))
     @test JSON3.write(v) === "3.0"
     @test StructTypes.numbertype(typeof(v)) === BigFloat
+
+    v= CategoricalValue(2, CategoricalPool([true,false]))
+    @test JSON3.write(v) == "false"
+    @test StructTypes.numbertype(typeof(v)) === Bool
 end
 
 end
