@@ -961,10 +961,10 @@ function Base.sort!(v::CategoricalVector;
     return v
 end
 
-Base.repeat(a::CategoricalArray{T, N, R, V, C, U},
-            counts::Integer...) where {T, N, R, V, C, U} = 
+Base.repeat(a::CategoricalArray{T, N},
+            counts::Integer...) where {T, N} = 
     CategoricalArray{T, N}(repeat(a.refs, counts...), copy(a.pool))
 
-Base.repeat(a::CategoricalArray{T, N, R, V, C, U};
-            inner = nothing, outer = nothing) where {T, N, R, V, C, U} =
+Base.repeat(a::CategoricalArray{T, N};
+            inner = nothing, outer = nothing) where {T, N} =
     CategoricalArray{T, N}(repeat(a.refs, inner=inner, outer=outer), copy(a.pool))
