@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Using CategoricalArrays · CategoricalArrays</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.png" alt="CategoricalArrays logo"/></a><div class="docs-package-name"><span class="docs-autofit">CategoricalArrays</span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Overview</a></li><li class="is-active"><a class="tocitem" href>Using CategoricalArrays</a><ul class="internal"><li><a class="tocitem" href="#Basic-usage-1"><span>Basic usage</span></a></li><li><a class="tocitem" href="#Handling-Missing-Values-1"><span>Handling Missing Values</span></a></li><li><a class="tocitem" href="#Combining-levels-1"><span>Combining levels</span></a></li><li><a class="tocitem" href="#Exported-functions-1"><span>Exported functions</span></a></li></ul></li><li><a class="tocitem" href="../implementation/">Implementation details</a></li><li><a class="tocitem" href="../apiindex/">API index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Using CategoricalArrays</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Using CategoricalArrays</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaData/CategoricalArrays.jl/blob/master/docs/src/using.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Using-CategoricalArrays-1"><a class="docs-heading-anchor" href="#Using-CategoricalArrays-1">Using CategoricalArrays</a><a class="docs-heading-anchor-permalink" href="#Using-CategoricalArrays-1" title="Permalink"></a></h1><h2 id="Basic-usage-1"><a class="docs-heading-anchor" href="#Basic-usage-1">Basic usage</a><a class="docs-heading-anchor-permalink" href="#Basic-usage-1" title="Permalink"></a></h2><p>Suppose that you have data about four individuals, with three different age groups. Since this variable is clearly ordinal, we mark the array as such via the <code>ordered</code> argument.</p><pre><code class="language-julia-repl">julia&gt; using CategoricalArrays
+
+julia&gt; x = CategoricalArray([&quot;Old&quot;, &quot;Young&quot;, &quot;Middle&quot;, &quot;Young&quot;], ordered=true)
+4-element CategoricalArray{String,1,UInt32}:
+ &quot;Old&quot;   
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+</code></pre><p>By default, the levels are lexically sorted, which is clearly not correct in our case and would give incorrect results when testing for order. This is easily fixed using the <code>levels!</code> function to reorder levels:</p><pre><code class="language-julia-repl">julia&gt; levels(x)
+3-element Array{String,1}:
+ &quot;Middle&quot;
+ &quot;Old&quot;   
+ &quot;Young&quot; 
+
+julia&gt; levels!(x, [&quot;Young&quot;, &quot;Middle&quot;, &quot;Old&quot;])
+4-element CategoricalArray{String,1,UInt32}:
+ &quot;Old&quot;   
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+</code></pre><p>Thanks to this order, we can not only test for equality between two values, but also compare the ages of e.g. individuals 1 and 2:</p><pre><code class="language-julia-repl">julia&gt; x[1]
+CategoricalValue{String,UInt32} &quot;Old&quot; (3/3)
+
+julia&gt; x[2]
+CategoricalValue{String,UInt32} &quot;Young&quot; (1/3)
+
+julia&gt; x[2] == x[4]
+true
+
+julia&gt; x[1] &gt; x[2]
+true
+</code></pre><p>Now let us imagine the first individual is actually in the &quot;Young&quot; group. Let&#39;s fix this (notice how the string <code>&quot;Young&quot;</code> is automatically converted to a <code>CategoricalValue</code>):</p><pre><code class="language-julia-repl">julia&gt; x[1] = &quot;Young&quot;
+&quot;Young&quot;
+
+julia&gt; x[1]
+CategoricalValue{String,UInt32} &quot;Young&quot; (1/3)
+</code></pre><p>The <code>CategoricalArray</code> still considers <code>&quot;Old&quot;</code> as a possible level even if it is unused now. This is necessary to allow efficiently accessing the levels and setting values of elements in the array: indeed, dropping unused levels requires iterating over every element in the array, which is expensive. This property can also be useful to keep track of possible levels, even if they do not occur in practice.</p><p>To get rid of the <code>&quot;Old&quot;</code> group, just call the <a href="../apiindex/#CategoricalArrays.droplevels!-Tuple{CategoricalArray}"><code>droplevels!</code></a> function:</p><pre><code class="language-julia-repl">julia&gt; levels(x)
+3-element Array{String,1}:
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Old&quot;   
+
+julia&gt; droplevels!(x)
+4-element CategoricalArray{String,1,UInt32}:
+ &quot;Young&quot; 
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+
+julia&gt; levels(x)
+2-element Array{String,1}:
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+</code></pre><p>Another solution would have been to call <code>levels!(x, [&quot;Young&quot;, &quot;Middle&quot;])</code> manually. This command is safe too, since it will raise an error when trying to remove levels that are currently used:</p><pre><code class="language-julia-repl">julia&gt; levels!(x, [&quot;Young&quot;, &quot;Midle&quot;])
+ERROR: ArgumentError: cannot remove level &quot;Middle&quot; as it is used at position 3. Change the array element type to Union{String, Missing} using convert if you want to transform some levels to missing values.
+[...]
+</code></pre><p>Note that entries in the <code>x</code> array cannot be treated as strings. Instead, they need to be converted to strings using <code>String(x[i])</code>:</p><pre><code class="language-julia-repl">julia&gt; lowercase(String(x[3]))
+&quot;middle&quot;
+
+julia&gt; replace(String(x[3]), &#39;M&#39;=&gt;&#39;R&#39;)
+&quot;Riddle&quot;</code></pre><p>Note that the call to <code>String</code> does reduce performance compared with working with a <code>Vector{String}</code> as it simply returns the string object which is stored by the pool.</p><h2 id="Handling-Missing-Values-1"><a class="docs-heading-anchor" href="#Handling-Missing-Values-1">Handling Missing Values</a><a class="docs-heading-anchor-permalink" href="#Handling-Missing-Values-1" title="Permalink"></a></h2><p>The examples above assumed that the data contained no missing values. This is generally not the case for real data. This is where <code>CategoricalArray{Union{T, Missing}}</code> comes into play. It is essentially the categorical-data equivalent of <code>Array{Union{T, Missing}}</code>. It behaves exactly as <code>CategoricalArray{T}</code>, except that when indexed it returns either a <code>CategoricalValue{T}</code> object or <code>missing</code> if the value is missing. See <a href="https://docs.julialang.org/en/stable/manual/missing/">the Julia manual</a> for more information on the <code>Missing</code> type.</p><p>Let&#39;s adapt the example developed above to support missing values. Since there are no missing values in the input vector, we need to specify that the array should be able to hold either a <code>String</code> or <code>missing</code>:</p><pre><code class="language-julia-repl">julia&gt; y = CategoricalArray{Union{Missing, String}}([&quot;Old&quot;, &quot;Young&quot;, &quot;Middle&quot;, &quot;Young&quot;], ordered=true)
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
+ &quot;Old&quot;   
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+</code></pre><p>Levels still need to be reordered manually:</p><pre><code class="language-julia-repl">julia&gt; levels(y)
+3-element Array{String,1}:
+ &quot;Middle&quot;
+ &quot;Old&quot;   
+ &quot;Young&quot; 
+
+julia&gt; levels!(y, [&quot;Young&quot;, &quot;Middle&quot;, &quot;Old&quot;])
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
+ &quot;Old&quot;   
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+</code></pre><p>At this point, indexing into the array gives exactly the same result</p><pre><code class="language-julia-repl">julia&gt; y[1]
+CategoricalValue{String,UInt32} &quot;Old&quot; (3/3)</code></pre><p>Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:</p><pre><code class="language-julia-repl">julia&gt; y[1] = missing
+missing
+
+julia&gt; y
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
+ missing
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+
+julia&gt; y[1]
+missing
+</code></pre><p>It is also possible to transform all values belonging to some levels into missing values, which gives the same result as above in the present case since we have only one individual in the <code>&quot;Old&quot;</code> group. Let&#39;s first restore the original value for the first element, and then set it to missing again using the <code>allowmissing</code> argument to <code>levels!</code>:</p><pre><code class="language-julia-repl">julia&gt; y[1] = &quot;Old&quot;
+&quot;Old&quot;
+
+julia&gt; y
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
+ &quot;Old&quot;   
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+
+julia&gt; levels!(y, [&quot;Young&quot;, &quot;Middle&quot;]; allowmissing=true)
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
+ missing
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+</code></pre><h2 id="Combining-levels-1"><a class="docs-heading-anchor" href="#Combining-levels-1">Combining levels</a><a class="docs-heading-anchor-permalink" href="#Combining-levels-1" title="Permalink"></a></h2><p>Some operations imply combining levels of two categorical arrays: this is the case when concatenating arrays (<code>vcat</code>, <code>hcat</code> and <code>cat</code>) and when assigning a <code>CategoricalValue</code> from another categorical array.</p><p>For example, imagine we have two sets of observations, one with only the younger part of the population and one with the older part:</p><pre><code class="language-julia-repl">julia&gt; x = categorical([&quot;Middle&quot;, &quot;Old&quot;, &quot;Middle&quot;], ordered=true);
+
+julia&gt; y = categorical([&quot;Young&quot;, &quot;Middle&quot;, &quot;Middle&quot;], ordered=true);
+
+julia&gt; levels!(y, [&quot;Young&quot;, &quot;Middle&quot;]);</code></pre><p>If we concatenate the two sets, the levels of the resulting categorical vector are chosen so that the relative orders of levels in <code>x</code> and <code>y</code> are preserved, if possible. In that case, comparisons with <code>&lt;</code> and <code>&gt;</code> are still valid, and resulting vector is marked as ordered:</p><pre><code class="language-julia-repl">julia&gt; xy = vcat(x, y)
+6-element CategoricalArray{String,1,UInt32}:
+ &quot;Middle&quot;
+ &quot;Old&quot;   
+ &quot;Middle&quot;
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Middle&quot;
+
+julia&gt; levels(xy)
+3-element Array{String,1}:
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Old&quot;   
+
+julia&gt; isordered(xy)
+true</code></pre><p>Likewise, assigning a <code>CategoricalValue</code> from <code>y</code> to an entry in <code>x</code> expands the levels of <code>x</code>, <em>adding a new level to the front to respect the ordering of levels in both vectors</em>. The new level is added even if the assigned value belongs to another level which is already present in <code>x</code>. Note that adding new levels requires marking <code>x</code> as unordered:</p><pre><code class="language-julia-repl">julia&gt; x[1] = y[1]
+ERROR: cannot add new level Young since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.
+Stacktrace:
+[...]
+
+julia&gt; ordered!(x, false);
+
+julia&gt; levels(x)
+2-element Array{String,1}:
+ &quot;Middle&quot;
+ &quot;Old&quot;   
+
+julia&gt; x[1] = y[1]
+CategoricalValue{String,UInt32} &quot;Young&quot; (1/2)
+
+julia&gt; x[1]
+CategoricalValue{String,UInt32} &quot;Young&quot;
+
+julia&gt; levels(x)
+3-element Array{String,1}:
+ &quot;Young&quot; 
+ &quot;Middle&quot;
+ &quot;Old&quot;   </code></pre><p>In cases where levels with incompatible orderings are combined, the ordering of the first array wins and the resulting array is marked as unordered:</p><pre><code class="language-julia-repl">julia&gt; a = categorical([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], ordered=true);
+
+julia&gt; b = categorical([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;], ordered=true);
+
+julia&gt; ab = vcat(a, b)
+6-element CategoricalArray{String,1,UInt32}:
+ &quot;a&quot;
+ &quot;b&quot;
+ &quot;c&quot;
+ &quot;a&quot;
+ &quot;b&quot;
+ &quot;c&quot;
+
+julia&gt; levels(ab)
+3-element Array{String,1}:
+ &quot;a&quot;
+ &quot;b&quot;
+ &quot;c&quot;
+
+julia&gt; isordered(ab)
+true
+
+julia&gt; levels!(b, [&quot;c&quot;, &quot;b&quot;, &quot;a&quot;])
+3-element CategoricalArray{String,1,UInt32}:
+ &quot;a&quot;
+ &quot;b&quot;
+ &quot;c&quot;
+
+julia&gt; ab2 = vcat(a, b)
+6-element CategoricalArray{String,1,UInt32}:
+ &quot;a&quot;
+ &quot;b&quot;
+ &quot;c&quot;
+ &quot;a&quot;
+ &quot;b&quot;
+ &quot;c&quot;
+
+julia&gt; levels(ab2)
+3-element Array{String,1}:
+ &quot;a&quot;
+ &quot;b&quot;
+ &quot;c&quot;
+
+julia&gt; isordered(ab2)
+false</code></pre><p>Do note that in some cases the two sets of levels may have compatible orderings, but it is not possible to determine in what order should levels appear in the merged set. This is the case for example with <code>[&quot;a, &quot;b&quot;, &quot;d&quot;]</code> and <code>[&quot;c&quot;, &quot;d&quot;, &quot;e&quot;]</code>: there is no way to detect that <code>&quot;c&quot;</code> should be inserted exactly after <code>&quot;b&quot;</code> (lexicographic ordering is not relevant here). In such cases, the resulting array is marked as unordered. This situation can only happen when working with data subsets selected based on non-contiguous subsets of levels.</p><h2 id="Exported-functions-1"><a class="docs-heading-anchor" href="#Exported-functions-1">Exported functions</a><a class="docs-heading-anchor-permalink" href="#Exported-functions-1" title="Permalink"></a></h2><p><code>categorical(A)</code> - Construct a categorical array with values from <code>A</code></p><p><code>compress(A)</code> - Return a copy of categorical array <code>A</code> using the smallest possible reference type</p><p><code>cut(x)</code> - Cut a numeric array into intervals and return an ordered <code>CategoricalArray</code></p><p><code>decompress(A)</code> - Return a copy of categorical array <code>A</code> using the default reference type</p><p><code>isordered(A)</code> - Test whether entries in <code>A</code> can be compared using <code>&lt;</code>, <code>&gt;</code> and similar operators</p><p><code>ordered!(A, ordered)</code> - Set whether entries in <code>A</code> can be compared using <code>&lt;</code>, <code>&gt;</code> and similar operators</p><p><code>recode(a[, default], pairs...)</code> - Return a copy of <code>a</code> after replacing one or more values</p><p><code>recode!(a[, default], pairs...)</code> - Replace one or more values in <code>a</code> in-place</p><p>See <a href="../apiindex/#API-Index-1">API Index</a> for more details.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Overview</a><a class="docs-footer-nextpage" href="../implementation/">Implementation details »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 19 June 2020 13:04">Friday 19 June 2020</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
