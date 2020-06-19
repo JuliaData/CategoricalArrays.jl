@@ -64,7 +64,7 @@ CategoricalValue{String,UInt32} "Young" (1/3)
 
 The `CategoricalArray` still considers `"Old"` as a possible level even if it is unused now. This is necessary to allow efficiently accessing the levels and setting values of elements in the array: indeed, dropping unused levels requires iterating over every element in the array, which is expensive. This property can also be useful to keep track of possible levels, even if they do not occur in practice.
 
-To get rid of the `"Old"` group, just call the `droplevels!` function:
+To get rid of the `"Old"` group, just call the [`droplevels!`](@ref) function:
 
 ```jldoctest using
 julia> levels(x)
@@ -105,12 +105,6 @@ julia> replace(String(x[3]), 'M'=>'R')
 "Riddle"
 ```
 Note that the call to `String` does reduce performance compared with working with a `Vector{String}` as it simply returns the string object which is stored by the pool.
-
-```@docs
-droplevels!
-levels
-levels!
-```
 
 ## Handling Missing Values
 
@@ -207,7 +201,7 @@ julia> levels!(y, ["Young", "Middle"]);
 ```
 
 If we concatenate the two sets, the levels of the resulting categorical vector are chosen so that the relative orders of levels in `x` and `y` are preserved, if possible. In that case, comparisons with `<` and `>` are still valid, and resulting vector is marked as ordered:
-```jldoctest
+```jldoctest using
 julia> xy = vcat(x, y)
 6-element CategoricalArray{String,1,UInt32}:
  "Middle"
@@ -228,7 +222,7 @@ true
 ```
 
 Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x`, *adding a new level to the front to respect the ordering of levels in both vectors*. The new level is added even if the assigned value belongs to another level which is already present in `x`. Note that adding new levels requires marking `x` as unordered:
-```jldoctest
+```jldoctest using
 julia> x[1] = y[1]
 ERROR: cannot add new level Young since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.
 Stacktrace:
@@ -242,7 +236,10 @@ julia> levels(x)
  "Old"   
 
 julia> x[1] = y[1]
-CategoricalValue{String,UInt32} "Old" (3/3)
+CategoricalValue{String,UInt32} "Young" (1/2)
+
+julia> x[1]
+CategoricalValue{String,UInt32} "Young"
 
 julia> levels(x)
 3-element Array{String,1}:
@@ -320,13 +317,4 @@ Do note that in some cases the two sets of levels may have compatible orderings,
 
 `recode!(a[, default], pairs...)` - Replace one or more values in `a` in-place
 
-```@docs
-categorical
-compress
-cut
-decompress
-isordered
-ordered!
-recode
-recode!
-```
+See [API Index](@ref) for more details.

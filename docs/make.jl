@@ -7,21 +7,17 @@ end
 
 makedocs(
     modules = [CategoricalArrays],
-    format = :html,
     sitename = "CategoricalArrays",
     pages = Any[
         "Overview" => "index.md",
         "Using CategoricalArrays" => "using.md",
         "Implementation details" => "implementation.md",
-        "Index" => "functionindex.md"
-        ]
-    )
+        "API index" => "apiindex.md"
+        ],
+    doctest = true,
+    checkdocs = :exports
+)
 
 deploydocs(
-    repo = "github.com/JuliaData/CategoricalArrays.jl.git",
-    target = "build",
-    julia  = "1.0",
-    osname = "linux",
-    deps = nothing,
-    make = nothing
+    repo = "github.com/JuliaData/CategoricalArrays.jl.git"
 )

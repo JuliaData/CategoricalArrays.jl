@@ -78,21 +78,23 @@ also accept them.
 
 # Examples
 ```jldoctest
+julia> using CategoricalArrays
+
 julia> cut(-1:0.5:1, [0, 1], extend=true)
 5-element CategoricalArray{String,1,UInt32}:
  "[-1.0, 0.0)"
  "[-1.0, 0.0)"
- "[0.0, 1.0]" 
- "[0.0, 1.0]" 
+ "[0.0, 1.0]"
+ "[0.0, 1.0]"
  "[0.0, 1.0]" 
 
 julia> cut(-1:0.5:1, 2)
 5-element CategoricalArray{String,1,UInt32}:
- "[-1.0, 0.0)"
- "[-1.0, 0.0)"
- "[0.0, 1.0]" 
- "[0.0, 1.0]" 
- "[0.0, 1.0]" 
+ "Q1: [-1.0, 0.0)"
+ "Q1: [-1.0, 0.0)"
+ "Q2: [0.0, 1.0]"
+ "Q2: [0.0, 1.0]"
+ "Q2: [0.0, 1.0]" 
 
 julia> cut(-1:0.5:1, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
@@ -107,10 +109,10 @@ fmt (generic function with 1 method)
 
 julia> cut(-1:0.5:1, 3, labels=fmt)
 5-element CategoricalArray{String,1,UInt32}:
- "grp 1 (-1.0//-0.333333)"    
- "grp 1 (-1.0//-0.333333)"    
+ "grp 1 (-1.0//-0.333333)"
+ "grp 1 (-1.0//-0.333333)"
  "grp 2 (-0.333333//0.333333)"
- "grp 3 (0.333333//1.0)"      
+ "grp 3 (0.333333//1.0)"
  "grp 3 (0.333333//1.0)"      
 ```
 """
@@ -199,8 +201,7 @@ quantile_formatter(from, to, i; leftclosed, rightclosed) =
         labels::Union{AbstractVector{<:AbstractString},Function},
         allowempty::Bool=false)
 
-Cut a numeric array into `ngroups` quantiles, determined using
-[`quantile`](@ref).
+Cut a numeric array into `ngroups` quantiles, determined using `quantile`.
 
 # Keyword arguments
 * `labels::Union{AbstractVector,Function}: a vector of strings giving the names to use for
