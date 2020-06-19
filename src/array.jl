@@ -615,7 +615,7 @@ similar(::Type{T}, dims::Dims) where {U, T<:Array{Union{CategoricalValue{U}, Mis
     compress(A::CategoricalArray)
 
 Return a copy of categorical array `A` using the smallest reference type able to hold the
-number of [`levels`](@ref) of `A`.
+number of [`levels`](@ref DataAPI.levels) of `A`.
 
 While this will reduce memory use, this function is type-unstable, which can affect
 performance inside the function where the call is made. Therefore, use it with caution.
@@ -685,7 +685,7 @@ DataAPI.levels(A::CategoricalArray) = levels(A.pool)
     levels!(A::CategoricalArray, newlevels::Vector; allowmissing::Bool=false)
 
 Set the levels categorical array `A`. The order of appearance of levels will be respected
-by [`levels`](@ref), which may affect display of results in some operations; if `A` is
+by [`levels`](@ref DataAPI.levels), which may affect display of results in some operations; if `A` is
 ordered (see [`isordered`](@ref)), it will also be used for order comparisons
 using `<`, `>` and similar operators. Reordering levels will never affect the values
 of entries in the array.
@@ -721,7 +721,7 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector;
                                         "is used at position $i and allowmissing=false."))
             else
                 deleted[x] &&
-                    throw(ArgumentError("cannot remove level $(repr(oldlevels)[x])) as it " *
+                    throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it " *
                                         "is used at position $i. Change the array element " *
                                         "type to Union{$T, Missing} using convert if you want " *
                                         "to transform some levels to missing values."))
@@ -760,7 +760,7 @@ end
     unique(A::CategoricalArray)
 
 Return levels which appear in `A` in their order of appearance.
-This function is significantly slower than [`levels`](@ref)
+This function is significantly slower than [`levels`](@ref DataAPI.levels)
 since it needs to check whether levels are used or not.
 """
 unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
@@ -769,7 +769,7 @@ unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
     droplevels!(A::CategoricalArray)
 
 Drop levels which do not appear in categorical array `A` (so that they will no longer be
-returned by [`levels`](@ref)).
+returned by [`levels`](@ref DataAPI.levels)).
 """
 droplevels!(A::CategoricalArray) = levels!(A, intersect(levels(A), unique(A)))
 
@@ -855,14 +855,15 @@ one-argument version does not suffer from this problem).
 If `A` is already a `CategoricalArray`, its levels, orderedness and reference type
 are preserved unless explicitly overriden.
 """
-# @inline is needed so that return type is inferred when compress is not provided
 @inline function categorical(A::AbstractArray{T, N};
                              compress::Bool=false, ordered=_isordered(A)) where {T, N}
+    # @inline is needed so that return type is inferred when compress is not provided
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
     CategoricalArray{fixstringtype(T), N, RefType}(A, ordered=ordered)
 end
 @inline function categorical(A::CategoricalArray{T, N, R};
                              compress::Bool=false, ordered=_isordered(A)) where {T, N, R}
+    # @inline is needed so that return type is inferred when compress is not provided
     RefType = compress ? reftype(length(levels(A))) : R
     CategoricalArray{fixstringtype(T), N, RefType}(A, ordered=ordered)
 end

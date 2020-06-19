@@ -6,7 +6,7 @@ const ≅ = isequal
 Fill `dest` with elements from `src`, replacing those matching a key of `pairs`
 with the corresponding value.
 
-For each `Pair` in `pairs`, if the element is equal to (according to [`isequal`](@ref)))
+For each `Pair` in `pairs`, if the element is equal to (according to `isequal`))
 the key (first item of the pair) or to one of its entries if it is a collection,
 then the corresponding value (second item) is copied to `dest`.
 If the element matches no key and `default` is not provided or `nothing`, it is copied as-is;
@@ -279,8 +279,8 @@ Return a copy of `a`, replacing elements matching a key of `pairs` with the corr
 The type of the array is chosen so that it can
 hold all recoded elements (but not necessarily original elements from `a`).
 
-For each `Pair` in `pairs`, if the element is equal to (according to [`isequal`](@ref))
-or [`in`](@ref) the key (first item of the pair), then the corresponding value
+For each `Pair` in `pairs`, if the element is equal to (according to `isequal`)
+or `in` the key (first item of the pair), then the corresponding value
 (second item) is used.
 If the element matches no key and `default` is not provided or `nothing`, it is copied as-is;
 if `default` is specified, it is used in place of the original element.
