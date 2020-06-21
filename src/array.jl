@@ -552,10 +552,53 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     dest
 end
 
-copyto!(dest::CatArrOrSub, src::CatArrOrSub) =
+function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
+                 src::AbstractArray{T2,N}, sstart::Integer,
+                 n::Integer) where {T1, T2, N, R}
+    n == 0 && return dest
+    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
+    destinds, srcinds = LinearIndices(dest), LinearIndices(src)
+    (checkbounds(Bool, destinds, dstart) && checkbounds(Bool, destinds, dstart+n-1)) || throw(BoundsError(dest, dstart:dstart+n-1))
+    (checkbounds(Bool, srcinds, sstart)  && checkbounds(Bool, srcinds, sstart+n-1))  || throw(BoundsError(src,  sstart:sstart+n-1))
+    srclevs = DataAPI.refpool(src)
+    srcrefs = DataAPI.refarray(src)
+    # Fast path only supports refs which can be used to index
+    # into vector mapping from source levels to destination levels
+    if !(srclevs isa AbstractVector) || !(srcrefs isa AbstractArray{<:Integer})
+        return invoke(copyto!, Tuple{AbstractArray, Integer, AbstractArray, Integer, Integer},
+                      dest, dstart, src, sstart, n)
+    end
+    checkbounds(dest, axes(src)...)
+    if !(T1 >: Missing) && any(ismissing, srclevs)
+        throw(MethodError(convert, (T1, missing)))
+    end
+    destlevs = levels(dest)
+    srclevs2 = setdiff(srclevs, [missing])
+    if !(srclevs2 ⊆ destlevs)
+        # if order is defined for level type, automatically apply it
+        L = nonmissingtype(eltype(srclevs2))
+        if hasmethod(isless, Tuple{L, L})
+            sort!(srclevs2)
+        end
+        union!(destlevs, srclevs2)
+        levels!(pool(dest), destlevs)
+    end
+    levelsmap = something.(indexin(srclevs, [missing; destlevs]))
+    destrefs = dest.refs
+    firstind = firstindex(srclevs)
+    @inbounds for i in 0:(n-1)
+        sref = srcrefs[sstart+i]
+        destrefs[dstart+i] = levelsmap[sref-firstind+1] - 1
+    end
+    dest
+end
+
+# This uses linear indexing even for IndexCartesian src, but
+# the performance impact should be modest compared to the dict lookup
+copyto!(dest::CatArrOrSub, src::AbstractArray) =
     copyto!(dest, 1, src, 1, length(src))
 
-copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
+copyto!(dest::CatArrOrSub, dstart::Integer, src::AbstractArray) =
     copyto!(dest, dstart, src, 1, length(src))
 
 if VERSION >= v"1.1"
@@ -563,7 +606,12 @@ if VERSION >= v"1.1"
 else
     import Future: copy!
 end
-copy!(dest::CatArrOrSub, src::CatArrOrSub) = copyto!(dest, 1, src, 1, length(src))
+copy!(dest::CatArrOrSub, src::AbstractArray) = copyto!(dest, 1, src, 1, length(src))
+# To fix ambiguities
+copy!(dest::CatArrOrSub{<:Any, 1}, src::AbstractArray{<:Any, 1}) =
+    copyto!(dest, 1, src, 1, length(src))
+copy!(dest::CatArrOrSub{T, 1}, src::AbstractArray{T, 1}) where {T} =
+    copyto!(dest, 1, src, 1, length(src))
 
 similar(A::CategoricalArray{S, M, R}, ::Type{T},
         dims::NTuple{N, Int}) where {T, N, S, M, R} =

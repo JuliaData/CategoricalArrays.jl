@@ -4,6 +4,7 @@ using Missings
 using Future: copy!
 using CategoricalArrays, DataAPI
 using CategoricalArrays: DefaultRefType
+using PooledArrays
 
 const ≅ = isequal
 const ≇ = !isequal
@@ -1355,6 +1356,90 @@ end
         y = convert(AbstractArray{eltype(x), 1}, x)
         @test x === y
     end
+end
+
+@testset "DataAPI.refarray constructors and copyto!" begin
+    for y1 in (CategoricalVector{Int}(undef, 6),
+               CategoricalVector([1, 2, 1, 1, 3, 2], levels=[2, 1, 3]),
+               CategoricalVector([2, 2, 2, 2, 2, 2], levels=[2]),
+               CategoricalVector([2, 2, 2, 2, 2, 2], levels=[3, 1, 2, 4]),
+               CategoricalVector([1, 2, 1, 3, 3, 2], levels=[3, 1, 2, 4]),
+               CategoricalVector(Float64[2, 3, 1, 2, 2, 1], levels=[3, 1, 2]),
+               view(CategoricalVector([2, 1, 2, 1, 1, 3, 2, 3], levels=[3, 1, 2, 4]), 2:7))
+        x = PooledArray([3, 1, 2, 1, 1, 3])
+        levs = levels(y1)
+
+        y2 = copy(y1)
+        @test copyto!(y2, x) === y2
+        @test x == y2
+        @test levels(y2) == [levs; sort!(setdiff(unique(x), levs))]
+
+        y2 = copy(y1)
+        @test copy!(y2, x) === y2
+        @test x == y2
+        @test levels(y2) == [levs; sort!(setdiff(unique(x), levs))]
+
+        y2 = copy(y1)
+        @test copyto!(y2, 1, x, 1, length(x)) === y2
+        @test x == y2
+        @test levels(y2) == [levs; sort!(setdiff(unique(x), levs))]
+
+        y2 = copy(y1)
+        @test copyto!(y2, 2, x, 3, 3) === y2
+        @test x[3:5] ≅ y2[2:4]
+        @test levels(y2) == [levs; sort!(setdiff(unique(x), levs))]
+
+        y2 = copy(y1)
+        @test copyto!(y2, 2, x[3:end]) === y2
+        @test x[3:5] ≅ y2[2:4]
+        @test levels(y2) == [levs; sort!(setdiff(unique(x), levs))]
+    end
+
+    for y1 in (CategoricalVector{Union{Int, Missing}}(undef, 6),
+               CategoricalVector([1, 2, missing, 1, 3, 2], levels=[2, 1, 3]),
+               CategoricalVector([2, 2, missing, 2, 2, 2], levels=[2]),
+               CategoricalVector([2, 2, missing, 2, 2, 2], levels=[3, 1, 2, 4]),
+               CategoricalVector([1, 2, missing, 3, 3, 2], levels=[3, 1, 2, 4]),
+               CategoricalVector(Union{Float64, Missing}[2, 3, missing, 2, 2, 1], levels=[3, 1, 2]),
+               view(CategoricalVector([2, 1, 2, missing, 1, 3, 2, 3], levels=[3, 1, 2, 4]), 2:7))
+        x = PooledArray([3, 1, 2, 1, missing, 3])
+        levs = levels(y1)
+
+        y2 = copy(y1)
+        @test copyto!(y2, x) === y2
+        @test x ≅ y2
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x)), levs))]
+
+        y2 = copy(y1)
+        @test copy!(y2, x) === y2
+        @test x ≅ y2
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x)), levs))]
+
+        y2 = copy(y1)
+        @test copyto!(y2, 1, x, 1, length(x)) === y2
+        @test x ≅ y2
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x)), levs))]
+
+        y2 = copy(y1)
+        @test copyto!(y2, 2, x, 3, 3) === y2
+        @test x[3:5] ≅ y2[2:4]
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x)), levs))]
+
+        y2 = copy(y1)
+        @test copyto!(y2, 2, x[3:end]) === y2
+        @test x[3:5] ≅ y2[2:4]
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x)), levs))]
+    end
+
+    x = PooledArray(["c", missing, "b", "c", "b", "a"])
+    y = CategoricalVector{String}(undef, length(x))
+    @test_throws MethodError copyto!(y, x)
+    @test_throws MethodError copy!(y, x)
+    @test_throws MethodError copyto!(y, 1, x, 1, length(x))
+    y = CategoricalVector{Union{Missing, Int}}(undef, length(x))
+    @test_throws MethodError copyto!(y, x)
+    @test_throws MethodError copy!(y, x)
+    @test_throws MethodError copyto!(y, 1, x, 1, length(x))
 end
 
 @testset "new levels can't be added through assignment when levels are ordered" begin
