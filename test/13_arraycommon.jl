@@ -1420,8 +1420,8 @@ end
         @test sprint((io,a)->show(io, "text/plain", a), x) ==
             """
             3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
-             2      
-             1      
+             2
+             1
              missing"""
     end
 end
@@ -1794,6 +1794,25 @@ end
         @test y isa CategoricalArray{String, ndims(yref), UInt8}
         @test levels(y) == levels(x)
         @test isordered(y) === isordered(x)
+    end
+end
+
+@testset "repeat" begin
+    for o in (false, true), c in (false, true),
+        a in [["b", "a", "b"], ["b" "a"; "b" "c"]], i in 0:2
+        x = categorical(a, ordered=o, compress=c)
+        xr = @inferred repeat(x, i)
+        @test typeof(x) == typeof(xr)
+        @test isordered(x) == isordered(xr)
+        @test xr == categorical(repeat(a, i), ordered=o, compress=c)
+        for j in 0:2
+            ir = ntuple(x -> i, ndims(a))
+            or = ntuple(x -> j, ndims(a))
+            xr = @inferred repeat(x, inner=ir, outer=or)
+            @test typeof(x) == typeof(xr)
+            @test isordered(x) == isordered(xr)
+            @test xr == categorical(repeat(a, inner=ir, outer=or), ordered=o, compress=c)
+        end
     end
 end
 
