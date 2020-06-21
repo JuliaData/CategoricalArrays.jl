@@ -1071,54 +1071,60 @@ end
             @test CategoricalArrays.pool(x).levels !== levs
         end
 
-        v = T["b", "c", "a"]
-        if levs === nothing || unique(v) ⊆ levs
-            for x in (CategoricalArray(v, levels=levs, ordered=ord),
-                        CategoricalArray{T}(v, levels=levs, ordered=ord),
-                        CategoricalArray{T, 1}(v, levels=levs, ordered=ord),
-                        CategoricalArray{T, 1, UInt32}(v, levels=levs, ordered=ord),
-                        CategoricalVector(v, levels=levs, ordered=ord),
-                        CategoricalVector{T}(v, levels=levs, ordered=ord),
-                        CategoricalVector{T, UInt32}(v, levels=levs, ordered=ord),
-                        CategoricalArray(v, levels=levs, ordered=ord))
-                    @test x isa CategoricalVector{T, UInt32}
-                    @test x == v
+        for v in (T["b", "c", "a"], categorical(T["b", "c", "a"]))
+            if levs === nothing || unique(v) ⊆ levs
+                for x in (categorical(v, levels=levs, ordered=ord),
+                          CategoricalArray(v, levels=levs, ordered=ord),
+                          CategoricalArray{T}(v, levels=levs, ordered=ord),
+                          CategoricalArray{T, 1}(v, levels=levs, ordered=ord),
+                          CategoricalArray{T, 1, UInt32}(v, levels=levs, ordered=ord),
+                          CategoricalVector(v, levels=levs, ordered=ord),
+                          CategoricalVector{T}(v, levels=levs, ordered=ord),
+                          CategoricalVector{T, UInt32}(v, levels=levs, ordered=ord),
+                          CategoricalArray(v, levels=levs, ordered=ord))
+                        @test x isa CategoricalVector{T, UInt32}
+                        @test x == v
+                        @test levels(x) == something(levs, sort!(unique(x)))
+                        @test isordered(x) === ord
+                        @test CategoricalArrays.pool(x).levels !== levs
+                end
+            else
+                @test_throws ArgumentError categorical(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 1}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 1, UInt32}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalVector(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalVector{T}(v, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalVector{T, UInt32}(v, levels=levs, ordered=ord)
+            end
+        end
+
+        for m in (T["c" "b"; "a" "b"], categorical(T["c" "b"; "a" "b"]))
+            if levs === nothing || unique(m) ⊆ levs
+                for x in (categorical(m, levels=levs, ordered=ord),
+                          CategoricalArray{T}(m, levels=levs, ordered=ord),
+                          CategoricalArray{T, 2}(m, levels=levs, ordered=ord),
+                          CategoricalArray{T, 2, UInt32}(m, levels=levs, ordered=ord),
+                          CategoricalMatrix(m, levels=levs, ordered=ord),
+                          CategoricalMatrix{T}(m, levels=levs, ordered=ord),
+                          CategoricalMatrix{T, UInt32}(m, levels=levs, ordered=ord))
+                    @test x isa CategoricalMatrix{T, UInt32}
+                    @test x == m
                     @test levels(x) == something(levs, sort!(unique(x)))
                     @test isordered(x) === ord
                     @test CategoricalArrays.pool(x).levels !== levs
+                end
+            else
+                @test_throws ArgumentError categorical(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 2}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalArray{T, 2, UInt32}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalMatrix(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalMatrix{T}(m, levels=levs, ordered=ord)
+                @test_throws ArgumentError CategoricalMatrix{T, UInt32}(m, levels=levs, ordered=ord)
             end
-        else
-            @test_throws ArgumentError CategoricalArray(v, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalArray{T}(v, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalArray{T, 1}(v, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalArray{T, 1, UInt32}(v, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalVector(v, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalVector{T}(v, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalVector{T, UInt32}(v, levels=levs, ordered=ord)
-        end
-
-        m = T["c" "b"; "a" "b"]
-        if levs === nothing || unique(m) ⊆ levs
-            for x in (CategoricalArray{T}(m, levels=levs, ordered=ord),
-                        CategoricalArray{T, 2}(m, levels=levs, ordered=ord),
-                        CategoricalArray{T, 2, UInt32}(m, levels=levs, ordered=ord),
-                        CategoricalMatrix(m, levels=levs, ordered=ord),
-                        CategoricalMatrix{T}(m, levels=levs, ordered=ord),
-                        CategoricalMatrix{T, UInt32}(m, levels=levs, ordered=ord))
-                @test x isa CategoricalMatrix{T, UInt32}
-                @test x == m
-                @test levels(x) == something(levs, sort!(unique(x)))
-                @test isordered(x) === ord
-                @test CategoricalArrays.pool(x).levels !== levs
-            end
-        else
-            @test_throws ArgumentError CategoricalArray(m, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalArray{T}(m, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalArray{T, 2}(m, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalArray{T, 2, UInt32}(m, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalMatrix(m, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalMatrix{T}(m, levels=levs, ordered=ord)
-            @test_throws ArgumentError CategoricalMatrix{T, UInt32}(m, levels=levs, ordered=ord)
         end
     end
 end

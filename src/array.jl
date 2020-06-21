@@ -731,7 +731,7 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector;
 
     # replace the pool and recode refs to reflect new pool
     if newlevels != oldlevels
-        newpool = CategoricalPool{nonmissingtype(T), R}(newlevels, isordered(A.pool))
+        newpool = CategoricalPool{nonmissingtype(T), R}(copy(newlevels), isordered(A.pool))
         update_refs!(A, newlevels)
         A.pool = newpool
     end
@@ -832,7 +832,7 @@ function Base.reshape(A::CategoricalArray{T, N}, dims::Dims) where {T, N}
 end
 
 """
-    categorical(A::AbstractArray; compress=false, levels=nothing, ordered=false)
+    categorical(A::AbstractArray; levels=nothing, ordered=false, compress=false)
 
 Construct a categorical array with the values from `A`.
 
@@ -856,16 +856,20 @@ If `A` is already a `CategoricalArray`, its levels, orderedness and reference ty
 are preserved unless explicitly overriden.
 """
 @inline function categorical(A::AbstractArray{T, N};
-                             compress::Bool=false, ordered=_isordered(A)) where {T, N}
+                             levels::Union{AbstractVector, Nothing}=nothing,
+                             ordered=_isordered(A),
+                             compress::Bool=false) where {T, N}
     # @inline is needed so that return type is inferred when compress is not provided
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
-    CategoricalArray{fixstringtype(T), N, RefType}(A, ordered=ordered)
+    CategoricalArray{fixstringtype(T), N, RefType}(A, levels=levels, ordered=ordered)
 end
 @inline function categorical(A::CategoricalArray{T, N, R};
-                             compress::Bool=false, ordered=_isordered(A)) where {T, N, R}
+                             levels::Union{AbstractVector, Nothing}=nothing,
+                             ordered=_isordered(A),
+                             compress::Bool=false) where {T, N, R}
     # @inline is needed so that return type is inferred when compress is not provided
-    RefType = compress ? reftype(length(levels(A))) : R
-    CategoricalArray{fixstringtype(T), N, RefType}(A, ordered=ordered)
+    RefType = compress ? reftype(length(CategoricalArrays.levels(A))) : R
+    CategoricalArray{fixstringtype(T), N, RefType}(A, levels=levels, ordered=ordered)
 end
 
 function in(x::Any, y::CategoricalArray{T, N, R}) where {T, N, R}

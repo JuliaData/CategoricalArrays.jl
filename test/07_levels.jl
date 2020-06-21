@@ -72,8 +72,10 @@ using CategoricalArrays: DefaultRefType, levels!
     @test_throws ArgumentError levels!(pool, reverse(levels(pool)))
 
     # Adding levels while preserving existing ones
-    @test levels!(pool, [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14]) === pool
-    @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14]
+    levs = [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14]
+    @test levels!(pool, levs) === pool
+    @test levels(pool) == levs
+    @test levels(pool) !== levs
 
     @test isa(pool.levels, Vector{Int})
     @test length(pool) === 11
