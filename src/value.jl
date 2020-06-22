@@ -183,4 +183,5 @@ DataAPI.defaultarray(::Type{Union{CategoricalValue{T, R}, Missing}}, N) where {T
 # define appropriate handlers for JSON3 interface
 StructTypes.StructType(::Type{<:CategoricalValue{T}}) where {T} = StructTypes.StructType(T)
 StructTypes.numbertype(::Type{<:CategoricalValue{T}}) where {T <: Number} = T
+StructTypes.construct(::Type{T}, arr) where {T <: CategoricalArray} = categorical!(arr)
 (::Type{T})(x::CategoricalValue{<:Number}) where {T <: Number} = T(get(x))
