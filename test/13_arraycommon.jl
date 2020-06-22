@@ -1798,7 +1798,7 @@ end
 end
 
 @testset "repeat" begin
-    for o in (false, true), c in (false, true), i in 0:2
+    for o in (false, true), c in (false, true), i in 0:2,
         a in [["b", "a", "b"], ["b" "a"; "b" "c"],
               [missing, "a", "b"], ["b" "a"; missing "c"]]
         x = categorical(a, ordered=o, compress=c)
