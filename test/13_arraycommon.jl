@@ -1803,7 +1803,7 @@ end
               [missing, "a", "b"], ["b" "a"; missing "c"]],
         x in [categorical(a, ordered=o, compress=c),
               view(categorical(a, ordered=o, compress=c), axes(a)...),
-              view(categorical(a, ordered=o, compress=c), 1:2, 1:1)]
+              view(categorical([a a], ordered=o, compress=c), axes(a)...)]
         xr = @inferred repeat(x, i)
         @test which(repeat, (typeof(x), Int)).module == CategoricalArrays
         @test typeof(parent(x)) == typeof(xr)
