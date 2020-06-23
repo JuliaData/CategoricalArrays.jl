@@ -1813,6 +1813,7 @@ end
             ir = ntuple(x -> i, ndims(a))
             or = ntuple(x -> j, ndims(a))
             xr = @inferred repeat(x, inner=ir, outer=or)
+            @test which(repeat, (typeof(x),)).module == CategoricalArrays
             @test typeof(parent(x)) == typeof(xr)
             @test isordered(x) == isordered(xr)
             @test xr ≅ categorical(repeat(a, inner=ir, outer=or), ordered=o, compress=c)
