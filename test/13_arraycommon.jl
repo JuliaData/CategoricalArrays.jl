@@ -1803,4 +1803,28 @@ end
     end
 end
 
+@testset "repeat" begin
+    for o in (false, true), c in (false, true), i in 0:2,
+        a in [["b", "a", "b"], ["b" "a"; "b" "c"],
+              [missing, "a", "b"], ["b" "a"; missing "c"]],
+        x in [categorical(a, ordered=o, compress=c),
+              view(categorical(a, ordered=o, compress=c), axes(a)...),
+              view(categorical([a a], ordered=o, compress=c), axes(a)...)]
+        xr = @inferred repeat(x, i)
+        @test which(repeat, (typeof(x), Int)).module == CategoricalArrays
+        @test typeof(parent(x)) == typeof(xr)
+        @test isordered(x) == isordered(xr)
+        @test xr ≅ categorical(repeat(a, i), ordered=o, compress=c)
+        for j in 0:2
+            ir = ntuple(x -> i, ndims(a))
+            or = ntuple(x -> j, ndims(a))
+            xr = @inferred repeat(x, inner=ir, outer=or)
+            @test which(repeat, (typeof(x),)).module == CategoricalArrays
+            @test typeof(parent(x)) == typeof(xr)
+            @test isordered(x) == isordered(xr)
+            @test xr ≅ categorical(repeat(a, inner=ir, outer=or), ordered=o, compress=c)
+        end
+    end
+end
+
 end

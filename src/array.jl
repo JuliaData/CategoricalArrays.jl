@@ -964,3 +964,11 @@ function Base.sort!(v::CategoricalVector;
 
     return v
 end
+
+Base.repeat(a::CatArrOrSub{T, N},
+            counts::Integer...) where {T, N} =
+    CategoricalArray{T, N}(repeat(refs(a), counts...), copy(pool(a)))
+
+Base.repeat(a::CatArrOrSub{T, N};
+            inner = nothing, outer = nothing) where {T, N} =
+    CategoricalArray{T, N}(repeat(refs(a), inner=inner, outer=outer), copy(pool(a)))
