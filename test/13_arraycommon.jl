@@ -1420,8 +1420,8 @@ end
         @test sprint((io,a)->show(io, "text/plain", a), x) ==
             """
             3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
-             2
-             1
+             2      
+             1      
              missing"""
     end
 end
@@ -1804,7 +1804,7 @@ end
         x in [categorical(a, ordered=o, compress=c),
               view(categorical(a, ordered=o, compress=c), axes(a)...)]
         xr = @inferred repeat(x, i)
-        @test which(repeat, (typeof(x), Int)) == CategoricalArrays
+        @test which(repeat, (typeof(x), Int)).module == CategoricalArrays
         @test typeof(parent(x)) == typeof(xr)
         @test isordered(x) == isordered(xr)
         @test xr ≅ categorical(repeat(a, i), ordered=o, compress=c)
