@@ -9,10 +9,10 @@ module CategoricalArrays
     export cut, recode, recode!
 
     using JSON
-    using StructTypes
     using DataAPI
     using Missings
     using Printf
+    import StructTypes
 
     include("typedefs.jl")
 
