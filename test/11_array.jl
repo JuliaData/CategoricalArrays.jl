@@ -650,24 +650,4 @@ end
     @test unique(x) == collect(1:10)
 end
 
-using JSON3
-using StructTypes
-struct MyCustomType
-    id::Vector{Int}
-    var::CategoricalVector{String}
-end
-StructTypes.StructType(::Type{T}) where T = StructTypes.Struct()
-@testset "Reading CategoricalVector objects using JSON3" begin
-    x = MyCustomType(
-        collect(1:3),
-        CategoricalArray(["x","y","z"])
-    )
-    str = JSON3.write(x)
-    readx = JSON3.read(str, MyCustomType)
-
-    @test readx.var == x.var
-    @test readx.var isa CategoricalArray
-    @test levels(readx.var) == levels(x.var)
-end
-
 end

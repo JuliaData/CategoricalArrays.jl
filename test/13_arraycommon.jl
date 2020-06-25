@@ -1927,4 +1927,58 @@ end
     @test !isassigned(x, 3)
 end
 
+using JSON3
+using StructTypes
+struct MyCustomTypeMissing
+    id::Vector{Int}
+    var::CategoricalVector{Union{Missing,String}}
+end
+StructTypes.StructType(::Type{T}) where T <: MyCustomTypeMissing = StructTypes.Struct()
+
+struct MyCustomType
+    id::Vector{Int}
+    var::CategoricalVector{String}
+end
+StructTypes.StructType(::Type{T}) where T <: MyCustomType = StructTypes.Struct()
+
+@testset "Reading CategoricalVector objects using JSON3" begin
+    x = CategoricalArray(["x","y","z","y","y","z"])
+    str = JSON3.write(x)
+    readx = JSON3.read(str, CategoricalArray)
+    @test readx == x
+    @test levels(readx) == levels(x)
+    @test readx isa CategoricalArray
+
+    x = CategoricalArray([missing,"y","z","y",missing,"z","x"])
+    str = JSON3.write(x)
+    readx = JSON3.read(str, CategoricalArray{Union{Missing,String}})
+    @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
+    @test levels(readx) == levels(x)
+    @test readx isa CategoricalArray
+
+    x = CategoricalArray([missing,"y","z","y",missing,"z","x"])
+    str = JSON3.write(x)
+    readx = JSON3.read(str, CategoricalArray)
+    @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
+    @test levels(readx) == levels(x)
+    @test readx isa CategoricalArray
+
+    x = MyCustomType(
+        collect(1:3),
+        CategoricalArray(["x","y","z"])
+    )
+    str = JSON3.write(x)
+    readx = JSON3.read(str, MyCustomType)
+
+    @test readx.var == x.var
+    @test readx.var isa CategoricalArray
+    @test levels(readx.var) == levels(x.var)
+
+
+    x = MyCustomTypeMissing(
+        collect(1:3),
+        CategoricalArray(["x","y","z",missing])
+    )
+    str = JSON3.write(x)
+    readx = JSON3.read(str, MyCustomTypeMissing)
 end
