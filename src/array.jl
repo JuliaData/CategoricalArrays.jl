@@ -1029,13 +1029,13 @@ Base.repeat(a::CatArrOrSub{T, N},
 Base.repeat(a::CatArrOrSub{T, N};
             inner = nothing, outer = nothing) where {T, N} =
     CategoricalArray{T, N}(repeat(refs(a), inner=inner, outer=outer), copy(pool(a)))
-    
+
 # JSON3 reading (writing is handled implicitly by definitions
 # in `value.jl`)
 __asmissing__(x::Nothing) = missing
 __asmissing__(x) = x
-StructTypes.construct(::Type{T}, arr::AbstractArray) where T <: CategoricalArray =
-    __categorical_asmissing__(T,arr)
+StructTypes.construct(::Type{T}, x::Vector{S}; kw...) where {T <: CategoricalArray,S} =
+    __categorical_asmissing__(T,x)
 
 function __categorical_asmissing__(::Type{<:CategoricalArray},array)
     # check for small union type
@@ -1053,6 +1053,6 @@ function __categorical_asmissing__(::Type{<:CategoricalArray{Union{Missing,T}}},
     convert(CategoricalArray{Union{Missing,T}},categorical(__asmissing__.(array)))
 end
 
-# resolve method ambitity using `Array` type:
-StructTypes.construct(::Type{T}, arr::Vector) where T <: CategoricalArray =
-    __categorical_asmissing__(T,arr)
+function __categorical_asmissing__(::Type{<:CategoricalArray{Union{Nothing,T}}},array) where T
+    convert(CategoricalArray{Union{Nothing,T}},categorical(array))
+end
