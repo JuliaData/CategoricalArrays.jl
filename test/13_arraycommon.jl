@@ -1370,6 +1370,7 @@ end
               PooledArray(PooledArrays.RefArray([3, 1, 2, 1, 1, 3]), Dict(1=>1, 0=>2, 3=>3, 2=>4)),
               PooledArray(PooledArrays.RefArray([3, 1, 4, 1, 1, 3]), Dict(1=>1, missing=>2, 3=>3, 2=>4)))
         levs = levels(y1)
+        @show x, y1
 
         y2 = copy(y1)
         @test copyto!(y2, x) === y2
@@ -1393,7 +1394,7 @@ end
 
         y2 = copy(y1)
         @test copyto!(y2, 2, x[3:end]) === y2
-        @test x[3:end] ≅ y2[2:5]
+        @test x[3:6] ≅ y2[2:5]
         @test levels(y2) == [levs; sort!(setdiff(unique(x[3:6]), levs))]
     end
 
@@ -1430,9 +1431,9 @@ end
         @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x[3:5])), levs))]
 
         y2 = copy(y1)
-        @test copyto!(y2, 2, x[3:end]) === y2
-        @test x[3:end] ≅ y2[2:5]
-        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x[3:end])), levs))]
+        @test copyto!(y2, 2, x[3:6]) === y2
+        @test x[3:6] ≅ y2[2:5]
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x[3:6])), levs))]
     end
 
     x = PooledArray(["c", missing, "b", "c", "b", "a"])
@@ -1884,6 +1885,16 @@ end
         @test levels(y) == levels(x)
         @test isordered(y) === isordered(x)
     end
+end
+
+@testset "levels! with #undef" begin
+    x = CategoricalVector(undef, 3)
+    x[2] = "a"
+    @test levels!(x, ["b", "a"]) === x
+    @test levels(x) == ["b", "a"]
+    @test x[2] == "a"
+    @test !isassigned(x, 1)
+    @test !isassigned(x, 3)
 end
 
 end

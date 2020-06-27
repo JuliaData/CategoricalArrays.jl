@@ -586,7 +586,6 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
     @inbounds for i in 0:(n-1)
         j = srcrefs[sstart+i] - firstind + 1
         ref = levelsmap[j]
-
         seen[ref+1] = true
         if !(T1 >: Missing) && T2 >: Missing && ref == 0
             throw(MethodError(convert, (T1, missing)))
@@ -778,7 +777,7 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector;
                     throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it " *
                                         "is used at position $i and allowmissing=false."))
             else
-                deleted[x] &&
+                x > 0 && deleted[x] &&
                     throw(ArgumentError("cannot remove level $(repr(oldlevels)[x])) as it " *
                                         "is used at position $i. Change the array element " *
                                         "type to Union{$T, Missing} using convert if you want " *
