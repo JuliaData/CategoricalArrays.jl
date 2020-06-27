@@ -1365,8 +1365,10 @@ end
                CategoricalVector([2, 2, 2, 2, 2, 2], levels=[3, 1, 2, 4]),
                CategoricalVector([1, 2, 1, 3, 3, 2], levels=[3, 1, 2, 4]),
                CategoricalVector(Float64[2, 3, 1, 2, 2, 1], levels=[3, 1, 2]),
-               view(CategoricalVector([2, 1, 2, 1, 1, 3, 2, 3], levels=[3, 1, 2, 4]), 2:7))
-        x = PooledArray([3, 1, 2, 1, 1, 3])
+               view(CategoricalVector([2, 1, 2, 1, 1, 3, 2, 3], levels=[3, 1, 2, 4]), 2:7)),
+        x in (PooledArray([3, 1, 2, 1, 1, 3]),
+              PooledArray(PooledArrays.RefArray([3, 1, 2, 1, 1, 3]), Dict(1=>1, 0=>2, 3=>3, 2=>4)),
+              PooledArray(PooledArrays.RefArray([3, 1, 4, 1, 1, 3]), Dict(1=>1, missing=>2, 3=>3, 2=>4)))
         levs = levels(y1)
 
         y2 = copy(y1)
@@ -1387,12 +1389,12 @@ end
         y2 = copy(y1)
         @test copyto!(y2, 2, x, 3, 3) === y2
         @test x[3:5] ≅ y2[2:4]
-        @test levels(y2) == [levs; sort!(setdiff(unique(x), levs))]
+        @test levels(y2) == [levs; sort!(setdiff(unique(x[3:5]), levs))]
 
         y2 = copy(y1)
         @test copyto!(y2, 2, x[3:end]) === y2
-        @test x[3:5] ≅ y2[2:4]
-        @test levels(y2) == [levs; sort!(setdiff(unique(x), levs))]
+        @test x[3:end] ≅ y2[2:5]
+        @test levels(y2) == [levs; sort!(setdiff(unique(x[3:6]), levs))]
     end
 
     for y1 in (CategoricalVector{Union{Int, Missing}}(undef, 6),
@@ -1401,8 +1403,10 @@ end
                CategoricalVector([2, 2, missing, 2, 2, 2], levels=[3, 1, 2, 4]),
                CategoricalVector([1, 2, missing, 3, 3, 2], levels=[3, 1, 2, 4]),
                CategoricalVector(Union{Float64, Missing}[2, 3, missing, 2, 2, 1], levels=[3, 1, 2]),
-               view(CategoricalVector([2, 1, 2, missing, 1, 3, 2, 3], levels=[3, 1, 2, 4]), 2:7))
-        x = PooledArray([3, 1, 2, 1, missing, 3])
+               view(CategoricalVector([2, 1, 2, missing, 1, 3, 2, 3], levels=[3, 1, 2, 4]), 2:7)),
+         x in (PooledArray([3, 1, 2, 1, missing, 3]),
+               PooledArray(PooledArrays.RefArray([3, 1, 2, 1, 1, 3]), Dict(1=>1, 0=>2, 3=>3, 2=>4)),
+               PooledArray(PooledArrays.RefArray([3, 1, 4, 1, 1, 3]), Dict(1=>1, missing=>2, 3=>3, 2=>4)))
         levs = levels(y1)
 
         y2 = copy(y1)
@@ -1423,12 +1427,12 @@ end
         y2 = copy(y1)
         @test copyto!(y2, 2, x, 3, 3) === y2
         @test x[3:5] ≅ y2[2:4]
-        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x)), levs))]
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x[3:5])), levs))]
 
         y2 = copy(y1)
         @test copyto!(y2, 2, x[3:end]) === y2
-        @test x[3:5] ≅ y2[2:4]
-        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x)), levs))]
+        @test x[3:end] ≅ y2[2:5]
+        @test levels(y2) == [levs; sort!(setdiff(skipmissing(unique(x[3:end])), levs))]
     end
 
     x = PooledArray(["c", missing, "b", "c", "b", "a"])

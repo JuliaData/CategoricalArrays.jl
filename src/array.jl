@@ -503,7 +503,7 @@ copy(A::CategoricalArray{T, N}) where {T, N} =
 function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
                  src::CatArrOrSub{<:Any, N}, sstart::Integer,
                  n::Integer) where {T, N, R}
-    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
+    n < 0 && throw(ArgumentError("tried to copy n=$n elements, but n should be nonnegative"))
     destinds, srcinds = LinearIndices(dest), LinearIndices(src)
     if n > 0
         (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
@@ -556,7 +556,7 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
                  src::AbstractArray{T2,N}, sstart::Integer,
                  n::Integer) where {T1, T2, N, R}
     n == 0 && return dest
-    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
+    n < 0 && throw(ArgumentError("tried to copy n=$n elements, but n should be nonnegative"))
     destinds, srcinds = LinearIndices(dest), LinearIndices(src)
     (checkbounds(Bool, destinds, dstart) && checkbounds(Bool, destinds, dstart+n-1)) || throw(BoundsError(dest, dstart:dstart+n-1))
     (checkbounds(Bool, srcinds, sstart)  && checkbounds(Bool, srcinds, sstart+n-1))  || throw(BoundsError(src,  sstart:sstart+n-1))
@@ -568,27 +568,37 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
         return invoke(copyto!, Tuple{AbstractArray, Integer, AbstractArray, Integer, Integer},
                       dest, dstart, src, sstart, n)
     end
-    checkbounds(dest, axes(src)...)
-    if !(T1 >: Missing) && any(ismissing, srclevs)
-        throw(MethodError(convert, (T1, missing)))
-    end
-    destlevs = levels(dest)
-    srclevs2 = setdiff(srclevs, [missing])
-    if !(srclevs2 ⊆ destlevs)
+    newdestlevs = destlevs = copy(levels(dest)) # copy since we need original levels below
+    srclevsnm = T2 >: Missing ? setdiff(srclevs, [missing]) : srclevs
+    if !(srclevsnm ⊆ destlevs)
         # if order is defined for level type, automatically apply it
-        L = nonmissingtype(eltype(srclevs2))
+        L = nonmissingtype(eltype(srclevsnm))
         if hasmethod(isless, Tuple{L, L})
-            sort!(srclevs2)
+            srclevsnm = srclevsnm === srclevs ? sort(srclevsnm) : sort!(srclevsnm)
         end
-        union!(destlevs, srclevs2)
-        levels!(pool(dest), destlevs)
+        newdestlevs = union(destlevs, srclevsnm)
+        levels!(pool(dest), newdestlevs)
     end
-    levelsmap = something.(indexin(srclevs, [missing; destlevs]))
+    levelsmap = something.(indexin(srclevs, [missing; newdestlevs])) .- 1
     destrefs = dest.refs
+    seen = fill(false, length(newdestlevs)+1)
     firstind = firstindex(srclevs)
     @inbounds for i in 0:(n-1)
-        sref = srcrefs[sstart+i]
-        destrefs[dstart+i] = levelsmap[sref-firstind+1] - 1
+        j = srcrefs[sstart+i] - firstind + 1
+        ref = levelsmap[j]
+
+        seen[ref+1] = true
+        if !(T1 >: Missing) && T2 >: Missing && ref == 0
+            throw(MethodError(convert, (T1, missing)))
+        end
+        destrefs[dstart+i] = ref
+    end
+    seennm = @view seen[2:end]
+    if !all(seennm)
+        destlevsset = Set(destlevs)
+        keptlevs = [l for (i, l) in enumerate(newdestlevs)
+                    if seennm[i] || l in destlevsset]
+        levels!(dest, keptlevs)
     end
     dest
 end
