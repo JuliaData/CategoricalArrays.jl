@@ -553,7 +553,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
 end
 
 function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
-                 src::AbstractArray{T2,N}, sstart::Integer,
+                 src::AbstractArray{T2, N}, sstart::Integer,
                  n::Integer) where {T1, T2, N, R}
     n == 0 && return dest
     n < 0 && throw(ArgumentError("tried to copy n=$n elements, but n should be nonnegative"))
@@ -580,7 +580,7 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
         levels!(pool(dest), newdestlevs)
     end
     levelsmap = something.(indexin(srclevs, [missing; newdestlevs])) .- 1
-    destrefs = dest.refs
+    destrefs = refs(dest)
     seen = fill(false, length(newdestlevs)+1)
     firstind = firstindex(srclevs)
     @inbounds for i in 0:(n-1)
