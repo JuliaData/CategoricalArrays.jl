@@ -10,6 +10,6 @@ Documentation:
 
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliadata.github.io/CategoricalArrays.jl/stable)
 
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliadata.github.io/CategoricalArrays.jl/latest)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliadata.github.io/CategoricalArrays.jl/dev)
 
 This package provides tools for working with categorical variables, both with unordered (nominal variables) and ordered categories (ordinal variables), optionally with missing values.
