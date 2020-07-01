@@ -1030,29 +1030,51 @@ Base.repeat(a::CatArrOrSub{T, N};
             inner = nothing, outer = nothing) where {T, N} =
     CategoricalArray{T, N}(repeat(refs(a), inner=inner, outer=outer), copy(pool(a)))
 
-# JSON3 reading (writing is handled implicitly by definitions
-# in `value.jl`)
-__asmissing__(x::Nothing) = missing
-__asmissing__(x) = x
-StructTypes.construct(::Type{T}, x::Vector{S}; kw...) where {T <: CategoricalArray,S} =
-    __categorical_asmissing__(T,x)
+# JSON3 writing/reading
+StructTypes.StructType(::Type{<:CategoricalVector{T}}) where T = StructTypes.ArrayType()
+StructTypes.construct(::Type{T}, x::Vector{S}; null_as_missing=false) where {T <: CategoricalVector,S} =
+    __categorical__(T,x,null_as_missing)
+StructTypes.construct(::Type{T}, x::Vector{S}; null_as_missing=false) where {T <: CategoricalArray,S} =
+    __categorical__(T,x,null_as_missing)
 
-function __categorical_asmissing__(::Type{<:CategoricalArray},array)
-    # check for small union type
+# we need both CategoricalVector and CategoricalArray below; with the various type params
+# the one is not always <: of the other; users might reasonably request a type of
+# CategoricalArray rather than CategoricalVector
+__categorical__(::Type{<:CategoricalVector},array,asmissing=false) =
+    __categorical__general__(array,asmissing)
+__categorical__(::Type{<:CategoricalVector{Union{Missing,T}}},array,asmissing) where T =
+    __categorical__missing__(T,array)
+__categorical__(::Type{<:CategoricalVector{Union{Nothing,T}}},array,asmissing) where T =
+    __categorical__nothing__(T,array)
+__categorical__(::Type{<:CategoricalArray},array,asmissing=false) =
+    __categorical__general__(array,asmissing)
+__categorical__(::Type{<:CategoricalArray{Union{Missing,T}}},array,asmissing) where T =
+    __categorical__missing__(T,array)
+__categorical__(::Type{<:CategoricalArray{Union{Nothing,T}}},array,asmissing) where T =
+    __categorical__nothing__(T,array)
+
+function __categorical__general__(array,asmissing)
+    # check for small union with `Nothing` type
     types = unique!(typeof.(array))
     nothing_index = findfirst(isequal(Nothing),types)
     if length(types) == 2 && !isnothing(nothing_index)
         i = 3 - nothing_index # index of the type that isn't `Nothing`
-        __categorical_asmissing__(CategoricalArray{Union{Missing,types[i]}},array)
+        if asmissing
+            __categorical__missing__(types[i],array)
+        else
+            __categorical__nothing__(types[i],array)
+        end
     else
         categorical(array)
     end
 end
 
-function __categorical_asmissing__(::Type{<:CategoricalArray{Union{Missing,T}}},array) where T
+__asmissing__(x::Nothing) = missing
+__asmissing__(x) = x
+function __categorical__missing__(T,array)
     convert(CategoricalArray{Union{Missing,T}},categorical(__asmissing__.(array)))
 end
 
-function __categorical_asmissing__(::Type{<:CategoricalArray{Union{Nothing,T}}},array) where T
+function __categorical__nothing__(T,array)
     convert(CategoricalArray{Union{Nothing,T}},categorical(array))
 end
