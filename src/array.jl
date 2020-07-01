@@ -1040,13 +1040,13 @@ StructTypes.construct(::Type{T}, x::Vector{S}; null_as_missing=false) where {T <
 # we need both CategoricalVector and CategoricalArray below; with the various type params
 # the one is not always <: of the other; users might reasonably request a type of
 # CategoricalArray rather than CategoricalVector
-__categorical__(::Type{<:CategoricalVector},array,asmissing=false) =
+__categorical__(::Type{<:CategoricalVector},array,asmissing) =
     __categorical__general__(array,asmissing)
 __categorical__(::Type{<:CategoricalVector{Union{Missing,T}}},array,asmissing) where T =
     __categorical__missing__(T,array)
 __categorical__(::Type{<:CategoricalVector{Union{Nothing,T}}},array,asmissing) where T =
     __categorical__nothing__(T,array)
-__categorical__(::Type{<:CategoricalArray},array,asmissing=false) =
+__categorical__(::Type{<:CategoricalArray},array,asmissing) =
     __categorical__general__(array,asmissing)
 __categorical__(::Type{<:CategoricalArray{Union{Missing,T}}},array,asmissing) where T =
     __categorical__missing__(T,array)
