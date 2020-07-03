@@ -1516,8 +1516,8 @@ end
         @test sprint((io,a)->show(io, "text/plain", a), x) ==
             """
             3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
-             2
-             1
+             2      
+             1      
              missing"""
     end
 end
