@@ -1057,7 +1057,7 @@ function __categorical__general__(array,asmissing)
     # check for small union with `Nothing` type
     types = unique!(typeof.(array))
     nothing_index = findfirst(isequal(Nothing),types)
-    if length(types) == 2 && (nothing_index isa Nothing)
+    if length(types) == 2 && !(nothing_index isa Nothing)
         i = 3 - nothing_index # index of the type that isn't `Nothing`
         if asmissing
             __categorical__missing__(types[i],array)
