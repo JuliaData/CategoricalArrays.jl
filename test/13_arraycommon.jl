@@ -1516,8 +1516,8 @@ end
         @test sprint((io,a)->show(io, "text/plain", a), x) ==
             """
             3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
-             2      
-             1      
+             2
+             1
              missing"""
     end
 end
@@ -1960,6 +1960,18 @@ StructTypes.StructType(::Type{T}) where T <: MyCustomType = StructTypes.Struct()
     readx = JSON3.read(str, CategoricalVector{Union{Missing,String}})
     @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
     @test levels(readx) == levels(x)
+    @test readx isa CategoricalArray
+
+    readx = JSON3.read(str, CategoricalVector{Union{Nothing,String}})
+    @test all((ismissing(a) && (get(b) isa Nothing)) || a == b for (a,b) in zip(x,readx))
+    @test nothing in levels(readx)
+    @test length(union(setdiff(levels(readx),[nothing]), levels(x))) == length(levels(x))
+    @test readx isa CategoricalArray
+
+    readx = JSON3.read(str, CategoricalArray{Union{Nothing,String}})
+    @test all((ismissing(a) && (get(b) isa Nothing)) || a == b for (a,b) in zip(x,readx))
+    @test nothing in levels(readx)
+    @test length(union(setdiff(levels(readx),[nothing]), levels(x))) == length(levels(x))
     @test readx isa CategoricalArray
 
     x = CategoricalArray(["x",nothing,"y","z","y",nothing,"z","x"])
