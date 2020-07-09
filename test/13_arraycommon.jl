@@ -1934,13 +1934,13 @@ struct MyCustomTypeMissing
     id::Vector{Int}
     var::CategoricalVector{Union{Missing,String}}
 end
-StructTypes.StructType(::Type{T}) where T <: MyCustomTypeMissing = StructTypes.Struct()
+StructTypes.StructType(::Type{<:MyCustomTypeMissing}) = StructTypes.Struct()
 
 struct MyCustomType
     id::Vector{Int}
     var::CategoricalVector{String}
 end
-StructTypes.StructType(::Type{T}) where T <: MyCustomType = StructTypes.Struct()
+StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
 
 @testset "Reading CategoricalVector objects using JSON3" begin
     x = CategoricalArray(["x","y","z","y","y","z"])
@@ -1953,7 +1953,7 @@ StructTypes.StructType(::Type{T}) where T <: MyCustomType = StructTypes.Struct()
     x = CategoricalArray([missing,"y","z","y",missing,"z","x"])
     str = JSON3.write(x)
     readx = JSON3.read(str, CategoricalArray{Union{Missing,String}})
-    @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
+    @test x ≅readx
     @test levels(readx) == levels(x)
     @test readx isa CategoricalVector{Union{Missing,String}}
 

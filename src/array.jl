@@ -1031,7 +1031,7 @@ Base.repeat(a::CatArrOrSub{T, N};
     CategoricalArray{T, N}(repeat(refs(a), inner=inner, outer=outer), copy(pool(a)))
 
 # JSON3 writing/reading
-StructTypes.StructType(::Type{<:CategoricalVector{T}}) where T = StructTypes.ArrayType()
+StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 StructTypes.construct(::Type{T}, x::Vector{S}; null_as_missing=false) where {T <: CategoricalVector,S} =
     __categorical__(T,x,null_as_missing)
 StructTypes.construct(::Type{T}, x::Vector{S}; null_as_missing=false) where {T <: CategoricalArray,S} =
@@ -1069,12 +1069,8 @@ function __categorical__general__(array,asmissing)
     end
 end
 
-__asmissing__(x::Nothing) = missing
-__asmissing__(x) = x
-function __categorical__missing__(T,array)
-    convert(CategoricalArray{Union{Missing,T}},categorical(__asmissing__.(array)))
-end
+__categorical__missing__(T, array) =
+    CategoricalArray{Union{Missing,T}}(replace(array, nothing=>missing))
 
-function __categorical__nothing__(T,array)
-    convert(CategoricalArray{Union{Nothing,T}},categorical(array))
-end
+__categorical__nothing__(T, array) =
+    CategoricalArray{Union{Nothing,T}}(array)
