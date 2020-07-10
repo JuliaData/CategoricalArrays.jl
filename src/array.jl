@@ -1034,10 +1034,10 @@ Base.repeat(a::CatArrOrSub{T, N};
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
 StructTypes.construct(::Type{<:CategoricalVector}, array::Vector) =
-    __categorical_general__(array)
+    categoricalgeneral(array)
 StructTypes.construct(::Type{<:CategoricalArray}, array::Vector) =
-    __categorical_general__(array)
-function __categorical_general__(array)
+    categoricalgeneral(array)
+function categoricalgeneral(array)
     if eltype(array) >: Nothing
         categorical(replace(array, nothing=>missing))
     else
@@ -1046,14 +1046,14 @@ function __categorical_general__(array)
 end
 
 StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
-    array::Vector) where {T, S} = __categorical__missing__(T, array)
+    array::Vector) where {T, S} = categoricalmissing(T, array)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
-    array::Vector) where {T, S} = __categorical__missing__(T, array)
-__categorical__missing__(T, array) =
+    array::Vector) where {T, S} = categoricalmissing(T, array)
+categoricalmissing(T, array) =
     CategoricalArray{Union{Missing, T}}(replace(array, nothing=>missing))
 
 StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
-    array::Vector) where {T, S} = __categorical__nothing__(T, array)
+    array::Vector) where {T, S} = categoricalnothing(T, array)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
-    array::Vector) where {T, S} = __categorical__nothing__(T, array)
-__categorical__nothing__(T, array) = CategoricalArray{Union{Nothing, T}}(array)
+    array::Vector) where {T, S} = categoricalnothing(T, array)
+categoricalnothing(T, array) = CategoricalArray{Union{Nothing, T}}(array)
