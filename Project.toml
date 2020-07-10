@@ -17,6 +17,7 @@ DataAPI = "1.1"
 JSON = "0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21"
 Missings = "0.4.3"
 julia = "1"
+StructTypes = "1"
 
 [extras]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
