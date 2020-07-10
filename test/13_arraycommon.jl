@@ -1952,23 +1952,24 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
 
     x = CategoricalArray([missing,"y","z","y",missing,"z","x"])
     str = JSON3.write(x)
+
+    readx = JSON3.read(str, CategoricalVector)
+    @test x ≅ readx
+    @test all(sort(levels(readx)) .== sort(levels(x)))
+    @test readx isa CategoricalVector
+
+    readx = JSON3.read(str, CategoricalArray)
+    @test x ≅ readx
+    @test all(sort(levels(readx)) .== sort(levels(x)))
+    @test readx isa CategoricalVector
+
     readx = JSON3.read(str, CategoricalArray{Union{Missing,String}})
-    @test x ≅readx
+    @test x ≅ readx
     @test levels(readx) == levels(x)
     @test readx isa CategoricalVector{Union{Missing,String}}
 
     readx = JSON3.read(str, CategoricalVector{Union{Missing,String}})
-    @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
-    @test levels(readx) == levels(x)
-    @test readx isa CategoricalVector{Union{Missing,String}}
-
-    readx = JSON3.read(str, CategoricalArray, null_as_missing = true)
-    @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
-    @test levels(readx) == levels(x)
-    @test readx isa CategoricalVector{Union{Missing,String}}
-
-    readx = JSON3.read(str, CategoricalVector, null_as_missing = true)
-    @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
+    @test x ≅ readx
     @test levels(readx) == levels(x)
     @test readx isa CategoricalVector{Union{Missing,String}}
 
@@ -1988,14 +1989,8 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     str = JSON3.write(x)
 
     readx = JSON3.read(str, CategoricalArray)
-    @test all(((a isa Nothing) && (b isa Nothing)) || a == b for (a,b) in zip(x,readx))
-    @test levels(readx) == levels(x)
-    @test readx isa CategoricalVector{Union{Nothing,String}}
-
-    readx = JSON3.read(str, CategoricalVector)
-    @test all(((a isa Nothing) && (b isa Nothing)) || a == b for (a,b) in zip(x,readx))
-    @test levels(readx) == levels(x)
-    @test readx isa CategoricalVector{Union{Nothing,String}}
+    @test all(((get(a) isa Nothing) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
+    @test readx isa CategoricalVector
 
     x = MyCustomType(
         collect(1:3),
@@ -2012,7 +2007,7 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     )
     str = JSON3.write(x)
     readx = JSON3.read(str, MyCustomTypeMissing)
-    @test all((ismissing(a) && ismissing(b)) || a == b for (a,b) in zip(x.var,readx.var))
+    @test x.var ≅ readx.var
     @test levels(readx.var) == levels(x.var)
 
 end

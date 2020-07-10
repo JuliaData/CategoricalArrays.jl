@@ -1032,45 +1032,28 @@ Base.repeat(a::CatArrOrSub{T, N};
 
 # JSON3 writing/reading
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
-StructTypes.construct(::Type{T}, x::Vector{S}; null_as_missing=false) where {T <: CategoricalVector,S} =
-    __categorical__(T,x,null_as_missing)
-StructTypes.construct(::Type{T}, x::Vector{S}; null_as_missing=false) where {T <: CategoricalArray,S} =
-    __categorical__(T,x,null_as_missing)
 
-# we need both CategoricalVector and CategoricalArray below; with the various type params
-# the one is not always <: of the other; users might reasonably request a type of
-# CategoricalArray rather than CategoricalVector
-__categorical__(::Type{<:CategoricalVector},array,asmissing) =
-    __categorical__general__(array,asmissing)
-__categorical__(::Type{<:CategoricalVector{Union{Missing,T}}},array,asmissing) where T =
-    __categorical__missing__(T,array)
-__categorical__(::Type{<:CategoricalVector{Union{Nothing,T}}},array,asmissing) where T =
-    __categorical__nothing__(T,array)
-__categorical__(::Type{<:CategoricalArray},array,asmissing) =
-    __categorical__general__(array,asmissing)
-__categorical__(::Type{<:CategoricalArray{Union{Missing,T}}},array,asmissing) where T =
-    __categorical__missing__(T,array)
-__categorical__(::Type{<:CategoricalArray{Union{Nothing,T}}},array,asmissing) where T =
-    __categorical__nothing__(T,array)
-
-function __categorical__general__(array,asmissing)
-    # check for small union with `Nothing` type
-    types = unique!(typeof.(array))
-    nothing_index = findfirst(isequal(Nothing),types)
-    if length(types) == 2 && !(nothing_index isa Nothing)
-        i = 3 - nothing_index # index of the type that isn't `Nothing`
-        if asmissing
-            __categorical__missing__(types[i],array)
-        else
-            __categorical__nothing__(types[i],array)
-        end
+StructTypes.construct(::Type{<:CategoricalVector}, array::Vector) =
+    __categorical_general__(array)
+StructTypes.construct(::Type{<:CategoricalArray}, array::Vector) =
+    __categorical_general__(array)
+function __categorical_general__(array)
+    if eltype(array) >: Nothing
+        categorical(replace(array, nothing=>missing))
     else
         categorical(array)
     end
 end
 
+StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
+    array::Vector) where {T, S} = __categorical__missing__(T, array)
+StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
+    array::Vector) where {T, S} = __categorical__missing__(T, array)
 __categorical__missing__(T, array) =
-    CategoricalArray{Union{Missing,T}}(replace(array, nothing=>missing))
+    CategoricalArray{Union{Missing, T}}(replace(array, nothing=>missing))
 
-__categorical__nothing__(T, array) =
-    CategoricalArray{Union{Nothing,T}}(array)
+StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
+    array::Vector) where {T, S} = __categorical__nothing__(T, array)
+StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
+    array::Vector) where {T, S} = __categorical__nothing__(T, array)
+__categorical__nothing__(T, array) = CategoricalArray{Union{Nothing, T}}(array)
