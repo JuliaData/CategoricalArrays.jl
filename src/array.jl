@@ -347,7 +347,7 @@ convert(::Type{CategoricalArray{T}}, A::CategoricalArray{S, N, R}) where {S, T, 
 convert(::Type{CategoricalArray}, A::CategoricalArray{T, N, R}) where {T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
 
-# resolve dispmatch ambiguities with AbstractVector/Matrix
+# resolve dispatch ambiguities with AbstractVector/Matrix
 convert(::Type{CategoricalArray{T, 1}}, A::CategoricalVector{S, R}) where {S, T, R} =
     convert(CategoricalArray{T, 1, R}, A)
 convert(::Type{CategoricalArray{T}}, A::CategoricalVector{S, R}) where {S, T, R} =
@@ -1024,9 +1024,7 @@ Base.repeat(a::CatArrOrSub{T, N};
 # JSON3 writing/reading
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
-StructTypes.construct(::Type{<:CategoricalArray}, array::Vector) =
-    categoricalgeneral(array)
-function categoricalgeneral(array)
+function StructTypes.construct(::Type{<:CategoricalArray}, array::Vector)
     if eltype(array) >: Nothing
         categorical(replace(array, nothing=>missing))
     else
