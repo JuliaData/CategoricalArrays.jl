@@ -340,27 +340,29 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
     CategoricalArray{unwrap_catvaluetype(T), N}(refs, pool)
 end
 
-convert(::Type{CategoricalArray{T, N}}, A::CategoricalArray{S, N, R}) where {S, T, N, R} =
+convert(::Type{CategoricalArray{T, N}}, 
+    A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
-convert(::Type{CategoricalArray{T}}, A::CategoricalArray{S, N, R}) where {S, T, N, R} =
+convert(::Type{CategoricalArray{T}}, 
+    A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
 convert(::Type{CategoricalArray}, A::CategoricalArray{T, N, R}) where {T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
 
-# resolve dispatch ambiguities with AbstractVector/Matrix
-convert(::Type{CategoricalArray{T, 1}}, A::CategoricalVector{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 1, R}, A)
-convert(::Type{CategoricalArray{T}}, A::CategoricalVector{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 1, R}, A)
-convert(::Type{CategoricalArray}, A::CategoricalVector{T, R}) where {T, R} =
-    convert(CategoricalArray{T, 1, R}, A)
+# # resolve dispatch ambiguities with AbstractVector/Matrix
+# convert(::Type{CategoricalArray{T, 1}}, A::CategoricalVector{S, R}) where {S, T, R} =
+#     convert(CategoricalArray{T, 1, R}, A)
+# convert(::Type{CategoricalArray{T}}, A::CategoricalVector{S, R}) where {S, T, R} =
+#     convert(CategoricalArray{T, 1, R}, A)
+# convert(::Type{CategoricalArray}, A::CategoricalVector{T, R}) where {T, R} =
+#     convert(CategoricalArray{T, 1, R}, A)
 
-convert(::Type{CategoricalArray{T, 2}}, A::CategoricalMatrix{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 2, R}, A)
-convert(::Type{CategoricalArray{T}}, A::CategoricalMatrix{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 2, R}, A)
-convert(::Type{CategoricalArray}, A::CategoricalMatrix{T, R}) where {T, R} =
-    convert(CategoricalArray{T, 2, R}, A)
+# convert(::Type{CategoricalArray{T, 2}}, A::CategoricalMatrix{S, R}) where {S, T, R} =
+#     convert(CategoricalArray{T, 2, R}, A)
+# convert(::Type{CategoricalArray{T}}, A::CategoricalMatrix{S, R}) where {S, T, R} =
+#     convert(CategoricalArray{T, 2, R}, A)
+# convert(::Type{CategoricalArray}, A::CategoricalMatrix{T, R}) where {T, R} =
+#     convert(CategoricalArray{T, 2, R}, A)
 
 
 # R<:Integer is needed for this method to be considered more specific
@@ -1033,14 +1035,18 @@ function StructTypes.construct(::Type{<:CategoricalArray}, array::Vector)
 end
 
 StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
-    array::Vector) where {T, S} = categoricalmissing(T, array)
+                      A::Vector) where {T} =
+    categoricalmissing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
-    array::Vector) where {T, S} = categoricalmissing(T, array)
-categoricalmissing(T, array) =
-    CategoricalArray{Union{Missing, T}}(replace(array, nothing=>missing))
+                      A::Vector) where {T} =
+    categoricalmissing(T, A)
+categoricalmissing(T, A) =
+    CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
 
 StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
-    array::Vector) where {T, S} = categoricalnothing(T, array)
+                      A::Vector) where {T} =
+    categoricalnothing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
-    array::Vector) where {T, S} = categoricalnothing(T, array)
-categoricalnothing(T, array) = CategoricalArray{Union{Nothing, T}}(array)
+                      A::Vector) where {T} =
+    categoricalnothing(T, A)
+categoricalnothing(T, A) = CategoricalArray{Union{Nothing, T}}(A)
