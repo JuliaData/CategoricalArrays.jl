@@ -1026,11 +1026,11 @@ Base.repeat(a::CatArrOrSub{T, N};
 # JSON3 writing/reading
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
-function StructTypes.construct(::Type{<:CategoricalArray}, array::Vector)
-    if eltype(array) >: Nothing
-        categorical(replace(array, nothing=>missing))
+function StructTypes.construct(::Type{<:CategoricalArray}, A::Vector)
+    if eltype(A) >: Nothing
+        categorical(replace(A, nothing=>missing))
     else
-        categorical(array)
+        categorical(A)
     end
 end
 
