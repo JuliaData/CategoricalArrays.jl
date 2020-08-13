@@ -1027,7 +1027,9 @@ Base.repeat(a::CatArrOrSub{T, N};
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
 function StructTypes.construct(::Type{<:CategoricalArray}, A::Vector)
-    if eltype(A) >: Nothing
+    if eltype(A) == Any
+        categorical(identity.(ifelse.(A .=== nothing, missing, A)))
+    elseif eltype(A) >: Nothing
         categorical(replace(A, nothing=>missing))
     else
         categorical(A)
