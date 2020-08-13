@@ -318,15 +318,15 @@ end
         @test typeof(y) === Vector{Union{Float64, T}}
     end
 
-    # Recoding from Int to Any
+    # Recoding from Int to Union{Int, String}
     y = @inferred recode(x, 1=>"a", 2:4=>0, [5; 9:10]=>-1)
     @test y == ["a", 0, 0, 0, -1, 6, 7, 8, -1, -1]
     if isa(x, CategoricalArray)
-        @test isa(y, CategoricalVector{Any, DefaultRefType})
+        @test isa(y, CategoricalVector{Union{Int, String, T}, DefaultRefType})
         @test levels(y) == [6, 7, 8, "a", 0, -1]
         @test !isordered(y)
     else
-        @test typeof(y) === Vector{Any}
+        @test typeof(y) === Vector{Union{Int, String, T}}
     end
 
     # Recoding from Int to String, with String default
@@ -351,15 +351,15 @@ end
         @test typeof(y) === Vector{Union{String, T}}
     end
 
-    # Recoding from Int to Int/String (i.e. Any), with default String and other values Int
+    # Recoding from Int to Union{Int, String}, with default String and other values Int
     y = @inferred recode(x, "x", 1=>100, 2:4=>0, [5; 9:10]=>-1)
     @test y == [100, 0, 0, 0, -1, "x", "x", "x", -1, -1]
     if isa(x, CategoricalArray)
-        @test isa(y, CategoricalVector{Any, DefaultRefType})
+        @test isa(y, CategoricalVector{Union{Int, String, T}, DefaultRefType})
         @test levels(y) == [100, 0, -1, "x"]
         @test !isordered(y)
     else
-        @test typeof(y) === Vector{Any}
+        @test typeof(y) === Vector{Union{Int, String, T}}
     end
 
     # Recoding from Int to Int/String, without any Int value in pairs
@@ -434,17 +434,17 @@ end
     end
 end
 
-@testset "Recoding from $(typeof(x)) to Int/String (i.e. Any), with levels in custom order" for
+@testset "Recoding from $(typeof(x)) to Union{Int, String}, with levels in custom order" for
     x in (10:-1:1, CategoricalArray(10:-1:1))
 
     y = @inferred recode(x, 0, 1=>"a", 2:4=>"c", [5; 9:10]=>"b")
     @test y == ["b", "b", 0, 0, 0, "b", "c", "c", "c", "a"]
     if isa(x, CategoricalArray)
-        @test isa(y, CategoricalVector{Any, DefaultRefType})
+        @test isa(y, CategoricalVector{Union{Int, String}, DefaultRefType})
         @test levels(y) == ["a", "c", "b", 0]
         @test !isordered(y)
     else
-        @test typeof(y) === Vector{Any}
+        @test typeof(y) === Vector{Union{Int, String}}
     end
 
     # Recoding from Int to String via default, with levels in custom order
@@ -566,8 +566,8 @@ end
 
         testf(replace, String, x, missing => "")
         testf(replace, Union{String, Missing}, x, "b" => "c")
-        testf(replace, Any, x, "a" => 1, "b" => 2)
-        testf(replace, Any, x, "a" => 1, "b" => 2, missing => 3)
+        testf(replace, Union{Int, String, Missing}, x, "a" => 1, "b" => 2)
+        testf(replace, Union{Int, String}, x, "a" => 1, "b" => 2, missing => 3)
         y = testf(replace!, Union{String, Missing}, x, "b" => "c")
         @test y === x
 
@@ -619,15 +619,15 @@ end
 end
 
 # TODO: move struct definition inside @testset block after 1.6 becomes LTS
-struct UnorderedFoo0
+struct UnorderedFoo0 <: Number
     a::String
 end
-    
+
 @testset "recode AbstractVector with unordered eltype" begin
     x0 = [UnorderedFoo0("s$i") for i in 1:10]
     x = CategoricalArray{UnorderedFoo0}(undef, size(x0))
     recode!(x, x0, UnorderedFoo0("s3") => UnorderedFoo0("xxx"))
-    
+
     @test x[3] == UnorderedFoo0("xxx")
     @test x[(1:end) .!= 3] == x0[(1:end) .!= 3]
     @test levels(x)[1:(end-1)] == x0[(1:end) .!= 3]

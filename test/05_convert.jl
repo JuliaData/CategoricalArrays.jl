@@ -65,43 +65,78 @@ end
         CategoricalValue{Float64, UInt32}
     @test promote_type(CategoricalValue{Int, UInt8}, CategoricalValue{Float64}) ===
         CategoricalValue{Float64}
+    @test promote_type(CategoricalValue{Int, UInt8}, CategoricalValue{String}) ===
+        CategoricalValue{Union{Int, String}}
     # Tests that return Any before Julia 1.3 are due to JuliaLang/julia#29348
     if VERSION >= v"1.3.0-DEV"
         @test promote_type(CategoricalValue{Int},
                            Union{CategoricalValue{Float64}, Missing}) ===
-            Union{Missing, Float64}
+            Union{CategoricalValue{Float64}, Missing}
+        @test promote_type(CategoricalValue{Int},
+                           Union{CategoricalValue{String}, Missing}) ===
+            Union{CategoricalValue{Union{Int, String}}, Missing}
         @test promote_type(CategoricalValue{Int, UInt8},
                            Union{CategoricalValue{Float64, UInt32}, Missing}) ===
             Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(CategoricalValue{Int, UInt8},
+                           Union{CategoricalValue{String, UInt32}, Missing}) ===
+            Union{CategoricalValue{Union{Int, String}, UInt32}, Missing}
         @test promote_type(Union{CategoricalValue{Int}, Missing},
                            CategoricalValue{Float64}) ===
-            Union{Missing, Float64}
+            Union{CategoricalValue{Float64}, Missing}
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                           CategoricalValue{String}) ===
+            Union{CategoricalValue{Union{Int, String}}, Missing}
         @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
                            CategoricalValue{Float64, UInt32}) ===
             Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
+                           CategoricalValue{String, UInt32}) ===
+            Union{CategoricalValue{Union{Int, String}, UInt32}, Missing}
         @test promote_type(Union{CategoricalValue{Int}, Missing},
                            Union{CategoricalValue{Float64}, Missing}) ===
-            Union{Missing, Float64}
+            Union{CategoricalValue{Float64}, Missing}
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                           Union{CategoricalValue{String}, Missing}) ===
+            Union{CategoricalValue{Union{Int, String}}, Missing}
     else
         @test promote_type(CategoricalValue{Int},
                            Union{CategoricalValue{Float64}, Missing}) ===
-            Any
+            Union{CategoricalValue{Float64}, Missing}
+        @test promote_type(CategoricalValue{Int},
+                           Union{CategoricalValue{String}, Missing}) ===
+            Union{CategoricalValue{Union{Int, String}}, Missing}
         @test promote_type(CategoricalValue{Int, UInt8},
                            Union{CategoricalValue{Float64, UInt32}, Missing}) ===
             Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(CategoricalValue{Int, UInt8},
+                           Union{CategoricalValue{String, UInt32}, Missing}) ===
+            Union{CategoricalValue{Union{Int, String}, UInt32}, Missing}
         @test promote_type(Union{CategoricalValue{Int}, Missing},
                            CategoricalValue{Float64}) ===
-            Any
-        @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
-                        CategoricalValue{Float64, UInt32}) ===
-            Union{CategoricalValue{Float64, UInt32}, Missing}
+            Union{CategoricalValue{Float64}, Missing}
         @test promote_type(Union{CategoricalValue{Int}, Missing},
-                        Union{CategoricalValue{Float64}, Missing}) ===
+                           CategoricalValue{String}) ===
+            Union{CategoricalValue{Union{Int, String}}, Missing}
+        @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
+                           CategoricalValue{Float64, UInt32}) ===
+            Union{CategoricalValue{Float64, UInt32}, Missing}
+        @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
+                           CategoricalValue{String, UInt32}) ===
+            Union{CategoricalValue{Union{Int, String}, UInt32}, Missing}
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                           Union{CategoricalValue{Float64}, Missing}) ===
+            Any
+        @test promote_type(Union{CategoricalValue{Int}, Missing},
+                           Union{CategoricalValue{String}, Missing}) ===
             Any
     end
     @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
                        Union{CategoricalValue{Float64, UInt32}, Missing}) ===
         Union{CategoricalValue{Float64, UInt32}, Missing}
+    @test promote_type(Union{CategoricalValue{Int, UInt8}, Missing},
+                       Union{CategoricalValue{String, UInt32}, Missing}) ===
+        Union{CategoricalValue{Union{Int, String}, UInt32}, Missing}
 
     @test promote_type(CategoricalValue, Missing) === Union{CategoricalValue, Missing}
     @test promote_type(CategoricalValue{Int}, Missing) === Union{CategoricalValue{Int}, Missing}
@@ -113,15 +148,6 @@ end
 @testset "convert() preserves `ordered`" begin
     pool = CategoricalPool([1, 2, 3], true)
     @test convert(CategoricalPool{Float64, UInt8}, pool).ordered === true
-end
-
-@testset "convert() with Union{T, Nothing}" begin
-    pool = CategoricalPool([nothing, 2, 3])
-    v1 = CategoricalValue(1, pool)
-    v2 = CategoricalValue(2, pool)
-    @test convert(Union{Int, Nothing}, v1) === nothing
-    @test convert(Union{Int, Nothing}, v2) === 2
-    @test convert(Union{Float64, Nothing}, v2) === 2.0
 end
 
 @testset "levelcode" begin

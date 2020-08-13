@@ -1,4 +1,5 @@
 const DefaultRefType = UInt32
+const SupportedTypes = Union{AbstractString, AbstractChar, Number}
 
 ## Pools
 
@@ -6,7 +7,7 @@ const DefaultRefType = UInt32
 # * `T` type of categorized values
 # * `R` integer type for referencing category levels
 # * `V` categorical value type
-mutable struct CategoricalPool{T, R <: Integer, V}
+mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer, V}
     levels::Vector{T}       # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
     valindex::Vector{V}     # "category value" objects 1-to-1 matching `index`
@@ -42,9 +43,6 @@ mutable struct CategoricalPool{T, R <: Integer, V}
     function CategoricalPool{T, R, V}(levels::Vector{T},
                                       invindex::Dict{T, R},
                                       ordered::Bool) where {T, R, V}
-        if T <: CategoricalValue && T !== Union{}
-            throw(ArgumentError("Level type $T cannot be a categorical value type"))
-        end
         if !(V <: CategoricalValue)
             throw(ArgumentError("Type $V is not a categorical value type"))
         end
@@ -70,7 +68,7 @@ end
 ## Values
 
 """
-    CategoricalValue{T, R <: Integer}
+    CategoricalValue{T <: $SupportedTypes, R <: Integer}
 
 A wrapper around a value of type `T` corresponding to a level
 in a `CategoricalPool`.
@@ -82,7 +80,7 @@ if [`isordered`](@ref) is `true` for the value's pool, and in that case
 the order of the pool's [`levels`](@ref DataAPI.levels) is used rather than the standard
 ordering of values of type `T`.
 """
-struct CategoricalValue{T, R <: Integer}
+struct CategoricalValue{T <: SupportedTypes, R <: Integer}
     level::R
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
 end
@@ -96,7 +94,9 @@ end
 # * `V` original type of elements (excluding Missing) before categorization
 # * `C` categorical value type
 # * `U` type of missing value, `Union{}` if missing values are not accepted
-abstract type AbstractCategoricalArray{T, N, R, V, C, U} <: AbstractArray{Union{C, U}, N} end
+abstract type AbstractCategoricalArray{T <: Union{CategoricalValue, SupportedTypes, Missing}, N,
+                                       R <: Integer, V, C <: CategoricalValue, U} <:
+    AbstractArray{Union{C, U}, N} end
 const AbstractCategoricalVector{T, R, V, C, U} = AbstractCategoricalArray{T, 1, R, V, C, U}
 const AbstractCategoricalMatrix{T, R, V, C, U} = AbstractCategoricalArray{T, 2, R, V, C, U}
 

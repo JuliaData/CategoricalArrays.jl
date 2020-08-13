@@ -42,35 +42,40 @@ levelcode(x::Missing) = missing
 
 DataAPI.levels(x::CategoricalValue) = levels(pool(x))
 
-Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalValue, T} = promote_type(leveltype(C), T)
-Base.promote_rule(::Type{C1}, ::Type{Union{C2, Missing}}) where {C1 <: CategoricalValue, C2 <: CategoricalValue} =
-    Union{promote_type(C1, C2), Missing}
+function cat_promote_type(::Type{S}, ::Type{T}) where {S, T}
+    U = promote_type(S, T)
+    U <: Union{SupportedTypes, Missing} ?
+        U : typeintersect(Union{SupportedTypes, Missing}, Union{S, T})
+end
+
+cat_promote_eltype() = Union{}
+cat_promote_eltype(v1, vs...) = cat_promote_type(eltype(v1), cat_promote_eltype(vs...))
+
+Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalValue, T} =
+    promote_type(leveltype(C), T)
+
+Base.promote_rule(::Type{C}, ::Type{T}) where {C <: CategoricalValue, T >: Missing} =
+    Union{promote_rule(C, nonmissingtype(T)), Missing}
+
 # To fix ambiguities with definitions from Base
 Base.promote_rule(::Type{C}, ::Type{Missing}) where {C <: CategoricalValue} = Union{C, Missing}
 Base.promote_rule(::Type{C}, ::Type{Any}) where {C <: CategoricalValue} = Any
 
-
 Base.promote_rule(::Type{C1}, ::Type{C2}) where
-    {R1<:Integer, R2<:Integer, C1<:CategoricalValue{<:Any, R1}, C2<:CategoricalValue{<:Any, R2}} =
-    CategoricalValue{promote_type(leveltype(C1), leveltype(C2)), promote_type(R1, R2)}
+    {R1<:Integer, R2<:Integer,
+     C1<:CategoricalValue{<: SupportedTypes, R1},
+     C2<:CategoricalValue{<: SupportedTypes, R2}} =
+    CategoricalValue{cat_promote_type(leveltype(C1), leveltype(C2)), promote_type(R1, R2)}
 Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:CategoricalValue, C2<:CategoricalValue} =
-    CategoricalValue{promote_type(leveltype(C1), leveltype(C2))}
+    CategoricalValue{cat_promote_type(leveltype(C1), leveltype(C2))}
 
-Base.convert(::Type{Ref}, x::CategoricalValue) = RefValue{leveltype(x)}(x)
-Base.convert(::Type{String}, x::CategoricalValue) = convert(String, get(x))
-Base.convert(::Type{Any}, x::CategoricalValue) = x
-
-# Defined separately to avoid ambiguities
-Base.convert(::Type{T}, x::T) where {T <: CategoricalValue} = x
-Base.convert(::Type{Union{T, Missing}}, x::T) where {T <: CategoricalValue} = x
-Base.convert(::Type{Union{T, Nothing}}, x::T) where {T <: CategoricalValue} = x
 # General fallbacks
-Base.convert(::Type{S}, x::T) where {S, T <: CategoricalValue} =
-    T <: S ? x : convert(S, get(x))
-Base.convert(::Type{Union{S, Missing}}, x::T) where {S, T <: CategoricalValue} =
-    T <: Union{S, Missing} ? x : convert(Union{S, Missing}, get(x))
-Base.convert(::Type{Union{S, Nothing}}, x::T) where {S, T <: CategoricalValue} =
-    T <: Union{S, Nothing} ? x : convert(Union{S, Nothing}, get(x))
+Base.convert(::Type{S}, x::CategoricalValue) where {S <: SupportedTypes} =
+    convert(S, get(x))
+Base.convert(::Type{Union{S, Missing}}, x::CategoricalValue) where {S <: SupportedTypes} =
+    convert(Union{S, Missing}, get(x))
+Base.convert(::Type{Union{S, Nothing}}, x::CategoricalValue) where {S <: SupportedTypes} =
+    convert(Union{S, Nothing}, get(x))
 
 (::Type{T})(x::T) where {T <: CategoricalValue} = x
 
@@ -78,18 +83,18 @@ Base.Broadcast.broadcastable(x::CategoricalValue) = Ref(x)
 
 function Base.show(io::IO, x::CategoricalValue)
     if nonmissingtype(get(io, :typeinfo, Any)) === nonmissingtype(typeof(x))
-        print(io, repr(x))
-    elseif isordered(pool(x))
-        @printf(io, "%s %s (%i/%i)",
-                typeof(x), repr(x),
-                levelcode(x), length(pool(x)))
+        show(io, get(x))
     else
-        @printf(io, "%s %s", typeof(x), repr(x))
+        print(io, typeof(x))
+        print(io, ' ')
+        show(io, get(x))
+        if isordered(pool(x))
+            @printf(io, " (%i/%i)", levelcode(x), length(pool(x)))
+        end
     end
 end
 
 Base.print(io::IO, x::CategoricalValue) = print(io, get(x))
-Base.repr(x::CategoricalValue) = repr(get(x))
 Base.string(x::CategoricalValue) = string(get(x))
 Base.write(io::IO, x::CategoricalValue) = write(io, get(x))
 Base.String(x::CategoricalValue{<:AbstractString}) = String(get(x))
@@ -102,15 +107,8 @@ Base.String(x::CategoricalValue{<:AbstractString}) = String(get(x))
     end
 end
 
-Base.:(==)(::CategoricalValue, ::Missing) = missing
-Base.:(==)(::Missing, ::CategoricalValue) = missing
-
-# To fix ambiguities with Base
-Base.:(==)(x::CategoricalValue, y::WeakRef) = get(x) == y
-Base.:(==)(x::WeakRef, y::CategoricalValue) = y == x
-
-Base.:(==)(x::CategoricalValue, y::Any) = get(x) == y
-Base.:(==)(x::Any, y::CategoricalValue) = y == x
+Base.:(==)(x::CategoricalValue, y::SupportedTypes) = get(x) == y
+Base.:(==)(x::SupportedTypes, y::CategoricalValue) = x == get(y)
 
 @inline function Base.isequal(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y)
@@ -120,11 +118,8 @@ Base.:(==)(x::Any, y::CategoricalValue) = y == x
     end
 end
 
-Base.isequal(x::CategoricalValue, y::Any) = isequal(get(x), y)
-Base.isequal(x::Any, y::CategoricalValue) = isequal(y, x)
-
-Base.isequal(::CategoricalValue, ::Missing) = false
-Base.isequal(::Missing, ::CategoricalValue) = false
+Base.isequal(x::CategoricalValue, y::SupportedTypes) = isequal(get(x), y)
+Base.isequal(x::SupportedTypes, y::CategoricalValue) = isequal(x, get(y))
 
 Base.in(x::CategoricalValue, y::AbstractRange{T}) where {T<:Integer} = get(x) in y
 
@@ -139,10 +134,8 @@ function Base.isless(x::CategoricalValue, y::CategoricalValue)
     end
 end
 
-Base.isless(x::CategoricalValue, y) = levelcode(x) < levelcode(x.pool[get(x.pool, y)])
-Base.isless(::CategoricalValue, ::Missing) = true
-Base.isless(y, x::CategoricalValue) = levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
-Base.isless(::Missing, ::CategoricalValue) = false
+Base.isless(x::CategoricalValue, y::SupportedTypes) = levelcode(x) < levelcode(x.pool[get(x.pool, y)])
+Base.isless(y::SupportedTypes, x::CategoricalValue) = levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
 
 function Base.:<(x::CategoricalValue, y::CategoricalValue)
     if pool(x) !== pool(y)
@@ -154,7 +147,7 @@ function Base.:<(x::CategoricalValue, y::CategoricalValue)
     end
 end
 
-function Base.:<(x::CategoricalValue, y)
+function Base.:<(x::CategoricalValue, y::SupportedTypes)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
@@ -162,16 +155,13 @@ function Base.:<(x::CategoricalValue, y)
     end
 end
 
-function Base.:<(y, x::CategoricalValue)
+function Base.:<(y::SupportedTypes, x::CategoricalValue)
     if !isordered(pool(x))
         throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
     else
         return levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
     end
 end
-
-Base.:<(::CategoricalValue, ::Missing) = missing
-Base.:<(::Missing, ::CategoricalValue) = missing
 
 # JSON of CategoricalValue is JSON of the value it refers to
 JSON.lower(x::CategoricalValue) = JSON.lower(get(x))
