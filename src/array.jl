@@ -349,22 +349,6 @@ convert(::Type{CategoricalArray{T}},
 convert(::Type{CategoricalArray}, A::CategoricalArray{T, N, R}) where {T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
 
-# # resolve dispatch ambiguities with AbstractVector/Matrix
-convert(::Type{CategoricalArray{T, 1}}, A::CategoricalVector{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 1, R}, A)
-convert(::Type{CategoricalArray{T}}, A::CategoricalVector{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 1, R}, A)
-convert(::Type{CategoricalArray}, A::CategoricalVector{T, R}) where {T, R} =
-    convert(CategoricalArray{T, 1, R}, A)
-
-convert(::Type{CategoricalArray{T, 2}}, A::CategoricalMatrix{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 2, R}, A)
-convert(::Type{CategoricalArray{T}}, A::CategoricalMatrix{S, R}) where {S, T, R} =
-    convert(CategoricalArray{T, 2, R}, A)
-convert(::Type{CategoricalArray}, A::CategoricalMatrix{T, R}) where {T, R} =
-    convert(CategoricalArray{T, 2, R}, A)
-
-
 # R<:Integer is needed for this method to be considered more specific
 # than the generic one above (JuliaLang/julia#18443)
 convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{T, N, R}) where {T, N, R<:Integer} = A
