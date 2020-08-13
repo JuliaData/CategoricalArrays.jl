@@ -341,10 +341,10 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
 end
 
 convert(::Type{CategoricalArray{T, N}}, 
-    A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
+        A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
 convert(::Type{CategoricalArray{T}}, 
-    A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
+        A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
 convert(::Type{CategoricalArray}, A::CategoricalArray{T, N, R}) where {T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
