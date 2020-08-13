@@ -1021,18 +1021,18 @@ function StructTypes.construct(::Type{<:CategoricalArray}, A::Vector)
 end
 
 StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
-                      A::Vector) where {T} =
+                      A::AbstractVector) where {T} =
     categoricalmissing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
-                      A::Vector) where {T} =
+                      A::AbstractVector) where {T} =
     categoricalmissing(T, A)
 categoricalmissing(T, A) =
     CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
 
 StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
-                      A::Vector) where {T} =
+                      A::AbstractVector) where {T} =
     categoricalnothing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
-                      A::Vector) where {T} =
+                      A::AbstractVector) where {T} =
     categoricalnothing(T, A)
 categoricalnothing(T, A) = CategoricalArray{Union{Nothing, T}}(A)
