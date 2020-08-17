@@ -29,6 +29,42 @@ const ≅ = isequal
     end
 end
 
+@testset "recode_in" begin
+    @testset "collection is a string" begin
+        @test CategoricalArrays.recode_in("a", "b") == false
+        @test CategoricalArrays.recode_in(missing, "b") == false
+    end
+    @testset "collection without missing" begin
+        @test CategoricalArrays.recode_in(1, [1, 2]) == true
+        @test CategoricalArrays.recode_in(1, [2, 3]) == false
+    end
+    @testset "collection with missing" begin
+        @test CategoricalArrays.recode_in(1, [1, 2, missing]) == true
+        @test CategoricalArrays.recode_in(1, [2, missing]) == false
+        @test CategoricalArrays.recode_in(missing, [1, 2, missing]) == true
+    end
+    @testset "collection is a single value" begin
+        @test CategoricalArrays.recode_in(1, 1) == true
+        @test CategoricalArrays.recode_in(1, missing) == false
+        @test CategoricalArrays.recode_in(missing, missing) == false
+    end
+end
+
+@testset "Recoding from $(typeof(x)) to $(typeof(y)) using a Set as the first argument in a pair" for
+    x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
+    y in (similar(x), Array{Int}(undef, size(x)),
+          CategoricalArray{Int}(undef, size(x)),
+          CategoricalArray{Union{Int, Missing}}(undef, size(x)), x)
+
+    z = @inferred recode!(y, x, 1=>100, 2:4=>0, Set([5; 9:10])=>-1)
+    @test y === z
+    @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
+    if isa(y, CategoricalArray)
+        @test levels(y) == [6, 7, 8, 100, 0, -1]
+        @test !isordered(y)
+    end
+end
+
 @testset "Recoding from $(typeof(x)) to $(typeof(y)) with duplicate recoded values" for
     x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
     y in (similar(x), Array{Int}(undef, size(x)),
