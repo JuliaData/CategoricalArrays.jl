@@ -36,6 +36,28 @@ recode!(dest::CategoricalArray, src::AbstractArray, pairs::Pair...) =
 recode!(dest::CategoricalArray, src::CategoricalArray, pairs::Pair...) =
     recode!(dest, src, nothing, pairs...)
 
+
+"""
+    recode_in(x, collection)
+
+Helper function to test if x is a member of the collection.
+
+If collection is a regular collection-type without missing elements the 
+`in`-function is used. If collection contains a missing element, every
+element is tested using the isequal function. This ensures that missing
+is treated as a valid value.
+"""
+@inline recode_in(x, ::Missing) = false
+@inline recode_in(x, ::T) where {T<:AbstractString} = false
+@inline function recode_in(x, collection)
+    if ismissing(x) || eltype(collection) >: Missing
+        return any(x ≅ y for y in collection)
+    else
+        return x in collection
+    end
+end
+
+
 function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
@@ -46,8 +68,9 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
 
         for j in 1:length(pairs)
             p = pairs[j]
-            if ((isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first)) ||
-                x ≅ p.first)
+            # if p.first is a collection-type, `isequal` returns false.
+            # if p.first is not a collection-type, `in` returns false (except for AbstractString, which gives an error)
+            if (x ≅ p.first || recode_in(x, p.first))
                 dest[i] = p.second
                 @goto nextitem
             end
@@ -99,8 +122,9 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
 
         for j in 1:length(pairs)
             p = pairs[j]
-            if ((isa(p.first, Union{AbstractArray, Tuple}) && any(x ≅ y for y in p.first)) ||
-                x ≅ p.first)
+            # if p.first is a collection-type, `isequal` returns false.
+            # if p.first is not a collection-type, `in` returns false (except for AbstractString, which gives an error)
+            if (x ≅ p.first || recode_in(x, p.first))
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
             end
@@ -166,7 +190,7 @@ function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
 
         for l in srclevels
             if !(any(x -> x ≅ l, firsts) ||
-                 any(f -> isa(f, Union{AbstractArray, Tuple}) && any(l ≅ y for y in f), firsts))
+                 any(f -> (!isa(f, AbstractString) && !ismissing(f) && any(l ≅ y for y in f)), firsts))
                 try
                     push!(keptlevels, l)
                 catch err
@@ -200,8 +224,7 @@ function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
     # For missing values (0 if no missing in pairs' keys)
     levelsmap[1] = 0
     for p in pairs
-        if ((isa(p.first, Union{AbstractArray, Tuple}) && any(ismissing, p.first)) ||
-            ismissing(p.first))
+        if (ismissing(p.first) || any(ismissing, p.first))
             levelsmap[1] = get(dest.pool, p.second)
             break
         end
@@ -214,8 +237,7 @@ function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
     @inbounds for (i, l) in enumerate(srclevels)
         for j in 1:length(pairs)
             p = pairs[j]
-            if ((isa(p.first, Union{AbstractArray, Tuple}) && any(l ≅ y for y in p.first)) ||
-                l ≅ p.first)
+            if (l ≅ p.first || (!isa(p.first, AbstractString) && !ismissing(p.first) && any(l ≅ y for y in p.first)))
                 levelsmap[i+1] = pairmap[j]
                 @goto nextitem
             end
