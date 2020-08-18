@@ -13,6 +13,11 @@ module CategoricalArrays
     using Missings
     using Printf
 
+    # JuliaLang/julia#36810 
+    if VERSION < v"1.6.0"
+        Base.OrderStyle(::Type{Union{}}) = Base.Ordered()
+    end
+
     include("typedefs.jl")
 
     include("pool.jl")
