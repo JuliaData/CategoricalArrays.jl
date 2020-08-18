@@ -14,7 +14,7 @@ module CategoricalArrays
     using Printf
 
     # JuliaLang/julia#36810 
-    if VERSION < v"1.6.0"
+    if VERSION < v"1.5.1"
         Base.OrderStyle(::Type{Union{}}) = Base.Ordered()
     end
 
