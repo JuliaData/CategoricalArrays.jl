@@ -344,7 +344,12 @@ function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
         # if order is defined for level type, automatically apply it
         L = leveltype(res)
         if hasmethod(isless, Tuple{L, L})
-            levels!(res, sort(CategoricalArrays.levels(res)))
+            try 
+                sorted_levels = sort(CategoricalArrays.levels(res))
+                levels!(res, sorted_levels)
+            catch e
+                e isa MethodError || rethrow(e)
+            end
         end
     end
 

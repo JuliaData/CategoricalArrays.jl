@@ -133,7 +133,11 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     oldlevels = setdiff(levels(dest), vals)
     filter!(!ismissing, oldlevels)
     if hasmethod(isless, (eltype(oldlevels), eltype(oldlevels)))
-        sort!(oldlevels)
+        try 
+            sort!(oldlevels)
+        catch e
+            e isa MethodError || rethrow(e)
+        end
     end
     levels!(dest, union(oldlevels, levels(dest)))
 
