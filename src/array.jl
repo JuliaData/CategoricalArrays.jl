@@ -343,8 +343,15 @@ function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
     else
         # if order is defined for level type, automatically apply it
         L = leveltype(res)
-        if hasmethod(isless, Tuple{L, L})
+        if Base.OrderStyle(L) isa Base.Ordered
             levels!(res, sort(CategoricalArrays.levels(res)))
+        elseif hasmethod(isless, (L, L))
+            # wrap in try block because of issue #291
+            try
+                levels!(res, sort(CategoricalArrays.levels(res)))
+            catch e
+                 e isa MethodError || rethrow(e)
+            end
         end
     end
 
