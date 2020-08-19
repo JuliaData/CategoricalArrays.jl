@@ -40,7 +40,7 @@ recode!(dest::CategoricalArray, src::CategoricalArray, pairs::Pair...) =
 """
     recode_in(x, collection)
 
-Helper function to test if x is a member of the collection.
+Helper function to test if `x` is a member of `collection`.
 
 If collection is a regular collection-type without missing elements the 
 `in`-function is used. If collection contains a missing element, every
