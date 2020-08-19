@@ -1010,9 +1010,9 @@ Base.repeat(a::CatArrOrSub{T, N};
 # JSON3 writing/reading
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
-function StructTypes.construct(::Type{<:CategoricalArray}, A::Vector)
-    if eltype(A) == Any
-        categorical(identity.(ifelse.(A .=== nothing, missing, A)))
+function StructTypes.construct(::Type{<:CategoricalArray}, A::AbstractVector)
+    if eltype(A) === Any
+        categorical(ifelse.(A .=== nothing, missing, A))
     elseif eltype(A) >: Nothing
         categorical(replace(A, nothing=>missing))
     else
@@ -1026,7 +1026,7 @@ StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
                       A::AbstractVector) where {T} =
     categoricalmissing(T, A)
-categoricalmissing(T, A) =
+categoricalmissing(T, A::AbstractVector) =
     CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
 
 StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
@@ -1035,4 +1035,4 @@ StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
 StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
                       A::AbstractVector) where {T} =
     categoricalnothing(T, A)
-categoricalnothing(T, A) = CategoricalArray{Union{Nothing, T}}(A)
+categoricalnothing(T, A::AbstractVector) = CategoricalArray{Union{Nothing, T}}(A)

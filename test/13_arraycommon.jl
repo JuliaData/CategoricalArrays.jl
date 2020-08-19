@@ -1960,7 +1960,7 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
 
     readx = JSON3.read(str, CategoricalArray)
     @test x ≅ readx
-    @test sort(levels(readx)) == levels(x) # must use `all`: levels(readx) is of type Any[]
+    @test sort(levels(readx)) == levels(x)
     @test readx isa CategoricalVector
 
     readx = JSON3.read(str, CategoricalArray{Union{Missing,String}})
