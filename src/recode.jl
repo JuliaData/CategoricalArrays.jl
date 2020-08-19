@@ -48,7 +48,7 @@ element is tested using the isequal function. This ensures that missing
 is treated as a valid value.
 """
 @inline recode_in(x, ::Missing) = false
-@inline recode_in(x, ::T) where {T<:AbstractString} = false
+@inline recode_in(x, ::AbstractString} = false
 @inline function recode_in(x, collection)
     if ismissing(x) || eltype(collection) >: Missing
         return any(x ≅ y for y in collection)
