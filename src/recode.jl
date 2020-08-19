@@ -42,10 +42,10 @@ recode!(dest::CategoricalArray, src::CategoricalArray, pairs::Pair...) =
 
 Helper function to test if `x` is a member of `collection`.
 
-If collection is a regular collection-type without missing elements the 
-`in`-function is used. If collection contains a missing element, every
-element is tested using the isequal function. This ensures that missing
-is treated as a valid value.
+If `collection` is a collection type without `missing` elements, the 
+`in` function is used. If `collection` contains a `missing element`, every
+element is tested using the `isequal` function. This ensures that `missing`
+doesn't trigger an error.
 """
 @inline recode_in(x, ::Missing) = false
 @inline recode_in(x, ::AbstractString} = false
