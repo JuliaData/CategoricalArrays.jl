@@ -1956,12 +1956,12 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     readx = JSON3.read(str, CategoricalVector)
     @test x ≅ readx
     @test sort(levels(readx)) == levels(x)
-    @test readx isa CategoricalVector
+    @test readx isa CategoricalVector{Union{Missing,String}}
 
     readx = JSON3.read(str, CategoricalArray)
     @test x ≅ readx
     @test sort(levels(readx)) == levels(x)
-    @test readx isa CategoricalVector
+    @test readx isa CategoricalVector{Union{Missing,String}}
 
     readx = JSON3.read(str, CategoricalArray{Union{Missing,String}})
     @test x ≅ readx
@@ -1988,7 +1988,7 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     x = CategoricalArray(["x",nothing,"y","z","y",nothing,"z","x"])
     str = JSON3.write(x)
 
-    readx = JSON3.read(str, CategoricalArray)
+    readx = JSON3.read(str, CategoricalArray{Union{Missing,String}})
     @test all(((get(a) isa Nothing) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
     @test readx isa CategoricalVector
 
