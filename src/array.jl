@@ -1012,7 +1012,9 @@ StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
 function StructTypes.construct(::Type{<:CategoricalArray}, A::AbstractVector)
     if eltype(A) === Any
-        categorical(ifelse.(A .=== nothing, missing, A))
+        # unlike `replace`, broadcast narrows the type, which allows us to return small
+        # union eltypes (e.g. Union{String,Missing})
+        categorical(ifelse.(A .=== nothing, missing, A)) 
     elseif eltype(A) >: Nothing
         categorical(replace(A, nothing=>missing))
     else
