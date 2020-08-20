@@ -1010,7 +1010,12 @@ Base.repeat(a::CatArrOrSub{T, N};
 # JSON3 writing/reading
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
-function StructTypes.construct(::Type{<:CategoricalArray}, A::AbstractVector)
+StructTypes.construct(::Type{<:CategoricalArray}, A::AbstractVector) = 
+    constructgeneral(A)
+StructTypes.construct(::Type{<:CategoricalArray}, A::Vector) = 
+    constructgeneral(A)
+ 
+function constructgeneral(A)
     if eltype(A) === Any
         # unlike `replace`, broadcast narrows the type, which allows us to return small
         # union eltypes (e.g. Union{String,Missing})
@@ -1028,6 +1033,12 @@ StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
                       A::AbstractVector) where {T} =
     categoricalmissing(T, A)
+StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
+                      A::Vector) where {T} =
+    categoricalmissing(T, A)
+StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
+                      A::Vector) where {T} =
+    categoricalmissing(T, A)
 categoricalmissing(T, A::AbstractVector) =
     CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
 
@@ -1036,5 +1047,11 @@ StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
     categoricalnothing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
                       A::AbstractVector) where {T} =
+    categoricalnothing(T, A)
+StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
+                      A::Vector) where {T} =
+    categoricalnothing(T, A)
+StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
+                      A::Vector) where {T} =
     categoricalnothing(T, A)
 categoricalnothing(T, A::AbstractVector) = CategoricalArray{Union{Nothing, T}}(A)
