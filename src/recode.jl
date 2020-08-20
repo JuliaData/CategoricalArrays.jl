@@ -48,7 +48,8 @@ element is tested using the `isequal` function. This ensures that `missing`
 doesn't trigger an error.
 """
 @inline recode_in(x, ::Missing) = false
-@inline recode_in(x, ::AbstractString} = false
+@inline recode_in(x, ::AbstractString) = false
+@inline recode_in(x, collection::Set) = x in collection
 @inline function recode_in(x, collection)
     if ismissing(x) || eltype(collection) >: Missing
         return any(x ≅ y for y in collection)
@@ -182,7 +183,7 @@ function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
 
         for l in srclevels
             if !(any(x -> x ≅ l, firsts) ||
-                 any(f -> (!isa(f, AbstractString) && !ismissing(f) && any(l ≅ y for y in f)), firsts))
+                 any(f -> recode_in(l, f), firsts))
                 try
                     push!(keptlevels, l)
                 catch err
@@ -229,7 +230,7 @@ function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
     @inbounds for (i, l) in enumerate(srclevels)
         for j in 1:length(pairs)
             p = pairs[j]
-            if (l ≅ p.first || (!isa(p.first, AbstractString) && !ismissing(p.first) && any(l ≅ y for y in p.first)))
+            if (l ≅ p.first || recode_in(l, p.first))
                 levelsmap[i+1] = pairmap[j]
                 @goto nextitem
             end
