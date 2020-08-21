@@ -1948,7 +1948,7 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     readx = JSON3.read(str, CategoricalArray)
     @test readx == x
     @test levels(readx) == levels(x)
-    @test readx isa CategoricalArray
+    @test readx isa CategoricalVector{String}
 
     x = CategoricalArray([missing,"y","z","y",missing,"z","x"])
     str = JSON3.write(x)
