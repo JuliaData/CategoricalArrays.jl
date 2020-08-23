@@ -9,6 +9,46 @@ end
 
 const ≅ = isequal
 
+@testset "recode_in" begin
+    @testset "collection is a string" begin
+        @test !CategoricalArrays.recode_in("a", "ab")
+        @test !CategoricalArrays.recode_in(missing, "b")
+    end
+    @testset "collection without missing" begin
+        @test CategoricalArrays.recode_in(1, [1, 2])
+        @test !CategoricalArrays.recode_in(1, [2, 3])
+    end
+    @testset "collection with missing" begin
+        @test CategoricalArrays.recode_in(1, [1, 2, missing])
+        @test !CategoricalArrays.recode_in(1, [2, missing])
+        @test CategoricalArrays.recode_in(missing, [1, 2, missing])
+    end
+    @testset "collection is a single value" begin
+        @test CategoricalArrays.recode_in(1, 1)
+        @test !CategoricalArrays.recode_in(1, missing)
+        @test !CategoricalArrays.recode_in(missing, missing)
+    end
+    @testset "tuple without missing" begin
+        @test CategoricalArrays.recode_in(1, (1, 2))
+        @test !CategoricalArrays.recode_in(1, (2, 3))
+    end
+    @testset "tuple with missing" begin
+        @test CategoricalArrays.recode_in(1, (1, 2, missing))
+        @test !CategoricalArrays.recode_in(1, (2, missing))
+        @test CategoricalArrays.recode_in(missing, (1, 2, missing))
+    end
+    @testset "nested arrays" begin
+        @test CategoricalArrays.recode_in([1,2], [[1, 2], [3, 4]])
+        @test !CategoricalArrays.recode_in([1, 3], [[1, 2], [3, 4]])
+    end
+    @testset "NaN in array" begin
+        @test CategoricalArrays.recode_in(NaN, [1, 2, NaN])
+        @test !CategoricalArrays.recode_in(NaN, [1, 2, 3])
+        @test CategoricalArrays.recode_in(2, [1, 2, NaN])
+        @test !CategoricalArrays.recode_in(3, [1, 2, NaN])
+    end
+end
+
 ## Test recode!, used by recode
 
 # Test both recoding into x itself and into an uninitialized vector
@@ -26,27 +66,6 @@ const ≅ = isequal
     if isa(y, CategoricalArray)
         @test levels(y) == [6, 7, 8, 100, 0, -1]
         @test !isordered(y)
-    end
-end
-
-@testset "recode_in" begin
-    @testset "collection is a string" begin
-        @test CategoricalArrays.recode_in("a", "b") == false
-        @test CategoricalArrays.recode_in(missing, "b") == false
-    end
-    @testset "collection without missing" begin
-        @test CategoricalArrays.recode_in(1, [1, 2]) == true
-        @test CategoricalArrays.recode_in(1, [2, 3]) == false
-    end
-    @testset "collection with missing" begin
-        @test CategoricalArrays.recode_in(1, [1, 2, missing]) == true
-        @test CategoricalArrays.recode_in(1, [2, missing]) == false
-        @test CategoricalArrays.recode_in(missing, [1, 2, missing]) == true
-    end
-    @testset "collection is a single value" begin
-        @test CategoricalArrays.recode_in(1, 1) == true
-        @test CategoricalArrays.recode_in(1, missing) == false
-        @test CategoricalArrays.recode_in(missing, missing) == false
     end
 end
 

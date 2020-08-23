@@ -50,13 +50,7 @@ doesn't trigger an error.
 @inline recode_in(x, ::Missing) = false
 @inline recode_in(x, ::AbstractString) = false
 @inline recode_in(x, collection::Set) = x in collection
-@inline function recode_in(x, collection)
-    if ismissing(x) || eltype(collection) >: Missing
-        return any(x ≅ y for y in collection)
-    else
-        return x in collection
-    end
-end
+@inline recode_in(x, collection) = any(x ≅ y for y in collection)
 
 
 function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
@@ -124,7 +118,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
         for j in 1:length(pairs)
             p = pairs[j]
             # if p.first is a collection-type, `isequal` returns false.
-            # if p.first is not a collection-type, `in` returns false (except for AbstractString, which gives an error)
+            # if p.first is not a collection-type, `recode_in` returns false
             if (x ≅ p.first || recode_in(x, p.first))
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
