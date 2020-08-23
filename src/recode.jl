@@ -42,10 +42,9 @@ recode!(dest::CategoricalArray, src::CategoricalArray, pairs::Pair...) =
 
 Helper function to test if `x` is a member of `collection`.
 
-If `collection` is a collection type without `missing` elements, the 
-`in` function is used. If `collection` contains a `missing element`, every
-element is tested using the `isequal` function. This ensures that `missing`
-doesn't trigger an error.
+The default method is to test if any element in the `collection` `isequal` to
+`x`. For sets using `in` should be faster than the default method.
+A user defined type could override this method to define an appropriate test function.
 """
 @inline recode_in(x, ::Missing) = false
 @inline recode_in(x, ::AbstractString) = false
@@ -63,8 +62,7 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
 
         for j in 1:length(pairs)
             p = pairs[j]
-            # if p.first is a collection-type, `isequal` returns false.
-            # if p.first is not a collection-type, `in` returns false (except for AbstractString, which gives an error)
+            # we use isequal and recode_in because we cannot really distinguish scalars from collections
             if (x ≅ p.first || recode_in(x, p.first))
                 dest[i] = p.second
                 @goto nextitem
@@ -117,8 +115,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
 
         for j in 1:length(pairs)
             p = pairs[j]
-            # if p.first is a collection-type, `isequal` returns false.
-            # if p.first is not a collection-type, `recode_in` returns false
+            # we use isequal and recode_in because we cannot really distinguish scalars from collections
             if (x ≅ p.first || recode_in(x, p.first))
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
