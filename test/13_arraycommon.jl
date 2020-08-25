@@ -1834,8 +1834,7 @@ end
     
     x0 = [UnorderedBar("s$i") for i in 1:10]
     x = CategoricalArray(x0)
-    @test x[5] == UnorderedBar("s5")
-    @test x[10] == UnorderedBar("s10")
+    @test x == x0
     @test levels(x) == x0
 
     if VERSION < v"1.6.0"
