@@ -2,7 +2,6 @@ module TestRecode
 using Test
 using CategoricalArrays
 using CategoricalArrays: DefaultRefType
-using InvertedIndices
 
 if VERSION < v"0.7.0-"
     using CategoricalArrays: replace!
@@ -630,8 +629,8 @@ end
     recode!(x, x0, UnorderedFoo0("s3") => UnorderedFoo0("xxx"))
     
     @test x[3] == UnorderedFoo0("xxx")
-    @test x[(1:end) .!= 3] == x0[Not(3)]
-    @test levels(x)[Not(end)] == x0[Not(3)]
+    @test x[(1:end) .!= 3] == x0[(1:end) .!= 3]
+    @test levels(x)[1:(end-1)] == x0[(1:end) .!= 3]
 
     if VERSION < v"1.6.0"
         x = CategoricalArray{UnorderedFoo0}(undef, size(x0))
