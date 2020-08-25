@@ -624,7 +624,7 @@ struct UnorderedFoo0
     a::String
 end
     
-@testset "recode vector of unordered" begin
+@testset "recode AbstractVector with unordered eltype" begin
     x0 = [UnorderedFoo0("s$i") for i in 1:10]
     x = CategoricalArray{UnorderedFoo0}(undef, size(x0))
     recode!(x, x0, UnorderedFoo0("s3") => UnorderedFoo0("xxx"))
