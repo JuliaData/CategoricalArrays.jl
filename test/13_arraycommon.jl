@@ -1827,11 +1827,12 @@ end
     end
 end
 
+# TODO: move struct definition inside @testset block after 1.6 becomes LTS
+struct UnorderedBar
+    a::String
+end
+
 @testset "vector of unordered" begin
-    struct UnorderedBar
-        a::String
-    end
-    
     x0 = [UnorderedBar("s$i") for i in 1:10]
     x = CategoricalArray(x0)
     @test x == x0
