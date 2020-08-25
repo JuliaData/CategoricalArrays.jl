@@ -1827,4 +1827,21 @@ end
     end
 end
 
+@testset "vector of unordered" begin
+    struct UnorderedBar
+        a::String
+    end
+    
+    x0 = [UnorderedBar("s$i") for i in 1:10]
+    x = CategoricalArray(x0)
+    @test x[5] == UnorderedBar("s5")
+    @test x[10] == UnorderedBar("s10")
+    @test levels(x) == x0
+    
+    Base.isless(::UnorderedBar, ::UnorderedBar) = throw(ArgumentError("Blah"))
+    @test_throws ArgumentError sort(x0)
+    @test_throws ArgumentError CategoricalArray(x0)
+  
+end
+
 end

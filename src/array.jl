@@ -345,7 +345,7 @@ function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
         L = leveltype(res)
         if Base.OrderStyle(L) isa Base.Ordered
             levels!(res, sort(CategoricalArrays.levels(res)))
-        elseif hasmethod(isless, (L, L))
+        elseif (VERSION < v"1.6.0") && hasmethod(isless, (L, L))
             # wrap in try block because of issue #291
             try
                 levels!(res, sort(CategoricalArrays.levels(res)))

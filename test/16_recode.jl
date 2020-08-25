@@ -618,22 +618,4 @@ end
     end
 end
 
-# using CategoricalArrays, Test, InvertedIndices
-# ### WIP
-# struct UnorderedFoo
-#     a::String
-# end
-# 
-# x0 = [UnorderedFoo("s$i") for i in 1:10]
-# x = CategoricalArray(x0)
-# recode!(x, UnorderedFoo("s3") => UnorderedFoo("xxx"))
-# 
-# @test x[3] == UnorderedFoo("xxx")
-# @test x[(1:end) .!= 3] == x0[Not(3)]
-# @test all(levels(x)[1:end-1] .== x0[Not(3)])
-# 
-# Base.isless(::UnorderedFoo, ::UnorderedFoo) = throw(ArgumentError("Blah"))
-# @test_throws ArgumentError recode(x, UnorderedFoo("s8") => UnorderedFoo("xxxx"),
-#   UnorderedFoo("s9") => UnorderedFoo("bla"))
-
 end
