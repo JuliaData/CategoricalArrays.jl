@@ -1837,11 +1837,11 @@ end
     @test x[5] == UnorderedBar("s5")
     @test x[10] == UnorderedBar("s10")
     @test levels(x) == x0
-    
+
+    # Remove when 1.5.1/1.6 version checks are removed
     Base.isless(::UnorderedBar, ::UnorderedBar) = throw(ArgumentError("Blah"))
     @test_throws ArgumentError sort(x0)
     @test_throws ArgumentError CategoricalArray(x0)
-  
 end
 
 end

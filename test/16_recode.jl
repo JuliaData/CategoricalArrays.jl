@@ -618,4 +618,27 @@ end
     end
 end
 
+using InvertedIndices
+@testset "recode vector of unordered" begin
+    struct UnorderedFoo
+        a::String
+    end
+    
+    x0 = [UnorderedFoo("s$i") for i in 1:10]
+    
+    x = recode(x0, UnorderedFoo("s3") => UnorderedFoo("xxx"))
+
+    @show levels(x)
+    # x = CategoricalArray(x0)
+    @test x[3] == UnorderedFoo("xxx")
+    # @test x[10] == UnorderedFoo("s10")
+    @test x[Not(3)] == x0[Not(3)]
+    @test levels(x)[Not(3)] == x0[Not(3)]
+    # 
+    # # Remove when 1.5.1/1.6 version checks are removed
+    # Base.isless(::UnorderedBar, ::UnorderedBar) = throw(ArgumentError("Blah"))
+    # @test_throws ArgumentError sort(x0)
+    # @test_throws ArgumentError CategoricalArray(x0)
+end
+
 end
