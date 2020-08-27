@@ -510,7 +510,7 @@ copy(A::CategoricalArray{T, N}) where {T, N} =
 function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
                  src::CatArrOrSub{<:Any, N}, sstart::Integer,
                  n::Integer) where {T, N, R}
-    n < 0 && throw(ArgumentError(string("tried to copy n=", n, " elements, but n should be nonnegative")))
+    n < 0 && throw(ArgumentError("tried to copy n=$n elements, but n should be nonnegative"))
     destinds, srcinds = LinearIndices(dest), LinearIndices(src)
     if n > 0
         (dstart ∈ destinds && dstart+n-1 ∈ destinds) || throw(BoundsError(dest, dstart:dstart+n-1))
@@ -559,10 +559,62 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     dest
 end
 
-copyto!(dest::CatArrOrSub, src::CatArrOrSub) =
+function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
+                 src::AbstractArray{T2, N}, sstart::Integer,
+                 n::Integer) where {T1, T2, N, R}
+    n == 0 && return dest
+    n < 0 && throw(ArgumentError("tried to copy n=$n elements, but n should be nonnegative"))
+    destinds, srcinds = LinearIndices(dest), LinearIndices(src)
+    (checkbounds(Bool, destinds, dstart) && checkbounds(Bool, destinds, dstart+n-1)) || throw(BoundsError(dest, dstart:dstart+n-1))
+    (checkbounds(Bool, srcinds, sstart)  && checkbounds(Bool, srcinds, sstart+n-1))  || throw(BoundsError(src,  sstart:sstart+n-1))
+    srclevs = DataAPI.refpool(src)
+    srcrefs = DataAPI.refarray(src)
+    # Fast path only supports refs which can be used to index
+    # into vector mapping from source levels to destination levels
+    if !(srclevs isa AbstractVector) || !(srcrefs isa AbstractArray{<:Integer})
+        return invoke(copyto!, Tuple{AbstractArray, Integer, AbstractArray, Integer, Integer},
+                      dest, dstart, src, sstart, n)
+    end
+    newdestlevs = destlevs = copy(levels(dest)) # copy since we need original levels below
+    srclevsnm = T2 >: Missing ? setdiff(srclevs, [missing]) : srclevs
+    if !(srclevsnm ⊆ destlevs)
+        # if order is defined for level type, automatically apply it
+        L = nonmissingtype(eltype(srclevsnm))
+        if hasmethod(isless, Tuple{L, L})
+            srclevsnm = srclevsnm === srclevs ? sort(srclevsnm) : sort!(srclevsnm)
+        end
+        newdestlevs = union(destlevs, srclevsnm)
+        levels!(pool(dest), newdestlevs)
+    end
+    levelsmap = something.(indexin(srclevs, [missing; newdestlevs])) .- 1
+    destrefs = refs(dest)
+    seen = fill(false, length(newdestlevs)+1)
+    firstind = firstindex(srclevs)
+    @inbounds for i in 0:(n-1)
+        j = srcrefs[sstart+i] - firstind + 1
+        ref = levelsmap[j]
+        seen[ref+1] = true
+        if !(T1 >: Missing) && T2 >: Missing && ref == 0
+            throw(MethodError(convert, (T1, missing)))
+        end
+        destrefs[dstart+i] = ref
+    end
+    seennm = @view seen[2:end]
+    if !all(seennm)
+        destlevsset = Set(destlevs)
+        keptlevs = [l for (i, l) in enumerate(newdestlevs)
+                    if seennm[i] || l in destlevsset]
+        levels!(dest, keptlevs)
+    end
+    dest
+end
+
+# This uses linear indexing even for IndexCartesian src, but
+# the performance impact should be modest compared to the dict lookup
+copyto!(dest::CatArrOrSub, src::AbstractArray) =
     copyto!(dest, 1, src, 1, length(src))
 
-copyto!(dest::CatArrOrSub, dstart::Integer, src::CatArrOrSub) =
+copyto!(dest::CatArrOrSub, dstart::Integer, src::AbstractArray) =
     copyto!(dest, dstart, src, 1, length(src))
 
 if VERSION >= v"1.1"
@@ -570,7 +622,12 @@ if VERSION >= v"1.1"
 else
     import Future: copy!
 end
-copy!(dest::CatArrOrSub, src::CatArrOrSub) = copyto!(dest, 1, src, 1, length(src))
+copy!(dest::CatArrOrSub, src::AbstractArray) = copyto!(dest, 1, src, 1, length(src))
+# To fix ambiguities
+copy!(dest::CatArrOrSub{<:Any, 1}, src::AbstractArray{<:Any, 1}) =
+    copyto!(dest, 1, src, 1, length(src))
+copy!(dest::CatArrOrSub{T, 1}, src::AbstractArray{T, 1}) where {T} =
+    copyto!(dest, 1, src, 1, length(src))
 
 similar(A::CategoricalArray{S, M, R}, ::Type{T},
         dims::NTuple{N, Int}) where {T, N, S, M, R} =
@@ -727,7 +784,7 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector;
                     throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it " *
                                         "is used at position $i and allowmissing=false."))
             else
-                deleted[x] &&
+                x > 0 && deleted[x] &&
                     throw(ArgumentError("cannot remove level $(repr(oldlevels[x])) as it " *
                                         "is used at position $i. Change the array element " *
                                         "type to Union{$T, Missing} using convert if you want " *
