@@ -1010,16 +1010,16 @@ Base.repeat(a::CatArrOrSub{T, N};
 # JSON3 writing/reading
 StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
 
-StructTypes.construct(::Type{<:CategoricalArray}, A::AbstractVector) = 
+StructTypes.construct(::Type{<:CategoricalArray}, A::AbstractVector) =
     constructgeneral(A)
-StructTypes.construct(::Type{<:CategoricalArray}, A::Vector) = 
+StructTypes.construct(::Type{<:CategoricalArray}, A::Vector) =
     constructgeneral(A)
- 
+
 function constructgeneral(A)
     if eltype(A) === Any
         # unlike `replace`, broadcast narrows the type, which allows us to return small
         # union eltypes (e.g. Union{String,Missing})
-        categorical(ifelse.(A .=== nothing, missing, A)) 
+        categorical(ifelse.(A .=== nothing, missing, A))
     elseif eltype(A) >: Nothing
         categorical(replace(A, nothing=>missing))
     else
