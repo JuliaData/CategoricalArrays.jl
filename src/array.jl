@@ -340,10 +340,10 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
     CategoricalArray{unwrap_catvaluetype(T), N}(refs, pool)
 end
 
-convert(::Type{CategoricalArray{T, N}}, 
+convert(::Type{CategoricalArray{T, N}},
         A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
-convert(::Type{CategoricalArray{T}}, 
+convert(::Type{CategoricalArray{T}},
         A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
 convert(::Type{CategoricalArray}, A::CategoricalArray{T, N, R}) where {T, N, R} =
@@ -1027,14 +1027,8 @@ function constructgeneral(A)
     end
 end
 
-StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
-                      A::AbstractVector) where {T} =
-    categoricalmissing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
                       A::AbstractVector) where {T} =
-    categoricalmissing(T, A)
-StructTypes.construct(::Type{<:CategoricalVector{Union{Missing, T}}},
-                      A::Vector) where {T} =
     categoricalmissing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
                       A::Vector) where {T} =
@@ -1042,14 +1036,8 @@ StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
 categoricalmissing(T, A::AbstractVector) =
     CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
 
-StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
-                      A::AbstractVector) where {T} =
-    categoricalnothing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
                       A::AbstractVector) where {T} =
-    categoricalnothing(T, A)
-StructTypes.construct(::Type{<:CategoricalVector{Union{Nothing, T}}},
-                      A::Vector) where {T} =
     categoricalnothing(T, A)
 StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
                       A::Vector) where {T} =
