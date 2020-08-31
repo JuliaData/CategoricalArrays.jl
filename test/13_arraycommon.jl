@@ -2009,5 +2009,6 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     readx = JSON3.read(str, MyCustomTypeMissing)
     @test x.var ≅ readx.var
     @test levels(readx.var) == levels(x.var)
+end
 
 end
