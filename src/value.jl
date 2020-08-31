@@ -184,4 +184,4 @@ DataAPI.defaultarray(::Type{Union{CategoricalValue{T, R}, Missing}}, N) where {T
 StructTypes.StructType(x::CategoricalValue) = StructTypes.StructType(get(x))
 StructTypes.StructType(::Type{<:CategoricalValue{T}}) where {T} = StructTypes.StructType(T)
 StructTypes.numbertype(::Type{<:CategoricalValue{T}}) where {T <: Number} = T
-(::Type{T})(x::CategoricalValue{<:Number}) where {T <: Number} = T(get(x))
+StructTypes.construct(::Type{T}, x::CategoricalValue{T}) where {T} = T(get(x))
