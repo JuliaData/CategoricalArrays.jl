@@ -1927,4 +1927,20 @@ end
     @test !isassigned(x, 3)
 end
 
+# TODO: move struct definition inside @testset block once we require Julia 1.6
+struct UnorderedBar
+    a::String
+end
+
+@testset "vector of unordered" begin
+    x0 = [UnorderedBar("s$i") for i in 1:10]
+    x = CategoricalArray(x0)
+    @test x == x0
+    @test levels(x) == x0
+
+    Base.isless(::UnorderedBar, ::UnorderedBar) = throw(ArgumentError("Blah"))
+    @test_throws ArgumentError sort(x0)
+    @test_throws ArgumentError CategoricalArray(x0)
+end
+
 end
