@@ -632,12 +632,10 @@ end
     @test x[(1:end) .!= 3] == x0[(1:end) .!= 3]
     @test levels(x)[1:(end-1)] == x0[(1:end) .!= 3]
 
-    if VERSION < v"1.6.0"
-        x = CategoricalArray{UnorderedFoo0}(undef, size(x0))
-        Base.isless(::UnorderedFoo0, ::UnorderedFoo0) = throw(ArgumentError("Blah"))
-        @test_throws ArgumentError sort(x0)
-        @test_throws ArgumentError recode!(x, x0, UnorderedFoo0("s4") => UnorderedFoo0("xxxx"))
-    end
+    x = CategoricalArray{UnorderedFoo0}(undef, size(x0))
+    Base.isless(::UnorderedFoo0, ::UnorderedFoo0) = throw(ArgumentError("Blah"))
+    @test_throws ArgumentError sort(x0)
+    @test_throws ArgumentError recode!(x, x0, UnorderedFoo0("s4") => UnorderedFoo0("xxxx"))
 end
 
 end

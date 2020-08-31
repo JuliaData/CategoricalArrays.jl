@@ -1938,11 +1938,9 @@ end
     @test x == x0
     @test levels(x) == x0
 
-    if VERSION < v"1.6.0"
-        Base.isless(::UnorderedBar, ::UnorderedBar) = throw(ArgumentError("Blah"))
-        @test_throws ArgumentError sort(x0)
-        @test_throws ArgumentError CategoricalArray(x0)
-    end
+    Base.isless(::UnorderedBar, ::UnorderedBar) = throw(ArgumentError("Blah"))
+    @test_throws ArgumentError sort(x0)
+    @test_throws ArgumentError CategoricalArray(x0)
 end
 
 end
