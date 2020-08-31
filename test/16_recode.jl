@@ -618,4 +618,24 @@ end
     end
 end
 
+# TODO: move struct definition inside @testset block after 1.6 becomes LTS
+struct UnorderedFoo0
+    a::String
+end
+    
+@testset "recode AbstractVector with unordered eltype" begin
+    x0 = [UnorderedFoo0("s$i") for i in 1:10]
+    x = CategoricalArray{UnorderedFoo0}(undef, size(x0))
+    recode!(x, x0, UnorderedFoo0("s3") => UnorderedFoo0("xxx"))
+    
+    @test x[3] == UnorderedFoo0("xxx")
+    @test x[(1:end) .!= 3] == x0[(1:end) .!= 3]
+    @test levels(x)[1:(end-1)] == x0[(1:end) .!= 3]
+
+    x = CategoricalArray{UnorderedFoo0}(undef, size(x0))
+    Base.isless(::UnorderedFoo0, ::UnorderedFoo0) = throw(ArgumentError("Blah"))
+    @test_throws ArgumentError sort(x0)
+    @test_throws ArgumentError recode!(x, x0, UnorderedFoo0("s4") => UnorderedFoo0("xxxx"))
+end
+
 end

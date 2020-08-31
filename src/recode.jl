@@ -132,8 +132,16 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     # for consistency with CategoricalArray
     oldlevels = setdiff(levels(dest), vals)
     filter!(!ismissing, oldlevels)
-    if hasmethod(isless, (eltype(oldlevels), eltype(oldlevels)))
+    L = eltype(oldlevels)
+    if Base.OrderStyle(L) isa Base.Ordered
         sort!(oldlevels)
+    elseif hasmethod(isless, (L, L))
+        # isless may throw an error, e.g. for AbstractArray{T} of unordered T
+        try
+            sort!(oldlevels)
+        catch e
+            e isa MethodError || rethrow(e)
+        end
     end
     levels!(dest, union(oldlevels, levels(dest)))
 
