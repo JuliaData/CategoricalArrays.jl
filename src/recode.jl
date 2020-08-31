@@ -136,7 +136,7 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     if Base.OrderStyle(L) isa Base.Ordered
         sort!(oldlevels)
     elseif (VERSION < v"1.6.0") && hasmethod(isless, (L, L))
-        # wrap in try block because of issue #291
+        # isless may throw an error, e.g. for AbstractArray{T} of unordered T
         try
             sort!(oldlevels)
         catch e
