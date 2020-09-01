@@ -12,6 +12,7 @@ module CategoricalArrays
     using DataAPI
     using Missings
     using Printf
+    import StructTypes
 
     # JuliaLang/julia#36810 
     if VERSION < v"1.5.2"

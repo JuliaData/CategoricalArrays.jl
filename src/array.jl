@@ -193,20 +193,11 @@ CategoricalVector(::UndefInitializer, m::Integer;
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=false) =
     CategoricalArray(undef, m, levels=levels, ordered=ordered)
-CategoricalVector{T}(::UndefInitializer, m::Int;
-                     levels::Union{AbstractVector, Nothing}=nothing,
-                     ordered::Bool=false) where {T} =
-    CategoricalArray{T}(undef, (m,), levels=levels, ordered=ordered)
 
 CategoricalMatrix(::UndefInitializer, m::Int, n::Int;
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=false) =
     CategoricalArray(undef, m, n, levels=levels, ordered=ordered)
-CategoricalMatrix{T}(::UndefInitializer, m::Int, n::Int;
-                     levels::Union{AbstractVector, Nothing}=nothing,
-                     ordered::Bool=false) where {T} =
-    CategoricalArray{T}(undef, (m, n), levels=levels, ordered=ordered)
-
 
 ## Constructors from arrays
 
@@ -253,19 +244,11 @@ CategoricalArray(A::AbstractArray{T, N};
                  ordered::Bool=_isordered(A)) where {T, N} =
     CategoricalArray{fixstringtype(T), N}(A, levels=levels, ordered=ordered)
 
-CategoricalVector{T}(A::AbstractVector{S};
-                     levels::Union{AbstractVector, Nothing}=nothing,
-                     ordered=_isordered(A)) where {S, T} =
-    CategoricalArray{T, 1}(A, levels=levels, ordered=ordered)
 CategoricalVector(A::AbstractVector{T};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T} =
     CategoricalArray{fixstringtype(T), 1}(A, levels=levels, ordered=ordered)
 
-CategoricalMatrix{T}(A::AbstractMatrix{S};
-                     levels::Union{AbstractVector, Nothing}=nothing,
-                     ordered::Bool=_isordered(A)) where {S, T} =
-    CategoricalArray{T, 2}(A, levels=levels, ordered=ordered)
 CategoricalMatrix(A::AbstractMatrix{T};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T} =
@@ -285,24 +268,15 @@ CategoricalArray(A::CategoricalArray{T, N, R};
                  ordered::Bool=_isordered(A)) where {T, N, R} =
     CategoricalArray{T, N, R}(A, levels=levels, ordered=ordered)
 
-CategoricalVector{T}(A::CategoricalArray{S, 1, R};
-                     levels::Union{AbstractVector, Nothing}=nothing,
-                     ordered::Bool=_isordered(A)) where {S, T, R} =
-    CategoricalArray{T, 1, R}(A, levels=levels, ordered=ordered)
 CategoricalVector(A::CategoricalArray{T, 1, R};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T, R} =
     CategoricalArray{T, 1, R}(A, levels=levels, ordered=ordered)
 
-CategoricalMatrix{T}(A::CategoricalArray{S, 2, R};
-                     levels::Union{AbstractVector, Nothing}=nothing,
-                     ordered::Bool=_isordered(A)) where {S, T, R} =
-    CategoricalArray{T, 2, R}(A, levels=levels, ordered=ordered)
 CategoricalMatrix(A::CategoricalArray{T, 2, R};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T, R} =
     CategoricalArray{T, 2, R}(A, levels=levels, ordered=ordered)
-
 
 ## Conversion methods
 
@@ -372,9 +346,12 @@ function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) w
     refs = convert(Array{R, N}, A.refs)
     CategoricalArray{unwrap_catvaluetype(T), N}(refs, pool)
 end
-convert(::Type{CategoricalArray{T, N}}, A::CategoricalArray{S, N, R}) where {S, T, N, R} =
+
+convert(::Type{CategoricalArray{T, N}},
+        A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
-convert(::Type{CategoricalArray{T}}, A::CategoricalArray{S, N, R}) where {S, T, N, R} =
+convert(::Type{CategoricalArray{T}},
+        A::CategoricalArray{S, N, R}) where {S, T, N, R <: Integer} =
     convert(CategoricalArray{T, N, R}, A)
 convert(::Type{CategoricalArray}, A::CategoricalArray{T, N, R}) where {T, N, R} =
     convert(CategoricalArray{T, N, R}, A)
@@ -1036,3 +1013,40 @@ Base.repeat(a::CatArrOrSub{T, N},
 Base.repeat(a::CatArrOrSub{T, N};
             inner = nothing, outer = nothing) where {T, N} =
     CategoricalArray{T, N}(repeat(refs(a), inner=inner, outer=outer), copy(pool(a)))
+
+# JSON3 writing/reading
+StructTypes.StructType(::Type{<:CategoricalVector}) = StructTypes.ArrayType()
+
+StructTypes.construct(::Type{<:CategoricalArray}, A::AbstractVector) =
+    constructgeneral(A)
+StructTypes.construct(::Type{<:CategoricalArray}, A::Vector) =
+    constructgeneral(A)
+
+function constructgeneral(A)
+    if eltype(A) === Any
+        # unlike `replace`, broadcast narrows the type, which allows us to return small
+        # union eltypes (e.g. Union{String,Missing})
+        categorical(ifelse.(A .=== nothing, missing, A))
+    elseif eltype(A) >: Nothing
+        categorical(replace(A, nothing=>missing))
+    else
+        categorical(A)
+    end
+end
+
+StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
+                      A::AbstractVector) where {T} =
+    categoricalmissing(T, A)
+StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
+                      A::Vector) where {T} =
+    categoricalmissing(T, A)
+categoricalmissing(T, A::AbstractVector) =
+    CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
+
+StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
+                      A::AbstractVector) where {T} =
+    categoricalnothing(T, A)
+StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
+                      A::Vector) where {T} =
+    categoricalnothing(T, A)
+categoricalnothing(T, A::AbstractVector) = CategoricalArray{Union{Nothing, T}}(A)

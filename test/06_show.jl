@@ -146,4 +146,30 @@ using JSON
     @test typeof(JSON.lower(v)) == typeof(JSON.lower(get(v)))
 end
 
+using JSON3
+using StructTypes
+@testset "JSON3.write" begin
+    v = CategoricalValue(1, CategoricalPool(["a"]))
+    @test JSON3.write(v) === "\"a\""
+
+    v = CategoricalValue(1, CategoricalPool([:a]))
+    @test JSON3.write(v) === "\"a\""
+
+    v = CategoricalValue(1, CategoricalPool([1]))
+    @test JSON3.write(v) === "1"
+    @test StructTypes.numbertype(typeof(v)) === Int
+
+    v = CategoricalValue(1, CategoricalPool([2.0]))
+    @test JSON3.write(v) === "2.0"
+    @test StructTypes.numbertype(typeof(v)) === Float64
+
+    v = CategoricalValue(1, CategoricalPool([BigFloat(3.0,10)]))
+    @test JSON3.write(v) === "3.0"
+    @test StructTypes.numbertype(typeof(v)) === BigFloat
+
+    v = CategoricalValue(2, CategoricalPool([true,false]))
+    @test JSON3.write(v) == "false"
+    @test StructTypes.numbertype(typeof(v)) === Bool
+end
+
 end

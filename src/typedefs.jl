@@ -112,8 +112,8 @@ mutable struct CategoricalArray{T, N, R <: Integer, V, C, U} <: AbstractCategori
         new{T, N, R, V, C, U}(refs, pool)
     end
 end
-const CategoricalVector{T, R, V, C, U} = CategoricalArray{T, 1, V, C, U}
-const CategoricalMatrix{T, R, V, C, U} = CategoricalArray{T, 2, V, C, U}
+const CategoricalVector{T, R <: Integer, V, C, U} = CategoricalArray{T, 1, R, V, C, U}
+const CategoricalMatrix{T, R <: Integer, V, C, U} = CategoricalArray{T, 2, R, V, C, U}
 
 CatArrOrSub{T, N, R} = Union{CategoricalArray{T, N, R},
                              SubArray{<:Any, N, <:CategoricalArray{T, <:Any, R}}} where
