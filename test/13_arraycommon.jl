@@ -1318,6 +1318,8 @@ end
     @test DataAPI.defaultarray(Union{Missing, CategoricalValue{String, UInt32}}, 1) <: CategoricalArray{Union{Missing, String},1,UInt32}
     @test DataAPI.defaultarray(CategoricalValue{Int, UInt32}, 1) <: CategoricalArray{Int,1,UInt32}
     @test DataAPI.defaultarray(Union{Missing, CategoricalValue{Int, UInt32}}, 1) <: CategoricalArray{Union{Missing, Int},1,UInt32}
+    @test DataAPI.refarray(CategoricalArray([4, 5, 6, 6])) == UInt32[1, 2, 3, 3]
+    @test DataAPI.refpool(CategoricalArray([4, 5, 6, 6])) == [4, 5, 6]
 end
 
 @testset "optimized broadcasting with ismissing" begin

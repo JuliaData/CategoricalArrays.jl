@@ -539,6 +539,9 @@ This may include levels which do not actually appear in the data
 """
 DataAPI.levels(A::CategoricalArray) = levels(A.pool)
 
+DataAPI.refarray(A::CategoricalArray) = A.refs
+DataAPI.refpool(A::CategoricalArray) = DataAPI.levels(A)
+
 """
     levels!(A::CategoricalArray, newlevels::Vector; allow_missing::Bool=false)
 
