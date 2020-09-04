@@ -65,7 +65,7 @@ also accept them.
 * `extend::Bool=false`: when `false`, an error is raised if some values in `x` fall
   outside of the breaks; when `true`, breaks are automatically added to include all
   values in `x`, and the upper bound is included in the last interval.
-* `labels::Union{AbstractVector,Function}: a vector of strings giving the names to use for
+* `labels::Union{AbstractVector,Function}`: a vector of strings giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
