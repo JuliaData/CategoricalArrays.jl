@@ -204,7 +204,7 @@ quantile_formatter(from, to, i; leftclosed, rightclosed) =
 Cut a numeric array into `ngroups` quantiles, determined using `quantile`.
 
 # Keyword arguments
-* `labels::Union{AbstractVector,Function}: a vector of strings giving the names to use for
+* `labels::Union{AbstractVector,Function}`: a vector of strings giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval if `extend == true`).
