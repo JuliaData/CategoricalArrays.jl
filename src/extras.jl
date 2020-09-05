@@ -52,8 +52,8 @@ also accept them.
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
-* `allowoutside::Bool=false`: when `true`, values outside of breaks result in missing values.
-  Only supported when `x` accepts missing values.
+* `allowoutside::Bool=false`: when `false`, an error is thrown if values outside of breaks
+  are encountered. When `true`, these values result in `missing` entries.
 * `allowempty::Bool=false`: when `false`, an error is raised if some breaks appear
   multiple times, generating empty intervals; when `true`, duplicate breaks are allowed
   and the intervals they generate are kept as unused levels
