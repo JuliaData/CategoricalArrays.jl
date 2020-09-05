@@ -9,25 +9,6 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
     @inbounds for i in eachindex(X)
         x = X[i]
 
-        if extend && x == upper
-            refs[i] = n-1
-        elseif !extend && !(lower <= x < upper)
-            throw(ArgumentError("value $x (at index $i) does not fall inside the breaks: adapt them manually, or pass extend=true"))
-        else
-            refs[i] = searchsortedlast(breaks, x)
-        end
-    end
-end
-
-function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Missing},
-                    breaks::AbstractVector, extend::Bool, allowoutside::Bool)
-    n = length(breaks)
-    lower = first(breaks)
-    upper = last(breaks)
-
-    @inbounds for i in eachindex(X)
-        x = X[i]
-
         if ismissing(x)
             refs[i] = 0
         elseif extend && x == upper
@@ -118,13 +99,13 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
  "grp 3 (0.333333//1.0)"      
 ```
 """
-function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
-             extend::Bool=false,
-             labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
-             allowoutside::Bool=false,
-             allowmissing::Union{Bool, Nothing}=nothing,
-             allow_missing::Union{Bool, Nothing}=nothing,
-             allowempty::Bool=false) where {T, N}
+@inline function cut(x::AbstractArray, breaks::AbstractVector;
+                    extend::Bool=false,
+                    labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
+                    allowoutside::Bool=false,
+                    allowmissing::Union{Bool, Nothing}=nothing,
+                    allow_missing::Union{Bool, Nothing}=nothing,
+                    allowempty::Bool=false)
     if allow_missing !== nothing
         Base.depwarn("allow_missing argument is deprecated, use allowoutside instead",
                      :cut)
@@ -135,6 +116,17 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
                      :cut)
         allowoutside = allowmissing
     end
+    return _cut(x, breaks, extend, labels,
+                allowoutside, allowoutside ? Missing : Union{}, allowempty)
+end
+
+# Separate function for inferability (thanks to inlining of cut)
+function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
+              extend::Bool,
+              labels::Union{AbstractVector{<:AbstractString},Function},
+              allowoutside::Bool,
+              ::Type{M},
+              allowempty::Bool=false) where {T, N, M}
     if !allowempty && !allunique(breaks)
         throw(ArgumentError("all breaks must be unique unless `allowempty=true`"))
     end
@@ -212,8 +204,8 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
     end
 
     pool = CategoricalPool(levs, true)
-    S = T >: Missing ? Union{String, Missing} : String
-    CategoricalArray{S, N}(refs, pool)
+    S = T >: Missing ? Missing : M
+    CategoricalArray{Union{String, S}, N}(refs, pool)
 end
 
 """
@@ -256,5 +248,5 @@ function cut(x::AbstractArray, ngroups::Integer;
                             "Pass `allowempty=true` to allow empty quantiles or " *
                             "choose a lower value for `ngroups`."))
     end
-    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty, allowoutside=true)
+    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty)
 end

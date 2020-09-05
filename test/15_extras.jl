@@ -12,30 +12,21 @@ const ≅ = isequal
     @test levels(x) == ["[1, 3)", "[3, 6)"]
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6])
-    if T === Missing
-        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
-    else
-        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true"
-    end
+    @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
 
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5])
-    if T === Missing
-        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
-    else
-        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
-    end
+    @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
 
     if T === Missing
         x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allowoutside=true)
-        @test x ≅ ["[2, 5)", "[2, 5)", missing]
-        @test isa(x, CategoricalVector{Union{String, T}})
-        @test isordered(x)
-        @test levels(x) == ["[2, 5)"]
     else
-        err = @test_throws ArgumentError cut(Vector{Int}([2, 3, 5]), [2, 5], allowoutside=true)
-        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
+        x = cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allowoutside=true)
     end
+    @test x ≅ ["[2, 5)", "[2, 5)", missing]
+    @test isa(x, CategoricalVector{Union{String, Missing}})
+    @test isordered(x)
+    @test levels(x) == ["[2, 5)"]
 
     x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6], extend=true)
     @test x == ["[2, 3)", "[3, 6]", "[3, 6]"]
