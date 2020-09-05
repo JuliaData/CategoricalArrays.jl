@@ -106,10 +106,17 @@ end
     @test all(ismissing, y)
 end
 
-# TODO: test on arrays supporting missing values once a quantile() method is provided for them
 @testset "cut([5, 4, 3, 2], 2)" begin
     x = @inferred cut([5, 4, 3, 2], 2)
     @test x == ["Q2: [3.5, 5.0]", "Q2: [3.5, 5.0]", "Q1: [2.0, 3.5)", "Q1: [2.0, 3.5)"]
+    @test isa(x, CategoricalArray)
+    @test isordered(x)
+    @test levels(x) == ["Q1: [2.0, 3.5)", "Q2: [3.5, 5.0]"]
+end
+
+@testset "cut(x, n) with missing values" begin
+    x = @inferred cut([5, 4, 3, missing, 2], 2)
+    @test x ≅ ["Q2: [3.5, 5.0]", "Q2: [3.5, 5.0]", "Q1: [2.0, 3.5)", missing, "Q1: [2.0, 3.5)"]
     @test isa(x, CategoricalArray)
     @test isordered(x)
     @test levels(x) == ["Q1: [2.0, 3.5)", "Q2: [3.5, 5.0]"]
@@ -180,6 +187,22 @@ end
                                    labels=["1", "2", "2", "3"])
     @test_throws ArgumentError cut(1:10, [1, 3, 3, 5, 5, 11], allowempty=true,
                                    labels=["1", "2", "3", "2", "4"])
+end
+
+@testset "cut with extend=true" begin
+    err = @test_throws ArgumentError cut([1, 1], [], extend=true)
+    @test err.value.msg == "at least one break must be provided"
+
+    err = @test_throws ArgumentError cut([1, 1], [1], extend=true)
+    @test err.value.msg == "could not extend breaks as all values are equal: please specify at least two breaks manually"
+
+    err = @test_throws ArgumentError cut([1, 1, missing], [1], extend=true)
+    @test err.value.msg == "could not extend breaks as all values are equal: please specify at least two breaks manually"
+
+    err = @test_throws ArgumentError cut([missing], [1], extend=true)
+    @test err.value.msg == "could not extend breaks as all values are missing: please specify at least two breaks manually"
+
+    @test cut([missing], [1, 2], extend=true) ≅ [missing]
 end
 
 end

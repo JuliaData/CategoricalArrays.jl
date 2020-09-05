@@ -136,13 +136,32 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
     end
 
     if extend
-        min_x, max_x = extrema(x)
+        xnm = T >: Missing ? skipmissing(x) : x
+        length(breaks) >= 1 || throw(ArgumentError("at least one break must be provided"))
+        local min_x, max_x
+        try
+            min_x, max_x = extrema(xnm)
+        catch err
+            if T >: Missing && all(ismissing, xnm)
+                if length(breaks) < 2
+                    throw(ArgumentError("could not extend breaks as all values are missing: " *
+                                        "please specify at least two breaks manually"))
+                else
+                    min_x, max_x = missing, missing
+                end
+            else
+                rethrow(err)
+            end
+        end
         if !ismissing(min_x) && breaks[1] > min_x
             breaks = [min_x; breaks]
         end
         if !ismissing(max_x) && breaks[end] < max_x
             breaks = [breaks; max_x]
         end
+        length(breaks) > 1 ||
+            throw(ArgumentError("could not extend breaks as all values are equal: " *
+                                "please specify at least two breaks manually"))
     end
 
     refs = Array{DefaultRefType, N}(undef, size(x))
@@ -159,6 +178,7 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
     end
 
     n = length(breaks)
+    n >= 2 || throw(ArgumentError("at least two breaks must be provided when extend=false"))
     if labels isa Function
         from = map(x -> sprint(show, x, context=:compact=>true), breaks[1:n-1])
         to = map(x -> sprint(show, x, context=:compact=>true), breaks[2:n])
@@ -203,6 +223,9 @@ quantile_formatter(from, to, i; leftclosed, rightclosed) =
 
 Cut a numeric array into `ngroups` quantiles, determined using `quantile`.
 
+If `x` contains `missing` values, they are automatically skipped when computing
+quantiles.
+
 # Keyword arguments
 * `labels::Union{AbstractVector,Function}`: a vector of strings giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
@@ -216,7 +239,8 @@ Cut a numeric array into `ngroups` quantiles, determined using `quantile`.
 function cut(x::AbstractArray, ngroups::Integer;
              labels::Union{AbstractVector{<:AbstractString},Function}=quantile_formatter,
              allowempty::Bool=false)
-    breaks = Statistics.quantile(x, (1:ngroups-1)/ngroups)
+    xnm = eltype(x) >: Missing ? skipmissing(x) : x
+    breaks = Statistics.quantile(xnm, (1:ngroups-1)/ngroups)
     if !allowempty && !allunique(breaks)
         n = length(unique(breaks)) - 1
         throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
@@ -224,5 +248,5 @@ function cut(x::AbstractArray, ngroups::Integer;
                             "Pass `allowempty=true` to allow empty quantiles or " *
                             "choose a lower value for `ngroups`."))
     end
-    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty)
+    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty, allowmissing=true)
 end
