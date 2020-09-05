@@ -1,7 +1,7 @@
 using Statistics
 
 function fill_refs!(refs::AbstractArray, X::AbstractArray,
-                    breaks::AbstractVector, extend::Bool, allowmissing::Bool)
+                    breaks::AbstractVector, extend::Bool, allowoutside::Bool)
     n = length(breaks)
     lower = first(breaks)
     upper = last(breaks)
@@ -20,7 +20,7 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
 end
 
 function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Missing},
-                    breaks::AbstractVector, extend::Bool, allowmissing::Bool)
+                    breaks::AbstractVector, extend::Bool, allowoutside::Bool)
     n = length(breaks)
     lower = first(breaks)
     upper = last(breaks)
@@ -33,7 +33,9 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray{>: Missing},
         elseif extend && x == upper
             refs[i] = n-1
         elseif !extend && !(lower <= x < upper)
-            allowmissing || throw(ArgumentError("value $x (at index $i) does not fall inside the breaks: adapt them manually, or pass extend=true or allowmissing=true"))
+            allowoutside ||
+                throw(ArgumentError("value $x (at index $i) does not fall inside the breaks: " *
+                                    "adapt them manually, or pass extend=true or allowoutside=true"))
             refs[i] = 0
         else
             refs[i] = searchsortedlast(breaks, x)
@@ -52,7 +54,7 @@ default_formatter(from, to, i; leftclosed, rightclosed) =
 @doc raw"""
     cut(x::AbstractArray, breaks::AbstractVector;
         labels::Union{AbstractVector{<:AbstractString},Function},
-        extend::Bool=false, allowmissing::Bool=false, allowempty::Bool=false)
+        extend::Bool=false, allowoutside::Bool=false, allowempty::Bool=false)
 
 Cut a numeric array into intervals and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
@@ -69,8 +71,8 @@ also accept them.
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
-* `allowmissing::Bool=true`: when `true`, values outside of breaks result in missing values.
-  only supported when `x` accepts missing values.
+* `allowoutside::Bool=false`: when `true`, values outside of breaks result in missing values.
+  Only supported when `x` accepts missing values.
 * `allowempty::Bool=false`: when `false`, an error is raised if some breaks appear
   multiple times, generating empty intervals; when `true`, duplicate breaks are allowed
   and the intervals they generate are kept as unused levels
@@ -119,13 +121,19 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
 function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
              extend::Bool=false,
              labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
-             allowmissing::Bool=false,
+             allowoutside::Bool=false,
+             allowmissing::Union{Bool, Nothing}=nothing,
              allow_missing::Union{Bool, Nothing}=nothing,
              allowempty::Bool=false) where {T, N}
     if allow_missing !== nothing
-        Base.depwarn("allow_missing argument is deprecated, use allowmissing instead",
-                     :cut!)
-        allowmissing = allow_missing
+        Base.depwarn("allow_missing argument is deprecated, use allowoutside instead",
+                     :cut)
+        allowoutside = allow_missing
+    end
+    if allowmissing !== nothing
+        Base.depwarn("allowmissing argument is deprecated, use allowoutside instead",
+                     :cut)
+        allowoutside = allowmissing
     end
     if !allowempty && !allunique(breaks)
         throw(ArgumentError("all breaks must be unique unless `allowempty=true`"))
@@ -166,7 +174,7 @@ function cut(x::AbstractArray{T, N}, breaks::AbstractVector;
 
     refs = Array{DefaultRefType, N}(undef, size(x))
     try
-        fill_refs!(refs, x, breaks, extend, allowmissing)
+        fill_refs!(refs, x, breaks, extend, allowoutside)
     catch err
         # So that the error appears to come from cut() itself,
         # since it refers to its keyword arguments
@@ -248,5 +256,5 @@ function cut(x::AbstractArray, ngroups::Integer;
                             "Pass `allowempty=true` to allow empty quantiles or " *
                             "choose a lower value for `ngroups`."))
     end
-    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty, allowmissing=true)
+    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty, allowoutside=true)
 end

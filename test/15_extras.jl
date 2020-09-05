@@ -13,7 +13,7 @@ const ≅ = isequal
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6])
     if T === Missing
-        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allowmissing=true"
+        @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
     else
         @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
@@ -21,19 +21,19 @@ const ≅ = isequal
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5])
     if T === Missing
-        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allowmissing=true"
+        @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
     else
         @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
 
     if T === Missing
-        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allowmissing=true)
+        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allowoutside=true)
         @test x ≅ ["[2, 5)", "[2, 5)", missing]
         @test isa(x, CategoricalVector{Union{String, T}})
         @test isordered(x)
         @test levels(x) == ["[2, 5)"]
     else
-        err = @test_throws ArgumentError cut(Vector{Int}([2, 3, 5]), [2, 5], allowmissing=true)
+        err = @test_throws ArgumentError cut(Vector{Int}([2, 3, 5]), [2, 5], allowoutside=true)
         @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true"
     end
 
