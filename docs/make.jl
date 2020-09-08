@@ -8,6 +8,7 @@ end
 makedocs(
     modules = [CategoricalArrays],
     sitename = "CategoricalArrays",
+    format = Documenter.HTML(canonical = "https://juliadata.github.io/CategoricalArrays.jl/stable/")
     pages = Any[
         "Overview" => "index.md",
         "Using CategoricalArrays" => "using.md",
