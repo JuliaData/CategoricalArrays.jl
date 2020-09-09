@@ -12,16 +12,16 @@ const ≅ = isequal
     @test levels(x) == ["[1, 3)", "[3, 6)"]
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6])
-    @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
+    @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or extend=missing"
 
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5])
-    @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or allowoutside=true"
+    @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or extend=missing"
 
     if T === Missing
-        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allowoutside=true)
+        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], extend=missing)
     else
-        x = cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], allowoutside=true)
+        x = cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], extend=missing)
     end
     @test x ≅ ["[2, 5)", "[2, 5)", missing]
     @test isa(x, CategoricalVector{Union{String, Missing}})
