@@ -292,6 +292,9 @@ convert(::Type{CategoricalVector{T}}, A::AbstractVector) where {T} =
     convert(CategoricalVector{T, DefaultRefType}, A)
 convert(::Type{CategoricalVector}, A::AbstractVector{T}) where {T} =
     convert(CategoricalVector{T}, A)
+convert(::Type{CategoricalVector{T}},
+        A::CategoricalVector{S, R}) where {S, T, R <: Integer} =
+    convert(CategoricalVector{T, R}, A)
 convert(::Type{CategoricalVector{T}}, A::CategoricalVector{T}) where {T} = A
 convert(::Type{CategoricalVector}, A::CategoricalVector) = A
 
@@ -299,6 +302,9 @@ convert(::Type{CategoricalMatrix{T}}, A::AbstractMatrix) where {T} =
     convert(CategoricalMatrix{T, DefaultRefType}, A)
 convert(::Type{CategoricalMatrix}, A::AbstractMatrix{T}) where {T} =
     convert(CategoricalMatrix{T}, A)
+convert(::Type{CategoricalMatrix{T}},
+        A::CategoricalMatrix{S, R}) where {S, T, R <: Integer} =
+    convert(CategoricalMatrix{T, R}, A)
 convert(::Type{CategoricalMatrix{T}}, A::CategoricalMatrix{T}) where {T} = A
 convert(::Type{CategoricalMatrix}, A::CategoricalMatrix) = A
 
