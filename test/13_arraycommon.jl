@@ -2032,24 +2032,32 @@ end
               view(categorical(["a", "a", "c", "b"]), 1:3),
               categorical(["b" missing; "a" "c"; "b" missing]),
               view(categorical(["b" missing; "a" "c"; "b" missing]), 2:3, 1))
-        @test DataAPI.refarray(y) === CategoricalArrays.refs(y)
-        @test DataAPI.refvalue.(Ref(y), DataAPI.refarray(y)) ≅ y
-        @test DataAPI.getindex.(Ref(DataAPI.refpool(y)), DataAPI.refarray(y)) ≅ y
+        ra = DataAPI.refarray(y)
+        rp = DataAPI.refpool(y)
+        @test ra === CategoricalArrays.refs(y)
+        @test all(DataAPI.refvalue(y, r) ≅ yi for (r, yi) in zip(ra, y))
+        @test all(rp[r] ≅ yi for (r, yi) in zip(ra, y))
         @test_throws BoundsError DataAPI.refvalue(y, -1)
         @test_throws BoundsError DataAPI.refvalue(y, length(levels(y))+1)
         if !(eltype(y) >: Missing)
             @test_throws BoundsError DataAPI.refvalue(y, 0)
         end
 
-        rp = DataAPI.refpool(y)
-        @test rp isa AbstractVector{eltype(y)}
+        @test eltype(rp) === eltype(y)
+        @test lastindex(rp) == length(levels(y))
         if eltype(y) >: Missing
-            @test collect(rp) ≅ [missing; levels(y)]
+            @test [rp[i] for i in eachindex(rp)] ≅ [missing; levels(y)]
+            @test length(rp) == length(levels(y)) + 1
             @test size(rp) == (length(levels(y)) + 1,)
+            @test firstindex(rp) == 0
+            @test eachindex(rp) == 0:length(levels(y))
             @test axes(rp) == (0:length(levels(y)),)
         else
-            @test collect(rp) == levels(y)
+            @test [rp[i] for i in eachindex(rp)] == levels(y)
+            @test length(rp) == length(levels(y))
             @test size(rp) == (length(levels(y)),)
+            @test firstindex(rp) == 1
+            @test eachindex(rp) == 1:length(levels(y))
             @test axes(rp) == (1:length(levels(y)),)
             @test_throws BoundsError rp[0]
         end
