@@ -60,6 +60,27 @@ const ≅ = isequal
                 @test CategoricalVector{Union{String, Missing}, DefaultRefType}(a, ordered=ordered) == x
                 @test CategoricalVector{Union{String, Missing}, UInt8}(a, ordered=ordered) == x
 
+                @test convert(CategoricalArray{String}, x) == x
+                @test convert(CategoricalArray{String, 1}, x) == x
+                @test convert(CategoricalArray{String, 1, R}, x) == x
+                @test convert(CategoricalArray{String, 1, DefaultRefType}, x) == x
+                @test convert(CategoricalArray{String, 1, UInt8}, x) == x
+
+                @test convert(CategoricalVector{String}, x) == x
+                @test convert(CategoricalVector{String, R}, x) == x
+                @test convert(CategoricalVector{String, DefaultRefType}, x) == x
+                @test convert(CategoricalVector{String, UInt8}, x) == x
+
+                @test CategoricalArray{String, 1}(x, ordered=ordered) == x
+                @test CategoricalArray{String, 1, R}(x, ordered=ordered) == x
+                @test CategoricalArray{String, 1, DefaultRefType}(x, ordered=ordered) == x
+                @test CategoricalArray{String, 1, UInt8}(x, ordered=ordered) == x
+
+                @test CategoricalVector{String}(x, ordered=ordered) == x
+                @test CategoricalVector{String, R}(x, ordered=ordered) == x
+                @test CategoricalVector{String, DefaultRefType}(x, ordered=ordered) == x
+                @test CategoricalVector{String, UInt8}(x, ordered=ordered) == x
+
                 @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
                     ((a, DefaultRefType, UInt8, true),
                      (a, DefaultRefType, DefaultRefType, false),
@@ -441,6 +462,42 @@ const ≅ = isequal
         @test CategoricalVector{Union{Float64, Missing}, DefaultRefType}(a, ordered=ordered) == x
         @test CategoricalVector{Union{Float32, Missing}, DefaultRefType}(a, ordered=ordered) == x
 
+        @test convert(CategoricalArray{Float64}, x) == x
+        @test convert(CategoricalArray{Float32}, x) == x
+        @test convert(CategoricalArray{Float64, 1}, x) == x
+        @test convert(CategoricalArray{Float32, 1}, x) == x
+        @test convert(CategoricalArray{Float64, 1, R}, x) == x
+        @test convert(CategoricalArray{Float32, 1, R}, x) == x
+        @test convert(CategoricalArray{Float64, 1, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{Float32, 1, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{Float64, 1, UInt8}, x) == x
+        @test convert(CategoricalArray{Float32, 1, UInt8}, x) == x
+
+        @test convert(CategoricalVector{Float64}, x) == x
+        @test convert(CategoricalVector{Float32}, x) == x
+        @test convert(CategoricalVector{Float64, R}, x) == x
+        @test convert(CategoricalVector{Float32, R}, x) == x
+        @test convert(CategoricalVector{Float64, DefaultRefType}, x) == x
+        @test convert(CategoricalVector{Float32, DefaultRefType}, x) == x
+        @test convert(CategoricalVector{Float64, UInt8}, x) == x
+        @test convert(CategoricalVector{Float32, UInt8}, x) == x
+
+        @test CategoricalArray{Float64}(a, ordered=ordered) == x
+        @test CategoricalArray{Float32}(a, ordered=ordered) == x
+        @test CategoricalArray{Float64, 1}(a, ordered=ordered) == x
+        @test CategoricalArray{Float32, 1}(a, ordered=ordered) == x
+        @test CategoricalArray{Float64, 1, R}(a, ordered=ordered) == x
+        @test CategoricalArray{Float32, 1, R}(a, ordered=ordered) == x
+        @test CategoricalArray{Float64, 1, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalArray{Float32, 1, DefaultRefType}(a, ordered=ordered) == x
+
+        @test CategoricalVector{Float64}(a, ordered=ordered) == x
+        @test CategoricalVector{Float32}(a, ordered=ordered) == x
+        @test CategoricalVector{Float64, R}(a, ordered=ordered) == x
+        @test CategoricalVector{Float32, R}(a, ordered=ordered) == x
+        @test CategoricalVector{Float64, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalVector{Float32, DefaultRefType}(a, ordered=ordered) == x
+
         @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
             ((a, DefaultRefType, UInt8, true),
              (a, DefaultRefType, DefaultRefType, false),
@@ -608,6 +665,28 @@ const ≅ = isequal
         @test CategoricalMatrix{Union{String, Missing}, R}(a, ordered=ordered) == x
         @test CategoricalMatrix{Union{String, Missing}, DefaultRefType}(a, ordered=ordered) == x
         @test CategoricalMatrix{Union{String, Missing}, UInt8}(a, ordered=ordered) == x
+
+        @test convert(CategoricalArray{String}, x) == x
+        @test convert(CategoricalArray{String, 2, R}, x) == x
+        @test convert(CategoricalArray{String, 2, DefaultRefType}, x) == x
+        @test convert(CategoricalArray{String, 2, UInt8}, x) == x
+
+        @test convert(CategoricalMatrix{String}, x) == x
+        @test convert(CategoricalMatrix{String, R}, x) == x
+        @test convert(CategoricalMatrix{String, DefaultRefType}, x) == x
+        @test convert(CategoricalMatrix{String, UInt8}, x) == x
+
+        @test CategoricalArray{String}(a, ordered=ordered) == x
+        @test CategoricalArray{String, 2}(a, ordered=ordered) == x
+        @test CategoricalArray{String, 2}(a, ordered=ordered) == x
+        @test CategoricalArray{String, 2, R}(a, ordered=ordered) == x
+        @test CategoricalArray{String, 2, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalArray{String, 2, UInt8}(a, ordered=ordered) == x
+
+        @test CategoricalMatrix{String}(a, ordered=ordered) == x
+        @test CategoricalMatrix{String, R}(a, ordered=ordered) == x
+        @test CategoricalMatrix{String, DefaultRefType}(a, ordered=ordered) == x
+        @test CategoricalMatrix{String, UInt8}(a, ordered=ordered) == x
 
         @testset "categorical($(typeof(y)), compress=$comp) R1=$R1 R2=$R2" for (y, R1, R2, comp) in
             ((a, DefaultRefType, UInt8, true),
