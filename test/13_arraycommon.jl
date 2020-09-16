@@ -2043,10 +2043,12 @@ end
 
         rp = DataAPI.refpool(y)
         @test rp isa AbstractVector{eltype(y)}
+        @test LinearIndices(rp) == axes(rp, 1)
         if eltype(y) >: Missing
             @test collect(rp) ≅ [missing; levels(y)]
             @test size(rp) == (length(levels(y)) + 1,)
             @test axes(rp) == (0:length(levels(y)),)
+            @test_throws ArgumentError reshape(rp, length(rp))
         else
             @test collect(rp) == levels(y)
             @test size(rp) == (length(levels(y)),)
@@ -2055,6 +2057,7 @@ end
         end
         @test_throws BoundsError rp[-1]
         @test_throws BoundsError rp[end + 1]
+        @test_throws MethodError similar(rp)
     end
 end
 

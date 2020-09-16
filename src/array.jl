@@ -1064,6 +1064,7 @@ end
 Base.size(x::CategoricalRefPool{T}) where {T} = (length(x.pool) + (T >: Missing),)
 Base.axes(x::CategoricalRefPool{T}) where {T} =
     ((T >: Missing ? 0 : 1):length(x.pool),)
+Base.LinearIndices(x::CategoricalRefPool) = axes(x, 1)
 
 DataAPI.refarray(A::CatArrOrSub) = refs(A)
 @inline function DataAPI.refvalue(A::CatArrOrSub{T}, i::Integer) where T
