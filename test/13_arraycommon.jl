@@ -2048,11 +2048,14 @@ end
             @test collect(rp) ≅ [missing; levels(y)]
             @test size(rp) == (length(levels(y)) + 1,)
             @test axes(rp) == (0:length(levels(y)),)
-            @test_throws ArgumentError reshape(rp, length(rp))
+            if VERSION >= v"1.5"
+                @test_throws ArgumentError reshape(rp, length(rp))
+            end
         else
             @test collect(rp) == levels(y)
             @test size(rp) == (length(levels(y)),)
             @test axes(rp) == (1:length(levels(y)),)
+            @test reshape(rp, length(rp)) == rp
             @test_throws BoundsError rp[0]
         end
         @test_throws BoundsError rp[-1]
