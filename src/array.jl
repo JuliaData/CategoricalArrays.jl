@@ -1052,26 +1052,23 @@ StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
 categoricalnothing(T, A::AbstractVector) = CategoricalArray{Union{Nothing, T}}(A)
 
 # DataAPI refarray/refvalue/refpool support
-struct CategoricalRefPool{T, P}
+struct CategoricalRefPool{T, P} <: AbstractVector{T}
     pool::P
 end
 
-Base.IteratorEltype(::Type{<: CategoricalRefPool}) = Base.HasEltype()
-Base.eltype(x::CategoricalRefPool{T}) where {T} = T
-@inline function Base.getindex(x::CategoricalRefPool, i::Integer)
-    @boundscheck i in axes(x)[1] || throw(BoundsError(x, i))
+Base.IndexStyle(::Type{<: CategoricalRefPool}) = Base.IndexLinear()
+@inline function Base.getindex(x::CategoricalRefPool, i::Int)
+    @boundscheck checkbounds(x, i)
     i > 0 ? @inbounds(x.pool[i]) : missing
 end
-Base.length(x::CategoricalRefPool{T}) where {T} = length(x.pool) + (T >: Missing)
-Base.size(x::CategoricalRefPool) = (length(x),)
-Base.firstindex(x::CategoricalRefPool{T}) where {T} = (T >: Missing ? 0 : 1)
-Base.lastindex(x::CategoricalRefPool) = length(x.pool)
-Base.eachindex(x::CategoricalRefPool{T}) where {T} = firstindex(x):lastindex(x)
-Base.axes(x::CategoricalRefPool) = (eachindex(x),)
+Base.size(x::CategoricalRefPool{T}) where {T} = (length(x.pool) + (T >: Missing),)
+Base.axes(x::CategoricalRefPool{T}) where {T} =
+    ((T >: Missing ? 0 : 1):length(x.pool),)
 
 DataAPI.refarray(A::CatArrOrSub) = refs(A)
 @inline function DataAPI.refvalue(A::CatArrOrSub{T}, i::Integer) where T
-    @boundscheck i in (T >: Missing ? 0 : 1):length(pool(A)) || throw(BoundsError())
+    @boundscheck checkindex(Bool, (T >: Missing ? 0 : 1):length(pool(A)), i) ||
+        throw(BoundsError())
     i > 0 ? @inbounds(pool(A)[i]) : missing
 end
 DataAPI.refpool(A::CatArrOrSub{T}) where {T} =
