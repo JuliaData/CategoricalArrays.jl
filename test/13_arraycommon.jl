@@ -2043,6 +2043,7 @@ end
 
         rp = DataAPI.refpool(y)
         @test rp isa AbstractVector{eltype(y)}
+        @test Base.IndexStyle(rp) isa Base.IndexLinear
         @test LinearIndices(rp) == axes(rp, 1)
         if eltype(y) >: Missing
             @test collect(rp) ≅ [missing; levels(y)]
