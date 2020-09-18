@@ -37,9 +37,11 @@ default_formatter(from, to, i; leftclosed, rightclosed) =
         labels::Union{AbstractVector{<:AbstractString},Function},
         extend::Union{Bool,Missing}=false, allowempty::Bool=false)
 
-Cut a numeric array into intervals and return an ordered `CategoricalArray` indicating
+Cut a numeric array into intervals at values `breaks`
+and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
-i.e. the lower bound is included and the upper bound is excluded.
+i.e. the lower bound is included and the upper bound is excluded, except for the last
+interval which is closed on both ends, i.e. `[lower, upper]`.
 
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
 also accept them.
