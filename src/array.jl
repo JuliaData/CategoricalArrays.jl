@@ -1066,7 +1066,7 @@ Base.IndexStyle(::Type{<: CategoricalRefPool}) = Base.IndexLinear()
 
 @inline function Base.getindex(x::CategoricalRefPool, i::Int)
     @boundscheck checkbounds(x, i)
-    i > 0 ? @inbounds(x.pool[i]) : missing
+    i > 0 ? get(@inbounds(x.pool[i])) : missing
 end
 
 Base.size(x::CategoricalRefPool{T}) where {T} = (length(x.pool) + (T >: Missing),)
@@ -1076,7 +1076,7 @@ Base.LinearIndices(x::CategoricalRefPool) = axes(x, 1)
 
 DataAPI.refarray(A::CatArrOrSub) = refs(A)
 DataAPI.refpool(A::CatArrOrSub{T}) where {T} =
-    CategoricalRefPool{eltype(A), typeof(pool(A))}(pool(A))
+    CategoricalRefPool{leveltype(eltype(A)), typeof(pool(A))}(pool(A))
 
 @inline function DataAPI.refvalue(A::CatArrOrSub{T}, i::Integer) where T
     @boundscheck checkindex(Bool, (T >: Missing ? 0 : 1):length(pool(A)), i) ||
