@@ -18,7 +18,6 @@ module TestCategoricalArrays
         "06_show.jl",
         "07_levels.jl",
         "08_equality.jl",
-        "08_string.jl",
         "09_hash.jl",
         "10_isless.jl",
         "11_array.jl",
