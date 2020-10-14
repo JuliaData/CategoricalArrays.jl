@@ -2,6 +2,7 @@ CategoricalValue(level::Integer, pool::CategoricalPool{T, R}) where {T, R} =
     CategoricalValue(convert(R, level), pool)
 
 leveltype(::Type{<:CategoricalValue{T}}) where {T} = T
+leveltype(::Type{Union{Missing, C}}) where {C <: CategoricalValue} = Union{Missing, leveltype(C)}
 leveltype(::Type{T}) where {T} = T
 leveltype(x::Any) = leveltype(typeof(x))
 # to fix ambiguity
