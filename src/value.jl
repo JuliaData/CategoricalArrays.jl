@@ -185,3 +185,7 @@ StructTypes.StructType(x::CategoricalValue) = StructTypes.StructType(get(x))
 StructTypes.StructType(::Type{<:CategoricalValue{T}}) where {T} = StructTypes.StructType(T)
 StructTypes.numbertype(::Type{<:CategoricalValue{T}}) where {T <: Number} = T
 StructTypes.construct(::Type{T}, x::CategoricalValue{T}) where {T} = T(get(x))
+
+using Arrow
+Arrow.ArrowTypes.ArrowType(::Type{<:CategoricalValue{T}}) where {T} = Arrow.ArrowTypes.ArrowType(T)
+Arrow.ArrowTypes.isstringtype(::Type{<:CategoricalValue{T}}) where {T <: AbstractString} = true
