@@ -434,15 +434,14 @@ end
 
 function merge_pools!(A::CatArrOrSub,
                       B::Union{CategoricalValue, CatArrOrSub};
-                      updaterefs::Bool=true)
+                      updaterefs::Bool=true,
+                      updatepool::Bool=true)
     if isordered(A) && length(pool(A)) > 0 && pool(B) ⊈ pool(A)
         lev = A isa CategoricalValue ? get(B) : first(setdiff(levels(B), levels(A)))
         throw(OrderedLevelsException(lev, levels(A)))
     end
-    newpool = merge_pools(pool(A), pool(B))
+    newlevels, ordered = merge_pools(pool(A), pool(B))
     oldlevels = levels(A)
-    newlevels = levels(newpool)
-    ordered = isordered(newpool)
     if isordered(A) != ordered
         A isa SubArray &&
             throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it " *
@@ -457,8 +456,10 @@ function merge_pools!(A::CatArrOrSub,
          view(newlevels, 1:length(oldlevels)) != oldlevels)
         update_refs!(pA, newlevels)
     end
-    pA.pool = newpool
-    A
+    if updatepool
+        pA.pool = typeof(pA.pool)(newlevels, ordered)
+    end
+    newlevels, ordered
 end
 
 @inline function setindex!(A::CategoricalArray, v::Any, I::Real...)
@@ -518,8 +519,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     # For partial copy, need to recompute existing refs
     # TODO: for performance, avoid ajusting refs which are going to be overwritten
     updaterefs = isa(dest, SubArray) || !(n == length(dest) == length(src))
-    newpool = merge_pools!(dest, src, updaterefs=updaterefs)
-    newlevels = levels(newpool)
+    newlevels, ordered = merge_pools!(dest, src, updaterefs=updaterefs)
 
     # If destination levels are an ordered superset of source, no need to recompute refs
     if view(newlevels, 1:length(slevs)) == slevs
@@ -540,7 +540,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     if view(newlevels, 1:length(dlevs)) == dlevs
         levels!(dpool, newlevels)
     else
-        destp.pool = CategoricalPool{nonmissingtype(T), R}(newlevels, isordered(newpool))
+        destp.pool = CategoricalPool{nonmissingtype(T), R}(newlevels, ordered)
     end
 
     dest
