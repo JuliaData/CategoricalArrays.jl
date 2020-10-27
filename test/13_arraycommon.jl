@@ -737,6 +737,7 @@ end
         levels!(y, ["Old", "Middle", "Young"])
         ordered!(x, true)
         @test copyf!(x, y) === x
+        @test x == y
         @test levels(x) == ["Young", "Middle", "Old"]
         @test !isordered(x)
 
@@ -747,6 +748,7 @@ end
         y = CategoricalArray{Union{T, String}}(["Middle", "Middle", "Old", "Young"])
         levels!(y, ["Young", "Middle", "Old"])
         @test copyf!(x, y) === x
+        @test x == y
         @test levels(x) == ["Young", "Middle", "Old"]
         @test isordered(x)
 
@@ -757,6 +759,7 @@ end
         ordered!(y, true)
         levels!(y, ["Young", "Middle", "Old"])
         @test copyf!(x, y) === x
+        @test x == y
         @test levels(x) == ["Young", "Middle", "Old"]
         @test !isordered(x)
 
@@ -767,6 +770,7 @@ end
         x = similar(x)
         ordered!(x, true)
         @test copyf!(x, y) === x
+        @test x == y
         @test levels(x) == ["Young", "Middle", "Old"]
         @test isordered(x)
 
@@ -1451,6 +1455,82 @@ end
     @test_throws MethodError copyto!(y, x)
     @test_throws MethodError copy!(y, x)
     @test_throws MethodError copyto!(y, 1, x, 1, length(x))
+end
+
+@testset "copyto! from CategoricalArray" begin
+    vecs = (CategoricalVector([1, 2, 1, 1, 3, 2], levels=[2, 1, 3]),
+            CategoricalVector([2, 2, 2, 2, 2, 2], levels=[2]),
+            CategoricalVector([2, 2, 2, 2, 2, 2], levels=[3, 1, 2, 4]),
+            CategoricalVector([1, 2, 1, 3, 3, 2], levels=[3, 1, 2, 4]),
+            CategoricalVector(Float64[2, 3, 1, 2, 2, 1], levels=[3, 1, 2]),
+            view(CategoricalVector([3, 1, 2, 1, 1, 2, 2, 3], levels=[3, 1, 2, 4]), 2:7))
+    for y1 in vecs, x in vecs
+        levs = levels(y1)
+        newlevs, _ = CategoricalArrays.mergelevels(false, levs, levels(x))
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, x) === y2
+        @test x == y2
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copy!(y2, x) === y2
+        @test x == y2
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, 1, x, 1, length(x)) === y2
+        @test x == y2
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, 2, x, 3, 3) === y2
+        @test x[3:5] ≅ y2[2:4]
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, 2, x[3:end]) === y2
+        @test x[3:6] ≅ y2[2:5]
+        @test levels(y2) == newlevs
+    end
+
+    vecs = (CategoricalVector{Union{Int, Missing}}(undef, 6),
+            CategoricalVector([1, 2, missing, 1, 3, 2], levels=[2, 1, 3]),
+            CategoricalVector([2, 2, missing, 2, 2, 2], levels=[2]),
+            CategoricalVector([2, 2, missing, 2, 2, 2], levels=[3, 1, 2, 4]),
+            CategoricalVector([1, 2, missing, 3, 3, 2], levels=[3, 1, 2, 4]),
+            CategoricalVector(Union{Float64, Missing}[2, 3, missing, 2, 2, 1], levels=[3, 1, 2]),
+            view(CategoricalVector([3, 1, 2, missing, 1, 2, 2, 3], levels=[3, 1, 2, 4]), 2:7),
+            view(CategoricalVector([3, 1, 2, 1, 1, 2, 2, missing], levels=[3, 1, 2, 4]), 2:7))
+    for y1 in vecs, x in vecs
+        levs = levels(y1)
+        newlevs, _ = CategoricalArrays.mergelevels(false, levs, levels(x))
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, x) === y2
+        @test x ≅ y2
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copy!(y2, x) === y2
+        @test x ≅ y2
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, 1, x, 1, length(x)) === y2
+        @test x ≅ y2
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, 2, x, 3, 3) === y2
+        @test x[3:5] ≅ y2[2:4]
+        @test levels(y2) == newlevs
+
+        y2 = deepcopy(y1)
+        @test copyto!(y2, 2, x[3:6]) === y2
+        @test x[3:6] ≅ y2[2:5]
+        @test levels(y2) == newlevs
+    end
 end
 
 @testset "new levels can't be added through assignment when levels are ordered" begin

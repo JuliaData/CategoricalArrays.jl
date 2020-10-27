@@ -522,8 +522,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     newlevels = levels(newpool)
 
     # If destination levels are an ordered superset of source, no need to recompute refs
-    if length(dlevs) >= length(slevs) && view(dlevs, 1:length(slevs)) == slevs
-        newlevels != dlevs && levels!(dpool, newlevels)
+    if view(newlevels, 1:length(slevs)) == slevs
         copyto!(drefs, dstart, srefs, sstart, n)
     else # Otherwise, recompute refs according to new levels
         # Then adjust refs from source
@@ -536,6 +535,11 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
             x = srefs[sstart+i]
             drefs[dstart+i] = levelsmap[x+1]
         end
+    end
+    # Need to allocate a new pool only if reordering destination levels
+    if view(newlevels, 1:length(dlevs)) == dlevs
+        levels!(dpool, newlevels)
+    else
         destp.pool = CategoricalPool{nonmissingtype(T), R}(newlevels, isordered(newpool))
     end
 
