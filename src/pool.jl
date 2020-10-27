@@ -184,9 +184,10 @@ Base.issubset(a::CategoricalPool, b::CategoricalPool) = issubset(a.levels, keys(
 
 # Contrary to the CategoricalArray one, this method only allows adding new levels at the end
 # so that existing CategoricalValue objects still point to the same value
-function levels!(pool::CategoricalPool{S, R}, newlevels::Vector) where {S, R}
+function levels!(pool::CategoricalPool{S, R}, newlevels::Vector;
+                 checkunique::Bool=true) where {S, R}
     levs = convert(Vector{S}, newlevels)
-    if !allunique(levs)
+    if checkunique && !allunique(levs)
         throw(ArgumentError(string("duplicated levels found in levs: ",
                                    join(unique(filter(x->sum(levs.==x)>1, levs)), ", "))))
     elseif length(levs) < length(pool) || view(levs, 1:length(pool)) != pool.levels

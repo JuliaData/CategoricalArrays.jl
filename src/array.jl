@@ -519,7 +519,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     # For partial copy, need to recompute existing refs
     # TODO: for performance, avoid ajusting refs which are going to be overwritten
     updaterefs = isa(dest, SubArray) || !(n == length(dest) == length(src))
-    newlevels, ordered = merge_pools!(dest, src, updaterefs=updaterefs)
+    newlevels, ordered = merge_pools!(dest, src, updaterefs=updaterefs, updatepool=false)
 
     # If destination levels are an ordered superset of source, no need to recompute refs
     if view(newlevels, 1:length(slevs)) == slevs
@@ -538,7 +538,7 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
     end
     # Need to allocate a new pool only if reordering destination levels
     if view(newlevels, 1:length(dlevs)) == dlevs
-        levels!(dpool, newlevels)
+        levels!(dpool, newlevels, checkunique=false)
     else
         destp.pool = CategoricalPool{nonmissingtype(T), R}(newlevels, ordered)
     end
@@ -571,7 +571,7 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
             srclevsnm = srclevsnm === srclevs ? sort(srclevsnm) : sort!(srclevsnm)
         end
         newdestlevs = union(destlevs, srclevsnm)
-        levels!(pool(dest), newdestlevs)
+        levels!(pool(dest), newdestlevs, checkunique=false)
     end
     levelsmap = something.(indexin(srclevs, [missing; newdestlevs])) .- 1
     destrefs = refs(dest)
