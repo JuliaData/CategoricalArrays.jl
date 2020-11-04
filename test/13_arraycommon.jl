@@ -1162,6 +1162,29 @@ end
     end
 end
 
+@testset "constructors from arrays with unsupported eltypes" begin
+    for (CT, a) in zip((CategoricalVector, CategoricalMatrix),
+                        ([1, 2, 3], [1 2 3])),
+        f in (categorical, CategoricalArray, CT,
+                x -> convert(CategoricalArray, x),
+                x -> convert(CT, x)),
+        T in (Any, Union{Int, Symbol}, Union{Real, Symbol, Missing})
+        x = f(collect(T, a))
+        @test x isa CT{Int}
+        @test x == categorical(a)
+    end
+    for (CT, a) in zip((CategoricalVector, CategoricalMatrix),
+                        ([1, missing, 3], [1 missing 3])),
+        f in (categorical, CategoricalArray, CT,
+                x -> convert(CategoricalArray, x),
+                x -> convert(CT, x)),
+        T in (Any, Union{Int, Symbol, Missing}, Union{Real, Symbol, Missing})
+        x = f(collect(T, a))
+        @test x isa CT{Union{Int, Missing}}
+        @test x ≅ categorical(a)
+    end
+end
+
 @testset "converting from array with missings to array without missings CategoricalArray fails with missings" begin
     x = CategoricalArray{Union{String, Missing}}(undef, 1)
     @test_throws MissingException CategoricalArray{String}(x)

@@ -229,6 +229,14 @@ function CategoricalArray{T, N, R}(A::AbstractArray;
 end
 
 # From AbstractArray
+
+# Find a narrow type that is supported to hold all elements if possible
+function fixtype(A::AbstractArray{T}) where T
+    U = T <: Union{SupportedTypes, Missing} ?
+        T : mapreduce(typeof, Base.promote_typejoin, A)
+    return fixstringtype(U)
+end
+
 CategoricalArray{T, N}(A::AbstractArray{S, N};
                        levels::Union{AbstractVector, Nothing}=nothing,
                        ordered::Bool=_isordered(A)) where {S, T, N} =
@@ -240,17 +248,17 @@ CategoricalArray{T}(A::AbstractArray{S, N};
 CategoricalArray(A::AbstractArray{T, N};
                  levels::Union{AbstractVector, Nothing}=nothing,
                  ordered::Bool=_isordered(A)) where {T, N} =
-    CategoricalArray{fixstringtype(T), N}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), N}(A, levels=levels, ordered=ordered)
 
 CategoricalVector(A::AbstractVector{T};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T} =
-    CategoricalArray{fixstringtype(T), 1}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), 1}(A, levels=levels, ordered=ordered)
 
 CategoricalMatrix(A::AbstractMatrix{T};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T} =
-    CategoricalArray{fixstringtype(T), 2}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), 2}(A, levels=levels, ordered=ordered)
 
 # From CategoricalArray (preserve R)
 CategoricalArray{T, N}(A::CategoricalArray{S, N, R};
@@ -284,12 +292,12 @@ convert(::Type{CategoricalArray{T, N}}, A::AbstractArray{S, N}) where {S, T, N} 
 convert(::Type{CategoricalArray{T}}, A::AbstractArray{S, N}) where {S, T, N} =
     convert(CategoricalArray{T, N}, A)
 convert(::Type{CategoricalArray}, A::AbstractArray{T, N}) where {T, N} =
-    convert(CategoricalArray{T, N}, A)
+    convert(CategoricalArray{fixtype(A), N}, A)
 
 convert(::Type{CategoricalVector{T}}, A::AbstractVector) where {T} =
     convert(CategoricalVector{T, DefaultRefType}, A)
 convert(::Type{CategoricalVector}, A::AbstractVector{T}) where {T} =
-    convert(CategoricalVector{T}, A)
+    convert(CategoricalVector{fixtype(A)}, A)
 convert(::Type{CategoricalVector{T}},
         A::CategoricalVector{S, R}) where {S, T, R <: Integer} =
     convert(CategoricalVector{T, R}, A)
@@ -299,7 +307,7 @@ convert(::Type{CategoricalVector}, A::CategoricalVector) = A
 convert(::Type{CategoricalMatrix{T}}, A::AbstractMatrix) where {T} =
     convert(CategoricalMatrix{T, DefaultRefType}, A)
 convert(::Type{CategoricalMatrix}, A::AbstractMatrix{T}) where {T} =
-    convert(CategoricalMatrix{T}, A)
+    convert(CategoricalMatrix{fixtype(A)}, A)
 convert(::Type{CategoricalMatrix{T}},
         A::CategoricalMatrix{S, R}) where {S, T, R <: Integer} =
     convert(CategoricalMatrix{T, R}, A)
@@ -910,7 +918,7 @@ are preserved unless explicitly overriden.
                              compress::Bool=false) where {T, N}
     # @inline is needed so that return type is inferred when compress is not provided
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
-    CategoricalArray{fixstringtype(T), N, RefType}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), N, RefType}(A, levels=levels, ordered=ordered)
 end
 @inline function categorical(A::CategoricalArray{T, N, R};
                              levels::Union{AbstractVector, Nothing}=nothing,
@@ -918,7 +926,7 @@ end
                              compress::Bool=false) where {T, N, R}
     # @inline is needed so that return type is inferred when compress is not provided
     RefType = compress ? reftype(length(CategoricalArrays.levels(A))) : R
-    CategoricalArray{fixstringtype(T), N, RefType}(A, levels=levels, ordered=ordered)
+    CategoricalArray{T, N, RefType}(A, levels=levels, ordered=ordered)
 end
 
 function in(x::Any, y::CategoricalArray{T, N, R}) where {T, N, R}
