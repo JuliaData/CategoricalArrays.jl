@@ -19,9 +19,33 @@ function reftype(sz::Int)
     end
 end
 
+# This check is only there to print a user-friendly warning before
+# a TypeError is thrown due to restrictions in the type signature
+function check_supported_eltype(::Type{T}, ::Type{U}) where {T, U}
+    T === Symbol &&
+    throw(ArgumentError("CategoricalArray no longer supports Symbol as element type "*
+                        "as that forces recompiling too many Julia Base methods: " *
+                        "use strings instead, e.g. via categorical(string.(x))"))
+    T <: Union{SupportedTypes, Missing} ||
+        throw(ArgumentError("CategoricalArray only supports " *
+                            "AbstractString, AbstractChar and Number element types " *
+                            "(got element type $U)"))
+end
+
 fixstringtype(T::Type) = T <: SubString || T === AbstractString ? String : T
 fixstringtype(T::Union) = Union{fixstringtype(T.a), fixstringtype(T.b)}
 fixstringtype(::Type{Union{}}) = Union{}
+
+# Find a narrow type that is supported to hold all elements if possible
+function fixtype(A::AbstractArray{T}) where T
+    if T <: Union{SupportedTypes, Missing}
+        return fixstringtype(T)
+    else
+        U = fixstringtype(mapreduce(typeof, Base.promote_typejoin, A))
+        check_supported_eltype(U, T)
+        return U
+    end
+end
 
 """
     CategoricalArray{T}(undef, dims::Dims; levels=nothing, ordered=false)
@@ -135,6 +159,7 @@ function CategoricalArray{T, N, R}(::UndefInitializer, dims::NTuple{N,Int};
                                    ordered::Bool=false) where {T, N, R}
     U = leveltype(nonmissingtype(T))
     S = T >: Missing ? Union{U, Missing} : U
+    check_supported_eltype(S, T)
     V = CategoricalValue{U, R}
     levs = levels === nothing ? U[] : collect(U, levels)
     CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R, V}(levs, ordered))
@@ -230,13 +255,6 @@ end
 
 # From AbstractArray
 
-# Find a narrow type that is supported to hold all elements if possible
-function fixtype(A::AbstractArray{T}) where T
-    U = T <: Union{SupportedTypes, Missing} ?
-        T : mapreduce(typeof, Base.promote_typejoin, A)
-    return fixstringtype(U)
-end
-
 CategoricalArray{T, N}(A::AbstractArray{S, N};
                        levels::Union{AbstractVector, Nothing}=nothing,
                        ordered::Bool=_isordered(A)) where {S, T, N} =
@@ -319,6 +337,8 @@ convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, 
 
 function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
                   levels::Union{AbstractVector, Nothing}=nothing) where {S, T, N, R}
+    check_supported_eltype(T, T)
+
     res = CategoricalArray{T, N, R}(undef, size(A), levels=levels)
     copyto!(res, A)
 

@@ -1183,6 +1183,25 @@ end
         @test x isa CT{Union{Int, Missing}}
         @test x ≅ categorical(a)
     end
+
+    for f in (categorical, CategoricalArray, CategoricalVector,
+              x -> convert(CategoricalArray, x),
+              x -> convert(CategoricalVector, x))
+        @test_throws ArgumentError f([:a])
+        @test_throws ArgumentError f(Any[:a])
+        @test_throws ArgumentError f([nothing])
+        @test_throws ArgumentError f(Any[nothing])
+        @test_throws ArgumentError f([1, nothing])
+    end
+    for f in (categorical, CategoricalArray, CategoricalMatrix,
+              x -> convert(CategoricalArray, x),
+              x -> convert(CategoricalMatrix, x))
+        @test_throws ArgumentError f([:a :a])
+        @test_throws ArgumentError f(Any[:a :a])
+        @test_throws ArgumentError f([nothing nothing])
+        @test_throws ArgumentError f(Any[nothing nothing])
+        @test_throws ArgumentError f([1 nothing])
+    end
 end
 
 @testset "converting from array with missings to array without missings CategoricalArray fails with missings" begin
