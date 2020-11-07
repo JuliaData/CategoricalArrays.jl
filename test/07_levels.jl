@@ -150,12 +150,6 @@ using CategoricalArrays: DefaultRefType, levels!
     v = CategoricalValue(1, CategoricalPool(["a", "b"]))
     @test_throws MethodError get!(pool, v)
 
-    # get! with CategoricalValue{Any} (#220)
-    p1 = CategoricalPool(Any['a', 'b', 'c'])
-    p2 = CategoricalPool(Any['a', 'b', 'x'])
-    @test get!(p1, p2[1]) === UInt32(1)
-    @test get!(p1, p2[3]) === UInt32(4)
-
     # get! with ordered CategoricalValue marks unordered empty pool as ordered
     p1 = CategoricalPool(['b', 'c', 'a'])
     ordered!(p1, true)

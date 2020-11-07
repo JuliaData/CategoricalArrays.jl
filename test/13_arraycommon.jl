@@ -1162,6 +1162,48 @@ end
     end
 end
 
+@testset "constructors from arrays with unsupported eltypes" begin
+    for (CT, a) in zip((CategoricalVector, CategoricalMatrix),
+                        ([1, 2, 3], [1 2 3])),
+        f in (categorical, CategoricalArray, CT,
+                x -> convert(CategoricalArray, x),
+                x -> convert(CT, x)),
+        T in (Any, Union{Int, Symbol}, Union{Real, Symbol, Missing})
+        x = f(collect(T, a))
+        @test x isa CT{Int}
+        @test x == categorical(a)
+    end
+    for (CT, a) in zip((CategoricalVector, CategoricalMatrix),
+                        ([1, missing, 3], [1 missing 3])),
+        f in (categorical, CategoricalArray, CT,
+                x -> convert(CategoricalArray, x),
+                x -> convert(CT, x)),
+        T in (Any, Union{Int, Symbol, Missing}, Union{Real, Symbol, Missing})
+        x = f(collect(T, a))
+        @test x isa CT{Union{Int, Missing}}
+        @test x ≅ categorical(a)
+    end
+
+    for f in (categorical, CategoricalArray, CategoricalVector,
+              x -> convert(CategoricalArray, x),
+              x -> convert(CategoricalVector, x))
+        @test_throws ArgumentError f([:a])
+        @test_throws ArgumentError f(Any[:a])
+        @test_throws ArgumentError f([nothing])
+        @test_throws ArgumentError f(Any[nothing])
+        @test_throws ArgumentError f([1, nothing])
+    end
+    for f in (categorical, CategoricalArray, CategoricalMatrix,
+              x -> convert(CategoricalArray, x),
+              x -> convert(CategoricalMatrix, x))
+        @test_throws ArgumentError f([:a :a])
+        @test_throws ArgumentError f(Any[:a :a])
+        @test_throws ArgumentError f([nothing nothing])
+        @test_throws ArgumentError f(Any[nothing nothing])
+        @test_throws ArgumentError f([1 nothing])
+    end
+end
+
 @testset "converting from array with missings to array without missings CategoricalArray fails with missings" begin
     x = CategoricalArray{Union{String, Missing}}(undef, 1)
     @test_throws MissingException CategoricalArray{String}(x)
@@ -1251,11 +1293,11 @@ end
     if VERSION > v"1.2.0-DEV"
         @inferred vcat(x, y)
     end
-    @test vcat(x, y) isa CategoricalVector{Any}
+    @test vcat(x, y) isa CategoricalVector{Union{String, Int}}
     if VERSION > v"1.2.0-DEV"
         @inferred vcat(x, z1)
     end
-    @test vcat(x, z1) isa CategoricalVector{Any}
+    @test vcat(x, z1) isa CategoricalVector{Union{String, Float64}}
     if VERSION > v"1.2.0-DEV"
         @inferred vcat(y, z1)
     end
@@ -2008,7 +2050,7 @@ end
 end
 
 # TODO: move struct definition inside @testset block once we require Julia 1.6
-struct UnorderedBar
+struct UnorderedBar <: Number
     a::String
 end
 
@@ -2068,25 +2110,6 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     @test x ≅ readx
     @test levels(readx) == levels(x)
     @test readx isa CategoricalVector{Union{Missing,String}}
-
-    readx = JSON3.read(str, CategoricalVector{Union{Nothing,String}})
-    @test all((ismissing(a) && (get(b) isa Nothing)) || a == b for (a,b) in zip(x,readx))
-    @test nothing in levels(readx)
-    @test length(union(setdiff(levels(readx),[nothing]), levels(x))) == length(levels(x))
-    @test readx isa CategoricalVector{Union{Nothing,String}}
-
-    readx = JSON3.read(str, CategoricalArray{Union{Nothing,String}})
-    @test all((ismissing(a) && (get(b) isa Nothing)) || a == b for (a,b) in zip(x,readx))
-    @test nothing in levels(readx)
-    @test length(union(setdiff(levels(readx),[nothing]), levels(x))) == length(levels(x))
-    @test readx isa CategoricalVector{Union{Nothing,String}}
-
-    x = CategoricalArray(["x",nothing,"y","z","y",nothing,"z","x"])
-    str = JSON3.write(x)
-
-    readx = JSON3.read(str, CategoricalArray{Union{Missing,String}})
-    @test all(((get(a) isa Nothing) && ismissing(b)) || a == b for (a,b) in zip(x,readx))
-    @test readx isa CategoricalVector
 
     x = MyCustomType(
         collect(1:3),

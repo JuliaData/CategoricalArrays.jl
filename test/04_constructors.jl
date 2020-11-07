@@ -5,9 +5,9 @@ using CategoricalArrays: DefaultRefType
 
 @testset "Type parameter constraints" begin
     # cannot use categorical value as level type
-    @test_throws ArgumentError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
+    @test_throws TypeError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
             Dict{CategoricalValue{Int,UInt8}, UInt8}(), false)
-    @test_throws ArgumentError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
+    @test_throws TypeError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
                 CategoricalValue{Int,UInt8}[], false)
     # cannot use non-categorical value as categorical value type
     @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Int[], false)

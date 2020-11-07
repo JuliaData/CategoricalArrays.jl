@@ -19,15 +19,41 @@ function reftype(sz::Int)
     end
 end
 
+# This check is only there to print a user-friendly warning before
+# a TypeError is thrown due to restrictions in the type signature
+function check_supported_eltype(::Type{T}, ::Type{U}) where {T, U}
+    T === Symbol &&
+    throw(ArgumentError("CategoricalArray no longer supports Symbol as element type "*
+                        "as that forces recompiling too many Julia Base methods: " *
+                        "use strings instead, e.g. via categorical(string.(x))"))
+    T <: Union{SupportedTypes, Missing} ||
+        throw(ArgumentError("CategoricalArray only supports " *
+                            "AbstractString, AbstractChar and Number element types " *
+                            "(got element type $U)"))
+end
+
 fixstringtype(T::Type) = T <: SubString || T === AbstractString ? String : T
 fixstringtype(T::Union) = Union{fixstringtype(T.a), fixstringtype(T.b)}
 fixstringtype(::Type{Union{}}) = Union{}
+
+# Find a narrow type that is supported to hold all elements if possible
+function fixtype(A::AbstractArray{T}) where T
+    if T <: Union{SupportedTypes, Missing}
+        return fixstringtype(T)
+    else
+        U = fixstringtype(mapreduce(typeof, Base.promote_typejoin, A))
+        check_supported_eltype(U, T)
+        return U
+    end
+end
 
 """
     CategoricalArray{T}(undef, dims::Dims; levels=nothing, ordered=false)
     CategoricalArray{T}(undef, dims::Int...; levels=nothing, ordered=false)
 
-Construct an uninitialized `CategoricalArray` with levels of type `T` and dimensions `dim`.
+Construct an uninitialized `CategoricalArray` with levels of type
+`T <: $SupportedTypes` and dimensions `dims`.
+
 The `levels` keyword argument can be a vector specifying possible values for the data
 (this is equivalent to but more efficient than calling [`levels!`](@ref)
 on the resulting array).
@@ -52,8 +78,6 @@ in ascending order; else, they are kept in their order of appearance in `A`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalArray(A::CategoricalArray; levels=nothing, ordered=false)
-
 If `A` is already a `CategoricalArray`, its levels, orderedness and reference type
 are preserved unless explicitly overriden.
 """
@@ -62,7 +86,8 @@ function CategoricalArray end
 """
     CategoricalVector{T}(undef, m::Int; levels=nothing, ordered=false)
 
-Construct an uninitialized `CategoricalVector` with levels of type `T` and dimensions `dim`.
+Construct an uninitialized `CategoricalVector` with levels of type
+`T <: $SupportedTypes` and dimensions `dim`.
 
 The `levels` keyword argument can be a vector specifying possible values for the data
 (this is equivalent to but more efficient than calling [`levels!`](@ref)
@@ -87,8 +112,6 @@ in ascending order; else, they are kept in their order of appearance in `A`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalVector(A::CategoricalVector; levels=nothing, ordered=false)
-
 If `A` is already a `CategoricalVector`, its levels, orderedness and reference type
 are preserved unless explicitly overriden.
 """
@@ -97,7 +120,8 @@ function CategoricalVector end
 """
     CategoricalMatrix{T}(undef, m::Int, n::Int; levels=nothing, ordered=false)
 
-Construct an uninitialized `CategoricalMatrix` with levels of type `T` and dimensions `dim`.
+Construct an uninitialized `CategoricalMatrix` with levels of type
+`T <: $SupportedTypes` and dimensions `dim`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
@@ -118,8 +142,6 @@ in ascending order; else, they are kept in their order of appearance in `A`.
 The `ordered` keyword argument determines whether the array values can be compared
 according to the ordering of levels or not (see [`isordered`](@ref)).
 
-    CategoricalMatrix(A::CategoricalMatrix; levels=nothing, ordered=isordered(A))
-
 If `A` is already a `CategoricalMatrix`, its levels, orderedness and reference type
 are preserved unless explicitly overriden.
 """
@@ -137,6 +159,7 @@ function CategoricalArray{T, N, R}(::UndefInitializer, dims::NTuple{N,Int};
                                    ordered::Bool=false) where {T, N, R}
     U = leveltype(nonmissingtype(T))
     S = T >: Missing ? Union{U, Missing} : U
+    check_supported_eltype(S, T)
     V = CategoricalValue{U, R}
     levs = levels === nothing ? U[] : collect(U, levels)
     CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R, V}(levs, ordered))
@@ -231,6 +254,7 @@ function CategoricalArray{T, N, R}(A::AbstractArray;
 end
 
 # From AbstractArray
+
 CategoricalArray{T, N}(A::AbstractArray{S, N};
                        levels::Union{AbstractVector, Nothing}=nothing,
                        ordered::Bool=_isordered(A)) where {S, T, N} =
@@ -242,17 +266,17 @@ CategoricalArray{T}(A::AbstractArray{S, N};
 CategoricalArray(A::AbstractArray{T, N};
                  levels::Union{AbstractVector, Nothing}=nothing,
                  ordered::Bool=_isordered(A)) where {T, N} =
-    CategoricalArray{fixstringtype(T), N}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), N}(A, levels=levels, ordered=ordered)
 
 CategoricalVector(A::AbstractVector{T};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T} =
-    CategoricalArray{fixstringtype(T), 1}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), 1}(A, levels=levels, ordered=ordered)
 
 CategoricalMatrix(A::AbstractMatrix{T};
                   levels::Union{AbstractVector, Nothing}=nothing,
                   ordered::Bool=_isordered(A)) where {T} =
-    CategoricalArray{fixstringtype(T), 2}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), 2}(A, levels=levels, ordered=ordered)
 
 # From CategoricalArray (preserve R)
 CategoricalArray{T, N}(A::CategoricalArray{S, N, R};
@@ -286,12 +310,12 @@ convert(::Type{CategoricalArray{T, N}}, A::AbstractArray{S, N}) where {S, T, N} 
 convert(::Type{CategoricalArray{T}}, A::AbstractArray{S, N}) where {S, T, N} =
     convert(CategoricalArray{T, N}, A)
 convert(::Type{CategoricalArray}, A::AbstractArray{T, N}) where {T, N} =
-    convert(CategoricalArray{T, N}, A)
+    convert(CategoricalArray{fixtype(A), N}, A)
 
 convert(::Type{CategoricalVector{T}}, A::AbstractVector) where {T} =
     convert(CategoricalVector{T, DefaultRefType}, A)
 convert(::Type{CategoricalVector}, A::AbstractVector{T}) where {T} =
-    convert(CategoricalVector{T}, A)
+    convert(CategoricalVector{fixtype(A)}, A)
 convert(::Type{CategoricalVector{T}},
         A::CategoricalVector{S, R}) where {S, T, R <: Integer} =
     convert(CategoricalVector{T, R}, A)
@@ -301,7 +325,7 @@ convert(::Type{CategoricalVector}, A::CategoricalVector) = A
 convert(::Type{CategoricalMatrix{T}}, A::AbstractMatrix) where {T} =
     convert(CategoricalMatrix{T, DefaultRefType}, A)
 convert(::Type{CategoricalMatrix}, A::AbstractMatrix{T}) where {T} =
-    convert(CategoricalMatrix{T}, A)
+    convert(CategoricalMatrix{fixtype(A)}, A)
 convert(::Type{CategoricalMatrix{T}},
         A::CategoricalMatrix{S, R}) where {S, T, R <: Integer} =
     convert(CategoricalMatrix{T, R}, A)
@@ -313,6 +337,8 @@ convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, 
 
 function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
                   levels::Union{AbstractVector, Nothing}=nothing) where {S, T, N, R}
+    check_supported_eltype(T, T)
+
     res = CategoricalArray{T, N, R}(undef, size(A), levels=levels)
     copyto!(res, A)
 
@@ -698,7 +724,7 @@ function vcat(A::CategoricalArray...)
         [x==0 ? 0 : ii[x] for x in a.refs]::Array{Int,ndims(a)}
     end
 
-    T = Base.promote_eltype(A...) >: Missing ?
+    T = cat_promote_eltype(A...) >: Missing ?
         Union{eltype(newlevels), Missing} : eltype(newlevels)
     refs = DefaultRefType[refsvec...;]
     pool = CategoricalPool(newlevels, ordered)
@@ -912,7 +938,7 @@ are preserved unless explicitly overriden.
                              compress::Bool=false) where {T, N}
     # @inline is needed so that return type is inferred when compress is not provided
     RefType = compress ? reftype(length(unique(A))) : DefaultRefType
-    CategoricalArray{fixstringtype(T), N, RefType}(A, levels=levels, ordered=ordered)
+    CategoricalArray{fixtype(A), N, RefType}(A, levels=levels, ordered=ordered)
 end
 @inline function categorical(A::CategoricalArray{T, N, R};
                              levels::Union{AbstractVector, Nothing}=nothing,
@@ -920,7 +946,7 @@ end
                              compress::Bool=false) where {T, N, R}
     # @inline is needed so that return type is inferred when compress is not provided
     RefType = compress ? reftype(length(CategoricalArrays.levels(A))) : R
-    CategoricalArray{fixstringtype(T), N, RefType}(A, levels=levels, ordered=ordered)
+    CategoricalArray{T, N, RefType}(A, levels=levels, ordered=ordered)
 end
 
 function in(x::Any, y::CategoricalArray{T, N, R}) where {T, N, R}
@@ -1046,20 +1072,10 @@ end
 
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
                       A::AbstractVector) where {T} =
-    categoricalmissing(T, A)
+    CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
 StructTypes.construct(::Type{<:CategoricalArray{Union{Missing, T}}},
                       A::Vector) where {T} =
-    categoricalmissing(T, A)
-categoricalmissing(T, A::AbstractVector) =
     CategoricalArray{Union{Missing, T}}(replace(A, nothing=>missing))
-
-StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
-                      A::AbstractVector) where {T} =
-    categoricalnothing(T, A)
-StructTypes.construct(::Type{<:CategoricalArray{Union{Nothing, T}}},
-                      A::Vector) where {T} =
-    categoricalnothing(T, A)
-categoricalnothing(T, A::AbstractVector) = CategoricalArray{Union{Nothing, T}}(A)
 
 # DataAPI refarray/refvalue/refpool support
 struct CategoricalRefPool{T, P} <: AbstractVector{T}

@@ -274,8 +274,9 @@ recode!(a::AbstractArray, default::Any, pairs::Pair...) =
     recode!(a, a, default, pairs...)
 recode!(a::AbstractArray, pairs::Pair...) = recode!(a, a, nothing, pairs...)
 
-promote_valuetype(x::Pair{K, V}) where {K, V} = V
-promote_valuetype(x::Pair{K, V}, y::Pair...) where {K, V} = promote_type(V, promote_valuetype(y...))
+cat_promote_valuetype(x::Pair{K, V}) where {K, V} = V
+cat_promote_valuetype(x::Pair{K, V}, y::Pair...) where {K, V} =
+    cat_promote_type(V, cat_promote_valuetype(y...))
 
 keytype_hasmissing(x::Pair{K}) where {K} = K === Missing
 keytype_hasmissing(x::Pair{K}, y::Pair...) where {K} = K === Missing || keytype_hasmissing(y...)
@@ -350,11 +351,11 @@ recode(a::AbstractArray, pairs::Pair...) = recode(a, nothing, pairs...)
 recode(a::CategoricalArray, pairs::Pair...) = recode(a, nothing, pairs...)
 
 function recode(a::AbstractArray, default::Any, pairs::Pair...)
-    V = promote_valuetype(pairs...)
+    V = cat_promote_valuetype(pairs...)
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
-    T = default isa Nothing ? V : promote_type(typeof(default), V)
+    T = default isa Nothing ? V : cat_promote_type(typeof(default), V)
     # Exception 1: if T === Missing and default not missing,
     # assume the caller wants to recode only some values to missing,
     # but accept original values
@@ -371,11 +372,11 @@ function recode(a::AbstractArray, default::Any, pairs::Pair...)
 end
 
 function recode(a::CategoricalArray{S, N, R}, default::Any, pairs::Pair...) where {S, N, R}
-    V = promote_valuetype(pairs...)
+    V = cat_promote_valuetype(pairs...)
     # T cannot take into account eltype(src), since we can't know
     # whether it matters at compile time (all levels recoded or not)
     # and using a wider type than necessary would be annoying
-    T = default isa Nothing ? V : promote_type(typeof(default), V)
+    T = default isa Nothing ? V : cat_promote_type(typeof(default), V)
     # Exception 1: if T === Missing and default not missing,
     # assume the caller wants to recode only some values to missing,
     # but accept original values
@@ -396,13 +397,13 @@ end
 function Base.replace(a::CategoricalArray{S, N, R}, pairs::Pair...) where {S, N, R}
     # Base.replace(a::Array, pairs::Pair...) uses a wider type promotion than
     # recode. It promotes the source type S with the replaced types T.
-    T = promote_valuetype(pairs...)
+    T = cat_promote_valuetype(pairs...)
     # Exception: replacing missings
     # Example: replace(categorical([missing,1.5]), missing=>0)
     if keytype_hasmissing(pairs...)
-        dest = CategoricalArray{promote_type(nonmissingtype(S), T), N, R}(undef, size(a))
+        dest = CategoricalArray{cat_promote_type(nonmissingtype(S), T), N, R}(undef, size(a))
     else
-        dest = CategoricalArray{promote_type(S, T), N, R}(undef, size(a))
+        dest = CategoricalArray{cat_promote_type(S, T), N, R}(undef, size(a))
     end
     recode!(dest, a, nothing, pairs...)
 end

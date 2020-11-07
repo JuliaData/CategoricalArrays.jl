@@ -62,7 +62,7 @@ avoid doing a dict lookup twice
 end
 
 function mergelevels(ordered, levels...)
-    T = Base.promote_eltype(levels...)
+    T = cat_promote_eltype(levels...)
     res = Vector{T}(undef, 0)
 
     nonempty_lv = findfirst(!isempty, levels)
