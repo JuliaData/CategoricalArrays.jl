@@ -104,7 +104,7 @@ julia> lowercase(String(x[3]))
 julia> replace(String(x[3]), 'M'=>'R')
 "Riddle"
 ```
-Note that the call to `String` does reduce performance compared with working with a `Vector{String}` as it simply returns the string object which is stored by the pool.
+Note that the call to `String` does not reduce performance compared with working with a `Vector{String}` as it simply returns the string object which is stored by the pool.
 
 ## Handling Missing Values
 
