@@ -114,14 +114,20 @@ end
 end
 
 @testset "cut with formatter function" begin
-  my_formatter(from, to, i; leftclosed, rightclosed) = "$i: $from -- $to"
+    my_formatter(from, to, i; leftclosed, rightclosed) = "$i: $from -- $to"
 
-  x = 0.15:0.20:0.95
-  p = [0, 0.4, 0.8, 1.0]
+    x = 0.15:0.20:0.95
+    p = [0, 0.4, 0.8, 1.0]
 
-  @test cut(x, p, labels=my_formatter) ==
-      ["1: 0.0 -- 0.4", "1: 0.0 -- 0.4", "2: 0.4 -- 0.8", "2: 0.4 -- 0.8", "3: 0.8 -- 1.0"]
+    @test cut(x, p, labels=my_formatter) ==
+        ["1: 0.0 -- 0.4", "1: 0.0 -- 0.4", "2: 0.4 -- 0.8", "2: 0.4 -- 0.8", "3: 0.8 -- 1.0"]
+
+    # GH 274
+    my_formatter_2(from, to, i; leftclosed, rightclosed) = "$i: $(from+1) -- $(to+1)"
+    @test cut(x, p, labels=my_formatter_2) ==
+        ["1: 1.0 -- 1.4", "1: 1.0 -- 1.4", "2: 1.4 -- 1.8", "2: 1.4 -- 1.8", "3: 1.8 -- 2.0"]
 end
+
 
 @testset "cut with duplicated breaks" begin
     x = [zeros(10); ones(10)]

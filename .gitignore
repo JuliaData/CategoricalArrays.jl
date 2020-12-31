@@ -1,3 +1,5 @@
 .travis.yml
 docs/build/
 docs/site/
+.vscode
+Manifest.toml

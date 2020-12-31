@@ -177,8 +177,8 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
     n = length(breaks)
     n >= 2 || throw(ArgumentError("at least two breaks must be provided when extend is not true"))
     if labels isa Function
-        from = map(x -> sprint(show, x, context=:compact=>true), breaks[1:n-1])
-        to = map(x -> sprint(show, x, context=:compact=>true), breaks[2:n])
+        from = breaks[1:n-1]
+        to = breaks[2:n]
         levs = Vector{String}(undef, n-1)
         for i in 1:n-2
             levs[i] = labels(from[i], to[i], i,
