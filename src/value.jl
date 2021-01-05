@@ -94,6 +94,8 @@ function Base.show(io::IO, x::CategoricalValue)
     end
 end
 
+Base.show(io::IO, ::MIME"text/plain", x::CategoricalValue) = Base.show(io, x)
+
 Base.print(io::IO, x::CategoricalValue) = print(io, get(x))
 Base.string(x::CategoricalValue) = string(get(x))
 Base.write(io::IO, x::CategoricalValue) = write(io, get(x))
