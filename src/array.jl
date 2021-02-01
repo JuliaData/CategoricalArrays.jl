@@ -1098,7 +1098,7 @@ DataAPI.refarray(A::CatArrOrSub) = refs(A)
 DataAPI.refpool(A::CatArrOrSub{T}) where {T} =
     CategoricalRefPool{eltype(A), typeof(pool(A))}(pool(A))
 DataAPI.invrefpool(A::CatArrOrSub{T}) where {T} =
-    CategoricalInvRefPool{eltype(A), typeof(pool(A).invpool)}(pool(A).invpool)
+    CategoricalInvRefPool{eltype(A), typeof(pool(A).invindex)}(pool(A).invindex)
 
 @inline function DataAPI.refvalue(A::CatArrOrSub{T}, i::Integer) where T
     @boundscheck checkindex(Bool, (T >: Missing ? 0 : 1):length(pool(A)), i) ||
