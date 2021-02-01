@@ -1097,6 +1097,7 @@ Base.LinearIndices(x::CategoricalRefPool) = axes(x, 1)
 DataAPI.refarray(A::CatArrOrSub) = refs(A)
 DataAPI.refpool(A::CatArrOrSub{T}) where {T} =
     CategoricalRefPool{eltype(A), typeof(pool(A))}(pool(A))
+DataAPI.invrefpool(A::CatArrOrSub{T}) where {T} = pool(A).invpool
 
 @inline function DataAPI.refvalue(A::CatArrOrSub{T}, i::Integer) where T
     @boundscheck checkindex(Bool, (T >: Missing ? 0 : 1):length(pool(A)), i) ||
