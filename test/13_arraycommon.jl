@@ -2167,7 +2167,7 @@ end
         @test_throws MethodError similar(rp)
 
         irp = DataAPI.invrefpool(y)
-        for lev in eltype(y) >: Missing ? [missing, levels(y)] : levels(y)
+        for lev in (eltype(y) >: Missing ? [missing, levels(y)] : levels(y))
             @test isequal(rp[irp[lev]], lev)
         end
     end
