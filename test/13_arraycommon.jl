@@ -2172,7 +2172,7 @@ end
         end
 
         @test_throws KeyError irp[1]
-        @test_throws KeyError irp[z]
+        @test_throws KeyError irp["z"]
         if !(eltype(y) >: Missing)
             @test_throws KeyError irp[missing]
         end
