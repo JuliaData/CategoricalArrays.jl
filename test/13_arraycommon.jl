@@ -1638,8 +1638,8 @@ end
         @test sprint((io,a)->show(io, "text/plain", a), x) ==
             """
             3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
-             2      
-             1      
+             2
+             1
              missing"""
     end
 end
@@ -2167,8 +2167,14 @@ end
         @test_throws MethodError similar(rp)
 
         irp = DataAPI.invrefpool(y)
-        for lev in (eltype(y) >: Missing ? [missing, levels(y)] : levels(y))
+        for lev in (eltype(y) >: Missing ? [missing; levels(y)] : levels(y))
             @test isequal(rp[irp[lev]], lev)
+        end
+
+        @test_throws KeyError irp[1]
+        @test_throws KeyError irp[z]
+        if !(eltype(y) >: Missing)
+            @test_throws KeyError irp[missing]
         end
     end
 end

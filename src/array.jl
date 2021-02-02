@@ -1120,7 +1120,7 @@ end
 
 @inline function Base.getindex(x::CategoricalInvRefPool{T}, v) where {T}
     if T >: Missing && ismissing(v)
-        return zero(keytype(x.invpool))
+        return zero(valtype(x.invpool))
     else
         return x.invpool[v]
     end
