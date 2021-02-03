@@ -2130,7 +2130,7 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     @test levels(readx.var) == levels(x.var)
 end
 
-@testset "refarray, refvalue and refpool" begin
+@testset "refarray, refvalue, refpool, and invrefpool" begin
     for y in (categorical(["b", "a", "c", "b"]),
               view(categorical(["a", "a", "c", "b"]), 1:3),
               categorical(["b" missing; "a" "c"; "b" missing]),
@@ -2165,6 +2165,17 @@ end
         @test_throws BoundsError rp[-1]
         @test_throws BoundsError rp[end + 1]
         @test_throws MethodError similar(rp)
+
+        irp = DataAPI.invrefpool(y)
+        for lev in (eltype(y) >: Missing ? [missing; levels(y)] : levels(y))
+            @test isequal(rp[irp[lev]], lev)
+        end
+
+        @test_throws KeyError irp[1]
+        @test_throws KeyError irp["z"]
+        if !(eltype(y) >: Missing)
+            @test_throws KeyError irp[missing]
+        end
     end
 end
 
