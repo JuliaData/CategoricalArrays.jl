@@ -1125,3 +1125,11 @@ end
         return x.invpool[v]
     end
 end
+
+@inline function Base.get(x::CategoricalInvRefPool{T}, v, default) where {T}
+    if T >: Missing && ismissing(v)
+        return zero(valtype(x.invpool))
+    else
+        return get(x.invpool, v, default)
+    end
+end
