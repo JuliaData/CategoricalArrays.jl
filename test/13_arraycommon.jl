@@ -2174,8 +2174,8 @@ end
 
         @test_throws KeyError irp[1]
         @test_throws KeyError irp["z"]
-        @test_throws isnothing(get(irp, 1, nothing))
-        @test_throws isnothing(get(irp, "z", nothing))
+        @test isnothing(get(irp, 1, nothing))
+        @test isnothing(get(irp, "z", nothing))
         if !(eltype(y) >: Missing)
             @test_throws KeyError irp[missing]
         end
