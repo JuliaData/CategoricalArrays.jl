@@ -2169,10 +2169,13 @@ end
         irp = DataAPI.invrefpool(y)
         for lev in (eltype(y) >: Missing ? [missing; levels(y)] : levels(y))
             @test isequal(rp[irp[lev]], lev)
+            @test isequal(rp[get(irp, lev, nothing)], lev)
         end
 
         @test_throws KeyError irp[1]
         @test_throws KeyError irp["z"]
+        @test get(irp, 1, nothing) === nothing
+        @test get(irp, "z", nothing) === nothing
         if !(eltype(y) >: Missing)
             @test_throws KeyError irp[missing]
         end
