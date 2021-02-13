@@ -11,7 +11,6 @@ using CategoricalArrays: DefaultRefType, levels!
     @test levels(pool) == [2, 1, 3]
     @test all([levels(CategoricalValue(i, pool)) for i in 1:3] .=== Ref(levels(pool)))
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3)
-    @test pool.valindex == [CategoricalValue(i, pool) for i in 1:3]
 
     for rep in 1:3
         push!(pool, 4)
@@ -22,7 +21,6 @@ using CategoricalArrays: DefaultRefType, levels!
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4)
         @test get(pool, 4) === DefaultRefType(4)
         @test pool[4] === CategoricalValue(4, pool)
-        @test pool.valindex == [CategoricalValue(i, pool) for i in 1:4]
     end
 
     for rep in 1:3
@@ -34,7 +32,6 @@ using CategoricalArrays: DefaultRefType, levels!
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5)
         @test get(pool, 0) === DefaultRefType(5)
         @test pool[5] === CategoricalValue(5, pool)
-        @test pool.valindex == [CategoricalValue(i, pool) for i in 1:5]
     end
 
     for rep in 1:3
@@ -48,7 +45,6 @@ using CategoricalArrays: DefaultRefType, levels!
         @test get(pool, 11) === DefaultRefType(7)
         @test pool[6] === CategoricalValue(6, pool)
         @test pool[7] === CategoricalValue(7, pool)
-        @test pool.valindex == [CategoricalValue(i, pool) for i in 1:7]
     end
 
     for rep in 1:3
@@ -62,7 +58,6 @@ using CategoricalArrays: DefaultRefType, levels!
         @test get(pool, 13) === DefaultRefType(9)
         @test pool[8] === CategoricalValue(8, pool)
         @test pool[9] === CategoricalValue(9, pool)
-        @test pool.valindex == [CategoricalValue(i, pool) for i in 1:9]
     end
 
     # Removing levels
@@ -86,7 +81,6 @@ using CategoricalArrays: DefaultRefType, levels!
     @test get(pool, 14) === DefaultRefType(11)
     @test pool[10] === CategoricalValue(10, pool)
     @test pool[11] === CategoricalValue(11, pool)
-    @test pool.valindex == [CategoricalValue(i, pool) for i in 1:11]
 
     # get!
     ordered!(pool, true)
@@ -101,7 +95,6 @@ using CategoricalArrays: DefaultRefType, levels!
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12)
     @test get(pool, 20) === DefaultRefType(12)
-    @test pool.valindex == [CategoricalValue(i, pool) for i in 1:12]
 
     # get! with CategoricalValue adding new levels in conflicting order
     v = CategoricalValue(2, CategoricalPool([100, 99, 4, 2]))
@@ -123,7 +116,6 @@ using CategoricalArrays: DefaultRefType, levels!
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
     @test get(pool, 100) === DefaultRefType(13)
     @test get(pool, 99) === DefaultRefType(14)
-    @test pool.valindex == [CategoricalValue(i, pool) for i in 1:14]
 
     # get! with CategoricalValue not adding new levels
     v = CategoricalValue(1, CategoricalPool([100, 2]))
@@ -133,8 +125,7 @@ using CategoricalArrays: DefaultRefType, levels!
     @test length(pool) == 14
     @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
-    15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
-    @test pool.valindex == [CategoricalValue(i, pool) for i in 1:14]
+                                15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
 
     # get! with CategoricalValue from same pool
     @test get!(pool, pool[1]) === DefaultRefType(1)
@@ -144,7 +135,6 @@ using CategoricalArrays: DefaultRefType, levels!
     @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
-    @test pool.valindex == [CategoricalValue(i, pool) for i in 1:14]
 
     # get! with CategoricalValue conversion error
     v = CategoricalValue(1, CategoricalPool(["a", "b"]))

@@ -10,7 +10,6 @@ const SupportedTypes = Union{AbstractString, AbstractChar, Number}
 mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer, V}
     levels::Vector{T}       # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
-    valindex::Vector{V}     # "category value" objects 1-to-1 matching `index`
     ordered::Bool
 
     function CategoricalPool{T, R, V}(levels::Vector{T},
@@ -49,9 +48,7 @@ mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer, V}
         if V !== CategoricalValue{T, R}
             throw(ArgumentError("V must be CategoricalValue{T, R}"))
         end
-        valindex = Vector{V}(undef, length(levels))
-        pool = new(levels, invindex, valindex, ordered)
-        pool.valindex .= CategoricalValue.(1:length(levels), Ref(pool))
+        pool = new(levels, invindex, ordered)
         return pool
     end
 end
