@@ -1638,8 +1638,8 @@ end
         @test sprint((io,a)->show(io, "text/plain", a), x) ==
             """
             3-element $CategoricalArray{$(Union{Missing,Int}),1,UInt32}:
-             2      
-             1      
+             2
+             1
              missing"""
     end
 end
@@ -2180,6 +2180,11 @@ end
             @test_throws KeyError irp[missing]
         end
     end
+end
+
+@testset "unwrap" begin
+    x = categorical(["a", missing, "b", missing])
+    @test unwrap.(x) ≅ ["a", missing, "b", missing]
 end
 
 end

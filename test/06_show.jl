@@ -66,8 +66,8 @@ using JSON
                                    CategoricalPool([1]),
                                    CategoricalPool([1.0]))
     v = CategoricalValue(1, pool)
-    @test JSON.lower(v) == JSON.lower(get(v))
-    @test typeof(JSON.lower(v)) == typeof(JSON.lower(get(v)))
+    @test JSON.lower(v) == JSON.lower(unwrap(v))
+    @test typeof(JSON.lower(v)) == typeof(JSON.lower(unwrap(v)))
 end
 
 using JSON3
