@@ -23,7 +23,8 @@ unwrap_catvaluetype(::Type{Union{}}) = Union{} # prevent incorrect dispatch to T
 unwrap_catvaluetype(::Type{Any}) = Any # prevent recursion in T>:Missing method
 unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
 
-Base.get(x::CategoricalValue) = levels(x)[level(x)]
+Base.get(x::CategoricalValue) = DataAPI.unwrap(x)
+DataAPI.unwrap(x::CategoricalValue) = levels(x)[level(x)]
 
 """
     levelcode(x::CategoricalValue)
