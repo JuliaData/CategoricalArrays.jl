@@ -143,7 +143,7 @@ end
         end
         levels!(pool, newlevs)
     end
-    get!(pool, get(level))
+    get!(pool, unwrap(level))
 end
 
 @inline function Base.push!(pool::CategoricalPool, level)
