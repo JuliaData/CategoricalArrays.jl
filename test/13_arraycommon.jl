@@ -43,12 +43,13 @@ const ≇ = !isequal
         (["A", "B", "C", "D", "E"], true)
 
     # Test that mergelevels handles mutually incompatible orderings
+    # by giving priority to first sets of levels
     @test CategoricalArrays.mergelevels(true, [6, 3, 4, 7], [2, 3, 6, 5, 4], [2, 4, 8]) ==
-        ([6, 2, 3, 5, 4, 7, 8], false)
+        ([2, 6, 3, 5, 4, 7, 8], false)
     @test CategoricalArrays.mergelevels(true, ["A", "C", "D"], ["D", "C"], []) ==
         (["A", "C", "D"], false)
     @test CategoricalArrays.mergelevels(true, ["A", "D", "C"], ["A", "B", "C"], ["A", "D", "E"], ["C", "D"]) ==
-        (["A", "D", "B", "C", "E"], false)
+        (["A", "B", "D", "C", "E"], false)
 
     # Test that mergelevels handles incomplete orderings
     @test CategoricalArrays.mergelevels(true, ["B", "C", "D"], ["A", "C"]) ==
