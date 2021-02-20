@@ -62,4 +62,10 @@ end
     end
 end
 
+@testset "Indexing CategoricalValues" begin
+    x = first(CategoricalArray(["a"]))
+    @test checkindex(Bool, 1:1, x) == true
+    @test Base.to_index(x) == 1
 end
+
+end # module

@@ -33,6 +33,10 @@ of possible values returned by [`levels(x)`](@ref DataAPI.levels).
 """
 levelcode(x::CategoricalValue) = Signed(widen(level(x)))
 
+Base.checkindex(T::Type{Bool}, inds::AbstractUnitRange, x::CategoricalValue{String, UInt32}) =
+      Base.checkindex(T, inds, levelcode(x))
+Base.to_index(x::CategoricalValue{String, UInt32}) = Base.to_index(levelcode(x))
+
 """
     levelcode(x::Missing)
 
