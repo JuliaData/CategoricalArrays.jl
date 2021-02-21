@@ -463,7 +463,8 @@ function merge_pools!(A::CatArrOrSub,
                       updaterefs::Bool=true,
                       updatepool::Bool=true)
     if isordered(A) && length(pool(A)) > 0 && pool(B) ⊈ pool(A)
-        lev = B isa CategoricalValue ? unwrap(B) : first(setdiff(levels(B), levels(A)))
+        # TODO: extend OrderedLevelsException to take all values in setdiff(levels(B), levels(A))
+        lev = first(setdiff(levels(B), levels(A)))
         throw(OrderedLevelsException(lev, levels(A)))
     end
     newlevels, ordered = merge_pools(pool(A), pool(B))
