@@ -27,7 +27,7 @@ unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
     unwrap(x::CategoricalValue)
     unwrap(x::Missing)
 
-Get a value wrapped by categorical value `x`. If `x` is `Missing` return `missing`.
+Get the value wrapped by categorical value `x`. If `x` is `Missing` return `missing`.
 """
 DataAPI.unwrap(x::CategoricalValue) = levels(x)[level(x)]
 
