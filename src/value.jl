@@ -23,7 +23,13 @@ unwrap_catvaluetype(::Type{Union{}}) = Union{} # prevent incorrect dispatch to T
 unwrap_catvaluetype(::Type{Any}) = Any # prevent recursion in T>:Missing method
 unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
 
-Base.get(x::CategoricalValue) = levels(x)[level(x)]
+"""
+    unwrap(x::CategoricalValue)
+    unwrap(x::Missing)
+
+Get the value wrapped by categorical value `x`. If `x` is `Missing` return `missing`.
+"""
+DataAPI.unwrap(x::CategoricalValue) = levels(x)[level(x)]
 
 """
     levelcode(x::CategoricalValue)
@@ -71,11 +77,11 @@ Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:CategoricalValue, C2<:Categ
 
 # General fallbacks
 Base.convert(::Type{S}, x::CategoricalValue) where {S <: SupportedTypes} =
-    convert(S, get(x))
+    convert(S, unwrap(x))
 Base.convert(::Type{Union{S, Missing}}, x::CategoricalValue) where {S <: SupportedTypes} =
-    convert(Union{S, Missing}, get(x))
+    convert(Union{S, Missing}, unwrap(x))
 Base.convert(::Type{Union{S, Nothing}}, x::CategoricalValue) where {S <: SupportedTypes} =
-    convert(Union{S, Nothing}, get(x))
+    convert(Union{S, Nothing}, unwrap(x))
 
 (::Type{T})(x::T) where {T <: CategoricalValue} = x
 
@@ -83,47 +89,47 @@ Base.Broadcast.broadcastable(x::CategoricalValue) = Ref(x)
 
 function Base.show(io::IO, x::CategoricalValue)
     if nonmissingtype(get(io, :typeinfo, Any)) === nonmissingtype(typeof(x))
-        show(io, get(x))
+        show(io, unwrap(x))
     else
         print(io, typeof(x))
         print(io, ' ')
-        show(io, get(x))
+        show(io, unwrap(x))
         if isordered(pool(x))
             @printf(io, " (%i/%i)", levelcode(x), length(pool(x)))
         end
     end
 end
 
-Base.print(io::IO, x::CategoricalValue) = print(io, get(x))
-Base.string(x::CategoricalValue) = string(get(x))
-Base.write(io::IO, x::CategoricalValue) = write(io, get(x))
-Base.String(x::CategoricalValue{<:AbstractString}) = String(get(x))
+Base.print(io::IO, x::CategoricalValue) = print(io, unwrap(x))
+Base.string(x::CategoricalValue) = string(unwrap(x))
+Base.write(io::IO, x::CategoricalValue) = write(io, unwrap(x))
+Base.String(x::CategoricalValue{<:AbstractString}) = String(unwrap(x))
 
 @inline function Base.:(==)(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y)
         return level(x) == level(y)
     else
-        return get(x) == get(y)
+        return unwrap(x) == unwrap(y)
     end
 end
 
-Base.:(==)(x::CategoricalValue, y::SupportedTypes) = get(x) == y
-Base.:(==)(x::SupportedTypes, y::CategoricalValue) = x == get(y)
+Base.:(==)(x::CategoricalValue, y::SupportedTypes) = unwrap(x) == y
+Base.:(==)(x::SupportedTypes, y::CategoricalValue) = x == unwrap(y)
 
 @inline function Base.isequal(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y)
         return level(x) == level(y)
     else
-        return isequal(get(x), get(y))
+        return isequal(unwrap(x), unwrap(y))
     end
 end
 
-Base.isequal(x::CategoricalValue, y::SupportedTypes) = isequal(get(x), y)
-Base.isequal(x::SupportedTypes, y::CategoricalValue) = isequal(x, get(y))
+Base.isequal(x::CategoricalValue, y::SupportedTypes) = isequal(unwrap(x), y)
+Base.isequal(x::SupportedTypes, y::CategoricalValue) = isequal(x, unwrap(y))
 
-Base.in(x::CategoricalValue, y::AbstractRange{T}) where {T<:Integer} = get(x) in y
+Base.in(x::CategoricalValue, y::AbstractRange{T}) where {T<:Integer} = unwrap(x) in y
 
-Base.hash(x::CategoricalValue, h::UInt) = hash(get(x), h)
+Base.hash(x::CategoricalValue, h::UInt) = hash(unwrap(x), h)
 
 # Method defined even on unordered values so that sort() works
 function Base.isless(x::CategoricalValue, y::CategoricalValue)
@@ -164,14 +170,14 @@ function Base.:<(y::SupportedTypes, x::CategoricalValue)
 end
 
 # JSON of CategoricalValue is JSON of the value it refers to
-JSON.lower(x::CategoricalValue) = JSON.lower(get(x))
+JSON.lower(x::CategoricalValue) = JSON.lower(unwrap(x))
 DataAPI.defaultarray(::Type{CategoricalValue{T, R}}, N) where {T, R} =
   CategoricalArray{T, N, R}
 DataAPI.defaultarray(::Type{Union{CategoricalValue{T, R}, Missing}}, N) where {T, R} =
   CategoricalArray{Union{T, Missing}, N, R}
 
 # define appropriate handlers for JSON3 interface
-StructTypes.StructType(x::CategoricalValue) = StructTypes.StructType(get(x))
+StructTypes.StructType(x::CategoricalValue) = StructTypes.StructType(unwrap(x))
 StructTypes.StructType(::Type{<:CategoricalValue{T}}) where {T} = StructTypes.StructType(T)
 StructTypes.numbertype(::Type{<:CategoricalValue{T}}) where {T <: Number} = T
-StructTypes.construct(::Type{T}, x::CategoricalValue{T}) where {T} = T(get(x))
+StructTypes.construct(::Type{T}, x::CategoricalValue{T}) where {T} = T(unwrap(x))

@@ -2182,4 +2182,9 @@ end
     end
 end
 
+@testset "unwrap" begin
+    x = categorical(["a", missing, "b", missing])
+    @test unwrap.(x) ≅ ["a", missing, "b", missing]
+end
+
 end

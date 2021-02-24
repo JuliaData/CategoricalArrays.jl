@@ -11,3 +11,7 @@ function categorical(A::AbstractArray, compress::Bool; kwargs...)
     throw(ErrorException("categorical(A::AbstractArray, compress, kwargs...) is deprecated: " *
                          "use categorical(A, compress=compress, kwargs...) instead."))
 end
+
+import Base: get
+
+@deprecate get(x::CategoricalValue) DataAPI.unwrap(x)
