@@ -967,6 +967,10 @@ end
 Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
 collect(A::CategoricalArray) = copy(A)
 
+# Defined for performance
+collect(x::Base.SkipMissing{<: CatArrOrSub{T}}) where {T} =
+    CategoricalVector{nonmissingtype(T)}(filter(v -> v > 0, refs(x.x)), copy(pool(x.x)))
+
 function float(A::CategoricalArray{T}) where T
     if !isconcretetype(T)
         error("`float` not defined on abstractly-typed arrays; please convert to a more specific type")
