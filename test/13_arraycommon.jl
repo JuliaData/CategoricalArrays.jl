@@ -1350,6 +1350,17 @@ end
     end
 end
 
+@testset "collect for SkipMissing" begin
+    for x in (categorical([1, missing, 3, missing, 2]),
+              view(categorical([2, 1, missing, 3, missing, 2]), 2:6),
+              categorical([1 missing; 3 missing]),
+              view(categorical([2 1; missing 3; missing 2]), 2:3, :))
+        res = collect(skipmissing(x))
+        @test res == collect(skipmissing(unwrap.(x)))
+        @test res isa CategoricalVector
+    end
+end
+
 @testset "Array(::CategoricalArray{T}) produces Array{T}" begin
     x = [1,1,2,2]
     y = categorical(x)
