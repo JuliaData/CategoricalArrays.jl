@@ -40,7 +40,7 @@ end
 
 Base.length(pool::CategoricalPool) = length(pool.levels)
 
-Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
+Base.getindex(pool::CategoricalPool, i::Integer) = CategoricalValue(i, pool)
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
@@ -57,7 +57,6 @@ avoid doing a dict lookup twice
 
     i = R(n + 1)
     push!(pool.levels, x)
-    push!(pool.valindex, CategoricalValue(i, pool))
     i
 end
 
@@ -202,12 +201,10 @@ function levels!(pool::CategoricalPool{S, R}, newlevels::Vector;
 
     empty!(pool.invindex)
     resize!(pool.levels, n)
-    resize!(pool.valindex, n)
     for i in 1:n
         v = levs[i]
         pool.levels[i] = v
         pool.invindex[v] = i
-        pool.valindex[i] = CategoricalValue(i, pool)
     end
 
     return pool

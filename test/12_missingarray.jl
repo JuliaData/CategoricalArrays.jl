@@ -134,9 +134,9 @@ const ≅ = isequal
                 @test_throws Exception x[1] > x[2]
                 @test_throws Exception x[3] > x[2]
 
-                @test x[1] === x.pool.valindex[2]
-                @test x[2] === x.pool.valindex[1]
-                @test x[3] === x.pool.valindex[2]
+                @test x[1] === CategoricalValue(2, x.pool)
+                @test x[2] === CategoricalValue(1, x.pool)
+                @test x[3] === CategoricalValue(2, x.pool)
                 @test_throws BoundsError x[4]
 
                 x2 = x[:]
@@ -169,34 +169,34 @@ const ≅ = isequal
                 @test isordered(x2) == isordered(x)
 
                 x[1] = x[2]
-                @test x[1] === x.pool.valindex[1]
-                @test x[2] === x.pool.valindex[1]
-                @test x[3] === x.pool.valindex[2]
+                @test x[1] === CategoricalValue(1, x.pool)
+                @test x[2] === CategoricalValue(1, x.pool)
+                @test x[3] === CategoricalValue(2, x.pool)
 
                 x[3] = "c"
-                @test x[1] === x.pool.valindex[1]
-                @test x[2] === x.pool.valindex[1]
-                @test x[3] === x.pool.valindex[3]
+                @test x[1] === CategoricalValue(1, x.pool)
+                @test x[2] === CategoricalValue(1, x.pool)
+                @test x[3] === CategoricalValue(3, x.pool)
                 @test levels(x) == ["a", "b", "c"]
 
                 x[2:3] .= "b"
-                @test x[1] === x.pool.valindex[1]
-                @test x[2] === x.pool.valindex[2]
-                @test x[3] === x.pool.valindex[2]
+                @test x[1] === CategoricalValue(1, x.pool)
+                @test x[2] === CategoricalValue(2, x.pool)
+                @test x[3] === CategoricalValue(2, x.pool)
                 @test levels(x) == ["a", "b", "c"]
 
                 @test droplevels!(x) === x
                 @test levels(x) == ["a", "b"]
-                @test x[1] === x.pool.valindex[1]
-                @test x[2] === x.pool.valindex[2]
-                @test x[3] === x.pool.valindex[2]
+                @test x[1] === CategoricalValue(1, x.pool)
+                @test x[2] === CategoricalValue(2, x.pool)
+                @test x[3] === CategoricalValue(2, x.pool)
                 @test levels(x) == ["a", "b"]
 
                 @test levels!(x, ["b", "a"]) === x
                 @test levels(x) == ["b", "a"]
-                @test x[1] === x.pool.valindex[2]
-                @test x[2] === x.pool.valindex[1]
-                @test x[3] === x.pool.valindex[1]
+                @test x[1] === CategoricalValue(2, x.pool)
+                @test x[2] === CategoricalValue(1, x.pool)
+                @test x[3] === CategoricalValue(1, x.pool)
                 @test levels(x) == ["b", "a"]
 
                 @test_throws ArgumentError levels!(x, ["a"])
@@ -205,21 +205,21 @@ const ≅ = isequal
 
                 @test levels!(x, ["e", "a", "b"]) === x
                 @test levels(x) == ["e", "a", "b"]
-                @test x[1] === x.pool.valindex[2]
-                @test x[2] === x.pool.valindex[3]
-                @test x[3] === x.pool.valindex[3]
+                @test x[1] === CategoricalValue(2, x.pool)
+                @test x[2] === CategoricalValue(3, x.pool)
+                @test x[3] === CategoricalValue(3, x.pool)
                 @test levels(x) == ["e", "a", "b"]
 
                 x[1] = "c"
-                @test x[1] === x.pool.valindex[4]
-                @test x[2] === x.pool.valindex[3]
-                @test x[3] === x.pool.valindex[3]
+                @test x[1] === CategoricalValue(4, x.pool)
+                @test x[2] === CategoricalValue(3, x.pool)
+                @test x[3] === CategoricalValue(3, x.pool)
                 @test levels(x) == ["e", "a", "b", "c"]
 
                 @test_throws ArgumentError levels!(x, ["e", "c"])
                 @test levels!(x, ["e", "c"], allowmissing=true) === x
                 @test levels(x) == ["e", "c"]
-                @test x[1] === x.pool.valindex[2]
+                @test x[1] === CategoricalValue(2, x.pool)
                 @test x[2] === missing
                 @test x[3] === missing
                 @test levels(x) == ["e", "c"]
@@ -334,8 +334,8 @@ const ≅ = isequal
             @test typeof(x2) === typeof(x)
             @test levels(x2) == levels(x)
 
-            @test x[1] === x.pool.valindex[1]
-            @test x[2] === x.pool.valindex[2]
+            @test x[1] === CategoricalValue(1, x.pool)
+            @test x[2] === CategoricalValue(2, x.pool)
             @test x[3] === missing
             @test_throws BoundsError x[4]
 
@@ -369,8 +369,8 @@ const ≅ = isequal
             @test isordered(x2) == isordered(x)
 
             x[1] = "b"
-            @test x[1] === x.pool.valindex[2]
-            @test x[2] === x.pool.valindex[2]
+            @test x[1] === CategoricalValue(2, x.pool)
+            @test x[2] === CategoricalValue(2, x.pool)
             @test x[3] === missing
 
             if ordered
@@ -378,15 +378,15 @@ const ≅ = isequal
                 levels!(x, [levels(x); "c"])
             end
             x[3] = "c"
-            @test x[1] === x.pool.valindex[2]
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[3]
+            @test x[1] === CategoricalValue(2, x.pool)
+            @test x[2] === CategoricalValue(2, x.pool)
+            @test x[3] === CategoricalValue(3, x.pool)
             @test levels(x) == ["a", "b", "c"]
 
             x[1] = missing
             @test x[1] === missing
-            @test x[2] === x.pool.valindex[2]
-            @test x[3] === x.pool.valindex[3]
+            @test x[2] === CategoricalValue(2, x.pool)
+            @test x[3] === CategoricalValue(3, x.pool)
             @test levels(x) == ["a", "b", "c"]
 
             x[2:3] .= missing
@@ -539,10 +539,10 @@ const ≅ = isequal
         @test typeof(x2) === typeof(x)
         @test levels(x2) == levels(x)
 
-        @test x[1] === x.pool.valindex[1]
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[3]
-        @test x[4] === x.pool.valindex[4]
+        @test x[1] === CategoricalValue(1, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(3, x.pool)
+        @test x[4] === CategoricalValue(4, x.pool)
         @test_throws BoundsError x[5]
 
         x2 = x[:]
@@ -575,10 +575,10 @@ const ≅ = isequal
         @test isordered(x2) == isordered(x)
 
         x[2] = 1
-        @test x[1] === x.pool.valindex[1]
-        @test x[2] === x.pool.valindex[3]
-        @test x[3] === x.pool.valindex[3]
-        @test x[4] === x.pool.valindex[4]
+        @test x[1] === CategoricalValue(1, x.pool)
+        @test x[2] === CategoricalValue(3, x.pool)
+        @test x[3] === CategoricalValue(3, x.pool)
+        @test x[4] === CategoricalValue(4, x.pool)
         @test levels(x) == unique(a)
         @test unique(x) == unique(collect(x))
 
@@ -587,10 +587,10 @@ const ≅ = isequal
             levels!(x, [levels(x); -1])
         end
         x[1:2] .= -1
-        @test x[1] === x.pool.valindex[5]
-        @test x[2] === x.pool.valindex[5]
-        @test x[3] === x.pool.valindex[3]
-        @test x[4] === x.pool.valindex[4]
+        @test x[1] === CategoricalValue(5, x.pool)
+        @test x[2] === CategoricalValue(5, x.pool)
+        @test x[3] === CategoricalValue(3, x.pool)
+        @test x[4] === CategoricalValue(4, x.pool)
         @test levels(x) == vcat(unique(a), -1)
         @test unique(x) == unique(collect(x))
 
@@ -725,20 +725,20 @@ const ≅ = isequal
         @test isordered(x2) === isordered(x)
         @test levels(x2) == levels(x)
 
-        @test x[1] === x.pool.valindex[1]
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[2]
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[3]
-        @test x[6] === x.pool.valindex[3]
+        @test x[1] === CategoricalValue(1, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(2, x.pool)
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(3, x.pool)
+        @test x[6] === CategoricalValue(3, x.pool)
         @test_throws BoundsError x[7]
 
-        @test x[1,1] === x.pool.valindex[1]
-        @test x[2,1] === x.pool.valindex[2]
-        @test x[1,2] === x.pool.valindex[2]
-        @test x[2,2] === x.pool.valindex[1]
-        @test x[1,3] === x.pool.valindex[3]
-        @test x[2,3] === x.pool.valindex[3]
+        @test x[1,1] === CategoricalValue(1, x.pool)
+        @test x[2,1] === CategoricalValue(2, x.pool)
+        @test x[1,2] === CategoricalValue(2, x.pool)
+        @test x[2,2] === CategoricalValue(1, x.pool)
+        @test x[1,3] === CategoricalValue(3, x.pool)
+        @test x[2,3] === CategoricalValue(3, x.pool)
         @test_throws BoundsError x[1,4]
         @test_throws BoundsError x[4,1]
         @test_throws BoundsError x[4,4]
@@ -753,30 +753,30 @@ const ≅ = isequal
             levels!(x, [levels(x); "z"])
         end
         x[1] = "z"
-        @test x[1] === x.pool.valindex[4]
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[2]
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[3]
-        @test x[6] === x.pool.valindex[3]
+        @test x[1] === CategoricalValue(4, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(2, x.pool)
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(3, x.pool)
+        @test x[6] === CategoricalValue(3, x.pool)
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,:] .= "a"
-        @test x[1] === x.pool.valindex[1]
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[1]
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[1]
-        @test x[6] === x.pool.valindex[3]
+        @test x[1] === CategoricalValue(1, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(1, x.pool)
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(1, x.pool)
+        @test x[6] === CategoricalValue(3, x.pool)
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,1:2] .= "z"
-        @test x[1] === x.pool.valindex[4]
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[4]
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[1]
-        @test x[6] === x.pool.valindex[3]
+        @test x[1] === CategoricalValue(4, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(4, x.pool)
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(1, x.pool)
+        @test x[6] === CategoricalValue(3, x.pool)
         @test levels(x) == ["a", "b", "c", "z"]
         end
 
@@ -858,19 +858,19 @@ const ≅ = isequal
         @test isordered(x2) === isordered(x)
         @test levels(x2) == levels(x)
 
-        @test x[1] === x.pool.valindex[1]
-        @test x[2] === x.pool.valindex[2]
+        @test x[1] === CategoricalValue(1, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
         @test x[3] === missing
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[3]
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(3, x.pool)
         @test x[6] === missing
         @test_throws BoundsError x[7]
 
-        @test x[1,1] === x.pool.valindex[1]
-        @test x[2,1] === x.pool.valindex[2]
+        @test x[1,1] === CategoricalValue(1, x.pool)
+        @test x[2,1] === CategoricalValue(2, x.pool)
         @test x[1,2] === missing
-        @test x[2,2] === x.pool.valindex[1]
-        @test x[1,3] === x.pool.valindex[3]
+        @test x[2,2] === CategoricalValue(1, x.pool)
+        @test x[1,3] === CategoricalValue(3, x.pool)
         @test x[2,3] === missing
         @test_throws BoundsError x[1,4]
         @test_throws BoundsError x[4,1]
@@ -913,74 +913,74 @@ const ≅ = isequal
             levels!(x, [levels(x); "z"])
         end
         x[1] = "z"
-        @test x[1] === x.pool.valindex[4]
-        @test x[2] === x.pool.valindex[2]
+        @test x[1] === CategoricalValue(4, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
         @test x[3] === missing
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[3]
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(3, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,:] .= "a"
-        @test x[1] === x.pool.valindex[1]
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[1]
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[1]
+        @test x[1] === CategoricalValue(1, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(1, x.pool)
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(1, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,1:2] .= "z"
-        @test x[1] === x.pool.valindex[4]
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[4]
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[1]
+        @test x[1] === CategoricalValue(4, x.pool)
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(4, x.pool)
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(1, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1] = missing
         @test x[1] === missing
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[4]
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[1]
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(4, x.pool)
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(1, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,1:2] .= missing
         @test x[1] === missing
-        @test x[2] === x.pool.valindex[2]
+        @test x[2] === CategoricalValue(2, x.pool)
         @test x[3] === missing
-        @test x[4] === x.pool.valindex[1]
-        @test x[5] === x.pool.valindex[1]
+        @test x[4] === CategoricalValue(1, x.pool)
+        @test x[5] === CategoricalValue(1, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[:,2] .= missing
         @test x[1] === missing
-        @test x[2] === x.pool.valindex[2]
+        @test x[2] === CategoricalValue(2, x.pool)
         @test x[3] === missing
         @test x[4] === missing
-        @test x[5] === x.pool.valindex[1]
+        @test x[5] === CategoricalValue(1, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,2] = "a"
         @test x[1] === missing
-        @test x[2] === x.pool.valindex[2]
-        @test x[3] === x.pool.valindex[1]
+        @test x[2] === CategoricalValue(2, x.pool)
+        @test x[3] === CategoricalValue(1, x.pool)
         @test x[4] === missing
-        @test x[5] === x.pool.valindex[1]
+        @test x[5] === CategoricalValue(1, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[2,1] = missing
         @test x[1] === missing
         @test x[2] === missing
-        @test x[3] === x.pool.valindex[1]
+        @test x[3] === CategoricalValue(1, x.pool)
         @test x[4] === missing
-        @test x[5] === x.pool.valindex[1]
+        @test x[5] === CategoricalValue(1, x.pool)
         @test x[6] === missing
         @test levels(x) == ["a", "b", "c", "z"]
         end
@@ -1020,7 +1020,7 @@ const ≅ = isequal
             levels!(x, [levels(x); "c"])
         end
         x[1] = "c"
-        @test x[1] === x.pool.valindex[1]
+        @test x[1] === CategoricalValue(1, x.pool)
         @test ismissing(x[2])
         @test levels(x) == ["c"]
 
@@ -1029,12 +1029,12 @@ const ≅ = isequal
             levels!(x, [levels(x); "a"])
         end
         x[1] = "a"
-        @test x[1] === x.pool.valindex[2]
+        @test x[1] === CategoricalValue(2, x.pool)
         @test ismissing(x[2])
         @test levels(x) == ["c", "a"]
 
         x[2] = missing
-        @test x[1] === x.pool.valindex[2]
+        @test x[1] === CategoricalValue(2, x.pool)
         @test x[2] === missing
         @test levels(x) == ["c", "a"]
 
@@ -1043,7 +1043,7 @@ const ≅ = isequal
             levels!(x, [levels(x); "b"])
         end
         x[1] = "b"
-        @test x[1] === x.pool.valindex[3]
+        @test x[1] === CategoricalValue(3, x.pool)
         @test x[2] === missing
         @test levels(x) == ["c", "a", "b"]
         end
