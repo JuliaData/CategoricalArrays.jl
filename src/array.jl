@@ -968,10 +968,8 @@ Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
 collect(A::CategoricalArray) = copy(A)
 
 # Defined for performance
-function collect(x::Base.SkipMissing{<: CatArrOrSub{T}}) where {T}
-    r = refs(x.x)
-    return CategoricalVector{T}(r[r .> 0], copy(pool(x.x)))
-end
+collect(x::Base.SkipMissing{<: CatArrOrSub{T}}) where {T} =
+    CategoricalVector{nonmissingtype(T)}(filter(v -> v > 0, refs(x.x)), copy(pool(x.x)))
 
 function float(A::CategoricalArray{T}) where T
     if !isconcretetype(T)
