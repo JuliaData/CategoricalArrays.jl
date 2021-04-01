@@ -32,8 +32,13 @@ Base.copy(pool::CategoricalPool{T, R, V}) where {T, R, V} =
     CategoricalPool{T, R, V}(copy(pool.levels), copy(pool.invindex), pool.ordered)
 
 function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
-    @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
-            join(map(repr, levels(pool)), ", "))
+    @static if VERSION >= v"1.6.0"
+        @printf(io, "%s{%s, %s}([%s])", CategoricalPool, T, R,
+                join(map(repr, levels(pool)), ", "))
+    else
+        @printf(io, "%s{%s, %s}([%s])", CategoricalPool, T, R,
+                join(map(repr, levels(pool)), ", "))
+    end
 
     pool.ordered && print(io, " with ordered levels")
 end
