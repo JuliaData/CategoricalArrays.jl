@@ -106,7 +106,7 @@ Base.write(io::IO, x::CategoricalValue) = write(io, unwrap(x))
 Base.String(x::CategoricalValue{<:AbstractString}) = String(unwrap(x))
 
 @inline function Base.:(==)(x::CategoricalValue, y::CategoricalValue)
-    if pool(x) === pool(y)
+    if pool(x) === pool(y) || pool(x) == pool(y)
         return level(x) == level(y)
     else
         return unwrap(x) == unwrap(y)
@@ -117,7 +117,7 @@ Base.:(==)(x::CategoricalValue, y::SupportedTypes) = unwrap(x) == y
 Base.:(==)(x::SupportedTypes, y::CategoricalValue) = x == unwrap(y)
 
 @inline function Base.isequal(x::CategoricalValue, y::CategoricalValue)
-    if pool(x) === pool(y)
+    if pool(x) === pool(y) || pool(x) == pool(y)
         return level(x) == level(y)
     else
         return isequal(unwrap(x), unwrap(y))
@@ -133,10 +133,10 @@ Base.hash(x::CategoricalValue, h::UInt) = hash(unwrap(x), h)
 
 # Method defined even on unordered values so that sort() works
 function Base.isless(x::CategoricalValue, y::CategoricalValue)
-    if pool(x) !== pool(y)
-        throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
-    else
+    if pool(x) === pool(y) || pool(x) == pool(y)
         return levelcode(x) < levelcode(y)
+    else
+        throw(ArgumentError("CategoricalValue objects from unequal pools cannot be tested for order"))
     end
 end
 
@@ -144,12 +144,16 @@ Base.isless(x::CategoricalValue, y::SupportedTypes) = levelcode(x) < levelcode(x
 Base.isless(y::SupportedTypes, x::CategoricalValue) = levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
 
 function Base.:<(x::CategoricalValue, y::CategoricalValue)
-    if pool(x) !== pool(y)
-        throw(ArgumentError("CategoricalValue objects with different pools cannot be tested for order"))
-    elseif !isordered(pool(x)) # !isordered(pool(y)) is implied by pool(x) === pool(y)
-        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
+    poolx = pool(x)
+    pooly = pool(y)
+    if poolx === pooly || poolx == pooly
+        if isordered(poolx) && isordered(pooly)
+            return levelcode(x) < levelcode(y)
+        else
+            throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
+        end
     else
-        return levelcode(x) < levelcode(y)
+        throw(ArgumentError("CategoricalValue objects from unequal pools cannot be tested for order"))
     end
 end
 

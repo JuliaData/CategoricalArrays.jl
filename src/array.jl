@@ -491,7 +491,6 @@ end
 
 @inline function setindex!(A::CategoricalArray, v::Any, I::Real...)
     @boundscheck checkbounds(A, I...)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
         merge_pools!(A, v)
     end
@@ -506,7 +505,6 @@ Base.fill(v::CategoricalValue, dims::Tuple{}) =
     invoke(fill, Tuple{CategoricalValue{T}, NTuple{N, Integer}} where {T, N}, v, dims)
 
 function Base.fill!(A::CategoricalArray, v::Any)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
         merge_pools!(A, v, updaterefs=false)
     end
@@ -877,7 +875,6 @@ function Base.resize!(A::CategoricalVector, n::Integer)
 end
 
 function Base.push!(A::CategoricalVector, v::Any)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
         merge_pools!(A, v)
     end
@@ -887,7 +884,6 @@ function Base.push!(A::CategoricalVector, v::Any)
 end
 
 function Base.append!(A::CategoricalVector, B::CatArrOrSub)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if pool(B) !== pool(A) && pool(B) ⊈ pool(A)
         merge_pools!(A, B)
     end

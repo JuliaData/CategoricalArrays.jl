@@ -178,6 +178,57 @@ end
         @test_throws KeyError v1 >= "a"
     end
 
+    @testset "comparison with values from different pools" begin
+        poolb = copy(pool)
+        v1b = CategoricalValue(1, poolb)
+        v2b = CategoricalValue(2, poolb)
+        v3b = CategoricalValue(3, poolb)
+
+        @test (v1 < v1b) === false
+        @test (v1 < v2b) === true
+        @test (v1 < v3b) === true
+        @test (v2 < v1b) === false
+        @test (v2 < v2b) === false
+        @test (v2 < v3b) === true
+        @test (v3 < v1b) === false
+        @test (v3 < v2b) === false
+        @test (v3 < v3b) === false
+
+        @test isless(v1, v1b) === false
+        @test isless(v1, v2b) === true
+        @test isless(v1, v3b) === true
+        @test isless(v2, v1b) === false
+        @test isless(v2, v2b) === false
+        @test isless(v2, v3b) === true
+        @test isless(v3, v1b) === false
+        @test isless(v3, v2b) === false
+        @test isless(v3, v3b) === false
+
+        poolc = copy(poolb)
+        @test poolb == poolc # To set subsetof field
+        v1c = CategoricalValue(1, poolc)
+        push!(poolc, 4)
+
+        @test_throws ArgumentError v1b < v1c
+        @test_throws ArgumentError isless(v1b, v1c)
+
+        poolc = copy(poolb)
+        @test poolb == poolc # To set subsetof field
+        v1c = CategoricalValue(1, poolc)
+        push!(poolc, 4)
+
+        @test_throws ArgumentError v1b < v1c
+        @test_throws ArgumentError isless(v1b, v1c)
+
+        poolc = copy(poolb)
+        @test poolb == poolc # To set subsetof field
+        v1c = CategoricalValue(1, poolc)
+        levels!(poolc, collect(1:4))
+
+        @test_throws ArgumentError v1b < v1c
+        @test_throws ArgumentError isless(v1b, v1c)
+    end
+
     @testset "comparison with missing" begin
         @test isless(v1, missing)
         @test !isless(missing, v1)
@@ -190,19 +241,6 @@ end
         @test ismissing(missing > v1)
         @test ismissing(missing >= v1)
     end
-end
-
-@testset "ordering comparisons between pools fail" begin
-    pool2 = CategoricalPool([1, 2, 3])
-    ordered!(pool2, true)
-
-    v = CategoricalValue(1, pool2)
-
-    @test_throws ArgumentError v < v1
-    @test_throws ArgumentError v <= v1
-    @test_throws ArgumentError v > v1
-    @test_throws ArgumentError v >= v1
-    @test_throws ArgumentError isless(v, v1)
 end
 
 end

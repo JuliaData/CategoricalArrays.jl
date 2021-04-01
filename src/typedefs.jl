@@ -10,7 +10,10 @@ const SupportedTypes = Union{AbstractString, AbstractChar, Number}
 mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer, V}
     levels::Vector{T}       # category levels ordered by their reference codes
     invindex::Dict{T, R}    # map from category levels to their reference codes
-    ordered::Bool
+    ordered::Bool           # whether levels can be compared using <
+    hash::UInt              # hash of levels
+    subsetof::UInt          # objectid(p) for last seen strict superset pool
+    equalto::UInt           # objectid(p) for last seen equal pool
 
     function CategoricalPool{T, R, V}(levels::Vector{T},
                                       ordered::Bool) where {T, R, V}
@@ -41,14 +44,15 @@ mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer, V}
     end
     function CategoricalPool{T, R, V}(levels::Vector{T},
                                       invindex::Dict{T, R},
-                                      ordered::Bool) where {T, R, V}
+                                      ordered::Bool,
+                                      hash::UInt=hashlevels(levels)) where {T, R, V}
         if !(V <: CategoricalValue)
             throw(ArgumentError("Type $V is not a categorical value type"))
         end
         if V !== CategoricalValue{T, R}
             throw(ArgumentError("V must be CategoricalValue{T, R}"))
         end
-        pool = new(levels, invindex, ordered)
+        pool = new(levels, invindex, ordered, hash, UInt(0), UInt(0))
         return pool
     end
 end
