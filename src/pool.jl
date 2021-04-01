@@ -36,7 +36,7 @@ function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
         @printf(io, "%s{%s, %s}([%s])", CategoricalPool, T, R,
                 join(map(repr, levels(pool)), ", "))
     else
-        @printf(io, "%s{%s, %s}([%s])", CategoricalPool, T, R,
+        @printf(io, "%s{%s,%s}([%s])", CategoricalPool, T, R,
                 join(map(repr, levels(pool)), ", "))
     end
 
