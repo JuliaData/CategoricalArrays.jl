@@ -67,7 +67,9 @@ it doesn't do this itself to avoid doing a dict lookup twice
 
     i = R(n + 1)
     push!(pool.levels, x)
-    pool.hash = hash(x, pool.hash)
+    if pool.hash !== nothing
+        pool.hash = hash(x, pool.hash)
+    end
     pool.equalto = 0
     pool.subsetof = 0
     i
@@ -142,7 +144,9 @@ end
 end
 
 @inline function Base.get!(pool::CategoricalPool, level::CategoricalValue)
-    pool === level.pool && return level.level
+    if pool === level.pool || pool == level.pool
+        return level.level
+    end
     if level.pool ⊈ pool
         if isordered(pool)
             throw(OrderedLevelsException(level, pool.levels))
@@ -191,7 +195,12 @@ function merge_pools(a::CategoricalPool{T}, b::CategoricalPool) where {T}
     newlevs, ordered
 end
 
-Base.hash(pool::CategoricalPool, h::UInt) = hash(pool.hash, h)
+function Base.hash(pool::CategoricalPool, h::UInt)
+    if pool.hash === nothing
+        pool.hash = hashlevels(levels(pool))
+    end
+    hash(pool.hash, h)
+end
 
 function Base.:(==)(a::CategoricalPool, b::CategoricalPool)
     pa = pointer_from_objref(a)
@@ -200,7 +209,7 @@ function Base.:(==)(a::CategoricalPool, b::CategoricalPool)
     if a === b || (a.equalto == pb && b.equalto == pa)
         return true
     else
-        if a.hash == b.hash && isequal(a.levels, b.levels)
+        if hash(a) == hash(b) && isequal(a.levels, b.levels)
             a.equalto = pb
             b.equalto = pa
             return true
@@ -218,7 +227,7 @@ function Base.issubset(a::CategoricalPool, b::CategoricalPool)
         return true
     else
         # Equality check is faster than subset check so do it first
-        if a.hash == b.hash && isequal(a.levels, b.levels)
+        if hash(a) == hash(b) && isequal(a.levels, b.levels)
             a.equalto = pb
             b.equalto = pa
             return true
@@ -251,7 +260,7 @@ function levels!(pool::CategoricalPool{S, R}, newlevels::Vector;
 
     empty!(pool.invindex)
     resize!(pool.levels, n)
-    pool.hash = hashlevels(levs)
+    pool.hash = nothing
     pool.equalto = 0
     pool.subsetof = 0
     for i in 1:n

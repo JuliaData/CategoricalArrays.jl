@@ -11,7 +11,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels(pool) == [2, 1, 3]
     @test all([levels(CategoricalValue(i, pool)) for i in 1:3] .=== Ref(levels(pool)))
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3)
-    @test pool.hash == hashlevels(levels(pool))
+    @test pool.hash === nothing
     @test pool.equalto == C_NULL
     @test pool.subsetof == C_NULL
 
@@ -22,7 +22,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test length(pool) === 4
         @test levels(pool) == [2, 1, 3, 4]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4)
-        @test pool.hash == hashlevels(levels(pool))
+        @test pool.hash === nothing
         @test pool.equalto == C_NULL
         @test pool.subsetof == C_NULL
         @test get(pool, 4) === DefaultRefType(4)
@@ -36,7 +36,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test length(pool) === 5
         @test levels(pool) == [2, 1, 3, 4, 0]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5)
-        @test pool.hash == hashlevels(levels(pool))
+        @test pool.hash === nothing
         @test pool.equalto == C_NULL
         @test pool.subsetof == C_NULL
         @test get(pool, 0) === DefaultRefType(5)
@@ -50,7 +50,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test length(pool) === 7
         @test levels(pool) == [2, 1, 3, 4, 0, 10, 11]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7)
-        @test pool.hash == hashlevels(levels(pool))
+        @test pool.hash === nothing
         @test pool.equalto == C_NULL
         @test pool.subsetof == C_NULL
         @test get(pool, 10) === DefaultRefType(6)
@@ -66,7 +66,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test length(pool) === 9
         @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9)
-        @test pool.hash == hashlevels(levels(pool))
+        @test pool.hash === nothing
         @test pool.equalto == C_NULL
         @test pool.subsetof == C_NULL
         @test get(pool, 12) === DefaultRefType(8)
@@ -86,7 +86,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels!(pool, levs) === pool
     @test levels(pool) == levs
     @test levels(pool) !== levs
-    @test pool.hash == hashlevels(levels(pool))
+    @test pool.hash === nothing
     @test pool.equalto == C_NULL
     @test pool.subsetof == C_NULL
 
@@ -95,7 +95,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14]
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11)
-    @test pool.hash == hashlevels(levels(pool))
+    @test pool.hash === nothing
     @test pool.equalto == C_NULL
     @test pool.subsetof == C_NULL
     @test get(pool, 15) === DefaultRefType(10)
@@ -115,7 +115,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20]
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12)
-    @test pool.hash == hashlevels(levels(pool))
+    @test pool.hash === nothing
     @test pool.equalto == C_NULL
     @test pool.subsetof == C_NULL
     @test get(pool, 20) === DefaultRefType(12)
@@ -138,7 +138,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
-    @test pool.hash == hashlevels(levels(pool))
+    @test pool.hash === nothing
     @test pool.equalto == C_NULL
     @test pool.subsetof == C_NULL
     @test get(pool, 100) === DefaultRefType(13)
@@ -153,7 +153,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
-    @test pool.hash == hashlevels(levels(pool))
+    @test pool.hash === CategoricalArrays.hashlevels(levels(pool))
     @test pool.equalto == C_NULL
     @test pool.subsetof == C_NULL
 
@@ -165,7 +165,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
-    @test pool.hash == hashlevels(levels(pool))
+    @test pool.hash === CategoricalArrays.hashlevels(levels(pool))
     @test pool.equalto == C_NULL
     @test pool.subsetof == C_NULL
 

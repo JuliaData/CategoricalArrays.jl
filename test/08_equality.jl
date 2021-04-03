@@ -70,6 +70,10 @@ using CategoricalArrays
     @test hash(pool1) != hash(pool2) != hash(pool3) != hash(pool4)
     @test hash(pool1, UInt(1234)) == hash(pool1b, UInt(1234)) != hash(pool1)
     @test hash(pool1, UInt(1234)) != hash(pool2, UInt(1234))
+    push!(pool1, "d")
+    @test hash(pool1) == hash(CategoricalArrays.hashlevels(levels(pool1)))
+    get!(pool1, "e")
+    @test hash(pool1) == hash(CategoricalArrays.hashlevels(levels(pool1)))
 
     poolnan1 = CategoricalPool([1.0, NaN])
     poolnan2 = CategoricalPool([1.0, NaN])
