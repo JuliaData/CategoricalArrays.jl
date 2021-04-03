@@ -194,15 +194,15 @@ end
 Base.hash(pool::CategoricalPool, h::UInt) = pool.hash
 
 function Base.:(==)(a::CategoricalPool, b::CategoricalPool)
-    aid = objectid(a)
-    bid = objectid(b)
+    pa = pointer_from_objref(a)
+    pb = pointer_from_objref(b)
     # Checking both ways is needed to detect changes to a or b
-    if a === b || (a.equalto == bid && b.equalto == aid)
+    if a === b || (a.equalto == pb && b.equalto == pa)
         return true
     else
         if a.hash == b.hash && isequal(a.levels, b.levels)
-            a.equalto = bid
-            b.equalto = objectid(a)
+            a.equalto = pb
+            b.equalto = pa
             return true
         else
             return false
@@ -211,19 +211,19 @@ function Base.:(==)(a::CategoricalPool, b::CategoricalPool)
 end
 
 function Base.issubset(a::CategoricalPool, b::CategoricalPool)
-    aid = objectid(a)
-    bid = objectid(b)
+    pa = pointer_from_objref(a)
+    pb = pointer_from_objref(b)
     # Checking both ways is needed to detect changes to a or b
-    if a === b || (a.equalto == bid && b.equalto == aid) || a.subsetof == bid
+    if a === b || (a.equalto == pb && b.equalto == pa) || a.subsetof == pb
         return true
     else
         # Equality check is faster than subset check so do it first
         if a.hash == b.hash && isequal(a.levels, b.levels)
-            a.equalto = bid
-            b.equalto = objectid(a)
+            a.equalto = pb
+            b.equalto = pa
             return true
         elseif issubset(a.levels, keys(b.invindex))
-            a.subsetof = bid
+            a.subsetof = pb
             return true
         else
             return false

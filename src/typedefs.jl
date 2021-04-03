@@ -12,8 +12,8 @@ mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer, V}
     invindex::Dict{T, R}    # map from category levels to their reference codes
     ordered::Bool           # whether levels can be compared using <
     hash::UInt              # hash of levels
-    subsetof::UInt          # objectid(p) for last seen strict superset pool
-    equalto::UInt           # objectid(p) for last seen equal pool
+    subsetof::Ptr{Nothing}  # last seen strict superset pool
+    equalto::Ptr{Nothing}   # last seen equal pool
 
     function CategoricalPool{T, R, V}(levels::Vector{T},
                                       ordered::Bool) where {T, R, V}

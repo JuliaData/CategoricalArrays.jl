@@ -12,8 +12,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test all([levels(CategoricalValue(i, pool)) for i in 1:3] .=== Ref(levels(pool)))
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3)
     @test pool.hash == hashlevels(levels(pool))
-    @test pool.equalto == 0
-    @test pool.subsetof == 0
+    @test pool.equalto == C_NULL
+    @test pool.subsetof == C_NULL
 
     for rep in 1:3
         push!(pool, 4)
@@ -23,8 +23,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test levels(pool) == [2, 1, 3, 4]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4)
         @test pool.hash == hashlevels(levels(pool))
-        @test pool.equalto == 0
-        @test pool.subsetof == 0
+        @test pool.equalto == C_NULL
+        @test pool.subsetof == C_NULL
         @test get(pool, 4) === DefaultRefType(4)
         @test pool[4] === CategoricalValue(4, pool)
     end
@@ -37,8 +37,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test levels(pool) == [2, 1, 3, 4, 0]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5)
         @test pool.hash == hashlevels(levels(pool))
-        @test pool.equalto == 0
-        @test pool.subsetof == 0
+        @test pool.equalto == C_NULL
+        @test pool.subsetof == C_NULL
         @test get(pool, 0) === DefaultRefType(5)
         @test pool[5] === CategoricalValue(5, pool)
     end
@@ -51,8 +51,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test levels(pool) == [2, 1, 3, 4, 0, 10, 11]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7)
         @test pool.hash == hashlevels(levels(pool))
-        @test pool.equalto == 0
-        @test pool.subsetof == 0
+        @test pool.equalto == C_NULL
+        @test pool.subsetof == C_NULL
         @test get(pool, 10) === DefaultRefType(6)
         @test get(pool, 11) === DefaultRefType(7)
         @test pool[6] === CategoricalValue(6, pool)
@@ -67,8 +67,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13]
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9)
         @test pool.hash == hashlevels(levels(pool))
-        @test pool.equalto == 0
-        @test pool.subsetof == 0
+        @test pool.equalto == C_NULL
+        @test pool.subsetof == C_NULL
         @test get(pool, 12) === DefaultRefType(8)
         @test get(pool, 13) === DefaultRefType(9)
         @test pool[8] === CategoricalValue(8, pool)
@@ -87,8 +87,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test levels(pool) == levs
     @test levels(pool) !== levs
     @test pool.hash == hashlevels(levels(pool))
-    @test pool.equalto == 0
-    @test pool.subsetof == 0
+    @test pool.equalto == C_NULL
+    @test pool.subsetof == C_NULL
 
     @test isa(pool.levels, Vector{Int})
     @test length(pool) === 11
@@ -96,8 +96,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11)
     @test pool.hash == hashlevels(levels(pool))
-    @test pool.equalto == 0
-    @test pool.subsetof == 0
+    @test pool.equalto == C_NULL
+    @test pool.subsetof == C_NULL
     @test get(pool, 15) === DefaultRefType(10)
     @test get(pool, 14) === DefaultRefType(11)
     @test pool[10] === CategoricalValue(10, pool)
@@ -116,8 +116,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12)
     @test pool.hash == hashlevels(levels(pool))
-    @test pool.equalto == 0
-    @test pool.subsetof == 0
+    @test pool.equalto == C_NULL
+    @test pool.subsetof == C_NULL
     @test get(pool, 20) === DefaultRefType(12)
 
     # get! with CategoricalValue adding new levels in conflicting order
@@ -139,8 +139,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
     @test pool.hash == hashlevels(levels(pool))
-    @test pool.equalto == 0
-    @test pool.subsetof == 0
+    @test pool.equalto == C_NULL
+    @test pool.subsetof == C_NULL
     @test get(pool, 100) === DefaultRefType(13)
     @test get(pool, 99) === DefaultRefType(14)
 
@@ -154,8 +154,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
     @test pool.hash == hashlevels(levels(pool))
-    @test pool.equalto == 0
-    @test pool.subsetof == 0
+    @test pool.equalto == C_NULL
+    @test pool.subsetof == C_NULL
 
     # get! with CategoricalValue from same pool
     @test get!(pool, pool[1]) === DefaultRefType(1)
@@ -166,8 +166,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
     @test pool.hash == hashlevels(levels(pool))
-    @test pool.equalto == 0
-    @test pool.subsetof == 0
+    @test pool.equalto == C_NULL
+    @test pool.subsetof == C_NULL
 
     # get! with CategoricalValue conversion error
     v = CategoricalValue(1, CategoricalPool(["a", "b"]))
@@ -214,48 +214,48 @@ end
     pool6 = CategoricalPool(String[])
 
     @test issubset(pool1, pool1)
-    @test pool1.equalto == 0
-    @test pool1.subsetof == 0
+    @test pool1.equalto == C_NULL
+    @test pool1.subsetof == C_NULL
 
     @test issubset(pool2, pool1)
-    @test pool1.equalto == pool2.equalto == 0
-    @test pool1.subsetof == 0
-    @test pool2.subsetof == objectid(pool1)
+    @test pool1.equalto == pool2.equalto == C_NULL
+    @test pool1.subsetof == C_NULL
+    @test pool2.subsetof == pointer_from_objref(pool1)
 
     @test issubset(pool1b, pool1)
-    @test pool1.equalto == objectid(pool1b)
-    @test pool1b.equalto == objectid(pool1)
-    @test pool1.subsetof == 0
-    @test pool2.subsetof == objectid(pool1)
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool1b.equalto == pointer_from_objref(pool1)
+    @test pool1.subsetof == C_NULL
+    @test pool2.subsetof == pointer_from_objref(pool1)
 
     @test !issubset(pool3, pool1)
-    @test pool1.equalto == objectid(pool1b)
-    @test pool3.equalto == 0
-    @test pool1.subsetof == pool3.subsetof == 0
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool3.equalto == C_NULL
+    @test pool1.subsetof == pool3.subsetof == C_NULL
 
     @test issubset(pool1, pool3)
-    @test pool1.equalto == objectid(pool1b)
-    @test pool3.equalto == 0
-    @test pool1.subsetof == objectid(pool3)
-    @test pool3.subsetof == 0
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool3.equalto == C_NULL
+    @test pool1.subsetof == pointer_from_objref(pool3)
+    @test pool3.subsetof == C_NULL
 
     @test issubset(pool4, pool1)
-    @test pool1.equalto == objectid(pool1b)
-    @test pool4.equalto == 0
-    @test pool1.subsetof == objectid(pool3)
-    @test pool4.subsetof == objectid(pool1)
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool4.equalto == C_NULL
+    @test pool1.subsetof == pointer_from_objref(pool3)
+    @test pool4.subsetof == pointer_from_objref(pool1)
 
     @test !issubset(pool5, pool1)
-    @test pool1.equalto == objectid(pool1b)
-    @test pool5.equalto == 0
-    @test pool1.subsetof == objectid(pool3)
-    @test pool5.subsetof == 0
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool5.equalto == C_NULL
+    @test pool1.subsetof == pointer_from_objref(pool3)
+    @test pool5.subsetof == C_NULL
 
     @test issubset(pool6, pool1)
-    @test pool1.equalto == objectid(pool1b)
-    @test pool6.equalto == 0
-    @test pool1.subsetof == objectid(pool3)
-    @test pool6.subsetof == objectid(pool1)
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool6.equalto == C_NULL
+    @test pool1.subsetof == pointer_from_objref(pool3)
+    @test pool6.subsetof == pointer_from_objref(pool1)
 end
 
 end

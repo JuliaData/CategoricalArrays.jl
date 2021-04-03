@@ -11,60 +11,60 @@ using CategoricalArrays
 
     @test isequal(pool1, pool1)
     @test pool1 == pool1
-    @test pool1.equalto == 0
+    @test pool1.equalto == C_NULL
 
     @test isequal(pool1, pool1b)
     @test pool1 == pool1b
-    @test pool1.equalto == objectid(pool1b)
-    @test pool1b.equalto == objectid(pool1)
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool1b.equalto == pointer_from_objref(pool1)
 
     @test !isequal(pool1, pool2)
     @test pool1 != pool2
-    @test pool1.equalto == objectid(pool1b)
-    @test pool2.equalto == 0
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool2.equalto == C_NULL
 
     @test !isequal(pool1, pool3)
     @test pool1 != pool3
-    @test pool1.equalto == objectid(pool1b)
-    @test pool3.equalto == 0
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool3.equalto == C_NULL
 
     @test !isequal(pool1, pool4)
     @test pool1 != pool4
-    @test pool1.equalto == objectid(pool1b)
-    @test pool4.equalto == 0
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool4.equalto == C_NULL
 
     pool1c = copy(pool1b)
     @test pool1b == pool1c # To set equalto field
     @test isequal(pool1, pool1c)
     push!(pool1c, "d")
-    @test pool1b.equalto == objectid(pool1c)
-    @test pool1c.equalto == 0
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
     @test pool1b != pool1c
     @test !isequal(pool1b, pool1c)
-    @test pool1b.equalto == objectid(pool1c)
-    @test pool1c.equalto == 0
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
 
     pool1c = copy(pool1b)
     @test pool1b == pool1c # To set equalto field
     @test isequal(pool1, pool1c)
     get!(pool1c, "d")
-    @test pool1b.equalto == objectid(pool1c)
-    @test pool1c.equalto == 0
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
     @test pool1b != pool1c
     @test !isequal(pool1b, pool1c)
-    @test pool1b.equalto == objectid(pool1c)
-    @test pool1c.equalto == 0
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
 
     pool1c = copy(pool1b)
     @test pool1b == pool1c # To set equalto field
     @test isequal(pool1, pool1c)
     levels!(pool1c, ["a", "b", "c", "d"])
-    @test pool1b.equalto == objectid(pool1c)
-    @test pool1c.equalto == 0
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
     @test pool1b != pool1c
     @test !isequal(pool1, pool1c)
-    @test pool1b.equalto == objectid(pool1c)
-    @test pool1c.equalto == 0
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
 
     @test hash(pool1) == hash(pool1b)
     @test hash(pool1) != hash(pool2) != hash(pool3) != hash(pool4)
