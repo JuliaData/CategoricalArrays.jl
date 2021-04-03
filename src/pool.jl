@@ -70,8 +70,8 @@ it doesn't do this itself to avoid doing a dict lookup twice
     if pool.hash !== nothing
         pool.hash = hash(x, pool.hash)
     end
-    pool.equalto = 0
-    pool.subsetof = 0
+    pool.equalto = C_NULL
+    pool.subsetof = C_NULL
     i
 end
 
@@ -261,8 +261,8 @@ function levels!(pool::CategoricalPool{S, R}, newlevels::Vector;
     empty!(pool.invindex)
     resize!(pool.levels, n)
     pool.hash = nothing
-    pool.equalto = 0
-    pool.subsetof = 0
+    pool.equalto = C_NULL
+    pool.subsetof = C_NULL
     for i in 1:n
         v = levs[i]
         pool.levels[i] = v
