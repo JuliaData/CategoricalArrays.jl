@@ -52,7 +52,7 @@ mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer, V}
         if V !== CategoricalValue{T, R}
             throw(ArgumentError("V must be CategoricalValue{T, R}"))
         end
-        pool = new(levels, invindex, ordered, hash, UInt(0), UInt(0))
+        pool = new(levels, invindex, ordered, hash, C_NULL, C_NULL)
         return pool
     end
 end
