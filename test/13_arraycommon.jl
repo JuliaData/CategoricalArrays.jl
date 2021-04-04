@@ -5,6 +5,10 @@ using Future: copy!
 using CategoricalArrays, DataAPI
 using CategoricalArrays: DefaultRefType
 using PooledArrays
+using JSON3
+using StructTypes
+using RecipesBase
+using Plots
 
 const ≅ = isequal
 const ≇ = !isequal
@@ -2098,9 +2102,6 @@ end
     @test_throws ArgumentError sort(x0)
     @test_throws ArgumentError CategoricalArray(x0)
 end
-
-using JSON3
-using StructTypes
 
 struct MyCustomTypeMissing
     id::Vector{Int}
