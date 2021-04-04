@@ -1,6 +1,6 @@
 name = "CategoricalArrays"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
-version = "0.9.0"
+version = "0.9.3"
 
 [deps]
 DataAPI = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
@@ -13,7 +13,7 @@ StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [compat]
-DataAPI = "1.1"
+DataAPI = "1.6"
 JSON = "0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21"
 JSON3 = "1.1.2"
 Missings = "0.4.3"

@@ -9,10 +9,10 @@ julia> using CategoricalArrays
 
 julia> x = CategoricalArray(["Old", "Young", "Middle", "Young"], ordered=true)
 4-element CategoricalArray{String,1,UInt32}:
- "Old"   
- "Young" 
+ "Old"
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 ```
 
@@ -22,15 +22,15 @@ By default, the levels are lexically sorted, which is clearly not correct in our
 julia> levels(x)
 3-element Array{String,1}:
  "Middle"
- "Old"   
- "Young" 
+ "Old"
+ "Young"
 
 julia> levels!(x, ["Young", "Middle", "Old"])
 4-element CategoricalArray{String,1,UInt32}:
- "Old"   
- "Young" 
+ "Old"
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 ```
 
@@ -69,20 +69,20 @@ To get rid of the `"Old"` group, just call the [`droplevels!`](@ref) function:
 ```jldoctest using
 julia> levels(x)
 3-element Array{String,1}:
- "Young" 
+ "Young"
  "Middle"
- "Old"   
+ "Old"
 
 julia> droplevels!(x)
 4-element CategoricalArray{String,1,UInt32}:
- "Young" 
- "Young" 
+ "Young"
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 julia> levels(x)
 2-element Array{String,1}:
- "Young" 
+ "Young"
  "Middle"
 
 ```
@@ -104,7 +104,7 @@ julia> lowercase(String(x[3]))
 julia> replace(String(x[3]), 'M'=>'R')
 "Riddle"
 ```
-Note that the call to `String` does reduce performance compared with working with a `Vector{String}` as it simply returns the string object which is stored by the pool.
+Note that the call to `String` does not reduce performance compared with working with a `Vector{String}` as it simply returns the string object which is stored by the pool.
 
 ## Handling Missing Values
 
@@ -115,10 +115,10 @@ Let's adapt the example developed above to support missing values. Since there a
 ```jldoctest using
 julia> y = CategoricalArray{Union{Missing, String}}(["Old", "Young", "Middle", "Young"], ordered=true)
 4-element CategoricalArray{Union{Missing, String},1,UInt32}:
- "Old"   
- "Young" 
+ "Old"
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 ```
 
@@ -128,15 +128,15 @@ Levels still need to be reordered manually:
 julia> levels(y)
 3-element Array{String,1}:
  "Middle"
- "Old"   
- "Young" 
+ "Old"
+ "Young"
 
 julia> levels!(y, ["Young", "Middle", "Old"])
 4-element CategoricalArray{Union{Missing, String},1,UInt32}:
- "Old"   
- "Young" 
+ "Old"
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 ```
 
@@ -156,9 +156,9 @@ missing
 julia> y
 4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  missing
- "Young" 
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 julia> y[1]
 missing
@@ -173,17 +173,17 @@ julia> y[1] = "Old"
 
 julia> y
 4-element CategoricalArray{Union{Missing, String},1,UInt32}:
- "Old"   
- "Young" 
+ "Old"
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 julia> levels!(y, ["Young", "Middle"]; allowmissing=true)
 4-element CategoricalArray{Union{Missing, String},1,UInt32}:
  missing
- "Young" 
+ "Young"
  "Middle"
- "Young" 
+ "Young"
 
 ```
 
@@ -205,17 +205,17 @@ If we concatenate the two sets, the levels of the resulting categorical vector a
 julia> xy = vcat(x, y)
 6-element CategoricalArray{String,1,UInt32}:
  "Middle"
- "Old"   
+ "Old"
  "Middle"
- "Young" 
+ "Young"
  "Middle"
  "Middle"
 
 julia> levels(xy)
 3-element Array{String,1}:
- "Young" 
+ "Young"
  "Middle"
- "Old"   
+ "Old"
 
 julia> isordered(xy)
 true
@@ -233,7 +233,7 @@ julia> ordered!(x, false);
 julia> levels(x)
 2-element Array{String,1}:
  "Middle"
- "Old"   
+ "Old"
 
 julia> x[1] = y[1]
 CategoricalValue{String,UInt32} "Young" (1/2)
@@ -243,9 +243,9 @@ CategoricalValue{String,UInt32} "Young"
 
 julia> levels(x)
 3-element Array{String,1}:
- "Young" 
+ "Young"
  "Middle"
- "Old"   
+ "Old"
 ```
 
 In cases where levels with incompatible orderings are combined, the ordering of the first array wins and the resulting array is marked as unordered:
@@ -316,5 +316,8 @@ Do note that in some cases the two sets of levels may have compatible orderings,
 `recode(a[, default], pairs...)` - Return a copy of `a` after replacing one or more values
 
 `recode!(a[, default], pairs...)` - Replace one or more values in `a` in-place
+
+`unwrap(x)` - Return a value contained in categorical value `x`; if `x` is `Missing`
+              return `missing`;
 
 See [API Index](@ref) for more details.

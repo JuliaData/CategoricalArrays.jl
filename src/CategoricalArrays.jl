@@ -8,13 +8,16 @@ module CategoricalArrays
            isordered, ordered!
     export cut, recode, recode!
 
+    import DataAPI: unwrap
+    export unwrap
+
     using JSON
     using DataAPI
     using Missings
     using Printf
     import StructTypes
 
-    # JuliaLang/julia#36810 
+    # JuliaLang/julia#36810
     if VERSION < v"1.5.2"
         Base.OrderStyle(::Type{Union{}}) = Base.Ordered()
     end

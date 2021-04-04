@@ -463,7 +463,8 @@ function merge_pools!(A::CatArrOrSub,
                       updaterefs::Bool=true,
                       updatepool::Bool=true)
     if isordered(A) && length(pool(A)) > 0 && pool(B) ⊈ pool(A)
-        lev = A isa CategoricalValue ? get(B) : first(setdiff(levels(B), levels(A)))
+        # TODO: extend OrderedLevelsException to take all values in setdiff(levels(B), levels(A))
+        lev = first(setdiff(levels(B), levels(A)))
         throw(OrderedLevelsException(lev, levels(A)))
     end
     newlevels, ordered = merge_pools(pool(A), pool(B))
@@ -490,7 +491,6 @@ end
 
 @inline function setindex!(A::CategoricalArray, v::Any, I::Real...)
     @boundscheck checkbounds(A, I...)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
         merge_pools!(A, v)
     end
@@ -505,7 +505,6 @@ Base.fill(v::CategoricalValue, dims::Tuple{}) =
     invoke(fill, Tuple{CategoricalValue{T}, NTuple{N, Integer}} where {T, N}, v, dims)
 
 function Base.fill!(A::CategoricalArray, v::Any)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
         merge_pools!(A, v, updaterefs=false)
     end
@@ -876,7 +875,6 @@ function Base.resize!(A::CategoricalVector, n::Integer)
 end
 
 function Base.push!(A::CategoricalVector, v::Any)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
         merge_pools!(A, v)
     end
@@ -886,7 +884,6 @@ function Base.push!(A::CategoricalVector, v::Any)
 end
 
 function Base.append!(A::CategoricalVector, B::CatArrOrSub)
-    # TODO: use a global table to cache subset relations for all pairs of pools
     if pool(B) !== pool(A) && pool(B) ⊈ pool(A)
         merge_pools!(A, B)
     end
@@ -966,6 +963,10 @@ end
 Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
 collect(A::CategoricalArray) = copy(A)
 
+# Defined for performance
+collect(x::Base.SkipMissing{<: CatArrOrSub{T}}) where {T} =
+    CategoricalVector{nonmissingtype(T)}(filter(v -> v > 0, refs(x.x)), copy(pool(x.x)))
+
 function float(A::CategoricalArray{T}) where T
     if !isconcretetype(T)
         error("`float` not defined on abstractly-typed arrays; please convert to a more specific type")
@@ -1027,7 +1028,9 @@ function Base.sort!(v::CategoricalVector;
     ord = Base.Sort.ord(lt, by, rev, order)
     seen = counts .> 0
     anymissing = eltype(v) >: Missing && seen[1]
-    levs = eltype(v) >: Missing ? [missing; v.pool.valindex] : v.pool.valindex
+    levs = eltype(v) >: Missing ?
+        eltype(v)[i == 0 ? missing : CategoricalValue(i, v.pool) for i in 0:length(v.pool)] :
+        eltype(v)[CategoricalValue(i, v.pool) for i in 1:length(v.pool)]
     sortedlevs = sort!(Vector(view(levs, seen)), order=ord)
     levelsmap = something.(indexin(sortedlevs, levs))
     j = 0
@@ -1097,9 +1100,39 @@ Base.LinearIndices(x::CategoricalRefPool) = axes(x, 1)
 DataAPI.refarray(A::CatArrOrSub) = refs(A)
 DataAPI.refpool(A::CatArrOrSub{T}) where {T} =
     CategoricalRefPool{eltype(A), typeof(pool(A))}(pool(A))
+DataAPI.invrefpool(A::CatArrOrSub{T}) where {T} =
+    CategoricalInvRefPool{eltype(A), typeof(pool(A).invindex)}(pool(A).invindex)
 
 @inline function DataAPI.refvalue(A::CatArrOrSub{T}, i::Integer) where T
     @boundscheck checkindex(Bool, (T >: Missing ? 0 : 1):length(pool(A)), i) ||
         throw(BoundsError())
     i > 0 ? @inbounds(pool(A)[i]) : missing
+end
+
+struct CategoricalInvRefPool{T, P}
+    invpool::P
+end
+
+@inline function Base.haskey(x::CategoricalInvRefPool{T}, v) where {T}
+    if T >: Missing && ismissing(v)
+        return true
+    else
+        return haskey(x.invpool, v)
+    end
+end
+
+@inline function Base.getindex(x::CategoricalInvRefPool{T}, v) where {T}
+    if T >: Missing && ismissing(v)
+        return zero(valtype(x.invpool))
+    else
+        return x.invpool[v]
+    end
+end
+
+@inline function Base.get(x::CategoricalInvRefPool{T}, v, default) where {T}
+    if T >: Missing && ismissing(v)
+        return zero(valtype(x.invpool))
+    else
+        return get(x.invpool, v, default)
+    end
 end

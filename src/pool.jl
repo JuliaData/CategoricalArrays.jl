@@ -1,3 +1,7 @@
+const catpool_seed = UInt === UInt32 ? 0xe3cf1386 : 0x356f2c715023f1a5
+
+hashlevels(levs::AbstractVector) = foldl((h, x) -> hash(x, h), levs, init=catpool_seed)
+
 CategoricalPool{T, R, V}(ordered::Bool=false) where {T, R, V} =
     CategoricalPool{T, R, V}(T[], ordered)
 CategoricalPool{T, R}(ordered::Bool=false) where {T, R} =
@@ -29,24 +33,30 @@ function Base.convert(::Type{CategoricalPool{T, R}}, pool::CategoricalPool) wher
 end
 
 Base.copy(pool::CategoricalPool{T, R, V}) where {T, R, V} =
-    CategoricalPool{T, R, V}(copy(pool.levels), copy(pool.invindex), pool.ordered)
+    CategoricalPool{T, R, V}(copy(pool.levels), copy(pool.invindex),
+                             pool.ordered, pool.hash)
 
 function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
-    @printf(io, "%s{%s,%s}([%s])", typeof(pool).name, T, R,
-            join(map(repr, levels(pool)), ", "))
+    @static if VERSION >= v"1.6.0"
+        @printf(io, "%s{%s, %s}([%s])", CategoricalPool, T, R,
+                join(map(repr, levels(pool)), ", "))
+    else
+        @printf(io, "%s{%s,%s}([%s])", CategoricalPool, T, R,
+                join(map(repr, levels(pool)), ", "))
+    end
 
     pool.ordered && print(io, " with ordered levels")
 end
 
 Base.length(pool::CategoricalPool) = length(pool.levels)
 
-Base.getindex(pool::CategoricalPool, i::Integer) = pool.valindex[i]
+Base.getindex(pool::CategoricalPool, i::Integer) = CategoricalValue(i, pool)
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
 """
-add the returned value to pool.invindex, this function doesn't do this itself to
-avoid doing a dict lookup twice
+after calling this method, add the returned value to pool.invindex:
+it doesn't do this itself to avoid doing a dict lookup twice
 """
 @inline function push_level!(pool::CategoricalPool{T, R}, level) where {T, R}
     x = convert(T, level)
@@ -57,7 +67,11 @@ avoid doing a dict lookup twice
 
     i = R(n + 1)
     push!(pool.levels, x)
-    push!(pool.valindex, CategoricalValue(i, pool))
+    if pool.hash !== nothing
+        pool.hash = hash(x, pool.hash)
+    end
+    pool.equalto = C_NULL
+    pool.subsetof = C_NULL
     i
 end
 
@@ -130,8 +144,9 @@ end
 end
 
 @inline function Base.get!(pool::CategoricalPool, level::CategoricalValue)
-    pool === level.pool && return level.level
-    # TODO: use a global table to cache subset relations for all pairs of pools
+    if pool === level.pool || pool == level.pool
+        return level.level
+    end
     if level.pool ⊈ pool
         if isordered(pool)
             throw(OrderedLevelsException(level, pool.levels))
@@ -143,7 +158,7 @@ end
         end
         levels!(pool, newlevs)
     end
-    get!(pool, get(level))
+    get!(pool, unwrap(level))
 end
 
 @inline function Base.push!(pool::CategoricalPool, level)
@@ -180,7 +195,50 @@ function merge_pools(a::CategoricalPool{T}, b::CategoricalPool) where {T}
     newlevs, ordered
 end
 
-Base.issubset(a::CategoricalPool, b::CategoricalPool) = issubset(a.levels, keys(b.invindex))
+@inline function Base.hash(pool::CategoricalPool, h::UInt)
+    if pool.hash === nothing
+        pool.hash = hashlevels(levels(pool))
+    end
+    hash(pool.hash, h)
+end
+
+@inline function Base.:(==)(a::CategoricalPool, b::CategoricalPool)
+    pa = pointer_from_objref(a)
+    pb = pointer_from_objref(b)
+    # Checking both ways is needed to detect changes to a or b
+    if a === b || (a.equalto == pb && b.equalto == pa)
+        return true
+    else
+        if hash(a) == hash(b) && isequal(a.levels, b.levels)
+            a.equalto = pb
+            b.equalto = pa
+            return true
+        else
+            return false
+        end
+    end
+end
+
+function Base.issubset(a::CategoricalPool, b::CategoricalPool)
+    pa = pointer_from_objref(a)
+    pb = pointer_from_objref(b)
+    # Checking both ways is needed to detect changes to a or b
+    if a === b || (a.equalto == pb && b.equalto == pa) || a.subsetof == pb
+        return true
+    else
+        # Equality check is faster than subset check so do it first
+        if hash(a) == hash(b) && isequal(a.levels, b.levels)
+            a.equalto = pb
+            b.equalto = pa
+            return true
+        elseif issubset(a.levels, keys(b.invindex))
+            a.subsetof = pb
+            return true
+        else
+            return false
+        end
+    end
+end
 
 # Contrary to the CategoricalArray one, this method only allows adding new levels at the end
 # so that existing CategoricalValue objects still point to the same value
@@ -202,12 +260,13 @@ function levels!(pool::CategoricalPool{S, R}, newlevels::Vector;
 
     empty!(pool.invindex)
     resize!(pool.levels, n)
-    resize!(pool.valindex, n)
+    pool.hash = nothing
+    pool.equalto = C_NULL
+    pool.subsetof = C_NULL
     for i in 1:n
         v = levs[i]
         pool.levels[i] = v
         pool.invindex[v] = i
-        pool.valindex[i] = CategoricalValue(i, pool)
     end
 
     return pool

@@ -1350,6 +1350,40 @@ end
     end
 end
 
+@testset "collect for SkipMissing" begin
+    for x in (categorical([1, missing, 3, missing, 2]),
+              view(categorical([2, 1, missing, 3, missing, 2]), 2:6),
+              categorical([1 missing; 3 missing]),
+              view(categorical([2 1; missing 3; missing 2]), 2:3, :),
+              categorical(fill(1)))
+        levels!(x, [2, 1, 3, 4])
+        res = collect(skipmissing(x))
+        @test res == collect(skipmissing(unwrap.(x)))
+        @test res isa CategoricalVector{Int, UInt32}
+        @test levels(x) == [2, 1, 3, 4]
+    end
+
+    x = categorical(Array{Union{Int,Missing}, 0}(undef))
+    x[1] = 1
+    levels!(x, [2, 1, 3, 4])
+    res = collect(skipmissing(x))
+    @test res isa CategoricalVector{Int, UInt32}
+    @test res == [1]
+    @test levels(x) == [2, 1, 3, 4]
+
+    x = categorical(Array{Union{Int,Missing}, 0}(missing))
+    levels!(x, [2, 1, 3, 4])
+    res = collect(skipmissing(x))
+    @test res isa CategoricalVector{Int, UInt32}
+    @test isempty(res)
+    @test levels(x) == [2, 1, 3, 4]
+
+    res = collect(skipmissing(categorical(fill(missing))))
+    @test res isa CategoricalVector{Union{}, UInt32}
+    @test isempty(res)
+    @test levels(x) == [2, 1, 3, 4]
+end
+
 @testset "Array(::CategoricalArray{T}) produces Array{T}" begin
     x = [1,1,2,2]
     y = categorical(x)
@@ -2130,7 +2164,7 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     @test levels(readx.var) == levels(x.var)
 end
 
-@testset "refarray, refvalue and refpool" begin
+@testset "refarray, refvalue, refpool, and invrefpool" begin
     for y in (categorical(["b", "a", "c", "b"]),
               view(categorical(["a", "a", "c", "b"]), 1:3),
               categorical(["b" missing; "a" "c"; "b" missing]),
@@ -2165,7 +2199,26 @@ end
         @test_throws BoundsError rp[-1]
         @test_throws BoundsError rp[end + 1]
         @test_throws MethodError similar(rp)
+
+        irp = DataAPI.invrefpool(y)
+        for lev in (eltype(y) >: Missing ? [missing; levels(y)] : levels(y))
+            @test isequal(rp[irp[lev]], lev)
+            @test isequal(rp[get(irp, lev, nothing)], lev)
+        end
+
+        @test_throws KeyError irp[1]
+        @test_throws KeyError irp["z"]
+        @test get(irp, 1, nothing) === nothing
+        @test get(irp, "z", nothing) === nothing
+        if !(eltype(y) >: Missing)
+            @test_throws KeyError irp[missing]
+        end
     end
+end
+
+@testset "unwrap" begin
+    x = categorical(["a", missing, "b", missing])
+    @test unwrap.(x) ≅ ["a", missing, "b", missing]
 end
 
 end

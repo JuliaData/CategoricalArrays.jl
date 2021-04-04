@@ -15,16 +15,29 @@ using CategoricalArrays
     ov2 = CategoricalValue(2, opool)
     ov3 = CategoricalValue(3, opool)
 
-    @test sprint(show, pool) == "$CategoricalPool{String,UInt32}([\"c\", \"b\", \"a\"])"
-    @test sprint(show, opool) == "$CategoricalPool{String,UInt32}([\"c\", \"b\", \"a\"]) with ordered levels"
+    if VERSION >= v"1.6.0"
+        @test sprint(show, pool) == "$CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"])"
+        @test sprint(show, opool) == "$CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]) with ordered levels"
 
-    @test sprint(show, nv1) == repr(nv1) == "$CategoricalValue{String,UInt32} \"c\""
-    @test sprint(show, nv2) == repr(nv2) == "$CategoricalValue{String,UInt32} \"b\""
-    @test sprint(show, nv3) == repr(nv3) == "$CategoricalValue{String,UInt32} \"a\""
+        @test sprint(show, nv1) == repr(nv1) == "$CategoricalValue{String, UInt32} \"c\""
+        @test sprint(show, nv2) == repr(nv2) == "$CategoricalValue{String, UInt32} \"b\""
+        @test sprint(show, nv3) == repr(nv3) == "$CategoricalValue{String, UInt32} \"a\""
 
-    @test sprint(show, ov1) == repr(ov1) =="$CategoricalValue{String,UInt32} \"c\" (1/3)"
-    @test sprint(show, ov2) == repr(ov2) == "$CategoricalValue{String,UInt32} \"b\" (2/3)"
-    @test sprint(show, ov3) == repr(ov3) =="$CategoricalValue{String,UInt32} \"a\" (3/3)"
+        @test sprint(show, ov1) == repr(ov1) == "$CategoricalValue{String, UInt32} \"c\" (1/3)"
+        @test sprint(show, ov2) == repr(ov2) == "$CategoricalValue{String, UInt32} \"b\" (2/3)"
+        @test sprint(show, ov3) == repr(ov3) == "$CategoricalValue{String, UInt32} \"a\" (3/3)"
+    else
+        @test sprint(show, pool) == "$CategoricalPool{String,UInt32}([\"c\", \"b\", \"a\"])"
+        @test sprint(show, opool) == "$CategoricalPool{String,UInt32}([\"c\", \"b\", \"a\"]) with ordered levels"
+
+        @test sprint(show, nv1) == repr(nv1) == "$CategoricalValue{String,UInt32} \"c\""
+        @test sprint(show, nv2) == repr(nv2) == "$CategoricalValue{String,UInt32} \"b\""
+        @test sprint(show, nv3) == repr(nv3) == "$CategoricalValue{String,UInt32} \"a\""
+
+        @test sprint(show, ov1) == repr(ov1) == "$CategoricalValue{String,UInt32} \"c\" (1/3)"
+        @test sprint(show, ov2) == repr(ov2) == "$CategoricalValue{String,UInt32} \"b\" (2/3)"
+        @test sprint(show, ov3) == repr(ov3) == "$CategoricalValue{String,UInt32} \"a\" (3/3)"
+    end
 
     @test sprint(show, nv1, context=:typeinfo=>typeof(nv1)) == "\"c\""
     @test sprint(show, nv2, context=:typeinfo=>typeof(nv2)) == "\"b\""
@@ -66,8 +79,8 @@ using JSON
                                    CategoricalPool([1]),
                                    CategoricalPool([1.0]))
     v = CategoricalValue(1, pool)
-    @test JSON.lower(v) == JSON.lower(get(v))
-    @test typeof(JSON.lower(v)) == typeof(JSON.lower(get(v)))
+    @test JSON.lower(v) == JSON.lower(unwrap(v))
+    @test typeof(JSON.lower(v)) == typeof(JSON.lower(unwrap(v)))
 end
 
 using JSON3
