@@ -128,7 +128,6 @@ end
         ["1: 1.0 -- 1.4", "1: 1.0 -- 1.4", "2: 1.4 -- 1.8", "2: 1.4 -- 1.8", "3: 1.8 -- 2.0"]
 end
 
-
 @testset "cut with duplicated breaks" begin
     x = [zeros(10); ones(10)]
     @test_throws ArgumentError cut(x, [0, 0.1, 0.1, 10])
