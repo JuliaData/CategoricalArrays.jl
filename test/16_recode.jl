@@ -9,6 +9,48 @@ end
 
 const ≅ = isequal
 
+@testset "recode_in" begin
+    @testset "collection is a string" begin
+        @test !CategoricalArrays.recode_in("a", "ab")
+        @test CategoricalArrays.recode_in('a', "ab")
+        @test !CategoricalArrays.recode_in('c', "ab")
+        @test !CategoricalArrays.recode_in(missing, "b")
+    end
+    @testset "collection without missing" begin
+        @test CategoricalArrays.recode_in(1, [1, 2])
+        @test !CategoricalArrays.recode_in(1, [2, 3])
+    end
+    @testset "collection with missing" begin
+        @test CategoricalArrays.recode_in(1, [1, 2, missing])
+        @test !CategoricalArrays.recode_in(1, [2, missing])
+        @test CategoricalArrays.recode_in(missing, [1, 2, missing])
+    end
+    @testset "collection is a single value" begin
+        @test CategoricalArrays.recode_in(1, 1)
+        @test !CategoricalArrays.recode_in(1, missing)
+        @test !CategoricalArrays.recode_in(missing, missing)
+    end
+    @testset "tuple without missing" begin
+        @test CategoricalArrays.recode_in(1, (1, 2))
+        @test !CategoricalArrays.recode_in(1, (2, 3))
+    end
+    @testset "tuple with missing" begin
+        @test CategoricalArrays.recode_in(1, (1, 2, missing))
+        @test !CategoricalArrays.recode_in(1, (2, missing))
+        @test CategoricalArrays.recode_in(missing, (1, 2, missing))
+    end
+    @testset "nested arrays" begin
+        @test CategoricalArrays.recode_in([1,2], [[1, 2], [3, 4]])
+        @test !CategoricalArrays.recode_in([1, 3], [[1, 2], [3, 4]])
+    end
+    @testset "NaN in array" begin
+        @test CategoricalArrays.recode_in(NaN, [1, 2, NaN])
+        @test !CategoricalArrays.recode_in(NaN, [1, 2, 3])
+        @test CategoricalArrays.recode_in(2, [1, 2, NaN])
+        @test !CategoricalArrays.recode_in(3, [1, 2, NaN])
+    end
+end
+
 ## Test recode!, used by recode
 
 # Test both recoding into x itself and into an uninitialized vector
@@ -21,6 +63,21 @@ const ≅ = isequal
           CategoricalArray{Union{Int, Missing}}(undef, size(x)), x)
 
     z = @inferred recode!(y, x, 1=>100, 2:4=>0, [5; 9:10]=>-1)
+    @test y === z
+    @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
+    if isa(y, CategoricalArray)
+        @test levels(y) == [6, 7, 8, 100, 0, -1]
+        @test !isordered(y)
+    end
+end
+
+@testset "Recoding from $(typeof(x)) to $(typeof(y)) using a Set as the first argument in a pair" for
+    x in ([1:10;], CategoricalArray(1:10), CategoricalArray{Union{Int, Missing}}(1:10)),
+    y in (similar(x), Array{Int}(undef, size(x)),
+          CategoricalArray{Int}(undef, size(x)),
+          CategoricalArray{Union{Int, Missing}}(undef, size(x)), x)
+
+    z = @inferred recode!(y, x, 1=>100, 2:4=>0, Set([5; 9:10])=>-1)
     @test y === z
     @test y == [100, 0, 0, 0, -1, 6, 7, 8, -1, -1]
     if isa(y, CategoricalArray)
