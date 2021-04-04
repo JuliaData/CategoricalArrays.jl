@@ -12,6 +12,8 @@ const ≅ = isequal
 @testset "recode_in" begin
     @testset "collection is a string" begin
         @test !CategoricalArrays.recode_in("a", "ab")
+        @test CategoricalArrays.recode_in('a', "ab")
+        @test !CategoricalArrays.recode_in('c', "ab")
         @test !CategoricalArrays.recode_in(missing, "b")
     end
     @testset "collection without missing" begin
