@@ -2221,4 +2221,15 @@ end
     @test unwrap.(x) ≅ ["a", missing, "b", missing]
 end
 
+@testset "plot recipes" begin
+    x = categorical(["B", "A", "C", "A"], levels=["C", "A", "B"])
+    y = categorical([10, 1, missing, 2], levels=[10, 2, 1])
+
+    res = RecipesBase.apply_recipe(Dict{Symbol, Any}(:plot_object => nothing), x, y)[1]
+    @test res.args[1] isa Formatted
+    @test res.args[1].data == [3, 2, 1, 2]
+    @test res.args[2] isa Formatted
+    @test res.args[2].data == [1, 3, 4, 2]
+end
+
 end
