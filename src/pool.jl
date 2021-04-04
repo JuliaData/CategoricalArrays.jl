@@ -195,14 +195,14 @@ function merge_pools(a::CategoricalPool{T}, b::CategoricalPool) where {T}
     newlevs, ordered
 end
 
-function Base.hash(pool::CategoricalPool, h::UInt)
+@inline function Base.hash(pool::CategoricalPool, h::UInt)
     if pool.hash === nothing
         pool.hash = hashlevels(levels(pool))
     end
     hash(pool.hash, h)
 end
 
-function Base.:(==)(a::CategoricalPool, b::CategoricalPool)
+@inline function Base.:(==)(a::CategoricalPool, b::CategoricalPool)
     pa = pointer_from_objref(a)
     pb = pointer_from_objref(b)
     # Checking both ways is needed to detect changes to a or b
