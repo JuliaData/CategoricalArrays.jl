@@ -2,9 +2,96 @@ module TestEquality
 using Test
 using CategoricalArrays
 
+@testset "isequal and hash for CategoricalPool" begin
+    pool1 = CategoricalPool(["a", "b", "c"])
+    pool1b = CategoricalPool(["a", "b", "c"])
+    pool2 = CategoricalPool(["c", "a", "b"])
+    pool3 = CategoricalPool(["a", "b", "c", "d"])
+    pool4 = CategoricalPool(String[])
+
+    @test isequal(pool1, pool1)
+    @test pool1 == pool1
+    @test pool1.equalto == C_NULL
+
+    @test isequal(pool1, pool1b)
+    @test pool1 == pool1b
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool1b.equalto == pointer_from_objref(pool1)
+
+    @test !isequal(pool1, pool2)
+    @test pool1 != pool2
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool2.equalto == C_NULL
+
+    @test !isequal(pool1, pool3)
+    @test pool1 != pool3
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool3.equalto == C_NULL
+
+    @test !isequal(pool1, pool4)
+    @test pool1 != pool4
+    @test pool1.equalto == pointer_from_objref(pool1b)
+    @test pool4.equalto == C_NULL
+
+    pool1c = copy(pool1b)
+    @test pool1b == pool1c # To set equalto field
+    @test isequal(pool1, pool1c)
+    push!(pool1c, "d")
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
+    @test pool1b != pool1c
+    @test !isequal(pool1b, pool1c)
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
+
+    pool1c = copy(pool1b)
+    @test pool1b == pool1c # To set equalto field
+    @test isequal(pool1, pool1c)
+    get!(pool1c, "d")
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
+    @test pool1b != pool1c
+    @test !isequal(pool1b, pool1c)
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
+
+    pool1c = copy(pool1b)
+    @test pool1b == pool1c # To set equalto field
+    @test isequal(pool1, pool1c)
+    levels!(pool1c, ["a", "b", "c", "d"])
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
+    @test pool1b != pool1c
+    @test !isequal(pool1, pool1c)
+    @test pool1b.equalto == pointer_from_objref(pool1c)
+    @test pool1c.equalto == C_NULL
+
+    @test hash(pool1) == hash(pool1b)
+    @test hash(pool1) != hash(pool2) != hash(pool3) != hash(pool4)
+    @test hash(pool1, UInt(1234)) == hash(pool1b, UInt(1234)) != hash(pool1)
+    @test hash(pool1, UInt(1234)) != hash(pool2, UInt(1234))
+    push!(pool1, "d")
+    @test hash(pool1) == hash(CategoricalArrays.hashlevels(levels(pool1)))
+    get!(pool1, "e")
+    @test hash(pool1) == hash(CategoricalArrays.hashlevels(levels(pool1)))
+
+    poolnan1 = CategoricalPool([1.0, NaN])
+    poolnan2 = CategoricalPool([1.0, NaN])
+    @test poolnan1 == poolnan2
+    @test isequal(poolnan1, poolnan2)
+
+    poolzero1 = CategoricalPool([1.0, -0.0])
+    poolzero2 = CategoricalPool([1.0, 0.0])
+    @test poolzero1 != poolzero2
+    @test !isequal(poolzero1, poolzero2)
+end
+
 @testset "== and isequal() for CategoricalPool{Int} and CategoricalPool{Float64}" begin
     pool1 = CategoricalPool([1, 2, 3])
     pool2 = CategoricalPool([2.0, 1.0, 3.0])
+
+    opool1 = CategoricalPool([1, 2, 3], true)
+    opool2 = CategoricalPool([2.0, 1.0, 3.0], true)
 
     @test isequal(pool1, pool1) === true
     @test isequal(pool1, pool2) === false
@@ -14,13 +101,6 @@ using CategoricalArrays
     @test (pool1 == pool2) === false
     @test (pool2 == pool2) === true
 
-    @test (pool1 === pool1) === true
-    @test (pool1 === pool2) === false
-    @test (pool2 === pool2) === true
-
-    opool1 = CategoricalPool([1, 2, 3], true)
-    opool2 = CategoricalPool([2.0, 1.0, 3.0], true)
-
     @test isequal(opool1, opool1) === true
     @test isequal(opool1, opool2) === false
     @test isequal(opool2, opool2) === true
@@ -29,9 +109,9 @@ using CategoricalArrays
     @test (opool1 == opool2) === false
     @test (opool2 == opool2) === true
 
-    @test (opool1 === opool1) === true
-    @test (opool1 === opool2) === false
-    @test (opool2 === opool2) === true
+    @test (pool1 == opool1) === true
+    @test (pool2 == opool2) === true
+    @test (pool1 == opool2) === false
 
     nv1a = CategoricalValue(1, pool1)
     nv2a = CategoricalValue(1, pool2)
