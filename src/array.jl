@@ -462,21 +462,10 @@ function merge_pools!(A::CatArrOrSub,
                       B::Union{CategoricalValue, CatArrOrSub};
                       updaterefs::Bool=true,
                       updatepool::Bool=true)
-    if isordered(A) && length(pool(A)) > 0 && pool(B) ⊈ pool(A)
-        # TODO: extend OrderedLevelsException to take all values in setdiff(levels(B), levels(A))
-        lev = first(setdiff(levels(B), levels(A)))
-        throw(OrderedLevelsException(lev, levels(A)))
-    end
     newlevels, ordered = merge_pools(pool(A), pool(B))
     oldlevels = levels(A)
-    if isordered(A) != ordered
-        A isa SubArray &&
-            throw(ArgumentError("cannot set ordered=$ordered on dest SubArray as it " *
-                                "would affect the parent. "*
-                                "Found when trying to set levels to $newlevels."))
-        ordered!(A, ordered)
-    end
     pA = A isa SubArray ? parent(A) : A
+    ordered!(pA, ordered)
     # If A's levels are an ordered superset of new (merged) pool, no need to recompute refs
     if updaterefs &&
         (length(newlevels) < length(oldlevels) ||

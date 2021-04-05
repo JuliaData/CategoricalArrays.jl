@@ -103,11 +103,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool[10] === CategoricalValue(pool, 10)
     @test pool[11] === CategoricalValue(pool, 11)
 
-    # get!
+    # get! adding new level works even for ordered pool
     ordered!(pool, true)
-    @test_throws OrderedLevelsException get!(pool, 1000)
-    ordered!(pool, false)
-
     @test get!(pool, 20) === DefaultRefType(12)
 
     @test isa(pool.levels, Vector{Int})
@@ -126,10 +123,6 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
     # get! with CategoricalValue adding new levels in compatible order
     v = CategoricalValue(CategoricalPool([2, 4, 100, 99]), 4)
-
-    ordered!(pool, true)
-    @test_throws OrderedLevelsException get!(pool, v)
-    ordered!(pool, false)
 
     @test get!(pool, v) === DefaultRefType(14)
 

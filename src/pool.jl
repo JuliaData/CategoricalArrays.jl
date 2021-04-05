@@ -138,10 +138,7 @@ end
 
 @inline function Base.get!(pool::CategoricalPool, level::Any)
     get!(pool.invindex, level) do
-        if isordered(pool)
-            throw(OrderedLevelsException(level, pool.levels))
-        end
-
+        ordered!(pool, false)
         push_level!(pool, level)
     end
 end
@@ -151,15 +148,9 @@ end
         return refcode(level)
     end
     if level.pool ⊈ pool
-        if isordered(pool)
-            throw(OrderedLevelsException(level, pool.levels))
-        end
-        newlevs, ordered = mergelevels(isordered(pool), pool.levels, level.pool.levels)
-        # Exception: empty pool marked as ordered if new value is ordered
-        if length(pool) == 0 && isordered(level.pool)
-            ordered!(pool, true)
-        end
+        newlevs, ordered = merge_pools(pool, level.pool)
         levels!(pool, newlevs)
+        ordered!(pool, ordered)
     end
     get!(pool, unwrap(level))
 end
@@ -192,7 +183,8 @@ function merge_pools(a::CategoricalPool{T}, b::CategoricalPool) where {T}
         newlevs = copy(levels(a))
         ordered = isordered(a)
     else
-        nl, ordered = mergelevels(isordered(a), a.levels, b.levels)
+        ordered = isordered(a) && (isordered(b) || b ⊆ a)
+        nl, ordered = mergelevels(ordered, a.levels, b.levels)
         newlevs = convert(Vector{T}, nl)
     end
     newlevs, ordered
@@ -285,10 +277,4 @@ ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)
 function Base.showerror(io::IO, err::LevelsException{T, R}) where {T, R}
     levs = join(repr.(err.levels), ", ", " and ")
     print(io, "cannot store level(s) $levs since reference type $R can only hold $(typemax(R)) levels. Use the decompress function to make room for more levels.")
-end
-
-
-# OrderedLevelsException
-function Base.showerror(io::IO, err::OrderedLevelsException)
-    print(io, "cannot add new level $(err.newlevel) since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.")
 end

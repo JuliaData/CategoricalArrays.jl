@@ -234,31 +234,24 @@ julia> isordered(xy)
 true
 ```
 
-Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x`, *adding a new level to the front to respect the ordering of levels in both vectors*. The new level is added even if the assigned value belongs to another level which is already present in `x`. Note that adding new levels requires marking `x` as unordered:
+Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x`, *respecting the ordering of levels of both vectors if possible*. The new level is added even if the assigned value belongs to another level which is already present in `x`. Note that adding new levels requires marking `x` as unordered:
 ```jldoctest using
-julia> x[1] = y[1]
-ERROR: cannot add new level Young since ordered pools cannot be extended implicitly. Use the levels! function to set new levels, or the ordered! function to mark the pool as unordered.
-Stacktrace:
-[...]
-
-julia> ordered!(x, false);
-
 julia> levels(x)
 2-element Array{String,1}:
  "Middle"
  "Old"
 
 julia> x[1] = y[1]
-CategoricalValue{String,UInt32} "Young" (1/2)
-
-julia> x[1]
-CategoricalValue{String,UInt32} "Young"
+CategoricalValue{String, UInt32} "Young" (1/2)
 
 julia> levels(x)
-3-element Array{String,1}:
+3-element Vector{String}:
  "Young"
  "Middle"
  "Old"
+
+julia> x[1]
+CategoricalValue{String, UInt32} "Young" (1/3)
 ```
 
 In cases where levels with incompatible orderings are combined, the ordering of the first array wins and the resulting array is marked as unordered:
