@@ -89,25 +89,28 @@ function mergelevels(ordered, levels...)
         return res, ordered
     end
 
-    for l in levels
-        levelsmap = indexin(l, res)
+    union!(res, levels...)
 
-        i = length(res)+1
-        for j = length(l):-1:1
-            @static if VERSION >= v"0.7.0-DEV.3627"
-                if levelsmap[j] === nothing
-                    insert!(res, i, l[j])
-                else
-                    i = levelsmap[j]
-                end
+    # Ensure that relative orders of levels are preserved if possible,
+    # giving priority to the first sets of levels in case of conflicts
+    for levs in reverse(levels)
+        levelsmap = indexin(res, levs)
+
+        # Do not touch levels from other sets at the end
+        n = length(res)
+        @inbounds for i in length(levelsmap):-1:1
+            levelsmap[i] === nothing || break
+            levelsmap[i] = n
+        end
+        j = 1
+        @inbounds for i in 1:length(levelsmap)
+            if levelsmap[i] === nothing
+                levelsmap[i] = j
             else
-                if levelsmap[j] == 0
-                    insert!(res, i, l[j])
-                else
-                    i = levelsmap[j]
-                end
+                j = levelsmap[i] + 1
             end
         end
+        permute!(res, sortperm(levelsmap, alg=Base.Sort.MergeSort))
     end
 
     # Check that result is ordered
