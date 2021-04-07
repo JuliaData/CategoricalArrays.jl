@@ -234,7 +234,7 @@ julia> isordered(xy)
 true
 ```
 
-Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x`, *respecting the ordering of levels of both vectors if possible*. The new level is added even if the assigned value belongs to another level which is already present in `x`. Note that adding new levels requires marking `x` as unordered:
+Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x` with all levels from `y`, *respecting the ordering of levels of both vectors if possible*:
 ```jldoctest using
 julia> levels(x)
 2-element Array{String,1}:
