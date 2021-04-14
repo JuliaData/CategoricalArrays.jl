@@ -254,7 +254,7 @@ julia> x[1]
 CategoricalValue{String, UInt32} "Young" (1/3)
 ```
 
-In cases where levels with incompatible orderings are combined, the ordering of the first array wins and the resulting array is marked as unordered:
+In cases where levels with incompatible orderings are combined, the ordering of the destination array wins and the destination array is marked as unordered. The same happens when concatenating arrays, and the ordering of the first array wins in case of conflict:
 ```jldoctest using
 julia> a = categorical(["a", "b", "c"], ordered=true);
 
@@ -302,6 +302,8 @@ julia> levels(ab2)
 julia> isordered(ab2)
 false
 ```
+
+The resulting array is marked as ordered only if all the source array(s) are ordered, with the exception that unordered arrays with no levels do not prompt the result to be marked as unordered. In particular, this allows assignment of a `CategoricalValue` to an empty `CategoricalArray` via `setindex!` to copy the levels of the source value and to mark the result as ordered.
 
 Do note that in some cases the two sets of levels may have compatible orderings, but it is not possible to determine in what order should levels appear in the merged set. This is the case for example with `["a, "b", "d"]` and `["c", "d", "e"]`: there is no way to detect that `"c"` should be inserted exactly after `"b"` (lexicographic ordering is not relevant here). In such cases, the resulting array is marked as unordered. This situation can only happen when working with data subsets selected based on non-contiguous subsets of levels.
 
