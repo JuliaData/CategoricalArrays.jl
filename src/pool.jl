@@ -50,7 +50,7 @@ end
 
 Base.length(pool::CategoricalPool) = length(pool.levels)
 
-Base.getindex(pool::CategoricalPool, i::Integer) = CategoricalValue(i, pool)
+Base.getindex(pool::CategoricalPool, i::Integer) = CategoricalValue(pool, i)
 Base.get(pool::CategoricalPool, level::Any) = pool.invindex[level]
 Base.get(pool::CategoricalPool, level::Any, default::Any) = get(pool.invindex, level, default)
 
@@ -145,7 +145,7 @@ end
 
 @inline function Base.get!(pool::CategoricalPool, level::CategoricalValue)
     if pool === level.pool || pool == level.pool
-        return level.level
+        return refcode(level)
     end
     if level.pool ⊈ pool
         if isordered(pool)

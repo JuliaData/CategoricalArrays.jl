@@ -113,10 +113,10 @@ end
     @test (pool2 == opool2) === true
     @test (pool1 == opool2) === false
 
-    nv1a = CategoricalValue(1, pool1)
-    nv2a = CategoricalValue(1, pool2)
-    nv1b = CategoricalValue(2, pool1)
-    nv2b = CategoricalValue(2, pool2)
+    nv1a = CategoricalValue(pool1, 1)
+    nv2a = CategoricalValue(pool2, 1)
+    nv1b = CategoricalValue(pool1, 2)
+    nv2b = CategoricalValue(pool2, 2)
 
     @test isequal(nv1a, nv1a) == true
     @test isequal(nv1a, nv2a) == false
@@ -148,10 +148,10 @@ end
     @test isequal(nv1b, 2) == true
     @test isequal(nv2b, 2) == false
 
-    ov1a = CategoricalValue(1, opool1)
-    ov2a = CategoricalValue(1, opool2)
-    ov1b = CategoricalValue(2, opool1)
-    ov2b = CategoricalValue(2, opool2)
+    ov1a = CategoricalValue(opool1, 1)
+    ov2a = CategoricalValue(opool2, 1)
+    ov1b = CategoricalValue(opool1, 2)
+    ov2b = CategoricalValue(opool2, 2)
 
     @test isequal(ov1a, ov1a) == true
     @test isequal(ov1a, ov2a) == false
@@ -240,7 +240,7 @@ end
 
 @testset "in()" begin
     pool = CategoricalPool([5, 1, 3])
-    nv = CategoricalValue(2, pool)
+    nv = CategoricalValue(pool, 2)
 
     @test (nv in 1:3) === true
     @test (nv in [1, 2, 3]) === true

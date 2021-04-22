@@ -9,7 +9,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test isa(levels(pool), Vector{Int})
     @test length(pool) === 3
     @test levels(pool) == [2, 1, 3]
-    @test all([levels(CategoricalValue(i, pool)) for i in 1:3] .=== Ref(levels(pool)))
+    @test all([levels(CategoricalValue(pool, i)) for i in 1:3] .=== Ref(levels(pool)))
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3)
     @test pool.hash === nothing
     @test pool.equalto == C_NULL
@@ -26,7 +26,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test pool.equalto == C_NULL
         @test pool.subsetof == C_NULL
         @test get(pool, 4) === DefaultRefType(4)
-        @test pool[4] === CategoricalValue(4, pool)
+        @test pool[4] === CategoricalValue(pool, 4)
     end
 
     for rep in 1:3
@@ -40,7 +40,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test pool.equalto == C_NULL
         @test pool.subsetof == C_NULL
         @test get(pool, 0) === DefaultRefType(5)
-        @test pool[5] === CategoricalValue(5, pool)
+        @test pool[5] === CategoricalValue(pool, 5)
     end
 
     for rep in 1:3
@@ -55,8 +55,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test pool.subsetof == C_NULL
         @test get(pool, 10) === DefaultRefType(6)
         @test get(pool, 11) === DefaultRefType(7)
-        @test pool[6] === CategoricalValue(6, pool)
-        @test pool[7] === CategoricalValue(7, pool)
+        @test pool[6] === CategoricalValue(pool, 6)
+        @test pool[7] === CategoricalValue(pool, 7)
     end
 
     for rep in 1:3
@@ -71,8 +71,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
         @test pool.subsetof == C_NULL
         @test get(pool, 12) === DefaultRefType(8)
         @test get(pool, 13) === DefaultRefType(9)
-        @test pool[8] === CategoricalValue(8, pool)
-        @test pool[9] === CategoricalValue(9, pool)
+        @test pool[8] === CategoricalValue(pool, 8)
+        @test pool[9] === CategoricalValue(pool, 9)
     end
 
     # Removing levels
@@ -100,8 +100,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool.subsetof == C_NULL
     @test get(pool, 15) === DefaultRefType(10)
     @test get(pool, 14) === DefaultRefType(11)
-    @test pool[10] === CategoricalValue(10, pool)
-    @test pool[11] === CategoricalValue(11, pool)
+    @test pool[10] === CategoricalValue(pool, 10)
+    @test pool[11] === CategoricalValue(pool, 11)
 
     # get!
     ordered!(pool, true)
@@ -121,11 +121,11 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test get(pool, 20) === DefaultRefType(12)
 
     # get! with CategoricalValue adding new levels in conflicting order
-    v = CategoricalValue(2, CategoricalPool([100, 99, 4, 2]))
+    v = CategoricalValue(CategoricalPool([100, 99, 4, 2]), 2)
     @test_throws ArgumentError get!(pool, v)
 
     # get! with CategoricalValue adding new levels in compatible order
-    v = CategoricalValue(4, CategoricalPool([2, 4, 100, 99]))
+    v = CategoricalValue(CategoricalPool([2, 4, 100, 99]), 4)
 
     ordered!(pool, true)
     @test_throws OrderedLevelsException get!(pool, v)
@@ -145,7 +145,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test get(pool, 99) === DefaultRefType(14)
 
     # get! with CategoricalValue not adding new levels
-    v = CategoricalValue(1, CategoricalPool([100, 2]))
+    v = CategoricalValue(CategoricalPool([100, 2]), 1)
     @test get!(pool, v) === DefaultRefType(13)
 
     @test isa(pool.levels, Vector{Int})
@@ -170,7 +170,7 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     @test pool.subsetof == C_NULL
 
     # get! with CategoricalValue conversion error
-    v = CategoricalValue(1, CategoricalPool(["a", "b"]))
+    v = CategoricalValue(CategoricalPool(["a", "b"]), 1)
     @test_throws MethodError get!(pool, v)
 
     # get! with ordered CategoricalValue marks unordered empty pool as ordered

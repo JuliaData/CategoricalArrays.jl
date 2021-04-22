@@ -34,10 +34,10 @@ in(x::Missing, y::CategoricalArray{>:Missing}) = !all(v -> v > 0, y.refs)
 
 function Missings.replace(a::CategoricalArray{S, N, R, V, C}, replacement::V) where {S, N, R, V, C}
     pool = copy(a.pool)
-    v = C(get!(pool, replacement), pool)
+    v = C(pool, get!(pool, replacement))
     Missings.replace(a, v)
 end
 
 function collect(r::Missings.EachReplaceMissing{<:CategoricalArray{S, N, R, C}}) where {S, N, R, C}
-    CategoricalArray{C,N}(R[v.level for v in r], r.replacement.pool)
+    CategoricalArray{C,N}(R[refcode(v) for v in r], r.replacement.pool)
 end

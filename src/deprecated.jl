@@ -15,3 +15,4 @@ end
 import Base: get
 
 @deprecate get(x::CategoricalValue) DataAPI.unwrap(x)
+@deprecate CategoricalValue(i::Integer, pool::CategoricalPool) pool[i]

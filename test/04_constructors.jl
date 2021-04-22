@@ -157,7 +157,7 @@ end
     pool = CategoricalPool{Float64, UInt8}([1.0, 2.0, 3.0])
 
     @test isa(pool, CategoricalPool{Float64, UInt8, CategoricalValue{Float64, UInt8}})
-    @test CategoricalValue(1, pool) isa CategoricalValue{Float64, UInt8}
+    @test CategoricalValue(pool, 1) isa CategoricalValue{Float64, UInt8}
 end
 
 @testset "Invalid arguments" begin

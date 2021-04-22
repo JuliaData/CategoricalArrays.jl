@@ -498,7 +498,7 @@ end
 end
 
 Base.fill(v::CategoricalValue{T}, dims::NTuple{N, Integer}) where {T, N} =
-    CategoricalArray{T, N}(fill(level(v), dims), copy(pool(v)))
+    CategoricalArray{T, N}(fill(refcode(v), dims), copy(pool(v)))
 
 # to avoid ambiguity
 Base.fill(v::CategoricalValue, dims::Tuple{}) =
@@ -953,9 +953,9 @@ end
 
 function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
     if x.pool === y.pool
-        return x.level in y.refs
+        return refcode(x) in y.refs
     else
-        ref = get(y.pool, levels(x.pool)[x.level], zero(R))
+        ref = get(y.pool, levels(x.pool)[refcode(x)], zero(R))
         return ref != 0 ? ref in y.refs : false
     end
 end
@@ -1029,8 +1029,8 @@ function Base.sort!(v::CategoricalVector;
     seen = counts .> 0
     anymissing = eltype(v) >: Missing && seen[1]
     levs = eltype(v) >: Missing ?
-        eltype(v)[i == 0 ? missing : CategoricalValue(i, v.pool) for i in 0:length(v.pool)] :
-        eltype(v)[CategoricalValue(i, v.pool) for i in 1:length(v.pool)]
+        eltype(v)[i == 0 ? missing : CategoricalValue(v.pool, i) for i in 0:length(v.pool)] :
+        eltype(v)[CategoricalValue(v.pool, i) for i in 1:length(v.pool)]
     sortedlevs = sort!(Vector(view(levs, seen)), order=ord)
     levelsmap = something.(indexin(sortedlevs, levs))
     j = 0
