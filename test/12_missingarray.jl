@@ -373,14 +373,11 @@ const ≅ = isequal
             @test x[2] === CategoricalValue(x.pool, 2)
             @test x[3] === missing
 
-            if ordered
-                @test_throws OrderedLevelsException x[3] = "c"
-                levels!(x, [levels(x); "c"])
-            end
             x[3] = "c"
             @test x[1] === CategoricalValue(x.pool, 2)
             @test x[2] === CategoricalValue(x.pool, 2)
             @test x[3] === CategoricalValue(x.pool, 3)
+            @test isordered(x) === false
             @test levels(x) == ["a", "b", "c"]
 
             x[1] = missing
@@ -582,28 +579,24 @@ const ≅ = isequal
         @test levels(x) == unique(a)
         @test unique(x) == unique(collect(x))
 
-        if ordered
-            @test_throws OrderedLevelsException x[1:2] .= -1
-            levels!(x, [levels(x); -1])
-        end
         x[1:2] .= -1
         @test x[1] === CategoricalValue(x.pool, 5)
         @test x[2] === CategoricalValue(x.pool, 5)
         @test x[3] === CategoricalValue(x.pool, 3)
         @test x[4] === CategoricalValue(x.pool, 4)
+        @test isordered(x) === false
         @test levels(x) == vcat(unique(a), -1)
         @test unique(x) == unique(collect(x))
 
-        if ordered
-            @test_throws OrderedLevelsException push!(x, 2.0)
-            levels!(x, [levels(x); 2.0])
-        end
+
+        ordered!(x, ordered)
         push!(x, 2.0)
         @test length(x) == 5
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0]
-        @test isordered(x) === ordered
+        @test isordered(x) === false
         @test levels(x) == [0.0,  0.5,  1.0,  1.5, -1.0,  2.0]
 
+        ordered!(x, ordered)
         push!(x, x[1])
         @test length(x) == 6
         @test x == [-1.0, -1.0, 1.0, 1.5, 2.0, -1.0]
@@ -748,10 +741,6 @@ const ≅ = isequal
         @test x[1:2,1] == ["a", "b"]
         @test isa(x[1:2,1], CategoricalVector{Union{String, Missing}, R})
 
-        if ordered
-            @test_throws OrderedLevelsException x[1] = "z"
-            levels!(x, [levels(x); "z"])
-        end
         x[1] = "z"
         @test x[1] === CategoricalValue(x.pool, 4)
         @test x[2] === CategoricalValue(x.pool, 2)
@@ -759,6 +748,7 @@ const ≅ = isequal
         @test x[4] === CategoricalValue(x.pool, 1)
         @test x[5] === CategoricalValue(x.pool, 3)
         @test x[6] === CategoricalValue(x.pool, 3)
+        @test isordered(x) === false
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,:] .= "a"
@@ -908,10 +898,6 @@ const ≅ = isequal
         @test_throws BoundsError x[1:1, -1:1]
         @test_throws BoundsError x[4, :]
 
-        if ordered
-            @test_throws OrderedLevelsException x[1] = "z"
-            levels!(x, [levels(x); "z"])
-        end
         x[1] = "z"
         @test x[1] === CategoricalValue(x.pool, 4)
         @test x[2] === CategoricalValue(x.pool, 2)
@@ -919,6 +905,7 @@ const ≅ = isequal
         @test x[4] === CategoricalValue(x.pool, 1)
         @test x[5] === CategoricalValue(x.pool, 3)
         @test x[6] === missing
+        @test isordered(x) === false
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,:] .= "a"
@@ -1015,36 +1002,30 @@ const ≅ = isequal
         @test isordered(x2) === isordered(x)
         @test levels(x2) == []
 
-        if ordered
-            @test_throws OrderedLevelsException x[1] = "c"
-            levels!(x, [levels(x); "c"])
-        end
         x[1] = "c"
         @test x[1] === CategoricalValue(x.pool, 1)
         @test ismissing(x[2])
+        @test isordered(x) === false
         @test levels(x) == ["c"]
 
-        if ordered
-            @test_throws OrderedLevelsException x[1] = "a"
-            levels!(x, [levels(x); "a"])
-        end
+        ordered!(x, ordered)
         x[1] = "a"
         @test x[1] === CategoricalValue(x.pool, 2)
         @test ismissing(x[2])
+        @test isordered(x) === false
         @test levels(x) == ["c", "a"]
 
+        ordered!(x, ordered)
         x[2] = missing
         @test x[1] === CategoricalValue(x.pool, 2)
         @test x[2] === missing
+        @test isordered(x) === ordered
         @test levels(x) == ["c", "a"]
 
-        if ordered
-            @test_throws OrderedLevelsException x[1] = "b"
-            levels!(x, [levels(x); "b"])
-        end
         x[1] = "b"
         @test x[1] === CategoricalValue(x.pool, 3)
         @test x[2] === missing
+        @test isordered(x) === false
         @test levels(x) == ["c", "a", "b"]
         end
     end
