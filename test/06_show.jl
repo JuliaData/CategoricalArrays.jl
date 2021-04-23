@@ -7,13 +7,13 @@ using CategoricalArrays
     pool = CategoricalPool(["c", "b", "a"])
     opool = CategoricalPool(["c", "b", "a"], true)
 
-    nv1 = CategoricalValue(1, pool)
-    nv2 = CategoricalValue(2, pool)
-    nv3 = CategoricalValue(3, pool)
+    nv1 = CategoricalValue(pool, 1)
+    nv2 = CategoricalValue(pool, 2)
+    nv3 = CategoricalValue(pool, 3)
 
-    ov1 = CategoricalValue(1, opool)
-    ov2 = CategoricalValue(2, opool)
-    ov3 = CategoricalValue(3, opool)
+    ov1 = CategoricalValue(opool, 1)
+    ov2 = CategoricalValue(opool, 2)
+    ov3 = CategoricalValue(opool, 3)
 
     if VERSION >= v"1.6.0"
         @test sprint(show, pool) == "$CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"])"
@@ -78,7 +78,7 @@ using JSON
 @testset "JSON.lower" for pool in (CategoricalPool(["a"]),
                                    CategoricalPool([1]),
                                    CategoricalPool([1.0]))
-    v = CategoricalValue(1, pool)
+    v = CategoricalValue(pool, 1)
     @test JSON.lower(v) == JSON.lower(unwrap(v))
     @test typeof(JSON.lower(v)) == typeof(JSON.lower(unwrap(v)))
 end
@@ -86,22 +86,22 @@ end
 using JSON3
 using StructTypes
 @testset "JSON3.write" begin
-    v = CategoricalValue(1, CategoricalPool(["a"]))
+    v = CategoricalValue(CategoricalPool(["a"]), 1)
     @test JSON3.write(v) === "\"a\""
 
-    v = CategoricalValue(1, CategoricalPool([1]))
+    v = CategoricalValue(CategoricalPool([1]), 1)
     @test JSON3.write(v) === "1"
     @test StructTypes.numbertype(typeof(v)) === Int
 
-    v = CategoricalValue(1, CategoricalPool([2.0]))
+    v = CategoricalValue(CategoricalPool([2.0]), 1)
     @test JSON3.write(v) === "2.0"
     @test StructTypes.numbertype(typeof(v)) === Float64
 
-    v = CategoricalValue(1, CategoricalPool([BigFloat(3.0,10)]))
+    v = CategoricalValue(CategoricalPool([BigFloat(3.0,10)]), 1)
     @test JSON3.write(v) === "3.0"
     @test StructTypes.numbertype(typeof(v)) === BigFloat
 
-    v = CategoricalValue(2, CategoricalPool([true,false]))
+    v = CategoricalValue(CategoricalPool([true,false]), 2)
     @test JSON3.write(v) == "false"
     @test StructTypes.numbertype(typeof(v)) === Bool
 end

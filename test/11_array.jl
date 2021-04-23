@@ -124,9 +124,9 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test_throws Exception x[1] > x[2]
     @test_throws Exception x[3] > x[2]
 
-    @test x[1] === CategoricalValue(2, x.pool)
-    @test x[2] === CategoricalValue(1, x.pool)
-    @test x[3] === CategoricalValue(2, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 2)
+    @test x[2] === CategoricalValue(x.pool, 1)
+    @test x[3] === CategoricalValue(x.pool, 2)
     @test_throws BoundsError x[4]
 
     x2 = x[:]
@@ -159,33 +159,33 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test isordered(x2) == isordered(x)
 
     x[1] = x[2]
-    @test x[1] === CategoricalValue(1, x.pool)
-    @test x[2] === CategoricalValue(1, x.pool)
-    @test x[3] === CategoricalValue(2, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 1)
+    @test x[2] === CategoricalValue(x.pool, 1)
+    @test x[3] === CategoricalValue(x.pool, 2)
 
     x[3] = "c"
     @test levels(x) == ["a", "b", "c"]
-    @test x[1] === CategoricalValue(1, x.pool)
-    @test x[2] === CategoricalValue(1, x.pool)
-    @test x[3] === CategoricalValue(3, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 1)
+    @test x[2] === CategoricalValue(x.pool, 1)
+    @test x[3] === CategoricalValue(x.pool, 3)
 
     x[2:3] .= "b"
     @test levels(x) == ["a", "b", "c"]
-    @test x[1] === CategoricalValue(1, x.pool)
-    @test x[2] === CategoricalValue(2, x.pool)
-    @test x[3] === CategoricalValue(2, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 1)
+    @test x[2] === CategoricalValue(x.pool, 2)
+    @test x[3] === CategoricalValue(x.pool, 2)
 
     @test droplevels!(x) === x
     @test levels(x) == ["a", "b"]
-    @test x[1] === CategoricalValue(1, x.pool)
-    @test x[2] === CategoricalValue(2, x.pool)
-    @test x[3] === CategoricalValue(2, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 1)
+    @test x[2] === CategoricalValue(x.pool, 2)
+    @test x[3] === CategoricalValue(x.pool, 2)
 
     @test levels!(x, ["b", "a"]) === x
     @test levels(x) == ["b", "a"]
-    @test x[1] === CategoricalValue(2, x.pool)
-    @test x[2] === CategoricalValue(1, x.pool)
-    @test x[3] === CategoricalValue(1, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 2)
+    @test x[2] === CategoricalValue(x.pool, 1)
+    @test x[3] === CategoricalValue(x.pool, 1)
 
     @test_throws ArgumentError levels!(x, ["a"])
     @test_throws ArgumentError levels!(x, ["e", "b"])
@@ -193,14 +193,14 @@ using CategoricalArrays: DefaultRefType, leveltype
 
     @test levels!(x, ["e", "a", "b"]) === x
     @test levels(x) == ["e", "a", "b"]
-    @test x[1] === CategoricalValue(2, x.pool)
-    @test x[2] === CategoricalValue(3, x.pool)
-    @test x[3] === CategoricalValue(3, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 2)
+    @test x[2] === CategoricalValue(x.pool, 3)
+    @test x[3] === CategoricalValue(x.pool, 3)
 
     x[1] = "c"
-    @test x[1] === CategoricalValue(4, x.pool)
-    @test x[2] === CategoricalValue(3, x.pool)
-    @test x[3] === CategoricalValue(3, x.pool)
+    @test x[1] === CategoricalValue(x.pool, 4)
+    @test x[2] === CategoricalValue(x.pool, 3)
+    @test x[3] === CategoricalValue(x.pool, 3)
     @test levels(x) == ["e", "a", "b", "c"]
 
     push!(x, "a")
@@ -361,10 +361,10 @@ using CategoricalArrays: DefaultRefType, leveltype
         @test isordered(x2) === isordered(x)
         @test levels(x2) == levels(x)
 
-        @test x[1] === CategoricalValue(1, x.pool)
-        @test x[2] === CategoricalValue(2, x.pool)
-        @test x[3] === CategoricalValue(3, x.pool)
-        @test x[4] === CategoricalValue(4, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 1)
+        @test x[2] === CategoricalValue(x.pool, 2)
+        @test x[3] === CategoricalValue(x.pool, 3)
+        @test x[4] === CategoricalValue(x.pool, 4)
         @test_throws BoundsError x[5]
 
         x2 = x[:]
@@ -396,10 +396,10 @@ using CategoricalArrays: DefaultRefType, leveltype
         @test isordered(x2) == isordered(x)
 
         x[2] = 1
-        @test x[1] === CategoricalValue(1, x.pool)
-        @test x[2] === CategoricalValue(3, x.pool)
-        @test x[3] === CategoricalValue(3, x.pool)
-        @test x[4] === CategoricalValue(4, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 1)
+        @test x[2] === CategoricalValue(x.pool, 3)
+        @test x[3] === CategoricalValue(x.pool, 3)
+        @test x[4] === CategoricalValue(x.pool, 4)
         @test levels(x) == unique(a)
         @test unique(x) == unique(collect(x))
 
@@ -408,10 +408,10 @@ using CategoricalArrays: DefaultRefType, leveltype
             levels!(x, [levels(x); -1])
         end
         x[1:2] .= -1
-        @test x[1] === CategoricalValue(5, x.pool)
-        @test x[2] === CategoricalValue(5, x.pool)
-        @test x[3] === CategoricalValue(3, x.pool)
-        @test x[4] === CategoricalValue(4, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 5)
+        @test x[2] === CategoricalValue(x.pool, 5)
+        @test x[3] === CategoricalValue(x.pool, 3)
+        @test x[4] === CategoricalValue(x.pool, 4)
         @test levels(x) == vcat(unique(a), -1)
         @test unique(x) == unique(collect(x))
 
@@ -536,20 +536,20 @@ using CategoricalArrays: DefaultRefType, leveltype
         @test isordered(x2) === isordered(x)
         @test levels(x2) == levels(x)
 
-        @test x[1] === CategoricalValue(1, x.pool)
-        @test x[2] === CategoricalValue(2, x.pool)
-        @test x[3] === CategoricalValue(2, x.pool)
-        @test x[4] === CategoricalValue(1, x.pool)
-        @test x[5] === CategoricalValue(3, x.pool)
-        @test x[6] === CategoricalValue(3, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 1)
+        @test x[2] === CategoricalValue(x.pool, 2)
+        @test x[3] === CategoricalValue(x.pool, 2)
+        @test x[4] === CategoricalValue(x.pool, 1)
+        @test x[5] === CategoricalValue(x.pool, 3)
+        @test x[6] === CategoricalValue(x.pool, 3)
         @test_throws BoundsError x[7]
 
-        @test x[1,1] === CategoricalValue(1, x.pool)
-        @test x[2,1] === CategoricalValue(2, x.pool)
-        @test x[1,2] === CategoricalValue(2, x.pool)
-        @test x[2,2] === CategoricalValue(1, x.pool)
-        @test x[1,3] === CategoricalValue(3, x.pool)
-        @test x[2,3] === CategoricalValue(3, x.pool)
+        @test x[1,1] === CategoricalValue(x.pool, 1)
+        @test x[2,1] === CategoricalValue(x.pool, 2)
+        @test x[1,2] === CategoricalValue(x.pool, 2)
+        @test x[2,2] === CategoricalValue(x.pool, 1)
+        @test x[1,3] === CategoricalValue(x.pool, 3)
+        @test x[2,3] === CategoricalValue(x.pool, 3)
         @test_throws BoundsError x[1,4]
         @test_throws BoundsError x[4,1]
         @test_throws BoundsError x[4,4]
@@ -591,39 +591,39 @@ using CategoricalArrays: DefaultRefType, leveltype
             levels!(x, [levels(x); "z"])
         end
         x[1] = "z"
-        @test x[1] === CategoricalValue(4, x.pool)
-        @test x[2] === CategoricalValue(2, x.pool)
-        @test x[3] === CategoricalValue(2, x.pool)
-        @test x[4] === CategoricalValue(1, x.pool)
-        @test x[5] === CategoricalValue(3, x.pool)
-        @test x[6] === CategoricalValue(3, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 4)
+        @test x[2] === CategoricalValue(x.pool, 2)
+        @test x[3] === CategoricalValue(x.pool, 2)
+        @test x[4] === CategoricalValue(x.pool, 1)
+        @test x[5] === CategoricalValue(x.pool, 3)
+        @test x[6] === CategoricalValue(x.pool, 3)
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,:] .= "a"
-        @test x[1] === CategoricalValue(1, x.pool)
-        @test x[2] === CategoricalValue(2, x.pool)
-        @test x[3] === CategoricalValue(1, x.pool)
-        @test x[4] === CategoricalValue(1, x.pool)
-        @test x[5] === CategoricalValue(1, x.pool)
-        @test x[6] === CategoricalValue(3, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 1)
+        @test x[2] === CategoricalValue(x.pool, 2)
+        @test x[3] === CategoricalValue(x.pool, 1)
+        @test x[4] === CategoricalValue(x.pool, 1)
+        @test x[5] === CategoricalValue(x.pool, 1)
+        @test x[6] === CategoricalValue(x.pool, 3)
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,1:2] .= "z"
-        @test x[1] === CategoricalValue(4, x.pool)
-        @test x[2] === CategoricalValue(2, x.pool)
-        @test x[3] === CategoricalValue(4, x.pool)
-        @test x[4] === CategoricalValue(1, x.pool)
-        @test x[5] === CategoricalValue(1, x.pool)
-        @test x[6] === CategoricalValue(3, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 4)
+        @test x[2] === CategoricalValue(x.pool, 2)
+        @test x[3] === CategoricalValue(x.pool, 4)
+        @test x[4] === CategoricalValue(x.pool, 1)
+        @test x[5] === CategoricalValue(x.pool, 1)
+        @test x[6] === CategoricalValue(x.pool, 3)
         @test levels(x) == ["a", "b", "c", "z"]
 
         x[1,2] = "b"
-        @test x[1] === CategoricalValue(4, x.pool)
-        @test x[2] === CategoricalValue(2, x.pool)
-        @test x[3] === CategoricalValue(2, x.pool)
-        @test x[4] === CategoricalValue(1, x.pool)
-        @test x[5] === CategoricalValue(1, x.pool)
-        @test x[6] === CategoricalValue(3, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 4)
+        @test x[2] === CategoricalValue(x.pool, 2)
+        @test x[3] === CategoricalValue(x.pool, 2)
+        @test x[4] === CategoricalValue(x.pool, 1)
+        @test x[5] === CategoricalValue(x.pool, 1)
+        @test x[6] === CategoricalValue(x.pool, 3)
         @test levels(x) == ["a", "b", "c", "z"]
     end
 
@@ -664,7 +664,7 @@ using CategoricalArrays: DefaultRefType, leveltype
             levels!(x, [levels(x); "c"])
         end
         x[1] = "c"
-        @test x[1] === CategoricalValue(1, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 1)
         @test !isassigned(x, 2) && isdefined(x, 2)
         @test_throws UndefRefError x[2]
         @test levels(x) == ["c"]
@@ -674,15 +674,15 @@ using CategoricalArrays: DefaultRefType, leveltype
             levels!(x, [levels(x); "a"])
         end
         x[1] = "a"
-        @test x[1] === CategoricalValue(2, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 2)
         @test !isassigned(x, 2) && isdefined(x, 2)
         @test_throws UndefRefError x[2]
         @test isordered(x) === ordered
         @test levels(x) == ["c", "a"]
 
         x[2] = "c"
-        @test x[1] === CategoricalValue(2, x.pool)
-        @test x[2] === CategoricalValue(1, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 2)
+        @test x[2] === CategoricalValue(x.pool, 1)
         @test levels(x) == ["c", "a"]
 
         if ordered
@@ -690,18 +690,18 @@ using CategoricalArrays: DefaultRefType, leveltype
             levels!(x, [levels(x); "b"])
         end
         x[1] = "b"
-        @test x[1] === CategoricalValue(3, x.pool)
-        @test x[2] === CategoricalValue(1, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 3)
+        @test x[2] === CategoricalValue(x.pool, 1)
         @test levels(x) == ["c", "a", "b"]
 
-        v = CategoricalValue(2, CategoricalPool(["xyz", "b"]))
+        v = CategoricalValue(CategoricalPool(["xyz", "b"]), 2)
         if ordered
             @test_throws OrderedLevelsException x[1] = v
             levels!(x, ["c", "a", "xyz", "b"])
         end
         x[1] = v
-        @test x[1] === CategoricalValue(4, x.pool)
-        @test x[2] === CategoricalValue(1, x.pool)
+        @test x[1] === CategoricalValue(x.pool, 4)
+        @test x[2] === CategoricalValue(x.pool, 1)
         @test levels(x) == ["c", "a", "xyz", "b"]
     end
 end

@@ -17,10 +17,10 @@ using CategoricalArrays
     @test (hash(opool1) == hash(opool2)) === false
     @test (hash(opool2) == hash(opool2)) === true
 
-    nv1a = CategoricalValue(1, pool1)
-    nv2a = CategoricalValue(1, pool2)
-    nv1b = CategoricalValue(2, pool1)
-    nv2b = CategoricalValue(2, pool2)
+    nv1a = CategoricalValue(pool1, 1)
+    nv2a = CategoricalValue(pool2, 1)
+    nv1b = CategoricalValue(pool1, 2)
+    nv2b = CategoricalValue(pool2, 2)
 
     @test (hash(nv1a) == hash(nv1a)) === true
     @test (hash(nv1a) == hash(nv2a)) === false
@@ -42,10 +42,10 @@ using CategoricalArrays
     @test (hash(nv2b) == hash(nv1b)) === false
     @test (hash(nv2b) == hash(nv2b)) === true
 
-    ov1a = CategoricalValue(1, opool1)
-    ov2a = CategoricalValue(1, opool2)
-    ov1b = CategoricalValue(2, opool1)
-    ov2b = CategoricalValue(2, opool2)
+    ov1a = CategoricalValue(opool1, 1)
+    ov2a = CategoricalValue(opool2, 1)
+    ov1b = CategoricalValue(opool1, 2)
+    ov2b = CategoricalValue(opool2, 2)
 
     @test (hash(ov1a) == hash(ov1a)) === true
     @test (hash(ov1a) == hash(ov2a)) === false

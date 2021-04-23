@@ -1,7 +1,7 @@
 module TestConvert
 using Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, level, reftype, leveltype
+using CategoricalArrays: DefaultRefType, refcode, reftype, leveltype
 
 @testset "convert() for CategoricalPool{Int, DefaultRefType} and values" begin
     pool = CategoricalPool([1, 2, 3])
@@ -12,9 +12,9 @@ using CategoricalArrays: DefaultRefType, level, reftype, leveltype
     convert(CategoricalPool{Float64}, pool)
     convert(CategoricalPool, pool)
 
-    v1 = CategoricalValue(1, pool)
-    v2 = CategoricalValue(2, pool)
-    v3 = CategoricalValue(3, pool)
+    v1 = CategoricalValue(pool, 1)
+    v2 = CategoricalValue(pool, 2)
+    v3 = CategoricalValue(pool, 3)
     @test eltype(v1) === Any
     @test eltype(typeof(v1)) === Any
     @test leveltype(v1) === Int
@@ -153,7 +153,7 @@ end
 @testset "levelcode" begin
     pool = CategoricalPool{Int,UInt8}([2, 1, 3])
     for i in 1:3
-        v = CategoricalValue(i, pool)
+        v = CategoricalValue(pool, i)
         @test levelcode(v) isa Int16
         @test levels(pool)[levelcode(v)] == v
     end

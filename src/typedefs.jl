@@ -82,8 +82,8 @@ the order of the pool's [`levels`](@ref DataAPI.levels) is used rather than the 
 ordering of values of type `T`.
 """
 struct CategoricalValue{T <: SupportedTypes, R <: Integer}
-    level::R
     pool::CategoricalPool{T, R, CategoricalValue{T, R}}
+    ref::R
 end
 
 ## Arrays
