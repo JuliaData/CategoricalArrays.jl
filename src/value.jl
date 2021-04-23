@@ -1,5 +1,18 @@
-CategoricalValue(level::Integer, pool::CategoricalPool{T, R}) where {T, R} =
-    CategoricalValue(convert(R, level), pool)
+CategoricalValue(pool::CategoricalPool{T, R}, level::Integer) where {T, R} =
+    CategoricalValue(pool, convert(R, level))
+
+"""
+    CategoricalValue(value, source::Union{CategoricalValue, CategoricalArray})
+
+Return a `CategoricalValue` object wrapping `value` and attached to
+the [`CategoricalPool`](@ref) of `source`.
+"""
+function CategoricalValue(value, source::Union{CategoricalValue, CatArrOrSub})
+    p = pool(source)
+    i = get(p, value, nothing)
+    i === nothing && throw(ArgumentError("level $value not found in source pool"))
+    return CategoricalValue(p, i)
+end
 
 leveltype(::Type{<:CategoricalValue{T}}) where {T} = T
 leveltype(::Type{T}) where {T} = T
@@ -12,7 +25,7 @@ reftype(::Type{<:CategoricalValue{<:Any, R}}) where {R} = R
 reftype(x::Any) = reftype(typeof(x))
 
 pool(x::CategoricalValue) = x.pool
-level(x::CategoricalValue) = x.level
+refcode(x::CategoricalValue) = x.ref
 isordered(x::CategoricalValue) = isordered(x.pool)
 
 # extract the type of the original value from array eltype `T`
@@ -29,7 +42,7 @@ unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
 
 Get the value wrapped by categorical value `x`. If `x` is `Missing` return `missing`.
 """
-DataAPI.unwrap(x::CategoricalValue) = levels(x)[level(x)]
+DataAPI.unwrap(x::CategoricalValue) = levels(x)[refcode(x)]
 
 """
     levelcode(x::CategoricalValue)
@@ -37,7 +50,7 @@ DataAPI.unwrap(x::CategoricalValue) = levels(x)[level(x)]
 Get the code of categorical value `x`, i.e. its index in the set
 of possible values returned by [`levels(x)`](@ref DataAPI.levels).
 """
-levelcode(x::CategoricalValue) = Signed(widen(level(x)))
+levelcode(x::CategoricalValue) = Signed(widen(refcode(x)))
 
 """
     levelcode(x::Missing)
@@ -107,7 +120,7 @@ Base.String(x::CategoricalValue{<:AbstractString}) = String(unwrap(x))
 
 @inline function Base.:(==)(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y) || pool(x) == pool(y)
-        return level(x) == level(y)
+        return refcode(x) == refcode(y)
     else
         return unwrap(x) == unwrap(y)
     end
@@ -118,7 +131,7 @@ Base.:(==)(x::SupportedTypes, y::CategoricalValue) = x == unwrap(y)
 
 @inline function Base.isequal(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y) || pool(x) == pool(y)
-        return level(x) == level(y)
+        return refcode(x) == refcode(y)
     else
         return isequal(unwrap(x), unwrap(y))
     end
@@ -140,8 +153,11 @@ function Base.isless(x::CategoricalValue, y::CategoricalValue)
     end
 end
 
-Base.isless(x::CategoricalValue, y::SupportedTypes) = levelcode(x) < levelcode(x.pool[get(x.pool, y)])
-Base.isless(y::SupportedTypes, x::CategoricalValue) = levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
+Base.isless(x::CategoricalValue, y::SupportedTypes) =
+    throw(ArgumentError("cannot compare a `CategoricalValue` to value `v` of type " *
+                        "`$(typeof(x))`: wrap `v` using `CategoricalValue(v, catvalue)` " *
+                        "or `CategoricalValue(v, catarray)` first"))
+Base.isless(y::SupportedTypes, x::CategoricalValue) = isless(x, y)
 
 function Base.:<(x::CategoricalValue, y::CategoricalValue)
     poolx = pool(x)
@@ -157,21 +173,11 @@ function Base.:<(x::CategoricalValue, y::CategoricalValue)
     end
 end
 
-function Base.:<(x::CategoricalValue, y::SupportedTypes)
-    if !isordered(pool(x))
-        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
-    else
-        return levelcode(x) < levelcode(x.pool[get(x.pool, y)])
-    end
-end
-
-function Base.:<(y::SupportedTypes, x::CategoricalValue)
-    if !isordered(pool(x))
-        throw(ArgumentError("Unordered CategoricalValue objects cannot be tested for order using <. Use isless instead, or call the ordered! function on the parent array to change this"))
-    else
-        return levelcode(x.pool[get(x.pool, y)]) < levelcode(x)
-    end
-end
+Base.:<(x::CategoricalValue, y::SupportedTypes) =
+    throw(ArgumentError("cannot compare a `CategoricalValue` to value `v` of type " *
+                        "`$(typeof(x))`: wrap `v` using `CategoricalValue(v, catvalue)` " *
+                        "or `CategoricalValue(v, catarray)` first"))
+Base.:<(y::SupportedTypes, x::CategoricalValue) = x < y
 
 # JSON of CategoricalValue is JSON of the value it refers to
 JSON.lower(x::CategoricalValue) = JSON.lower(unwrap(x))

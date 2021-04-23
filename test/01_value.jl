@@ -1,7 +1,7 @@
 module TestValue
 using Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, level,  reftype, leveltype
+using CategoricalArrays: DefaultRefType, refcode,  reftype, leveltype
 
 @testset "leveltype on non CategoricalValue types" begin
     @test leveltype("abc") === String
@@ -20,7 +20,7 @@ end
     )
 
     for i in 1:3
-        x = CategoricalValue(i, pool)
+        x = CategoricalValue(pool, i)
 
         @test leveltype(x) === String
         @test leveltype(typeof(x)) === String
@@ -28,11 +28,11 @@ end
         @test reftype(typeof(x)) === DefaultRefType
         @test x isa CategoricalValue{String, DefaultRefType}
 
-        @test level(x) === DefaultRefType(i)
+        @test refcode(x) === DefaultRefType(i)
         @test CategoricalArrays.pool(x) === pool
 
         @test typeof(x)(x) === x
-        @test CategoricalValue(UInt8(i), pool) == x
+        @test CategoricalValue(pool, UInt8(i)) == x
     end
 end
 
@@ -46,7 +46,7 @@ end
     )
 
     for i in 1:3
-        x = CategoricalValue(i, pool)
+        x = CategoricalValue(pool, i)
 
         @test leveltype(x) === String
         @test leveltype(typeof(x)) === String
@@ -54,11 +54,27 @@ end
         @test reftype(typeof(x)) === UInt8
         @test x isa CategoricalValue{String, UInt8}
 
-        @test level(x) === UInt8(i)
+        @test refcode(x) === UInt8(i)
         @test CategoricalArrays.pool(x) === pool
 
         @test typeof(x)(x) === x
-        @test CategoricalValue(UInt32(i), pool) == x
+        @test CategoricalValue(pool, UInt32(i)) == x
+    end
+end
+
+@testset "constructor from other value" begin
+    pool = CategoricalPool([2, 3, 1])
+    arr = CategoricalVector{Int}(DefaultRefType[2, 1, 3], pool)
+    for x in (CategoricalValue(pool, 1), arr, view(arr, 2:3))
+        for (i, v) in enumerate(levels(pool))
+            @test CategoricalValue(v, x) ===
+                CategoricalValue(float(v), x) ===
+                CategoricalValue(CategoricalValue(pool, i), x) ===
+                CategoricalValue(pool, i)
+        end
+
+        @test_throws ArgumentError CategoricalValue(4, x)
+        @test_throws ArgumentError CategoricalValue(missing, x)
     end
 end
 
