@@ -32,12 +32,12 @@ Base.fill!(A::CategoricalArray{>:Missing}, ::Missing) = (fill!(A.refs, 0); A)
 in(x::Missing, y::CategoricalArray) = false
 in(x::Missing, y::CategoricalArray{>:Missing}) = !all(v -> v > 0, y.refs)
 
-function Missings.replace(a::CategoricalArray{S, N, R, V, C}, replacement::V) where {S, N, R, V, C}
+function Missings.replace(a::CategoricalArray{T, N, R, V, C}, replacement::V) where {T, N, R, V, C}
     pool = copy(a.pool)
     v = C(pool, get!(pool, replacement))
     Missings.replace(a, v)
 end
 
-function collect(r::Missings.EachReplaceMissing{<:CategoricalArray{S, N, R, C}}) where {S, N, R, C}
-    CategoricalArray{C,N}(R[refcode(v) for v in r], r.replacement.pool)
+function collect(r::Missings.EachReplaceMissing{<:CategoricalArray{T, N, R, V}}) where {T, N, R, V}
+    CategoricalArray{V,N}(R[refcode(v) for v in r], r.replacement.pool)
 end
