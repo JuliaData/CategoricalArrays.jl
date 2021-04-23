@@ -75,7 +75,16 @@ it doesn't do this itself to avoid doing a dict lookup twice
     i
 end
 
-function mergelevels(ordered, levels...)
+"""
+    mergelevels(ordered::Bool, levels::AbstractVector...) -> (vec::Vector, ordered′::Bool)
+
+Merge vectors of values `levels` and return:
+- `vec`: a superset of all values in `levels`, respecting orders of values
+  in each vector of levels if possible
+- `ordered′`: if `ordered=true`, whether order comparisons between all pairs
+  of levels in `vec` have a defined result based on orders of values in input `levels`
+"""
+function mergelevels(ordered::Bool, levels::AbstractVector...)
     T = cat_promote_eltype(levels...)
     res = Vector{T}(undef, 0)
 
@@ -214,6 +223,7 @@ end
     end
 end
 
+# Efficient equivalent of issubset(levels(a), levels(b)), i.e. ignoring order
 function Base.issubset(a::CategoricalPool, b::CategoricalPool)
     pa = pointer_from_objref(a)
     pb = pointer_from_objref(b)
