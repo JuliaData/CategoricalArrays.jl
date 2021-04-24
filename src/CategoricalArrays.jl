@@ -15,6 +15,7 @@ module CategoricalArrays
     using DataAPI
     using Missings
     using Printf
+    import RecipesBase
     import StructTypes
 
     # JuliaLang/julia#36810

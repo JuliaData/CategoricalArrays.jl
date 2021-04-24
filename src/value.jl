@@ -191,3 +191,10 @@ StructTypes.StructType(x::CategoricalValue) = StructTypes.StructType(unwrap(x))
 StructTypes.StructType(::Type{<:CategoricalValue{T}}) where {T} = StructTypes.StructType(T)
 StructTypes.numbertype(::Type{<:CategoricalValue{T}}) where {T <: Number} = T
 StructTypes.construct(::Type{T}, x::CategoricalValue{T}) where {T} = T(unwrap(x))
+
+RecipesBase.@recipe function f(::Type{T}, v::T) where T <: CategoricalValue
+    level_strings = [map(string, levels(v)); missing]
+    ticks --> eachindex(level_strings)
+    v -> ismissing(v) ? length(level_strings) : Int(refcode(v)),
+    i -> level_strings[Int(i)]
+end
