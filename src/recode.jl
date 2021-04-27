@@ -49,16 +49,27 @@ A user defined type could override this method to define an appropriate test fun
 @inline recode_in(x, collection::Set) = x in collection
 @inline recode_in(x, collection) = any(x ≅ y for y in collection)
 
+
+function optimize_pair(pair::Pair)::Pair
+    if typeof(pair.first) <: AbstractArray
+        pair = Set(pair.first) => pair.second
+    end
+    return pair;
+end
+
+
 function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
 
+    opt_pairs = map(optimize_pair, pairs);
+
     @inbounds for i in eachindex(dest, src)
         x = src[i]
 
-        for j in 1:length(pairs)
-            p = pairs[j]
+        for j in 1:length(opt_pairs)
+            p = opt_pairs[j]
             # we use isequal and recode_in because we cannot really distinguish scalars from collections
             if x ≅ p.first || recode_in(x, p.first)
                 dest[i] = p.second
@@ -96,7 +107,9 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
 
-    vals = T[p.second for p in pairs]
+    opt_pairs = map(optimize_pair, pairs);
+
+    vals = T[p.second for p in opt_pairs]
     default !== nothing && push!(vals, default)
 
     levels!(dest.pool, filter!(!ismissing, unique(vals)))
@@ -110,8 +123,8 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
-        for j in 1:length(pairs)
-            p = pairs[j]
+        for j in 1:length(opt_pairs)
+            p = opt_pairs[j]
             # we use isequal and recode_in because we cannot really distinguish scalars from collections
             if x ≅ p.first || recode_in(x, p.first)
                 drefs[i] = dupvals ? pairmap[j] : j
