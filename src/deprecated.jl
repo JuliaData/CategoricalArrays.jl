@@ -15,3 +15,4 @@ end
 import Base: get
 
 @deprecate get(x::CategoricalValue) DataAPI.unwrap(x)
+@deprecate level(x::CategoricalValue) refcode(x) false

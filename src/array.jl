@@ -499,7 +499,7 @@ end
 end
 
 Base.fill(v::CategoricalValue{T}, dims::NTuple{N, Integer}) where {T, N} =
-    CategoricalArray{T, N}(fill(level(v), dims), copy(pool(v)))
+    CategoricalArray{T, N}(fill(refcode(v), dims), copy(pool(v)))
 
 # to avoid ambiguity
 Base.fill(v::CategoricalValue, dims::Tuple{}) =

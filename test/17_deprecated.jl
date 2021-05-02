@@ -13,4 +13,9 @@ const ≅ = isequal
     @test x ≅ ["[1, 2)", missing, missing]
 end
 
+@testset "level" begin
+    x = categorical(["a", "b", missing])
+    @test CategoricalArrays.level(x[1]) === CategoricalArrays.refcode(x[1])
+end
+
 end

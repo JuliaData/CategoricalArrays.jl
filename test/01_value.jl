@@ -1,7 +1,7 @@
 module TestValue
 using Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, level,  reftype, leveltype
+using CategoricalArrays: DefaultRefType, refcode,  reftype, leveltype
 
 @testset "leveltype on non CategoricalValue types" begin
     @test leveltype("abc") === String
@@ -28,7 +28,7 @@ end
         @test reftype(typeof(x)) === DefaultRefType
         @test x isa CategoricalValue{String, DefaultRefType}
 
-        @test level(x) === DefaultRefType(i)
+        @test refcode(x) === DefaultRefType(i)
         @test CategoricalArrays.pool(x) === pool
 
         @test typeof(x)(x) === x
@@ -54,7 +54,7 @@ end
         @test reftype(typeof(x)) === UInt8
         @test x isa CategoricalValue{String, UInt8}
 
-        @test level(x) === UInt8(i)
+        @test refcode(x) === UInt8(i)
         @test CategoricalArrays.pool(x) === pool
 
         @test typeof(x)(x) === x
