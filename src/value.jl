@@ -12,7 +12,7 @@ reftype(::Type{<:CategoricalValue{<:Any, R}}) where {R} = R
 reftype(x::Any) = reftype(typeof(x))
 
 pool(x::CategoricalValue) = x.pool
-level(x::CategoricalValue) = x.level
+refcode(x::CategoricalValue) = x.level
 isordered(x::CategoricalValue) = isordered(x.pool)
 
 # extract the type of the original value from array eltype `T`
@@ -29,7 +29,7 @@ unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
 
 Get the value wrapped by categorical value `x`. If `x` is `Missing` return `missing`.
 """
-DataAPI.unwrap(x::CategoricalValue) = levels(x)[level(x)]
+DataAPI.unwrap(x::CategoricalValue) = levels(x)[refcode(x)]
 
 """
     levelcode(x::CategoricalValue)
@@ -37,7 +37,7 @@ DataAPI.unwrap(x::CategoricalValue) = levels(x)[level(x)]
 Get the code of categorical value `x`, i.e. its index in the set
 of possible values returned by [`levels(x)`](@ref DataAPI.levels).
 """
-levelcode(x::CategoricalValue) = Signed(widen(level(x)))
+levelcode(x::CategoricalValue) = Signed(widen(refcode(x)))
 
 """
     levelcode(x::Missing)
@@ -107,7 +107,7 @@ Base.String(x::CategoricalValue{<:AbstractString}) = String(unwrap(x))
 
 @inline function Base.:(==)(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y)
-        return level(x) == level(y)
+        return refcode(x) == refcode(y)
     else
         return unwrap(x) == unwrap(y)
     end
@@ -118,7 +118,7 @@ Base.:(==)(x::SupportedTypes, y::CategoricalValue) = x == unwrap(y)
 
 @inline function Base.isequal(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y)
-        return level(x) == level(y)
+        return refcode(x) == refcode(y)
     else
         return isequal(unwrap(x), unwrap(y))
     end
