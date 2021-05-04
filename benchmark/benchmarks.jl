@@ -87,3 +87,11 @@ SUITE["repeated assignment"]["same levels dest"] =
     @benchmarkable mycopy!(c2, a) setup = c2=copy(c)
 SUITE["repeated assignment"]["many levels dest"] =
     @benchmarkable mycopy!(d2, a) setup = d2=copy(d)
+
+orig_vec = (x -> repeat(x, 32)).(string.([x % 1000 for x in 1:1000000]))
+cat2merge_vec = (x -> repeat(x, 32)).(string.([x % 1000 for x in 1:100000]))
+SUITE["recode"] = BenchmarkGroup()
+SUITE["recode"]["vectors"] = @benchmarkable recode(orig_vec, cat2merge_vec => "None")
+SUITE["recode"]["categorical_vectors"] = @benchmarkable recode(categorical(orig_vec), cat2merge_vec => "None")
+SUITE["recode"]["matrices"] = @benchmarkable recode(reshape(orig_vec, :, 1), reshape(cat2merge_vec, :, 1) => "None")
+SUITE["recode"]["categorical_matrices"] = @benchmarkable recode(categorical(reshape(orig_vec, :, 1)), reshape(cat2merge_vec, :, 1) => "None")
