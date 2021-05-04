@@ -87,7 +87,7 @@ SUITE["repeated assignment"]["same levels dest"] =
     @benchmarkable mycopy!(c2, a) setup = c2=copy(c)
 SUITE["repeated assignment"]["many levels dest"] =
     @benchmarkable mycopy!(d2, a) setup = d2=copy(d)
-    
+
 orig_vec = (x -> repeat(x, 32)).(string.([x % 1000 for x in 1:1000000]))
 cat2merge_vec = (x -> repeat(x, 32)).(string.([x % 1000 for x in 1:100000]))
 SUITE["recode"] = BenchmarkGroup()
