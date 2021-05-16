@@ -230,6 +230,7 @@ using CategoricalArrays: DefaultRefType, leveltype
     
     x = categorical([1])
     @test sizehint!(x, 1000) === x
+    @test x == [1]
     @test_throws MethodError empty!(categorical([1 2; 3 4]))
     @test_throws MethodError sizehint!(categorical([1 2; 3 4]))
 
