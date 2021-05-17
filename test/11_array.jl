@@ -227,7 +227,6 @@ using CategoricalArrays: DefaultRefType, leveltype
     empty!(x)
     @test length(x) == 0
     @test levels(x) == ["e", "a", "b", "c", "zz"]
-    
     @testset "Vector created from range" begin
         # (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
