@@ -228,12 +228,6 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test length(x) == 0
     @test levels(x) == ["e", "a", "b", "c", "zz"]
     
-    x = categorical([1])
-    @test sizehint!(x, 1000) === x
-    @test x == [1]
-    @test_throws MethodError empty!(categorical([1 2; 3 4]))
-    @test_throws MethodError sizehint!(categorical([1 2; 3 4]))
-
     @testset "Vector created from range" begin
         # (i.e. non-Array AbstractArray),
         # direct conversion to a vector with different eltype
