@@ -1197,10 +1197,4 @@ end
     @test y == a
 end
 
-@testset "sizehint!" begin
-    x = categorical([1, missing])
-    @test sizehint!(x, 1000) === x
-    @test x ≅ [1, missing]
-end
-
 end
