@@ -886,7 +886,8 @@ function Base.append!(A::CategoricalVector, B::CatArrOrSub)
     return A
 end
 
-Base.empty!(A::CategoricalArray) = (empty!(A.refs); return A)
+Base.empty!(A::CategoricalVector) = (empty!(A.refs); return A)
+Base.sizehint!(A::CategoricalVector, sz::Integer) = (sizehint!(A.refs, sz); return A)
 
 function Base.reshape(A::CategoricalArray{T, N}, dims::Dims) where {T, N}
     x = reshape(A.refs, dims)

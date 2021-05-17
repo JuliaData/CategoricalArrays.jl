@@ -2069,4 +2069,12 @@ end
     @test res.args[2].data == [1, 3, 4, 2]
 end
 
+@testset "sizehint! tests and additional empty! tests" begin
+    x = categorical([1])
+    @test sizehint!(x, 1000) === x
+    @test x == [1]
+    @test_throws MethodError empty!(categorical([1 2; 3 4]))
+    @test_throws MethodError sizehint!(categorical([1 2; 3 4]))
+end
+
 end
