@@ -836,7 +836,20 @@ unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
 Drop levels which do not appear in categorical array `A` (so that they will no longer be
 returned by [`levels`](@ref DataAPI.levels)).
 """
-droplevels!(A::CategoricalArray) = levels!(A, intersect(levels(A), unique(A)))
+function droplevels!(A::CategoricalArray)
+    arefs = refs(A)
+    nlevels = length(levels(A))
+    seen = fill(false, nlevels)
+    nseen = 0
+    @inbounds for ref in arefs
+        if (ref > 0) && !seen[ref]
+            seen[ref] = true
+            nseen += 1
+            (nseen == nlevels) && return A # all levels observed, nothing to drop
+        end
+    end
+    return levels!(A, @inbounds levels(A)[seen])
+end
 
 """
     isordered(A::CategoricalArray)
