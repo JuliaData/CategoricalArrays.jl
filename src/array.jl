@@ -849,13 +849,15 @@ function droplevels!(A::CategoricalArray)
             (nseen == nlevels) && return A # all levels observed, nothing to drop
         end
     end
-    # recode refs to keep only the seen ones (optimized version of update_refs!())
-    levelsmap = cumsum(seen)
-    @inbounds for i in eachindex(arefs)
-        arefs[i] = levelsmap[arefs[i] + 1] - 1
-    end
+
     # replace the pool
     A.pool = typeof(pool(A))(@inbounds(levels(A)[view(seen, 2:nlevels)]), isordered(A))
+    # recode refs to keep only the seen ones (optimized version of update_refs!())
+    seen[1] = false # to start levelsmap from 0
+    levelsmap = cumsum(seen)
+    @inbounds for i in eachindex(arefs)
+        arefs[i] = levelsmap[Int(arefs[i]) + 1]
+    end
     return A
 end
 
