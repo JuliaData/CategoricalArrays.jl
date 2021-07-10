@@ -838,26 +838,24 @@ returned by [`levels`](@ref DataAPI.levels)).
 """
 function droplevels!(A::CategoricalArray)
     arefs = refs(A)
-    nlevels = length(levels(A))
+    nlevels = length(levels(A))+1 # +1 for missing
     seen = fill(false, nlevels)
-    nseen = 0
+    seen[1] = true # assume that missing is always observed to simplify checks
+    nseen = 1
     @inbounds for ref in arefs
-        if (ref > 0) && !seen[ref]
-            seen[ref] = true
+        if !seen[ref + 1]
+            seen[ref + 1] = true
             nseen += 1
             (nseen == nlevels) && return A # all levels observed, nothing to drop
         end
     end
     # recode refs to keep only the seen ones (optimized version of update_refs!())
-    newlv = 0
-    levelsmap = [s ? (newlv += 1) : 0 for s in seen]
+    levelsmap = cumsum(seen)
     @inbounds for i in eachindex(arefs)
-        if arefs[i] > 0
-            arefs[i] = levelsmap[arefs[i]]
-        end
+        arefs[i] = levelsmap[arefs[i] + 1] - 1
     end
     # replace the pool
-    A.pool = typeof(pool(A))(@inbounds(levels(A)[seen]), isordered(A))
+    A.pool = typeof(pool(A))(@inbounds(levels(A)[view(seen, 2:nlevels)]), isordered(A))
     return A
 end
 
