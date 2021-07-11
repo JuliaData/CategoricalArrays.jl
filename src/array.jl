@@ -838,7 +838,7 @@ returned by [`levels`](@ref DataAPI.levels)).
 """
 function droplevels!(A::CategoricalArray)
     arefs = refs(A)
-    nlevels = length(levels(A))+1 # +1 for missing
+    nlevels = length(levels(A)) + 1 # +1 for missing
     seen = fill(false, nlevels)
     seen[1] = true # assume that missing is always observed to simplify checks
     nseen = 1
