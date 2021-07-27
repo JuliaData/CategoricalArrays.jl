@@ -1,7 +1,7 @@
 ## Code for CategoricalArray
 
 import Base: Array, convert, collect, copy, getindex, setindex!, similar, size,
-             unique, vcat, in, summary, float, complex, copyto!
+             unique, unique!, vcat, in, summary, float, complex, copyto!
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -889,6 +889,15 @@ end
 
 unique(A::CatArrOrSub{T}) where T =
     CategoricalVector{T}(_uniquerefs(A), copy(pool(A)))
+
+function unique!(A::CategoricalVector)
+    _urefs = _uniquerefs(A)
+    if length(_urefs) != length(A)
+        resize!(A.refs, length(_urefs))
+        copyto!(A.refs, _urefs)
+    end
+    return A
+end
 
 """
     droplevels!(A::CategoricalArray)

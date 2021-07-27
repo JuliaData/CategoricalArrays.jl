@@ -741,12 +741,20 @@ end
     @test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
     @test unique(x) == ["Old", "Young", "Middle"]
 
+    y = copy(x)
+    @test unique!(y) === y
+    @test y == unique(x)
+
     x = CategoricalArray(String[])
     @test isa(levels(x), Vector{String}) && isempty(levels(x))
     @test isa(unique(x), typeof(x)) && isempty(unique(x))
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
     @test isa(unique(x), typeof(x)) && isempty(unique(x))
+
+    y = copy(x)
+    @test unique!(y) === y
+    @test y == unique(x)
 
     # To test short-circuiting
     x = CategoricalArray(repeat(1:10, inner=10))
@@ -757,6 +765,10 @@ end
     @test levels(x) == [19:-1:1; 20]
     @test unique(x) == collect(1:10)
     @test unique(x) isa typeof(x)
+
+    y = copy(x)
+    @test unique!(y) === y
+    @test y == 1:10
 end
 
 end

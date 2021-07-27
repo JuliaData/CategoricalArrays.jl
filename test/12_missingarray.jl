@@ -23,6 +23,10 @@ const ≅ = isequal
                 @test size(x) === (3,)
                 @test length(x) === 3
 
+                y = copy(x)
+                @test y === unique!(y)
+                @test y == unique(x)
+
                 @test convert(CategoricalArray, x) === x
                 @test convert(CategoricalArray{Union{String, Missing}}, x) === x
                 @test convert(CategoricalArray{Union{String, Missing}, 1}, x) === x
