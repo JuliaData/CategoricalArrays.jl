@@ -200,8 +200,16 @@ const ≅ = isequal
                 @test levels(x) == ["b", "a"]
 
                 @test_throws ArgumentError levels!(x, ["a"])
+                # check that x is restored correctly when dropping levels is not allowed
+                @test x == ["a", "b", "b"]
+                @test levels(x) == ["b", "a"]
+
                 @test_throws ArgumentError levels!(x, ["e", "b"])
+
                 @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
+                # once again check that x is restored correctly when dropping levels is not allowed
+                @test x == ["a", "b", "b"]
+                @test levels(x) == ["b", "a"]
 
                 @test levels!(x, ["e", "a", "b"]) === x
                 @test levels(x) == ["e", "a", "b"]
@@ -216,13 +224,16 @@ const ≅ = isequal
                 @test x[3] === CategoricalValue(x.pool, 3)
                 @test levels(x) == ["e", "a", "b", "c"]
 
+                # check once more that x is restored correctly when dropping levels is not allowed
                 @test_throws ArgumentError levels!(x, ["e", "c"])
+                @test x == ["c", "b", "b"]
+                @test levels(x) == ["e", "a", "b", "c"]
+                # check that with allowed missings the absent levels are converted to missing
                 @test levels!(x, ["e", "c"], allowmissing=true) === x
                 @test levels(x) == ["e", "c"]
                 @test x[1] === CategoricalValue(x.pool, 2)
                 @test x[2] === missing
                 @test x[3] === missing
-                @test levels(x) == ["e", "c"]
 
                 push!(x, "e")
                 @test length(x) == 4

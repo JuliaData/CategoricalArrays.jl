@@ -3,7 +3,7 @@ using Test
 using Missings
 using Future: copy!
 using CategoricalArrays, DataAPI
-using CategoricalArrays: DefaultRefType
+using CategoricalArrays: DefaultRefType, pool
 using PooledArrays
 using JSON3
 using StructTypes
@@ -2075,6 +2075,65 @@ end
     @test x == [1]
     @test_throws MethodError empty!(categorical([1 2; 3 4]))
     @test_throws MethodError sizehint!(categorical([1 2; 3 4]))
+end
+
+
+@testset "levels!() exceptions handling and rolling back to previous state" begin
+    orig = ["A", "B", "B", "C", "D", "B", "A"]
+    origmissing = convert(Vector{Union{String,Missing}}, orig)
+    origmissing[2] = missing
+
+    @testset "throws if duplicate levels provided" begin
+        x = CategoricalArray(orig)
+        oldpool = pool(x)
+        @test_throws ArgumentError levels!(x, ["B", "A", "C", "D", "A"])
+        @test x == orig
+        @test pool(x) == oldpool
+        @test levels(x) == ["A", "B", "C", "D"]
+    end
+
+    @testset "can drop unused levels if element type is $(eltype(x0))" for x0 in (orig, origmissing)
+        x = CategoricalArray(x0)
+        levels!(x, ["E", "A", "B", "C", "D"])
+        @test levels(x) == ["E", "A", "B", "C", "D"]
+        @test x === levels!(x, ["B", "A", "C", "D"])
+        @test x ≅ x0
+        @test levels(x) == ["B", "A", "C", "D"]
+    end
+
+    @testset "CategoricalArray which cannot store missings" begin
+        x = CategoricalArray(orig)
+        @test levels(x) == ["A", "B", "C", "D"]
+        oldpool = pool(x)
+        @test_throws ArgumentError levels!(x, ["B", "A", "C"])
+        # check that the x contents have not changed
+        @test x == orig
+        @test pool(x) === oldpool
+        @test levels(x) == ["A", "B", "C", "D"]
+
+        # still throws even if allowmissing=true
+        @test_throws ArgumentError levels!(x, ["B", "A", "C"], allowmissing=true)
+        # check that the x contents have not changed
+        @test x == orig
+        @test pool(x) === oldpool
+        @test levels(x) == ["A", "B", "C", "D"]
+    end
+
+    @testset "CategoricalArray which can store missing" begin
+        x = CategoricalArray(origmissing)
+        oldpool = pool(x)
+        @test levels(x) == ["A", "B", "C", "D"]
+        # throws if missings are not explicitly allowed
+        @test_throws ArgumentError levels!(x, ["B", "A", "C"])
+        # check that the x contents have not changed
+        @test x ≅ origmissing
+        @test pool(x) === oldpool
+        @test levels(x) == ["A", "B", "C", "D"]
+
+        @test x === levels!(x, ["B", "A", "C", "E"], allowmissing=true)
+        @test x ≅ ["A", missing, "B", "C", missing, "B", "A"]
+        @test levels(x) == ["B", "A", "C", "E"]
+    end
 end
 
 end

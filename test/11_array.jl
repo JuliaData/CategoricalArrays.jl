@@ -188,8 +188,16 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test x[3] === CategoricalValue(x.pool, 1)
 
     @test_throws ArgumentError levels!(x, ["a"])
+    # check that x is restored correctly when dropping levels is not allowed
+    @test x == ["a", "b", "b"]
+    @test levels(x) == ["b", "a"]
+
     @test_throws ArgumentError levels!(x, ["e", "b"])
+
     @test_throws ArgumentError levels!(x, ["e", "a", "b", "a"])
+    # once again check that x is restored correctly when dropping levels is not allowed
+    @test x == ["a", "b", "b"]
+    @test levels(x) == ["b", "a"]
 
     @test levels!(x, ["e", "a", "b"]) === x
     @test levels(x) == ["e", "a", "b"]
