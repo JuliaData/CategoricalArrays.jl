@@ -9,9 +9,9 @@ CategoricalPool{T, R}(ordered::Bool=false) where {T, R} =
 CategoricalPool{T}(ordered::Bool=false) where {T} =
     CategoricalPool{T, DefaultRefType}(T[], ordered)
 
-CategoricalPool{T, R}(levels::Vector, ordered::Bool=false) where {T, R} =
+CategoricalPool{T, R}(levels::AbstractVector, ordered::Bool=false) where {T, R} =
     CategoricalPool{T, R, CategoricalValue{T, R}}(convert(Vector{T}, levels), ordered)
-CategoricalPool(levels::Vector{T}, ordered::Bool=false) where {T} =
+CategoricalPool(levels::AbstractVector{T}, ordered::Bool=false) where {T} =
     CategoricalPool{T, DefaultRefType}(convert(Vector{T}, levels), ordered)
 
 CategoricalPool(invindex::Dict{T, R}, ordered::Bool=false) where {T, R <: Integer} =

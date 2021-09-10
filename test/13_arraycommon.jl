@@ -1923,6 +1923,15 @@ end
     @test !isassigned(x, 3)
 end
 
+@testset "levels! with various vector types" begin
+    for levs in (3:-1:1, categorical(3:-1:1),
+                 3.0:-1.0:1.0, categorical(3.0:-1.0:1.0))
+        x = CategoricalVector([1, 2, 3])
+        @test levels!(x, levs) === x
+        @test levels(x) == 3:-1:1
+    end
+end
+
 # TODO: move struct definition inside @testset block once we require Julia 1.6
 struct UnorderedBar <: Number
     a::String
