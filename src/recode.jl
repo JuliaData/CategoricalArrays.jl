@@ -275,7 +275,7 @@ julia> x = collect(1:10);
 julia> recode!(x, 1=>100, 2:4=>0, [5; 9:10]=>-1);
 
 julia> x
-10-element Array{Int64,1}:
+10-element Vector{Int64}:
  100
    0
    0
@@ -323,7 +323,7 @@ by the order of passed `pairs` and `default` will be the last level if provided.
 julia> using CategoricalArrays
 
 julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1)
-10-element Array{Int64,1}:
+10-element Vector{Int64}:
  100
    0
    0
@@ -348,16 +348,16 @@ will accept missing values.
 julia> using CategoricalArrays
 
 julia> recode(1:10, 1=>100, 2:4=>0, [5; 9:10]=>-1, 6=>missing)
-10-element Array{Union{Missing, Int64},1}:
- 100    
-   0    
-   0    
-   0    
-  -1    
+10-element Vector{Union{Missing, Int64}}:
+ 100
+   0
+   0
+   0
+  -1
     missing
-   7    
-   8    
-  -1    
+   7
+   8
+  -1
   -1    
 
 ```

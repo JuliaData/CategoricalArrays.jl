@@ -93,11 +93,11 @@ fmt (generic function with 1 method)
 
 julia> cut(-1:0.5:1, 3, labels=fmt)
 5-element CategoricalArray{String,1,UInt32}:
- "grp 1 (-1.0//-0.333333)"
- "grp 1 (-1.0//-0.333333)"
- "grp 2 (-0.333333//0.333333)"
- "grp 3 (0.333333//1.0)"
- "grp 3 (0.333333//1.0)"      
+ "grp 1 (-1.0//-0.3333333333333335)"
+ "grp 1 (-1.0//-0.3333333333333335)"
+ "grp 2 (-0.3333333333333335//0.33333333333333326)"
+ "grp 3 (0.33333333333333326//1.0)"
+ "grp 3 (0.33333333333333326//1.0)"      
 ```
 """
 @inline function cut(x::AbstractArray, breaks::AbstractVector;

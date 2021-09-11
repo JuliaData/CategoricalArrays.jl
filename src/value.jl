@@ -5,7 +5,7 @@ CategoricalValue(pool::CategoricalPool{T, R}, level::Integer) where {T, R} =
     CategoricalValue(value, source::Union{CategoricalValue, CategoricalArray})
 
 Return a `CategoricalValue` object wrapping `value` and attached to
-the [`CategoricalPool`](@ref) of `source`.
+the `CategoricalPool` of `source`.
 """
 function CategoricalValue(value, source::Union{CategoricalValue, CatArrOrSub})
     p = pool(source)

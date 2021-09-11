@@ -20,7 +20,7 @@ By default, the levels are lexically sorted, which is clearly not correct in our
 
 ```jldoctest using
 julia> levels(x)
-3-element Array{String,1}:
+3-element Vector{String}:
  "Middle"
  "Old"
  "Young"
@@ -38,10 +38,10 @@ Thanks to this order, we can not only test for equality between two values, but 
 
 ```jldoctest using
 julia> x[1]
-CategoricalValue{String,UInt32} "Old" (3/3)
+CategoricalValue{String, UInt32} "Old" (3/3)
 
 julia> x[2]
-CategoricalValue{String,UInt32} "Young" (1/3)
+CategoricalValue{String, UInt32} "Young" (1/3)
 
 julia> x[2] == x[4]
 true
@@ -58,7 +58,7 @@ julia> x[1] = "Young"
 "Young"
 
 julia> x[1]
-CategoricalValue{String,UInt32} "Young" (1/3)
+CategoricalValue{String, UInt32} "Young" (1/3)
 
 ```
 
@@ -68,7 +68,7 @@ To get rid of the `"Old"` group, just call the [`droplevels!`](@ref) function:
 
 ```jldoctest using
 julia> levels(x)
-3-element Array{String,1}:
+3-element Vector{String}:
  "Young"
  "Middle"
  "Old"
@@ -81,7 +81,7 @@ julia> droplevels!(x)
  "Young"
 
 julia> levels(x)
-2-element Array{String,1}:
+2-element Vector{String}:
  "Young"
  "Middle"
 
@@ -139,7 +139,7 @@ Levels still need to be reordered manually:
 
 ```jldoctest using
 julia> levels(y)
-3-element Array{String,1}:
+3-element Vector{String}:
  "Middle"
  "Old"
  "Young"
@@ -157,7 +157,7 @@ At this point, indexing into the array gives exactly the same result
 
 ```jldoctest using
 julia> y[1]
-CategoricalValue{String,UInt32} "Old" (3/3)
+CategoricalValue{String, UInt32} "Old" (3/3)
 ```
 
 Missing values can be introduced either manually, or by restricting the set of possible levels. Let us imagine this time that we actually do not know the age of the first individual. We can set it to a missing value this way:
@@ -225,7 +225,7 @@ julia> xy = vcat(x, y)
  "Middle"
 
 julia> levels(xy)
-3-element Array{String,1}:
+3-element Vector{String}:
  "Young"
  "Middle"
  "Old"
@@ -237,7 +237,7 @@ true
 Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x` with all levels from `y`, *respecting the ordering of levels of both vectors if possible*:
 ```jldoctest using
 julia> levels(x)
-2-element Array{String,1}:
+2-element Vector{String}:
  "Middle"
  "Old"
 
@@ -270,7 +270,7 @@ julia> ab = vcat(a, b)
  "c"
 
 julia> levels(ab)
-3-element Array{String,1}:
+3-element Vector{String}:
  "a"
  "b"
  "c"
@@ -294,7 +294,7 @@ julia> ab2 = vcat(a, b)
  "c"
 
 julia> levels(ab2)
-3-element Array{String,1}:
+3-element Vector{String}:
  "a"
  "b"
  "c"
