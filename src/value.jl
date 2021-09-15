@@ -155,7 +155,7 @@ end
 
 Base.isless(x::CategoricalValue, y::SupportedTypes) =
     throw(ArgumentError("cannot compare a `CategoricalValue` to value `v` of type " *
-                        "`$(typeof(x))`: wrap `v` using `CategoricalValue(v, catvalue)` " *
+                        "`$(typeof(y))`: wrap `v` using `CategoricalValue(v, catvalue)` " *
                         "or `CategoricalValue(v, catarray)` first"))
 Base.isless(y::SupportedTypes, x::CategoricalValue) = isless(x, y)
 
@@ -175,7 +175,7 @@ end
 
 Base.:<(x::CategoricalValue, y::SupportedTypes) =
     throw(ArgumentError("cannot compare a `CategoricalValue` to value `v` of type " *
-                        "`$(typeof(x))`: wrap `v` using `CategoricalValue(v, catvalue)` " *
+                        "`$(typeof(y))`: wrap `v` using `CategoricalValue(v, catvalue)` " *
                         "or `CategoricalValue(v, catarray)` first"))
 Base.:<(y::SupportedTypes, x::CategoricalValue) = x < y
 
