@@ -179,22 +179,7 @@ Base.:<(x::CategoricalValue, y::SupportedTypes) =
                         "or `CategoricalValue(v, catarray)` first"))
 Base.:<(y::SupportedTypes, x::CategoricalValue) = x < y
 
-# JSON of CategoricalValue is JSON of the value it refers to
-JSON.lower(x::CategoricalValue) = JSON.lower(unwrap(x))
 DataAPI.defaultarray(::Type{CategoricalValue{T, R}}, N) where {T, R} =
-  CategoricalArray{T, N, R}
+    CategoricalArray{T, N, R}
 DataAPI.defaultarray(::Type{Union{CategoricalValue{T, R}, Missing}}, N) where {T, R} =
-  CategoricalArray{Union{T, Missing}, N, R}
-
-# define appropriate handlers for JSON3 interface
-StructTypes.StructType(x::CategoricalValue) = StructTypes.StructType(unwrap(x))
-StructTypes.StructType(::Type{<:CategoricalValue{T}}) where {T} = StructTypes.StructType(T)
-StructTypes.numbertype(::Type{<:CategoricalValue{T}}) where {T <: Number} = T
-StructTypes.construct(::Type{T}, x::CategoricalValue{T}) where {T} = T(unwrap(x))
-
-RecipesBase.@recipe function f(::Type{T}, v::T) where T <: CategoricalValue
-    level_strings = [map(string, levels(v)); missing]
-    ticks --> eachindex(level_strings)
-    v -> ismissing(v) ? length(level_strings) : Int(refcode(v)),
-    i -> level_strings[Int(i)]
-end
+    CategoricalArray{Union{T, Missing}, N, R}
