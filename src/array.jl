@@ -630,6 +630,16 @@ copy!(dest::CatArrOrSub{<:Any, 1}, src::AbstractArray{<:Any, 1}) =
 copy!(dest::CatArrOrSub{T, 1}, src::AbstractArray{T, 1}) where {T} =
     copyto!(dest, 1, src, 1, length(src))
 
+copyto!(dest::CatArrOrSub{<:Any, 1}, src::SentinelArrays.ChainedVector) =
+    copyto!(dest, 1, src, 1, length(src))
+copyto!(dest::CatArrOrSub{<:Any, 1}, dstart::Union{Signed, Unsigned},
+        src::SentinelArrays.ChainedVector, sstart::Union{Signed, Unsigned},
+        n::Union{Signed, Unsigned}) =
+    invoke(copyto!, Tuple{AbstractArray, Union{Signed, Unsigned},
+                          SentinelArrays.ChainedVector,
+                          Union{Signed, Unsigned}, Union{Signed, Unsigned}},
+           dest, dstart, src, sstart, n)
+
 similar(A::CategoricalArray{S, M, R}, ::Type{T},
         dims::NTuple{N, Int}) where {T, N, S, M, R} =
     Array{T, N}(undef, dims)

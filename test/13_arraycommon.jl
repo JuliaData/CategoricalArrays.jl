@@ -9,6 +9,7 @@ using JSON3
 using StructTypes
 using RecipesBase
 using Plots
+using SentinelArrays
 
 const ≅ = isequal
 const ≇ = !isequal
@@ -2133,6 +2134,24 @@ end
         @test x === levels!(x, ["B", "A", "C", "E"], allowmissing=true)
         @test x ≅ ["A", missing, "B", "C", missing, "B", "A"]
         @test levels(x) == ["B", "A", "C", "E"]
+    end
+
+    @testset "interaction with ChainedVector" begin
+        x = ChainedVector([["a", "b"], ["c", "d", "e"]])
+        @test CategoricalArray(x) == CategoricalArray{String}(x) ==
+            CategoricalArray{Union{String, Missing}}(x) == x
+        @test copy!(CategoricalArray{String}(undef, 5), x) ==
+            copyto!(CategoricalArray{String}(undef, 5), x) ==
+            copyto!(CategoricalArray{String}(undef, 5), 1, x, 1, 5) ==
+            x
+
+        x .= "z"
+        y = categorical(["a", "b", "c", "d", "e"])
+        @test copy!(x, y) == y
+        x .= "z"
+        @test copyto!(x, y) == y
+        x .= "z"
+        @test copyto!(x, 1, y, 1, 5) == y
     end
 end
 

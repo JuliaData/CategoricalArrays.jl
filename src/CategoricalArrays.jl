@@ -16,6 +16,7 @@ module CategoricalArrays
     using Missings
     using Printf
     import RecipesBase
+    import SentinelArrays
     import StructTypes
 
     # JuliaLang/julia#36810
