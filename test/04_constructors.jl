@@ -165,4 +165,11 @@ end
     @test_throws ArgumentError CategoricalPool(["a", "a"])
 end
 
+@testset "Constructor with various vector types" begin
+    @test CategoricalPool(2:4) == CategoricalPool(2.0:4.0) ==
+        CategoricalPool([2, 3, 4])
+    @test CategoricalPool(2:4, true) == CategoricalPool(2.0:4.0, true) ==
+        CategoricalPool([2, 3, 4], true)
+end
+
 end

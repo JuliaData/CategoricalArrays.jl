@@ -759,7 +759,7 @@ If `A` accepts missing values (i.e. `eltype(A) >: Missing`) and `allowmissing=tr
 entries corresponding to omitted levels will be set to `missing`.
 Else, `newlevels` must include all levels which appear in the data.
 """
-function levels!(A::CategoricalArray{T, N, R}, newlevels::Vector;
+function levels!(A::CategoricalArray{T, N, R}, newlevels::AbstractVector;
                  allowmissing::Bool=false,
                  allow_missing::Union{Bool, Nothing}=nothing) where {T, N, R}
     if allow_missing !== nothing
