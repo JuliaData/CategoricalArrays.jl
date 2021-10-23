@@ -47,6 +47,14 @@ using CategoricalArrays
     @test sprint(show, ov2, context=:typeinfo=>typeof(ov2)) == "\"b\""
     @test sprint(show, ov3, context=:typeinfo=>typeof(ov3)) == "\"a\""
 
+    @test sprint(show, nv1, context=:compact=>true) == "\"c\""
+    @test sprint(show, nv2, context=:compact=>true) == "\"b\""
+    @test sprint(show, nv3, context=:compact=>true) == "\"a\""
+
+    @test sprint(show, ov1, context=:compact=>true) == "\"c\""
+    @test sprint(show, ov2, context=:compact=>true) == "\"b\""
+    @test sprint(show, ov3, context=:compact=>true) == "\"a\""
+
     @test sprint(print, nv1) == sprint(print, ov1) == "c"
     @test sprint(print, nv2) == sprint(print, ov2) == "b"
     @test sprint(print, nv3) == sprint(print, ov3) == "a"

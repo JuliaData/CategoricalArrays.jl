@@ -101,7 +101,8 @@ Base.convert(::Type{Union{S, Nothing}}, x::CategoricalValue) where {S <: Support
 Base.Broadcast.broadcastable(x::CategoricalValue) = Ref(x)
 
 function Base.show(io::IO, x::CategoricalValue)
-    if nonmissingtype(get(io, :typeinfo, Any)) === nonmissingtype(typeof(x))
+    if get(io, :compact, false) ||
+        nonmissingtype(get(io, :typeinfo, Any)) === nonmissingtype(typeof(x))
         show(io, unwrap(x))
     else
         print(io, typeof(x))
