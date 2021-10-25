@@ -40,8 +40,9 @@ default_formatter(from, to, i; leftclosed, rightclosed) =
 Cut a numeric array into intervals at values `breaks`
 and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
-i.e. the lower bound is included and the upper bound is excluded, except for the last
-interval which is closed on both ends, i.e. `[lower, upper]`.
+i.e. the lower bound is included and the upper bound is excluded, except
+if `extend=true` the last interval, which is then closed on both ends,
+i.e. `[lower, upper]`.
 
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
 also accept them.
@@ -101,11 +102,11 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
 ```
 """
 @inline function cut(x::AbstractArray, breaks::AbstractVector;
-                    extend::Union{Bool, Missing}=false,
-                    labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
-                    allowmissing::Union{Bool, Nothing}=nothing,
-                    allow_missing::Union{Bool, Nothing}=nothing,
-                    allowempty::Bool=false)
+                     extend::Union{Bool, Missing}=false,
+                     labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
+                     allowmissing::Union{Bool, Nothing}=nothing,
+                     allow_missing::Union{Bool, Nothing}=nothing,
+                     allowempty::Bool=false)
     if allow_missing !== nothing
         Base.depwarn("allow_missing argument is deprecated, use extend=missing instead",
                      :cut)
@@ -188,7 +189,8 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
                            leftclosed=breaks[end-1] != breaks[end],
                            rightclosed=coalesce(extend, false))
     else
-        length(labels) == n-1 || throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
+        length(labels) == n-1 ||
+            throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
         # Levels must have element type String for type stability of the result
         levs::Vector{String} = copy(labels)
     end
@@ -228,7 +230,7 @@ quantiles.
 * `labels::Union{AbstractVector,Function}`: a vector of strings giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
-  `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval if `extend == true`).
+  `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval).
 * `allowempty::Bool=false`: when `false`, an error is raised if some quantiles breakpoints
   are equal, generating empty intervals; when `true`, duplicate breaks are allowed
   and the intervals they generate are kept as unused levels
