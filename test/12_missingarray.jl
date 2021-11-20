@@ -284,8 +284,8 @@ const ≅ = isequal
                 @test levels(x) == ["e", "c", "zz"]
 
                 @test_throws ArgumentError insert!(x, true, missing)
-                @test_throws ArgumentError insert!(x, 0, missing)
-                @test_throws ArgumentError insert!(x, 100, missing)
+                @test_throws BoundsError insert!(x, 0, missing)
+                @test_throws BoundsError insert!(x, 100, missing)
             end
         end
 
