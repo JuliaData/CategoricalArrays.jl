@@ -1864,8 +1864,8 @@ end
         @test x ≅ [a; missing]
         insert!(x, 1, missing)
         @test x ≅ [missing; a; missing]
-        insert!(x, 3, missing)
-        @test x ≅ [missing; a; missing; missing]
+        insert!(x, 2, missing)
+        @test x ≅ [missing; missing; a; missing]
         @test levels(x) == ["a", "b"]
         @test isordered(x) === ordered
     end
@@ -1878,8 +1878,8 @@ end
         @test x ≅ [a; missing]
         insert!(x, 1, missing)
         @test x ≅ [missing; a; missing]
-        insert!(x, 3, missing)
-        @test x ≅ [missing; a; missing; missing]
+        insert!(x, 2, missing)
+        @test x ≅ [missing; missing; a; missing]
         @test isordered(x) === ordered
         @test levels(x) == [0.0, 0.5, 1.0]
     end
