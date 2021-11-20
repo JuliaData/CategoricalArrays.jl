@@ -1803,6 +1803,58 @@ end
     end
 end
 
+@testset "insert! ordered=$ordered" for ordered in (false, true)
+    @testset "insert! String" begin
+        a = ["a", "b", "c"]
+        x = CategoricalVector{String}(a, ordered=ordered)
+
+        insert!(x, 4, "a")
+        @test x == ["a", "b", "c", "a"]
+        @test isordered(x) === ordered
+        @test levels(x) == ["a", "b", "c"]
+
+        insert!(x, 5, "z")
+        @test !isordered(x)
+        @test x == ["a", "b", "c", "a", "z"]
+        @test levels(x) == ["a", "b", "c", "z"]
+
+        b = ["z","y","x"]
+        y = CategoricalVector{String}(b)
+        ordered!(x, ordered)
+        insert!(x, 6, y[1])
+        @test !isordered(x)
+        @test x == ["a", "b", "c", "a", "z", "z"]
+        insert!(x, 1, "b")
+        @test x == ["b", "a", "b", "c", "a", "z", "z"]
+        @test levels(x) == ["a", "b", "c", "x", "y", "z"]
+    end
+
+    @testset "insert! Float64" begin
+        a = [-1.0, 0.0, 1.0]
+        x = CategoricalVector{Float64}(a, ordered=ordered)
+
+        insert!(x, 4, 0.0)
+        @test x == [-1.0, 0.0, 1.0, 0.0]
+        @test isordered(x) === ordered
+        @test levels(x) == [-1.0, 0.0, 1.0]
+
+        insert!(x, 5, 3.0)
+        @test x == [-1.0, 0.0, 1.0, 0.0, 3.0]
+        @test !isordered(x)
+        @test levels(x) == [-1.0, 0.0, 1.0, 3.0]
+
+        b = [2.5, 3.0, 3.5]
+        y = CategoricalVector{Float64}(b, ordered=ordered)
+        ordered!(x, ordered)
+        insert!(x, 6, y[1])
+        @test x == [-1.0, 0.0, 1.0, 0.0, 3.0, 2.5]
+        insert!(x, 3, -1.0)
+        @test x == [-1.0, 0.0, -1.0, 1.0, 0.0, 3.0, 2.5]
+        @test !isordered(x)
+        @test levels(x) == [-1.0, 0.0, 1.0, 2.5, 3.0, 3.5]
+    end
+end
+
 @testset "append! ordered=$ordered" for ordered in (false, true)
     cases = (["b", "a", missing], Union{String, Missing}["b", "a", "b"])
     @testset "String, has missing: $(any(ismissing.(a)))" for a in cases
@@ -1810,6 +1862,10 @@ end
 
         push!(x, missing)
         @test x ≅ [a; missing]
+        insert!(x, 1, missing)
+        @test x ≅ [missing; a; missing]
+        insert!(x, 3, missing)
+        @test x ≅ [missing; a; missing; missing]
         @test levels(x) == ["a", "b"]
         @test isordered(x) === ordered
     end
@@ -1820,6 +1876,10 @@ end
 
         push!(x, missing)
         @test x ≅ [a; missing]
+        insert!(x, 1, missing)
+        @test x ≅ [missing; a; missing]
+        insert!(x, 3, missing)
+        @test x ≅ [missing; a; missing; missing]
         @test isordered(x) === ordered
         @test levels(x) == [0.0, 0.5, 1.0]
     end
