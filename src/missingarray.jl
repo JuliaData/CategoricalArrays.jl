@@ -1,4 +1,4 @@
-import Base: getindex, setindex!, push!, similar, in, collect
+import Base: getindex, setindex!, similar, in, collect
 
 @inline function getindex(A::CategoricalArray{T}, I...) where {T>:Missing}
     @boundscheck checkbounds(A, I...)
@@ -22,9 +22,18 @@ end
     @inbounds A.refs[I...] = 0
 end
 
-@inline function push!(A::CategoricalVector{>:Missing}, v::Missing)
+@inline function Base.push!(A::CategoricalVector{>:Missing}, v::Missing)
     push!(A.refs, 0)
-    A
+    return A
+end
+
+@inline function Base.insert!(A::CategoricalVector{>:Missing}, i::Integer, v::Missing)
+    i isa Bool && throw(ArgumentError("invalid index: $i of type Bool"))
+    if !(1 <= i <= length(A.refs) + 1)
+        throw(BoundsError("attempt to insert to a vector with length $(length(A)) at index $i"))
+    end
+    insert!(A.refs, i, 0)
+    return A
 end
 
 Base.fill!(A::CategoricalArray{>:Missing}, ::Missing) = (fill!(A.refs, 0); A)
