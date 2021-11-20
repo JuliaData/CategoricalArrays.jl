@@ -235,6 +235,8 @@ const ≅ = isequal
                 @test x[2] === missing
                 @test x[3] === missing
 
+                y = copy(x)
+
                 push!(x, "e")
                 @test length(x) == 4
                 @test x ≅ ["c", missing, missing, "e"]
@@ -259,6 +261,31 @@ const ≅ = isequal
                 @test isordered(x) === false
                 @test length(x) == 0
                 @test levels(x) == ["e", "c", "zz"]
+
+                x = y
+                insert!(x, 4, "e")
+                @test length(x) == 4
+                @test x ≅ ["c", missing, missing, "e"]
+                @test levels(x) == ["e", "c"]
+
+                insert!(x, 5, "zz")
+                @test length(x) == 5
+                @test x ≅ ["c", missing, missing, "e", "zz"]
+                @test levels(x) == ["e", "c", "zz"]
+
+                insert!(x, 6, x[1])
+                @test length(x) == 6
+                @test x ≅ ["c", missing, missing, "e", "zz", "c"]
+                @test levels(x) == ["e", "c", "zz"]
+
+                insert!(x, 7, missing)
+                @test length(x) == 7
+                @test x ≅ ["c", missing, missing, "e", "zz", "c", missing]
+                @test levels(x) == ["e", "c", "zz"]
+
+                @test_throws ArgumentError insert!(x, true, missing)
+                @test_throws ArgumentError insert!(x, 0, missing)
+                @test_throws ArgumentError insert!(x, 100, missing)
             end
         end
 
