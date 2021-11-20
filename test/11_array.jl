@@ -234,6 +234,7 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test x.pool.levels == x2.pool.levels
     @test x.pool.invindex == x2.pool.invindex
 
+    x = y
     insert!(x, 1, "a")
     @test length(x) == 4
     @test x[1] == "a"
