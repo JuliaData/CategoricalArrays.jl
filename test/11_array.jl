@@ -211,6 +211,8 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test x[3] === CategoricalValue(x.pool, 3)
     @test levels(x) == ["e", "a", "b", "c"]
 
+    y = copy(x)
+    
     push!(x, "a")
     @test length(x) == 4
     @test x[end] == "a"
@@ -228,6 +230,31 @@ using CategoricalArrays: DefaultRefType, leveltype
 
     x2 = copy(x)
     @test_throws MethodError push!(x, 1)
+    @test x == x2
+    @test x.pool.levels == x2.pool.levels
+    @test x.pool.invindex == x2.pool.invindex
+
+    x = y
+    insert!(x, 1, "a")
+    @test length(x) == 4
+    @test x[1] == "a"
+    @test levels(x) == ["e", "a", "b", "c"]
+
+    insert!(x, length(x) + 1, "zz")
+    @test length(x) == 5
+    @test x[end] == "zz"
+    @test levels(x) == ["e", "a", "b", "c", "zz"]
+
+    insert!(x, 2, x[1])
+    @test length(x) == 6
+    @test x[1] == x[2]
+    @test levels(x) == ["e", "a", "b", "c", "zz"]
+
+    x2 = copy(x)
+    @test_throws MethodError insert!(x, 1, 1)
+    @test_throws ArgumentError insert!(x, true, "a")
+    @test_throws BoundsError insert!(x, 0, "a")
+    @test_throws BoundsError insert!(x, 100, "a")
     @test x == x2
     @test x.pool.levels == x2.pool.levels
     @test x.pool.invindex == x2.pool.invindex

@@ -925,7 +925,20 @@ function Base.push!(A::CategoricalVector, v::Any)
     end
     r = get!(A.pool, v)
     push!(A.refs, r)
-    A
+    return A
+end
+
+function Base.insert!(A::CategoricalVector, i::Integer, v::Any)
+    i isa Bool && throw(ArgumentError("invalid index: $i of type Bool"))
+    if !(1 <= i <= length(A.refs) + 1)
+        throw(BoundsError("attempt to insert to a vector with length $(length(A)) at index $i"))
+    end
+    if v isa CategoricalValue && pool(v) !== pool(A) && pool(v) ⊈ pool(A)
+        merge_pools!(A, v)
+    end
+    r = get!(A.pool, v)
+    insert!(A.refs, i, r)
+    return A
 end
 
 function Base.append!(A::CategoricalVector, B::CatArrOrSub)
