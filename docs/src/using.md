@@ -200,6 +200,32 @@ julia> levels!(y, ["Young", "Middle"]; allowmissing=true)
 
 ```
 
+Conversely, all missing values can be turned into a "normal" value using `replace`
+(or `recode`, whose syntax is identical for this operation):
+```jldoctest using
+julia> replace(y, missing => "missing value")
+4-element CategoricalArray{String,1,UInt32}:
+ "missing value"
+ "Young"
+ "Middle"
+ "Young"
+```
+Note that the returned array no longer allows for missing values (which is usually what is expected).
+This syntax works for array types other than `CategoricalArray`.
+
+An in-place variant `replace!` (respectively `recode!`) is also provided. Note that `y` still allows
+for missing values (since the type of an object cannot be changed).
+```jldoctest using
+julia> replace!(y, missing => "missing value");
+
+julia> y
+4-element CategoricalArray{Union{Missing, String},1,UInt32}:
+ "missing value"
+ "Young"
+ "Middle"
+ "Young"
+```
+
 ## Combining levels
 
 Some operations imply combining levels of two categorical arrays: this is the case when concatenating arrays (`vcat`, `hcat` and `cat`) and when assigning a `CategoricalValue` from another categorical array.
