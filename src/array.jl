@@ -302,6 +302,19 @@ CategoricalMatrix(A::CategoricalArray{T, 2, R};
                   ordered::Bool=_isordered(A)) where {T, R} =
     CategoricalArray{T, 2, R}(A, levels=levels, ordered=ordered)
 
+## Promotion methods
+
+Base.promote_rule(::Type{<:CategoricalArray{S}},
+                  ::Type{<:CategoricalArray{T}}) where {S, T} =
+    CategoricalArray{cat_promote_type(S, T)}
+Base.promote_rule(::Type{<:CategoricalArray{S, N}},
+                  ::Type{<:CategoricalArray{T, N}}) where {S, T, N} =
+    CategoricalArray{cat_promote_type(S, T), N}
+Base.promote_rule(::Type{<:CategoricalArray{S, N, R1}},
+                  ::Type{<:CategoricalArray{T, N, R2}}) where
+    {S, T, N, R1<:Integer, R2<:Integer} =
+    CategoricalArray{cat_promote_type(S, T), N, promote_type(R1, R2)}
+
 ## Conversion methods
 
 # From AbstractArray
