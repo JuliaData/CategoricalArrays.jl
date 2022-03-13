@@ -1952,11 +1952,11 @@ end
 
 @testset "repeat" begin
     for o in (false, true), c in (false, true), i in 0:2,
-        a in [["b", "a", "b"], ["b" "a"; "b" "c"],
-              [missing, "a", "b"], ["b" "a"; missing "c"]],
-        x in [categorical(a, ordered=o, compress=c),
+        a in (["b", "a", "b"], ["b" "a"; "b" "c"],
+              [missing, "a", "b"], ["b" "a"; missing "c"]),
+        x in (categorical(a, ordered=o, compress=c),
               view(categorical(a, ordered=o, compress=c), axes(a)...),
-              view(categorical([a a], ordered=o, compress=c), axes(a)...)]
+              view(categorical([a a], ordered=o, compress=c), axes(a)...))
         xr = @inferred repeat(x, i)
         @test which(repeat, (typeof(x), Int)).module == CategoricalArrays
         @test typeof(parent(x)) == typeof(xr)
