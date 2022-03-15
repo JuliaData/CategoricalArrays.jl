@@ -2225,53 +2225,39 @@ end
 end
 
 @testset "promotion" begin
-    @test promote_type(CategoricalVector{Int},
-                       CategoricalVector{String}) ==
-        CategoricalVector{Union{Int, String}}
-    @test promote_type(CategoricalVector{Int, UInt32},
-                       CategoricalVector{String, UInt32}) ==
-        CategoricalVector{Union{Int, String}, UInt32}
-    @test promote_type(CategoricalArray{Int, UInt32},
-                       CategoricalArray{String, UInt32}) ==
-        CategoricalArray{Union{Int, String}, UInt32}
-    @test promote_type(CategoricalVector{Int, UInt32},
-                       CategoricalMatrix{String, UInt32}) ==
-        CategoricalArray{Union{Int, String}}
-    @test promote_type(CategoricalVector{Int, UInt8},
-                       CategoricalVector{String, UInt16}) ==
-        CategoricalVector{Union{Int, String}, UInt16}
-
-    @test promote_type(CategoricalVector{Int8},
-                       CategoricalVector{Float64}) ==
-        CategoricalVector{Float64}
-    @test promote_type(CategoricalVector{Int8, UInt32},
-                       CategoricalVector{Float64, UInt32}) ==
-        CategoricalVector{Float64, UInt32}
-    @test promote_type(CategoricalArray{Int8, UInt32},
-                       CategoricalArray{Float64, UInt32}) ==
-        CategoricalArray{Float64, UInt32}
-    @test promote_type(CategoricalVector{Int8, UInt32},
-                       CategoricalMatrix{Float64, UInt32}) ==
-        CategoricalArray{Float64}
-    @test promote_type(CategoricalVector{Int8, UInt8},
-                       CategoricalVector{Float64, UInt16}) ==
-        CategoricalVector{Float64, UInt16}
-
     @test [CategoricalVector([1, 2]),
            CategoricalVector(["a", "b"])] isa
-        Vector{CategoricalVector{Union{Int, String}, UInt32}}
+        Vector{CategoricalVector{<:Any, UInt32, <:Any, <:Any, Union{}}}
     @test [CategoricalVector([1, missing]),
            CategoricalVector(["a", "b"])] isa
-        Vector{CategoricalVector{Union{Int, String, Missing}, UInt32}}
+        Vector{CategoricalVector{<:Any, UInt32}}
+    @test [CategoricalVector([1, missing]),
+           CategoricalVector([1, 2])] isa
+        Vector{CategoricalVector{Union{Missing, Int}, UInt32, Int64,
+                                 CategoricalValue{Int64, UInt32}, Missing}}
     @test [CategoricalVector([1, missing]),
            CategoricalVector(["a", missing])] isa
-        Vector{CategoricalVector{Union{Int, String, Missing}, UInt32}}
+        Vector{CategoricalVector{<:Any, UInt32, <:Any, <:Any, Missing}}
     @test [CategoricalVector([Int8(1), missing]),
            CategoricalVector([Int16(2)])] isa
-        Vector{CategoricalVector{Union{Int16, Missing}, UInt32}}
+        Vector{CategoricalVector{<:Any, UInt32}}
     @test [CategoricalVector([1, 2]),
            CategoricalMatrix(["a" "b"])] isa
-        Vector{CategoricalArray{Union{Int, String}}}
+        Vector{CategoricalArray{<:Any, <:Any, UInt32, <:Any, <:Any, Union{}}}
+    @test [CategoricalVector([1, 2]),
+           CategoricalMatrix([1 2])] isa
+        Vector{CategoricalArray{Int, <:Any, UInt32, Int,
+                                CategoricalValue{Int, UInt32}, Union{}}}
+    @test [CategoricalVector([1, 2]),
+           CategoricalMatrix([1 missing])] isa
+        Vector{CategoricalArray{<:Any, <:Any, UInt32, Int,
+                                CategoricalValue{Int, UInt32}}}
+    @test [categorical([1, 2], compress=true),
+           CategoricalVector([1, 2])] isa
+        Vector{CategoricalVector{Int, UInt32, Int, CategoricalValue{Int, UInt32}, Union{}}}
+    @test [categorical([1, 2], compress=true),
+           CategoricalVector(["a", "b"])] isa
+        Vector{CategoricalVector{<:Any, <:Integer, <:Any, <:Any, Union{}}}
 end
 
 end
