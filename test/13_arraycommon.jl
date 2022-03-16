@@ -2233,8 +2233,8 @@ end
         Vector{CategoricalVector{<:Any, UInt32}}
     @test [CategoricalVector([1, missing]),
            CategoricalVector([1, 2])] isa
-        Vector{CategoricalVector{Union{Missing, Int}, UInt32, Int64,
-                                 CategoricalValue{Int64, UInt32}, Missing}}
+        Vector{CategoricalVector{Union{Missing, Int}, UInt32, Int,
+                                 CategoricalValue{Int, UInt32}, Missing}}
     @test [CategoricalVector([1, missing]),
            CategoricalVector(["a", missing])] isa
         Vector{CategoricalVector{<:Any, UInt32, <:Any, <:Any, Missing}}
