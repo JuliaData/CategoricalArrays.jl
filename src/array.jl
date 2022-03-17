@@ -304,16 +304,12 @@ CategoricalMatrix(A::CategoricalArray{T, 2, R};
 
 ## Promotion methods
 
-Base.promote_rule(::Type{<:CategoricalArray{S}},
-                  ::Type{<:CategoricalArray{T}}) where {S, T} =
-    CategoricalArray{cat_promote_type(S, T)}
-Base.promote_rule(::Type{<:CategoricalArray{S, N}},
-                  ::Type{<:CategoricalArray{T, N}}) where {S, T, N} =
-    CategoricalArray{cat_promote_type(S, T), N}
-Base.promote_rule(::Type{<:CategoricalArray{S, N, R1}},
-                  ::Type{<:CategoricalArray{T, N, R2}}) where
-    {S, T, N, R1<:Integer, R2<:Integer} =
-    CategoricalArray{cat_promote_type(S, T), N, promote_type(R1, R2)}
+# Identical behavior to the Array method
+# Needed to prevent promote_result from returning an Array
+# Note that eltype returns Any if a type parameter is omitted
+Base.promote_rule(x::Type{<:CategoricalArray},
+                  y::Type{<:CategoricalArray}) =
+    Base.el_same(promote_type(eltype(x), eltype(y)), x, y)
 
 ## Conversion methods
 
@@ -346,6 +342,13 @@ convert(::Type{CategoricalMatrix{T}}, A::CategoricalMatrix{T}) where {T} = A
 convert(::Type{CategoricalMatrix}, A::CategoricalMatrix) = A
 
 convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N}) where {S, T, N, R} =
+    _convert(CategoricalArray{T, N, R}, A)
+
+convert(::Type{CategoricalArray{T, N, R, V, C, U}},
+        A::CategoricalArray{T, N, R, V, C, U}) where {T, N, R, V, C, U} = A
+# V, C and U are not used since they are recomputed from T and R
+convert(::Type{CategoricalArray{T, N, R, V, C, U}},
+        A::AbstractArray{S, N}) where {S, T, N, R, V, C, U} =
     _convert(CategoricalArray{T, N, R}, A)
 
 function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
