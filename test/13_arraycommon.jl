@@ -2269,11 +2269,21 @@ end
     end
 
     for x in (categorical(Union{String, Missing}["a", "b", "a"], levels=["b", "c", "a"]),
-              view(categorical(Union{String, Missing}["c", "b", "a"], levels=["b", "c", "a"]), 2:3))
+              view(categorical(Union{String, Missing}["c", "b", "a"], levels=["b", "c", "a"]), 2:3),
+              view(categorical(Union{String, Missing}[missing, "b", "a"], levels=["b", "c", "a"]), 2:3))
         @test @inferred(levels(x)) == ["b", "c", "a"]
         @test levels(x, skipmissing=true) == ["b", "c", "a"]
         @test levels(x, skipmissing=true) isa Vector{String}
         @test levels(x, skipmissing=false) == ["b", "c", "a"]
+        @test levels(x, skipmissing=false) isa Vector{Union{String, Missing}}
+    end
+
+    for x in (categorical(Union{String, Missing}["a", "b", missing], levels=["b", "c", "a"]),
+              view(categorical(Union{String, Missing}["c", "b", missing], levels=["b", "c", "a"]), 2:3))
+        @test @inferred(levels(x)) == ["b", "c", "a"]
+        @test levels(x, skipmissing=true) == ["b", "c", "a"]
+        @test levels(x, skipmissing=true) isa Vector{String}
+        @test levels(x, skipmissing=false) ≅ ["b", "c", "a", missing]
         @test levels(x, skipmissing=false) isa Vector{Union{String, Missing}}
     end
 end
