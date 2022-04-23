@@ -753,7 +753,7 @@ end
 leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(nonmissingtype(eltype(T)))
 
 """
-    levels(x::CategoricalArray, skipmissing=true)
+    levels(x::CategoricalArray; skipmissing=true)
     levels(x::CategoricalValue)
 
 Return the levels of categorical array or value `x`.
