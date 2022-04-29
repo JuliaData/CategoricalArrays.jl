@@ -118,6 +118,7 @@ Base.print(io::IO, x::CategoricalValue) = print(io, unwrap(x))
 Base.string(x::CategoricalValue) = string(unwrap(x))
 Base.write(io::IO, x::CategoricalValue) = write(io, unwrap(x))
 Base.String(x::CategoricalValue{<:AbstractString}) = String(unwrap(x))
+Base.parse(T::DataType, catval::CategoricalValue) = parse(T, unwrap(catval))
 
 @inline function Base.:(==)(x::CategoricalValue, y::CategoricalValue)
     if pool(x) === pool(y) || pool(x) == pool(y)
