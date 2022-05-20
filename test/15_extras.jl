@@ -87,6 +87,27 @@ const ≅ = isequal
     @test isa(x, CategoricalMatrix{Union{String, T}})
     @test isordered(x)
     @test levels(x) == ["[-2.134, 3.0)", "[3.0, 12.5)"]
+
+    labels = 0:2:8
+    x = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 0:2:10; labels)
+    @test x == [0,2,2,4,4,6,6,8]
+    @test isa(x, CategoricalVector{Union{Int64, T}})
+    @test isordered(x)
+    @test levels(x) == [0,2,4,6,8]
+
+    labels = Union{Int64,String}[0,"2",4,"6",8]
+    x = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 10:-2:0; labels)
+    @test x == [0,"2","2",4,4,"6","6",8]
+    @test isa(x, CategoricalVector{Union{Int64, String, T}})
+    @test isordered(x)
+    @test levels(x) == [0,"2",4,"6",8]
+
+    labels = (from, to , i; leftclosed, rightclosed) -> (to+from)/2
+    x = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 0:2:10; labels)
+    @test x == [1.0, 3.0, 3.0, 5.0, 5.0, 7.0, 7.0, 9.0]
+    @test isa(x, CategoricalVector{Union{Float64, T}})
+    @test isordered(x)
+    @test levels(x) == [1.0, 3.0, 5.0, 7.0, 9.0]
 end
 
 @testset "cut with missing values in input" begin
