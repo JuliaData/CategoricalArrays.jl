@@ -90,7 +90,6 @@ julia> cut(-1:0.5:1, 2, labels=["A", "B"])
  "B"
 
  julia> cut(-1:0.5:1, 2, labels=[-0.5, +0.5])
- levs = [-0.5, 0.5]
  5-element CategoricalArray{Float64,1,UInt32}:
   -0.5
   -0.5
@@ -239,7 +238,8 @@ If `x` contains `missing` values, they are automatically skipped when computing
 quantiles.
 
 # Keyword arguments
-* `labels::Union{AbstractVector,Function}`: a vector of strings or numbers giving the names to use for
+* `labels::Union{AbstractVector,Function}`: a vector of strings, characters
+  or numbers giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval).
