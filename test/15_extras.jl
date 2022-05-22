@@ -95,7 +95,7 @@ const ≅ = isequal
     @test isordered(x)
     @test levels(x) == [0,2,4,6,8]
 
-    labels = Union{Int64,String}[0,"2",4,"6",8]
+    labels = Union{Int, String}[0,"2",4,"6",8]
     x = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 10:-2:0, labels=labels)
     @test x == [0,"2","2",4,4,"6","6",8]
     @test isa(x, CategoricalVector{Union{Int, String, T}})

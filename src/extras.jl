@@ -192,7 +192,7 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         firstlevel = labels(from[1], to[1], 1,
             leftclosed=(breaks[1] != breaks[2]), rightclosed=false)
         levs = Vector{typeof(firstlevel)}(undef, n-1)
-        levs[begin] = firstlevel
+        levs[1] = firstlevel
         for i in 2:n-2
             levs[i] = labels(from[i], to[i], i,
                              leftclosed=breaks[i] != breaks[i+1], rightclosed=false)
