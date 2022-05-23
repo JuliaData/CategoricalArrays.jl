@@ -34,7 +34,7 @@ default_formatter(from, to, i; leftclosed, rightclosed) =
 
 @doc raw"""
     cut(x::AbstractArray, breaks::AbstractVector;
-        labels::Union{AbstractVector{<:AbstractString},Function},
+        labels::Union{AbstractVector,Function},
         extend::Union{Bool,Missing}=false, allowempty::Bool=false)
 
 Cut a numeric array into intervals at values `breaks`
@@ -52,7 +52,8 @@ also accept them.
   in `x` fall outside of the breaks; when `true`, breaks are automatically added to include
   all values in `x`, and the upper bound is included in the last interval; when `missing`,
   values outside of the breaks generate `missing` entries.
-* `labels::Union{AbstractVector,Function}`: a vector of strings giving the names to use for
+* `labels::Union{AbstractVector, Function}`: a vector of strings, characters
+  or numbers giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
@@ -87,7 +88,15 @@ julia> cut(-1:0.5:1, 2, labels=["A", "B"])
  "A"
  "B"
  "B"
- "B"
+ "B" 
+
+julia> cut(-1:0.5:1, 2, labels=[-0.5, +0.5])
+5-element CategoricalArray{Float64,1,UInt32}:
+ -0.5
+ -0.5
+ 0.5
+ 0.5
+ 0.5
 
 julia> fmt(from, to, i; leftclosed, rightclosed) = "grp $i ($from//$to)"
 fmt (generic function with 1 method)
@@ -98,12 +107,12 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
  "grp 1 (-1.0//-0.3333333333333335)"
  "grp 2 (-0.3333333333333335//0.33333333333333326)"
  "grp 3 (0.33333333333333326//1.0)"
- "grp 3 (0.33333333333333326//1.0)"      
+ "grp 3 (0.33333333333333326//1.0)"
 ```
 """
 @inline function cut(x::AbstractArray, breaks::AbstractVector;
                      extend::Union{Bool, Missing}=false,
-                     labels::Union{AbstractVector{<:AbstractString},Function}=default_formatter,
+                     labels::Union{AbstractVector{<:SupportedTypes},Function}=default_formatter,
                      allowmissing::Union{Bool, Nothing}=nothing,
                      allow_missing::Union{Bool, Nothing}=nothing,
                      allowempty::Bool=false)
@@ -123,7 +132,7 @@ end
 # Separate function for inferability (thanks to inlining of cut)
 function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
               extend::Union{Bool, Missing},
-              labels::Union{AbstractVector{<:AbstractString},Function},
+              labels::Union{AbstractVector{<:SupportedTypes},Function},
               allowempty::Bool=false) where {T, N}
     if !allowempty && !allunique(breaks)
         throw(ArgumentError("all breaks must be unique unless `allowempty=true`"))
@@ -152,10 +161,11 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
             end
         end
         if !ismissing(min_x) && breaks[1] > min_x
-            breaks = [min_x; breaks]
+            # this type annotation is needed on Julia<1.7 for stable inference
+            breaks = [min_x::nonmissingtype(eltype(x)); breaks]
         end
         if !ismissing(max_x) && breaks[end] < max_x
-            breaks = [breaks; max_x]
+            breaks = [breaks; max_x::nonmissingtype(eltype(x))]
         end
         length(breaks) > 1 ||
             throw(ArgumentError("could not extend breaks as all values are equal: " *
@@ -180,8 +190,11 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
     if labels isa Function
         from = breaks[1:n-1]
         to = breaks[2:n]
-        levs = Vector{String}(undef, n-1)
-        for i in 1:n-2
+        firstlevel = labels(from[1], to[1], 1,
+                            leftclosed=breaks[1] != breaks[2], rightclosed=false)
+        levs = Vector{typeof(firstlevel)}(undef, n-1)
+        levs[1] = firstlevel
+        for i in 2:n-2
             levs[i] = labels(from[i], to[i], i,
                              leftclosed=breaks[i] != breaks[i+1], rightclosed=false)
         end
@@ -191,8 +204,7 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
     else
         length(labels) == n-1 ||
             throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
-        # Levels must have element type String for type stability of the result
-        levs::Vector{String} = copy(labels)
+        levs = copy(labels)
     end
     if !allunique(levs)
         if labels === default_formatter
@@ -204,7 +216,7 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
     end
 
     pool = CategoricalPool(levs, true)
-    S = T >: Missing || extend isa Missing ? Union{String, Missing} : String
+    S = T >: Missing || extend isa Missing ? Union{eltype(levs), Missing} : eltype(levs)
     CategoricalArray{S, N}(refs, pool)
 end
 
@@ -227,7 +239,8 @@ If `x` contains `missing` values, they are automatically skipped when computing
 quantiles.
 
 # Keyword arguments
-* `labels::Union{AbstractVector,Function}`: a vector of strings giving the names to use for
+* `labels::Union{AbstractVector, Function}`: a vector of strings, characters
+  or numbers giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval).
@@ -237,7 +250,7 @@ quantiles.
   (but duplicate labels are not allowed).
 """
 function cut(x::AbstractArray, ngroups::Integer;
-             labels::Union{AbstractVector{<:AbstractString},Function}=quantile_formatter,
+             labels::Union{AbstractVector{<:SupportedTypes},Function}=quantile_formatter,
              allowempty::Bool=false)
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
     breaks = Statistics.quantile(xnm, (1:ngroups-1)/ngroups)
