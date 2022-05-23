@@ -72,7 +72,7 @@ julia> cut(-1:0.5:1, [0, 1], extend=true)
  "[-1.0, 0.0)"
  "[0.0, 1.0]"
  "[0.0, 1.0]"
- "[0.0, 1.0]"
+ "[0.0, 1.0]" 
 
 julia> cut(-1:0.5:1, 2)
 5-element CategoricalArray{String,1,UInt32}:
@@ -80,7 +80,7 @@ julia> cut(-1:0.5:1, 2)
  "Q1: [-1.0, 0.0)"
  "Q2: [0.0, 1.0]"
  "Q2: [0.0, 1.0]"
- "Q2: [0.0, 1.0]"
+ "Q2: [0.0, 1.0]" 
 
 julia> cut(-1:0.5:1, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
@@ -88,15 +88,15 @@ julia> cut(-1:0.5:1, 2, labels=["A", "B"])
  "A"
  "B"
  "B"
- "B"
+ "B" 
 
- julia> cut(-1:0.5:1, 2, labels=[-0.5, +0.5])
- 5-element CategoricalArray{Float64,1,UInt32}:
-  -0.5
-  -0.5
-  0.5
-  0.5
-  0.5
+julia> cut(-1:0.5:1, 2, labels=[-0.5, +0.5])
+5-element CategoricalArray{Float64,1,UInt32}:
+ -0.5
+ -0.5
+ 0.5
+ 0.5
+ 0.5
 
 julia> fmt(from, to, i; leftclosed, rightclosed) = "grp $i ($from//$to)"
 fmt (generic function with 1 method)
@@ -161,11 +161,11 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
             end
         end
         if !ismissing(min_x) && breaks[1] > min_x
-            # this typecast is needed on Julia<1.7 for stable inference
-            breaks = eltype(breaks)[min_x; breaks]
+            # this type annotation is needed on Julia<1.7 for stable inference
+            breaks = [min_x::nonmissingtype(eltype(x)); breaks]
         end
         if !ismissing(max_x) && breaks[end] < max_x
-            breaks = eltype(breaks)[breaks; max_x]
+            breaks = [breaks; max_x::nonmissingtype(eltype(x))]
         end
         length(breaks) > 1 ||
             throw(ArgumentError("could not extend breaks as all values are equal: " *
