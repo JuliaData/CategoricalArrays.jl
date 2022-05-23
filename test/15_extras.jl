@@ -261,6 +261,9 @@ end
     @test x isa CategoricalArray{Union{Missing, Float64},1,UInt32}
     @test isordered(x)
     @test levels(x) == [-0.0, 0.0]
+
+    x = @inferred cut(-1:0.5:1, [0, 1], extend=true)
+    @test x == ["[-1.0, 0.0)", "[-1.0, 0.0)", "[0.0, 1.0]", "[0.0, 1.0]", "[0.0, 1.0]"]
 end
 
 end
