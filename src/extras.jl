@@ -52,7 +52,8 @@ also accept them.
   in `x` fall outside of the breaks; when `true`, breaks are automatically added to include
   all values in `x`, and the upper bound is included in the last interval; when `missing`,
   values outside of the breaks generate `missing` entries.
-* `labels::Union{AbstractVector, Function}`: a vector of strings or numbers giving the names to use for
+* `labels::Union{AbstractVector, Function}`: a vector of strings, characters
+  or numbers giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
@@ -190,7 +191,7 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         from = breaks[1:n-1]
         to = breaks[2:n]
         firstlevel = labels(from[1], to[1], 1,
-            leftclosed=(breaks[1] != breaks[2]), rightclosed=false)
+                            leftclosed=breaks[1] != breaks[2], rightclosed=false)
         levs = Vector{typeof(firstlevel)}(undef, n-1)
         levs[1] = firstlevel
         for i in 2:n-2

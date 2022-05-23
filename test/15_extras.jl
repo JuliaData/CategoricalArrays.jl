@@ -89,18 +89,18 @@ const ≅ = isequal
     @test levels(x) == ["[-2.134, 3.0)", "[3.0, 12.5)"]
 
     labels = 0:2:8
-    x = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 0:2:10, labels= labels)
+    x = @inferred cut(Vector{Union{T, Int}}(1:8), 0:2:10, labels=labels)
     @test x == [0,2,2,4,4,6,6,8]
     @test isa(x, CategoricalVector{Union{Int, T}})
     @test isordered(x)
-    @test levels(x) == [0,2,4,6,8]
+    @test levels(x) == [0, 2, 4, 6, 8]
 
-    labels = Union{Int, String}[0,"2",4,"6",8]
-    x = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 10:-2:0, labels=labels)
-    @test x == [0,"2","2",4,4,"6","6",8]
+    labels = Union{Int, String}[0, "2", 4, "6", 8]
+    x = @inferred cut(Vector{Union{T, Int}}(1:8), 10:-2:0, labels=labels)
+    @test x == [0, "2", "2", 4, 4, "6", "6", 8]
     @test isa(x, CategoricalVector{Union{Int, String, T}})
     @test isordered(x)
-    @test levels(x) == [0,"2",4,"6",8]
+    @test levels(x) == [0, "2", 4, "6", 8]
 
     @test_throws ArgumentError cut([-0.0, 0.0], 2)
     @test_throws ArgumentError cut([-0.0, 0.0], 2, labels=[-0.0, 0.0])
@@ -148,26 +148,26 @@ end
     a = @inferred cut(x, p, labels=my_formatter_2)
     @test a == ["1: 1.0 -- 1.4", "1: 1.0 -- 1.4", "2: 1.4 -- 1.8", "2: 1.4 -- 1.8", "3: 1.8 -- 2.0"]
 
-    for T in [Union{}, Missing]
+    for T in (Union{}, Missing)
         labels = (from, to, i; leftclosed, rightclosed) -> (to+from)/2
-        a = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 0:2:10, labels=labels)
+        a = @inferred cut(Vector{Union{T, Int}}(1:8), 0:2:10, labels=labels)
         @test a == [1.0, 3.0, 3.0, 5.0, 5.0, 7.0, 7.0, 9.0]
         @test isa(a, CategoricalVector{Union{Float64, T}})
         @test isordered(a)
         @test levels(a) == [1.0, 3.0, 5.0, 7.0, 9.0]
 
         labels = (from, to, i; leftclosed, rightclosed) -> "$((to+from)/2)"
-        a = @inferred cut(Vector{Union{T, Int}}([1,2,3,4,5,6,7,8]), 0:2:10, labels=labels)
+        a = @inferred cut(Vector{Union{T, Int}}(1:8), 0:2:10, labels=labels)
         @test a == string.([1.0, 3.0, 3.0, 5.0, 5.0, 7.0, 7.0, 9.0])
         @test isa(a, CategoricalVector{Union{String, T}})
         @test isordered(a)
         @test levels(a) == string.([1.0, 3.0, 5.0, 7.0, 9.0])
     end
 
-    @test cut(Float64[0,1,2,3,4,5,6,7,8], 3, labels=[-0.0, 0.0, 1.0]) ==
+    @test cut(0.0:8.0, 3, labels=[-0.0, 0.0, 1.0]) ==
         [-0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
 
-    @test cut(Float64[-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 5.0], labels=[-0.0, 0.0]) ==
+    @test cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 5.0], labels=[-0.0, 0.0]) ==
         [-0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 end
 
@@ -227,11 +227,11 @@ end
     @test_throws ArgumentError cut(1:10, [1, 3, 3, 5, 5, 11], allowempty=true,
                                    labels=["1", "2", "3", "2", "4"])
 
-    @test_throws ArgumentError cut([1,2,3,4,5,6,7,8], 0:2:10, labels=[0,1,1,2,3])
-    @test_throws ArgumentError cut([1,2,3,4,5,6,7,8], [0,2,2,6,8,10], labels=[0,1,1,2,3], allowempty=true)
+    @test_throws ArgumentError cut(1:8, 0:2:10, labels=[0, 1, 1, 2, 3])
+    @test_throws ArgumentError cut(1:8, [0, 2, 2, 6, 8, 10], labels=[0, 1, 1, 2, 3], allowempty=true)
 
-    fmt = (from, to, i; leftclosed, rightclosed) -> (i%2==0 ? to : 0.0)
-    @test_throws ArgumentError cut([1,2,3,4,5,6,7,8], 0:2:10, labels=fmt)
+    fmt = (from, to, i; leftclosed, rightclosed) -> (i % 2 == 0 ? to : 0.0)
+    @test_throws ArgumentError cut(1:8, 0:2:10, labels=fmt)
 end
 
 @testset "cut with extend=true" begin
@@ -249,12 +249,14 @@ end
 
     @test cut([missing], [1, 2], extend=true) ≅ [missing]
 
-    @test cut(Float64[-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 3.0], labels=[-0.0, 0.0, 3.0], extend=true) ==
+    @test cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 3.0],
+              labels=[-0.0, 0.0, 3.0], extend=true) ==
         [-0.0, 0.0, 0.0, 0.0, 3.0, 3.0]
 end
 
 @testset "cut with extend=missing" begin
-    x = @inferred cut(Float64[-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 3.0], labels=[-0.0, 0.0], extend=missing)
+    x = @inferred cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 3.0],
+                      labels=[-0.0, 0.0], extend=missing)
     @test x ≅ [-0.0, 0.0, 0.0, 0.0, missing, missing]
     @test x isa CategoricalArray{Union{Missing, Float64},1,UInt32}
     @test isordered(x)
