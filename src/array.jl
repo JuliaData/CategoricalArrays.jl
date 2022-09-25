@@ -753,14 +753,29 @@ end
 leveltype(::Type{T}) where {T <: CategoricalArray} = leveltype(nonmissingtype(eltype(T)))
 
 """
-    levels(x::CategoricalArray)
+    levels(x::CategoricalArray; skipmissing=true)
     levels(x::CategoricalValue)
 
 Return the levels of categorical array or value `x`.
 This may include levels which do not actually appear in the data
 (see [`droplevels!`](@ref)).
+`missing` will be included only if it appears in the data and
+`skipmissing=false` is passed.
+
+The returned vector is an internal field of `x` which must not be mutated
+as doing so would corrupt it.
 """
-DataAPI.levels(A::CategoricalArray) = levels(A.pool)
+@inline function DataAPI.levels(A::CatArrOrSub{T}; skipmissing::Bool=true) where T
+    if eltype(A) >: Missing && !skipmissing
+        if any(==(0), refs(A))
+            T[levels(pool(A)); missing]
+        else
+            convert(Vector{T}, levels(pool(A)))
+        end
+    else
+        levels(pool(A))
+    end
+end
 
 """
     levels!(A::CategoricalArray, newlevels::Vector; allowmissing::Bool=false)

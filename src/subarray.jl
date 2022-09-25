@@ -1,6 +1,5 @@
 # delegate methods for SubArrays to support view
 
-DataAPI.levels(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = levels(parent(sa))
 isordered(sa::SubArray{T,N,P}) where {T,N,P<:CategoricalArray} = isordered(parent(sa))
 # This method cannot support allowmissing=true since that would modify the parent
 levels!(sa::SubArray{T,N,P}, newlevels::Vector) where {T,N,P<:CategoricalArray} =
