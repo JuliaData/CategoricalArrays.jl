@@ -88,13 +88,9 @@ Base.promote_rule(::Type{C1}, ::Type{C2}) where
 Base.promote_rule(::Type{C1}, ::Type{C2}) where {C1<:CategoricalValue, C2<:CategoricalValue} =
     CategoricalValue{cat_promote_type(leveltype(C1), leveltype(C2))}
 
-# General fallbacks
+# General fallback
 Base.convert(::Type{S}, x::CategoricalValue) where {S <: SupportedTypes} =
     convert(S, unwrap(x))
-Base.convert(::Type{Union{S, Missing}}, x::CategoricalValue) where {S <: SupportedTypes} =
-    convert(Union{S, Missing}, unwrap(x))
-Base.convert(::Type{Union{S, Nothing}}, x::CategoricalValue) where {S <: SupportedTypes} =
-    convert(Union{S, Nothing}, unwrap(x))
 
 (::Type{T})(x::T) where {T <: CategoricalValue} = x
 
