@@ -49,6 +49,12 @@ using CategoricalArrays: DefaultRefType, refcode, reftype, leveltype
         @test convert(Union{T, U}, v3) === v3
     end
 
+    for T in (Int, Int8, Float64), U in (Missing, Nothing)
+        @test convert(Union{T, U}, v1)::T == v1
+        @test convert(Union{T, U}, v2)::T == v2
+        @test convert(Union{T, U}, v3)::T == v3
+    end
+
     @test unwrap(v1) === get(v1) === 1
     @test unwrap(v2) === get(v2) === 2
     @test unwrap(v3) === get(v3) === 3
