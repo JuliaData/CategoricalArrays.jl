@@ -16,6 +16,7 @@ using CategoricalArrays: DefaultRefType, leveltype
     @test isordered(x) === ordered
     @test levels(x) == sort(unique(a))
     @test unique(x) == unique(a)
+    @test typeof(unique(x)) === typeof(x)
     @test size(x) === (3,)
     @test length(x) === 3
 
@@ -272,6 +273,7 @@ using CategoricalArrays: DefaultRefType, leveltype
         @test x == collect(a)
         @test isordered(x) === ordered
         @test levels(x) == unique(x) == unique(a)
+        @test typeof(unique(x)) === typeof(x)
         @test size(x) === (4,)
         @test length(x) === 4
         @test leveltype(x) === Float64
@@ -437,6 +439,7 @@ using CategoricalArrays: DefaultRefType, leveltype
         @test x[4] === CategoricalValue(x.pool, 4)
         @test levels(x) == unique(a)
         @test unique(x) == unique(collect(x))
+        @test typeof(unique(x)) === typeof(x)
 
         x[1:2] .= -1
         @test x[1] === CategoricalValue(x.pool, 5)
@@ -473,6 +476,7 @@ using CategoricalArrays: DefaultRefType, leveltype
         @test x == a
         @test isordered(x) === ordered
         @test levels(x) == unique(x) == unique(a)
+        @test unique(x) isa CategoricalVector{String, R}
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -729,6 +733,7 @@ end
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
     @test unique(x) == ["Old", "Young", "Middle"]
+    @test typeof(unique(x)) === typeof(x)
     @test levels!(x, ["Young", "Middle", "Old", "Unused"]) === x
     @test levels(x) == ["Young", "Middle", "Old", "Unused"]
     @test unique(x) == ["Old", "Young", "Middle"]
@@ -736,20 +741,34 @@ end
     @test levels(x) == ["Unused1", "Young", "Middle", "Old", "Unused2"]
     @test unique(x) == ["Old", "Young", "Middle"]
 
+    y = copy(x)
+    @test unique!(y) === y
+    @test y == unique(x)
+
     x = CategoricalArray(String[])
     @test isa(levels(x), Vector{String}) && isempty(levels(x))
-    @test isa(unique(x), Vector{String}) && isempty(unique(x))
+    @test isa(unique(x), typeof(x)) && isempty(unique(x))
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
-    @test isa(unique(x), Vector{String}) && isempty(unique(x))
+    @test isa(unique(x), typeof(x)) && isempty(unique(x))
+
+    y = copy(x)
+    @test unique!(y) === y
+    @test y == unique(x)
 
     # To test short-circuiting
     x = CategoricalArray(repeat(1:10, inner=10))
     @test levels(x) == collect(1:10)
     @test unique(x) == collect(1:10)
+    @test unique(x) isa typeof(x)
     @test levels!(x, [19:-1:1; 20]) === x
     @test levels(x) == [19:-1:1; 20]
     @test unique(x) == collect(1:10)
+    @test unique(x) isa typeof(x)
+
+    y = copy(x)
+    @test unique!(y) === y
+    @test y == 1:10
 end
 
 end
