@@ -52,16 +52,21 @@ A user defined type could override this method to define an appropriate test fun
 optimize_pair(pair::Pair) = pair
 optimize_pair(pair::Pair{<:AbstractArray}) = Set(pair.first) => pair.second
 
-function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
+function recode!(dest::AbstractArray, src::AbstractArray, default::Any, pairs::Pair...)
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
 
+    opt_pairs = map(optimize_pair, pairs)
+
+    _recode!(dest, src, default, opt_pairs...)
+end
+
+function _recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
     @inbounds for i in eachindex(dest, src)
         x = src[i]
 
-        for j in 1:length(pairs)
-            p = optimize_pair(pairs[j])
+        for p in pairs
             # we use isequal and recode_in because we cannot really distinguish scalars from collections
             if x ≅ p.first || recode_in(x, p.first)
                 dest[i] = p.second
@@ -94,11 +99,7 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
     dest
 end
 
-function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
-    if length(dest) != length(src)
-        throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
-    end
-
+function _recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
     vals = T[p.second for p in pairs]
     default !== nothing && push!(vals, default)
 
@@ -110,11 +111,12 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     drefs = dest.refs
     pairmap = [ismissing(v) ? 0 : get(dest.pool, v) for v in vals]
     defaultref = default === nothing || ismissing(default) ? 0 : get(dest.pool, default)
+
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
-        for j in 1:length(pairs)
-            p = optimize_pair(pairs[j])
+        for j in eachindex(pairs)
+            p = pairs[j]
             # we use isequal and recode_in because we cannot really distinguish scalars from collections
             if x ≅ p.first || recode_in(x, p.first)
                 drefs[i] = dupvals ? pairmap[j] : j
@@ -164,13 +166,8 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     dest
 end
 
-function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
+function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
                  default::Any, pairs::Pair...) where {T, N, R<:Integer}
-    if length(dest) != length(src)
-        throw(DimensionMismatch("dest and src must be of the same length " *
-                                "(got $(length(dest)) and $(length(src)))"))
-    end
-
     vals = T[p.second for p in pairs]
     if default === nothing
         srclevels = levels(src)
