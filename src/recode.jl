@@ -45,11 +45,11 @@ The default method is to test if any element in the `collection` `isequal` to
 `x`. For `Set`s `in` is used as it is faster than the default method and equivalent to it.
 A user defined type could override this method to define an appropriate test function.
 """
-@inline recode_in(x, ::Missing) = false
-@inline recode_in(::Missing, ::Missing) = true
-@inline recode_in(x, collection::Set) = x in collection
-@inline recode_in(x, collection) = x ≅ collection || any(x ≅ y for y in collection)
-@inline recode_in(x::T, y::T) where T = x === y
+recode_in(x, ::Missing) = false
+recode_in(::Missing, ::Missing) = true
+recode_in(x, collection::Set) = x in collection
+recode_in(x, collection) = x ≅ collection || any(x ≅ y for y in collection)
+recode_in(x::T, y::T) where T = x === y
 
 optimize_pair(pair::Pair) = pair
 optimize_pair(pair::Pair{<:AbstractArray}) = Set(pair.first) => pair.second
