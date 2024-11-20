@@ -46,8 +46,10 @@ The default method is to test if any element in the `collection` `isequal` to
 A user defined type could override this method to define an appropriate test function.
 """
 @inline recode_in(x, ::Missing) = false
+@inline recode_in(::Missing, ::Missing) = true
 @inline recode_in(x, collection::Set) = x in collection
-@inline recode_in(x, collection) = any(x ≅ y for y in collection)
+@inline recode_in(x, collection) = x ≅ collection || any(x ≅ y for y in collection)
+@inline recode_in(x::T, y::T) where T = x === y
 
 optimize_pair(pair::Pair) = pair
 optimize_pair(pair::Pair{<:AbstractArray}) = Set(pair.first) => pair.second
@@ -68,7 +70,7 @@ function _recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pair
 
         for p in pairs
             # we use isequal and recode_in because we cannot really distinguish scalars from collections
-            if x ≅ p.first || recode_in(x, p.first)
+            if recode_in(x, p.first)
                 dest[i] = p.second
                 @goto nextitem
             end
@@ -118,7 +120,7 @@ function _recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, p
         for j in eachindex(pairs)
             p = pairs[j]
             # we use isequal and recode_in because we cannot really distinguish scalars from collections
-            if x ≅ p.first || recode_in(x, p.first)
+            if recode_in(x, p.first)
                 drefs[i] = dupvals ? pairmap[j] : j
                 @goto nextitem
             end
@@ -226,7 +228,7 @@ function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
     @inbounds for (i, l) in enumerate(srclevels)
         for j in 1:length(pairs)
             p = pairs[j]
-            if l ≅ p.first || recode_in(l, p.first)
+            if recode_in(l, p.first)
                 levelsmap[i+1] = pairmap[j]
                 @goto nextitem
             end
