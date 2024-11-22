@@ -47,6 +47,8 @@ A user defined type could override this method to define an appropriate test fun
 """
 @inline recode_in(x, collection) = any(x ≅ y for y in collection)
 @inline recode_in(x, ::Missing) = false
+@inline recode_in(::T, ::T) where T = false
+@inline recode_in(::Missing, ::Missing) where T = false
 
 optimize_pair(pair::Pair) = pair
 optimize_pair(pair::Pair{<:AbstractArray}) = Set(pair.first) => pair.second
