@@ -49,6 +49,8 @@ A user defined type could override this method to define an appropriate test fun
 @inline recode_in(x, collection::Set) = x in collection
 @inline recode_in(x, collection) = any(x ≅ y for y in collection)
 
+@inline findfirstrecode(x, recode_from) = findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+
 optimize_pair(pair::Pair) = pair
 optimize_pair(pair::Pair{<:AbstractArray}) = Set(pair.first) => pair.second
 
@@ -69,7 +71,7 @@ function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs) wh
     @inbounds for i in eachindex(dest, src)
         x = src[i]
 
-        j = @inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+        j = findfirstrecode(x, recode_from)
         if !isnothing(j)
             dest[i] = recode_to[j]
             @goto nextitem
@@ -119,7 +121,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
-        j = @inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+        j = findfirstrecode(x, recode_from)
         if !isnothing(j)
             drefs[i] = dupvals ? pairmap[j] : j
             @goto nextitem
