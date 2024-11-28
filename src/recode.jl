@@ -45,10 +45,9 @@ The default method is to test if any element in the `collection` `isequal` to
 `x`. For `Set`s `in` is used as it is faster than the default method and equivalent to it.
 A user defined type could override this method to define an appropriate test function.
 """
-@inline recode_in(x, collection) = any(x ≅ y for y in collection)
 @inline recode_in(x, ::Missing) = false
-@inline recode_in(::T, ::T) where T = false
-@inline recode_in(::Missing, ::Missing) where T = false
+@inline recode_in(x, collection::Set) = x in collection
+@inline recode_in(x, collection) = any(x ≅ y for y in collection)
 
 optimize_pair(pair::Pair) = pair
 optimize_pair(pair::Pair{<:AbstractArray}) = Set(pair.first) => pair.second
@@ -60,20 +59,17 @@ function recode!(dest::AbstractArray, src::AbstractArray, default::Any, pairs::P
 
     opt_pairs = optimize_pair.(pairs)
 
-    if dest isa CategoricalArray && src isa CategoricalArray
-        # in this case, we don't need to do much for type stability
-        _recode!(dest, src, default, opt_pairs...)
-    else 
-        # in these cases, this is only type stable if we pass the pairs as tuples
-        _recode!(dest, src, default, first.(opt_pairs), last.(opt_pairs))
-    end
+    _recode!(dest, src, default, opt_pairs...)
 end
 
-function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, recode_from::Tuple, recode_to::Tuple) where {T}
+function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs...) where {T}
+    recode_to = last.(pairs)
+    recode_from = first.(pairs)
+    
     @inbounds for i in eachindex(dest, src)
         x = src[i]
 
-        j = findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+        j = @inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
         if !isnothing(j)
             dest[i] = recode_to[j]
             @goto nextitem
@@ -104,7 +100,10 @@ function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, recode_fr
     dest
 end
 
-function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any, recode_from::Tuple, recode_to::Tuple) where {T, R}
+function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any, pairs...) where {T, R}
+    recode_to = last.(pairs)
+    recode_from = first.(pairs)
+
     vals = convert.(T, recode_to)
     vals = default === nothing ? vals : (vals..., default)
 
@@ -120,7 +119,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
-        j = findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+        j = @inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
         if !isnothing(j)
             drefs[i] = dupvals ? pairmap[j] : j
             @goto nextitem
