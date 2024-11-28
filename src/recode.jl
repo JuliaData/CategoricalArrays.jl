@@ -59,10 +59,10 @@ function recode!(dest::AbstractArray, src::AbstractArray, default::Any, pairs::P
 
     opt_pairs = optimize_pair.(pairs)
 
-    _recode!(dest, src, default, opt_pairs...)
+    _recode!(dest, src, default, opt_pairs)
 end
 
-function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs...) where {T}
+function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs) where {T}
     recode_to = last.(pairs)
     recode_from = first.(pairs)
     
@@ -100,7 +100,7 @@ function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs...)
     dest
 end
 
-function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any, pairs...) where {T, R}
+function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any, pairs) where {T, R}
     recode_to = last.(pairs)
     recode_from = first.(pairs)
 
@@ -168,7 +168,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
 end
 
 function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
-                 default::Any, pairs::Pair...) where {T, N, R<:Integer}
+                 default::Any, pairs::Tuple) where {T, N, R<:Integer}
     vals = T[p.second for p in pairs]
     if default === nothing
         srclevels = levels(src)
