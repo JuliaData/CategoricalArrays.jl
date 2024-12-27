@@ -11,9 +11,10 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
 
         if ismissing(x)
             refs[i] = 0
-        elseif x == upper
+        elseif isequal(x, upper)
             refs[i] = n-1
-        elseif extend !== true && !(lower <= x <= upper)
+        elseif extend !== true &&
+            !((isless(lower, x) || isequal(x, lower)) && isless(x, upper))
             extend === missing ||
                 throw(ArgumentError("value $x (at index $i) does not fall inside the breaks: " *
                                     "adapt them manually, or pass extend=true or extend=missing"))
@@ -136,14 +137,9 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         breaks = sort(breaks)
     end
 
-    if !allowempty
-        num_eq = 0
-        for i in 2:length(breaks)
-            num_eq += breaks[i] == breaks[i-1]
-        end
-        num_eq > 0 &&
-            throw(ArgumentError("all breaks other than the last one must be unique " *
-                                "unless `allowempty=true`"))
+    if !allowempty && !allunique(@view breaks[1:end-1])
+        throw(ArgumentError("all breaks other than the last one must be unique " *
+                            "unless `allowempty=true`"))
     end
 
     if extend === true
@@ -164,11 +160,11 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
                 rethrow(err)
             end
         end
-        if !ismissing(min_x) && breaks[1] > min_x
+        if !ismissing(min_x) && isless(min_x, breaks[1])
             # this type annotation is needed on Julia<1.7 for stable inference
             breaks = [min_x::nonmissingtype(eltype(x)); breaks]
         end
-        if !ismissing(max_x) && breaks[end] < max_x
+        if !ismissing(max_x) && isless(breaks[end], max_x)
             breaks = [breaks; max_x::nonmissingtype(eltype(x))]
         end
         length(breaks) > 1 ||
@@ -195,12 +191,12 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         from = breaks[1:n-1]
         to = breaks[2:n]
         firstlevel = labels(from[1], to[1], 1,
-                            leftclosed=breaks[1] != breaks[2], rightclosed=false)
+                            leftclosed=!isequal(breaks[1], breaks[2]), rightclosed=false)
         levs = Vector{typeof(firstlevel)}(undef, n-1)
         levs[1] = firstlevel
         for i in 2:n-2
             levs[i] = labels(from[i], to[i], i,
-                             leftclosed=breaks[i] != breaks[i+1], rightclosed=false)
+                             leftclosed=!isequal(breaks[i], breaks[i+1]), rightclosed=false)
         end
         levs[end] = labels(from[end], to[end], n-1,
                            leftclosed=true, rightclosed=true)
@@ -261,18 +257,12 @@ function cut(x::AbstractArray, ngroups::Integer;
     # Computing extrema is faster than taking 0 and 1 quantiles
     min_x, max_x = extrema(xnm)
     breaks = [min_x; breaks; max_x]
-    if !allowempty # Only two last breaks are allowed to be equal
-        num_eq = 0
-        for i in 2:length(breaks)
-            num_eq += breaks[i] == breaks[i-1]
-        end
-        if num_eq > 0
-            n = length(breaks) - num_eq
-            throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
-                                "returned only $n group(s) due to duplicated values in `x`." *
-                                "Pass `allowempty=true` to allow empty quantiles or " *
-                                "choose a lower value for `ngroups`."))
-        end
+    if !allowempty && !allunique(@view breaks[1:end-1])
+        n = length(unique(breaks))
+        throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
+                            "returned only $n group(s) due to duplicated values in `x`." *
+                            "Pass `allowempty=true` to allow empty quantiles or " *
+                            "choose a lower value for `ngroups`."))
     end
     cut(x, breaks; labels=labels, allowempty=allowempty)
 end

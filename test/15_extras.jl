@@ -179,7 +179,7 @@ end
     @test cut(0.0:8.0, 3, labels=[-0.0, 0.0, 1.0]) ==
         [-0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
 
-    @test cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 1.0, 5.0], labels=[-0.0, 0.0]) ==
+    @test cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 5.0], labels=[-0.0, 0.0]) ==
         [-0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 end
 
@@ -269,13 +269,33 @@ end
     x = cut([fill(1, 5); fill(4, 5)], 3, allowempty=true)
     @test x == [fill("Q2: [1.0, 4.0)", 5); fill("Q3: [4.0, 4.0]", 5)]
     @test levels(x) == ["Q1: (1.0, 1.0)", "Q2: [1.0, 4.0)", "Q3: [4.0, 4.0]"]
+end
 
-    @test_throws ArgumentError cut([-0.0, 0.0], 2)
-    @test_throws ArgumentError cut([-0.0, 0.0], 2, labels=[-0.0, 0.0])
-    @test_throws ArgumentError cut([-0.0, 0.0], [0.0], extend=true)
-    @test_throws ArgumentError cut([-0.0, 0.0], [-0.0, 0.0])
+@testset "cut with -0.0" begin
+    x = cut([-0.0, 0.0, 0.0, -0.0], 2)
+    @test x == ["Q1: [-0.0, 0.0)", "Q2: [0.0, 0.0]", "Q2: [0.0, 0.0]", "Q1: [-0.0, 0.0)"]
+    @test levels(x) == ["Q1: [-0.0, 0.0)", "Q2: [0.0, 0.0]"]
 
-    @test_throws ArgumentError cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 5.0])
+    x = cut([-0.0, 0.0, 0.0, -0.0], [-0.0, 0.0, 0.0])
+    @test x == ["[-0.0, 0.0)", "[0.0, 0.0]", "[0.0, 0.0]", "[-0.0, 0.0)"]
+    @test levels(x) == ["[-0.0, 0.0)", "[0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], [-0.0, 0.0])
+    @test x == fill("[-0.0, 0.0]", 4)
+    @test levels(x) == ["[-0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], [0.0], extend=true)
+    @test x == fill("[-0.0, 0.0]", 4)
+    @test levels(x) == ["[-0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], [-0.0], extend=true)
+    @test x == fill("[-0.0, 0.0]", 4)
+    @test levels(x) == ["[-0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], 2, labels=[-0.0, 0.0])
+    @test x == [-0.0, 0.0, 0.0, -0.0]
+
+    @test_throws ArgumentError cut([-0.0, 0.0, 0.0, -0.0], [-0.0, -0.0, 0.0])
 end
 
 @testset "cut with extend=true" begin
