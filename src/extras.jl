@@ -258,9 +258,9 @@ function cut(x::AbstractArray, ngroups::Integer;
     min_x, max_x = extrema(xnm)
     breaks = [min_x; breaks; max_x]
     if !allowempty && !allunique(@view breaks[1:end-1])
-        n = length(unique(breaks))
+        n = length(unique(breaks)) - 1
         throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
-                            "returned only $n group(s) due to duplicated values in `x`." *
+                            "returned only $n group(s) due to duplicated values in `x`. " *
                             "Pass `allowempty=true` to allow empty quantiles or " *
                             "choose a lower value for `ngroups`."))
     end
