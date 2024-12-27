@@ -55,10 +55,10 @@ also accept them.
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
-* `allowempty::Bool=false`: when `false`, an error is raised if some breaks appear
-  multiple times, generating empty intervals; when `true`, duplicate breaks are allowed
-  and the intervals they generate are kept as unused levels
-  (but duplicate labels are not allowed).
+* `allowempty::Bool=false`: when `false`, an error is raised if some breaks other than
+  the last one appear multiple times, generating empty intervals; when `true`,
+  duplicate breaks are allowed and the intervals they generate are kept as
+  unused levels (but duplicate labels are not allowed).
 
 # Examples
 ```jldoctest
@@ -132,12 +132,18 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
               extend::Union{Bool, Missing},
               labels::Union{AbstractVector{<:SupportedTypes},Function},
               allowempty::Bool=false) where {T, N}
-    if !allowempty && !allunique(breaks)
-        throw(ArgumentError("all breaks must be unique unless `allowempty=true`"))
-    end
-
     if !issorted(breaks)
         breaks = sort(breaks)
+    end
+
+    if !allowempty
+        num_eq = 0
+        for i in 2:length(breaks)
+            num_eq += breaks[i] == breaks[i-1]
+        end
+        num_eq > 0 &&
+            throw(ArgumentError("all breaks other than the last one must be unique " *
+                                "unless `allowempty=true`"))
     end
 
     if extend === true
@@ -197,8 +203,7 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
                              leftclosed=breaks[i] != breaks[i+1], rightclosed=false)
         end
         levs[end] = labels(from[end], to[end], n-1,
-                           leftclosed=breaks[end-1] != breaks[end],
-                           rightclosed=true)
+                           leftclosed=true, rightclosed=true)
     else
         length(labels) == n-1 ||
             throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
@@ -243,21 +248,31 @@ quantiles.
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval).
 * `allowempty::Bool=false`: when `false`, an error is raised if some quantiles breakpoints
-  are equal, generating empty intervals; when `true`, duplicate breaks are allowed
-  and the intervals they generate are kept as unused levels
-  (but duplicate labels are not allowed).
+  other than the last one are equal, generating empty intervals;
+  when `true`, duplicate breaks are allowed and the intervals they generate are kept as
+  unused levels (but duplicate labels are not allowed).
 """
 function cut(x::AbstractArray, ngroups::Integer;
              labels::Union{AbstractVector{<:SupportedTypes},Function}=quantile_formatter,
              allowempty::Bool=false)
+    ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    breaks = Statistics.quantile(xnm, (1:ngroups-1)/ngroups)
-    if !allowempty && !allunique(breaks)
-        n = length(unique(breaks)) - 1
-        throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
-                            "returned only $n groups due to duplicated values in `x`." *
-                            "Pass `allowempty=true` to allow empty quantiles or " *
-                            "choose a lower value for `ngroups`."))
+    breaks = quantile(xnm, (1:ngroups-1)/ngroups)
+    # Computing extrema is faster than taking 0 and 1 quantiles
+    min_x, max_x = extrema(xnm)
+    breaks = [min_x; breaks; max_x]
+    if !allowempty # Only two last breaks are allowed to be equal
+        num_eq = 0
+        for i in 2:length(breaks)
+            num_eq += breaks[i] == breaks[i-1]
+        end
+        if num_eq > 0
+            n = length(breaks) - num_eq
+            throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
+                                "returned only $n group(s) due to duplicated values in `x`." *
+                                "Pass `allowempty=true` to allow empty quantiles or " *
+                                "choose a lower value for `ngroups`."))
+        end
     end
-    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty)
+    cut(x, breaks; labels=labels, allowempty=allowempty)
 end
