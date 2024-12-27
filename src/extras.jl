@@ -11,9 +11,9 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
 
         if ismissing(x)
             refs[i] = 0
-        elseif extend === true && x == upper
+        elseif x == upper
             refs[i] = n-1
-        elseif extend !== true && !(lower <= x < upper)
+        elseif extend !== true && !(lower <= x <= upper)
             extend === missing ||
                 throw(ArgumentError("value $x (at index $i) does not fall inside the breaks: " *
                                     "adapt them manually, or pass extend=true or extend=missing"))
@@ -41,8 +41,7 @@ Cut a numeric array into intervals at values `breaks`
 and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
 i.e. the lower bound is included and the upper bound is excluded, except
-if `extend=true` the last interval, which is then closed on both ends,
-i.e. `[lower, upper]`.
+the last interval, which is closed on both ends, i.e. `[lower, upper]`.
 
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
 also accept them.
@@ -50,8 +49,7 @@ also accept them.
 # Keyword arguments
 * `extend::Union{Bool, Missing}=false`: when `false`, an error is raised if some values
   in `x` fall outside of the breaks; when `true`, breaks are automatically added to include
-  all values in `x`, and the upper bound is included in the last interval; when `missing`,
-  values outside of the breaks generate `missing` entries.
+  all values in `x`; when `missing`, values outside of the breaks generate `missing` entries.
 * `labels::Union{AbstractVector, Function}`: a vector of strings, characters
   or numbers giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
@@ -200,7 +198,7 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         end
         levs[end] = labels(from[end], to[end], n-1,
                            leftclosed=breaks[end-1] != breaks[end],
-                           rightclosed=coalesce(extend, false))
+                           rightclosed=true)
     else
         length(labels) == n-1 ||
             throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))

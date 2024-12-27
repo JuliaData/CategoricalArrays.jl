@@ -6,27 +6,37 @@ const ≅ = isequal
 
 @testset "cut($(Union{Int, T})[...])" for T in (Union{}, Missing)
     x = @inferred cut(Vector{Union{Int, T}}([2, 3, 5]), [1, 3, 6])
-    @test x == ["[1, 3)", "[3, 6)", "[3, 6)"]
+    @test x == ["[1, 3)", "[3, 6]", "[3, 6]"]
     @test isa(x, CategoricalVector{Union{String, T}})
     @test isordered(x)
-    @test levels(x) == ["[1, 3)", "[3, 6)"]
+    @test levels(x) == ["[1, 3)", "[3, 6]"]
+
+    @test cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], extend=false) ==
+        ["[2, 5]", "[2, 5]", "[2, 5]"]
 
     err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6])
     @test err.value.msg == "value 2 (at index 1) does not fall inside the breaks: adapt them manually, or pass extend=true or extend=missing"
 
-
-    err = @test_throws ArgumentError cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5])
-    @test err.value.msg == "value 5 (at index 3) does not fall inside the breaks: adapt them manually, or pass extend=true or extend=missing"
 
     if T === Missing
         x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], extend=missing)
     else
         x = cut(Vector{Union{T, Int}}([2, 3, 5]), [2, 5], extend=missing)
     end
-    @test x ≅ ["[2, 5)", "[2, 5)", missing]
+    @test x ≅ ["[2, 5]", "[2, 5]", "[2, 5]"]
     @test isa(x, CategoricalVector{Union{String, Missing}})
     @test isordered(x)
-    @test levels(x) == ["[2, 5)"]
+    @test levels(x) == ["[2, 5]"]
+
+    if T === Missing
+        x = @inferred cut(Vector{Union{T, Int}}([2, 3, 6]), [2, 5], extend=missing)
+    else
+        x = cut(Vector{Union{T, Int}}([2, 3, 6]), [2, 5], extend=missing)
+    end
+    @test x ≅ ["[2, 5]", "[2, 5]", missing]
+    @test isa(x, CategoricalVector{Union{String, Missing}})
+    @test isordered(x)
+    @test levels(x) == ["[2, 5]"]
 
     x = @inferred cut(Vector{Union{T, Int}}([2, 3, 5]), [3, 6], extend=true)
     @test x == ["[2, 3)", "[3, 6]", "[3, 6]"]
@@ -40,10 +50,10 @@ const ≅ = isequal
     @test levels(x) == ["[2, 3)", "[3, 6]"]
 
     x = @inferred cut(Vector{Union{T, Int}}([1, 2, 4]), [1, 3, 6])
-    @test x == ["[1, 3)", "[1, 3)", "[3, 6)"]
+    @test x == ["[1, 3)", "[1, 3)", "[3, 6]"]
     @test isa(x, CategoricalVector{Union{String, T}})
     @test isordered(x)
-    @test levels(x) == ["[1, 3)", "[3, 6)"]
+    @test levels(x) == ["[1, 3)", "[3, 6]"]
 
     x = @inferred cut(Vector{Union{T, Int}}([1, 2, 4]), [3, 6], extend=true)
     @test x == ["[1, 3)", "[1, 3)", "[3, 6]"]
@@ -67,10 +77,10 @@ const ≅ = isequal
     breaks = [18, 25, 35, 60, 100]
     x = @inferred cut(Vector{Union{T, Int}}(ages), breaks)
     @test x == ["[18, 25)", "[18, 25)", "[25, 35)", "[25, 35)", "[18, 25)", "[18, 25)",
-                "[35, 60)", "[25, 35)", "[60, 100)", "[35, 60)", "[35, 60)", "[25, 35)"]
+                "[35, 60)", "[25, 35)", "[60, 100]", "[35, 60)", "[35, 60)", "[25, 35)"]
     @test isa(x, CategoricalVector{Union{String, T}})
     @test isordered(x)
-    @test levels(x) == ["[18, 25)", "[25, 35)", "[35, 60)", "[60, 100)"]
+    @test levels(x) == ["[18, 25)", "[25, 35)", "[35, 60)", "[60, 100]"]
 
     breaks = [1, 6, 3] # Unsorted breaks
     labels = ["b", "a"] # Differs from lexical ordering
@@ -83,10 +93,10 @@ const ≅ = isequal
     @test levels(x) == ["b", "a"]
 
     x = @inferred cut(Matrix{Union{Float64, T}}([-1.1 3.0; 1.456 10.394]), [-2.134, 3.0, 12.5])
-    @test x == ["[-2.134, 3.0)" "[3.0, 12.5)"; "[-2.134, 3.0)" "[3.0, 12.5)"]
+    @test x == ["[-2.134, 3.0)" "[3.0, 12.5]"; "[-2.134, 3.0)" "[3.0, 12.5]"]
     @test isa(x, CategoricalMatrix{Union{String, T}})
     @test isordered(x)
-    @test levels(x) == ["[-2.134, 3.0)", "[3.0, 12.5)"]
+    @test levels(x) == ["[-2.134, 3.0)", "[3.0, 12.5]"]
 
     labels = 0:2:8
     x = @inferred cut(Vector{Union{T, Int}}(1:8), 0:2:10, labels=labels)
@@ -179,7 +189,7 @@ end
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 11])
     y = cut(1:10, [1, 5, 5, 11], allowempty=true)
     @test y == cut(1:10, [1, 5, 11])
-    @test levels(y) == ["[1, 5)", "(5, 5)", "[5, 11)"]
+    @test levels(y) == ["[1, 5)", "(5, 5)", "[5, 11]"]
 
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11])
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 11],
@@ -191,29 +201,29 @@ end
 
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 11], labels=string.(1:3))
     y = cut(1:10, [1, 5, 5, 11], allowempty=true, labels=string.(1:3))
-    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "3")
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11]" => "3")
     @test levels(y) == string.(1:3)
 
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11], labels=string.(1:4))
     y = cut(1:10, [1, 5, 5, 5, 11], allowempty=true, labels=string.(1:4))
-    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "4")
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11]" => "4")
     @test levels(y) == string.(1:4)
 
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 5, 11], labels=string.(1:5))
     y = cut(1:10, [1, 5, 5, 5, 5, 11], allowempty=true, labels=string.(1:5))
-    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11)" => "5")
+    @test y == recode(cut(1:10, [1, 5, 11]), "[1, 5)" => "1", "[5, 11]" => "5")
     @test levels(y) == string.(1:5)
 
     @test_throws ArgumentError cut(1:10, [1, 3, 3, 5, 5, 11], labels=string.(1:5))
     y = cut(1:10, [1, 3, 3, 5, 5, 11], allowempty=true, labels=string.(1:5))
     @test y == recode(cut(1:10, [1, 3, 5, 11]),
-                      "[1, 3)" => "1", "[3, 5)" => "3", "[5, 11)" => "5")
+                      "[1, 3)" => "1", "[3, 5)" => "3", "[5, 11]" => "5")
     @test levels(y) == string.(1:5)
 
     @test_throws ArgumentError cut(1:10, [1, 3, 3, 3, 5, 5, 5, 11], labels=string.(1:7))
     y = cut(1:10, [1, 3, 3, 3, 5, 5, 5, 11], allowempty=true, labels=string.(1:7))
     @test y == recode(cut(1:10, [1, 3, 5, 11]),
-                      "[1, 3)" => "1", "[3, 5)" => "4", "[5, 11)" => "7")
+                      "[1, 3)" => "1", "[3, 5)" => "4", "[5, 11]" => "7")
     @test levels(y) == string.(1:7)
 
     @test_throws ArgumentError cut(1:10, [1, 3, 5, 5, 11],
@@ -255,9 +265,9 @@ end
 end
 
 @testset "cut with extend=missing" begin
-    x = @inferred cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0], [-0.0, 0.0, 3.0],
+    x = @inferred cut([-0.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0], [-0.0, 0.0, 3.0],
                       labels=[-0.0, 0.0], extend=missing)
-    @test x ≅ [-0.0, 0.0, 0.0, 0.0, missing, missing]
+    @test x ≅ [-0.0, 0.0, 0.0, 0.0, 0.0, missing, missing]
     @test x isa CategoricalArray{Union{Missing, Float64},1,UInt32}
     @test isordered(x)
     @test levels(x) == [-0.0, 0.0]

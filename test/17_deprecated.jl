@@ -10,7 +10,7 @@ const ≅ = isequal
     @test x ≅ ["a", missing, missing]
 
     x = cut([1, missing, 100], [1, 2], allow_missing=true)
-    @test x ≅ ["[1, 2)", missing, missing]
+    @test x ≅ ["[1, 2]", missing, missing]
 end
 
 end
