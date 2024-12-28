@@ -337,27 +337,27 @@ end
     @test_throws ArgumentError("NaN values are not allowed in breaks") cut([1, 2], [1, NaN])
 
     x = cut([1, Inf], [1], extend=true)
-    @test x ≊ ["[1.0, Inf]", "[1.0, Inf]"]
+    @test x ≅ ["[1.0, Inf]", "[1.0, Inf]"]
     @test levels(x) == ["[1.0, Inf]"]
 
     x = cut([1, -Inf], [1], extend=true)
-    @test x ≊ ["[-Inf, 1.0]", "[-Inf, 1.0]"]
+    @test x ≅ ["[-Inf, 1.0]", "[-Inf, 1.0]"]
     @test levels(x) == ["[-Inf, 1.0]"]
 
     x = cut([1:5; Inf], [1, 2, Inf])
-    @test x ≊ ["[1.0, 2.0)"; fill("[2.0, Inf]", 5)]
+    @test x ≅ ["[1.0, 2.0)"; fill("[2.0, Inf]", 5)]
     @test levels(x) == ["[1.0, 2.0)", "[2.0, Inf]"]
 
     x = cut([1:5; -Inf], [-Inf, 2, 5])
-    @test x ≊ ["[-Inf, 2.0)"; fill("[2.0, 5.0]", 4); "[-Inf, 2.0)"]
+    @test x ≅ ["[-Inf, 2.0)"; fill("[2.0, 5.0]", 4); "[-Inf, 2.0)"]
     @test levels(x) == ["[-Inf, 2.0)", "[2.0, 5.0]"]
 
     x = cut([1:5; Inf], 2)
-    @test x ≊ [fill("Q1: [1.0, 3.5)", 3); fill("Q2: [3.5, Inf]", 3)]
+    @test x ≅ [fill("Q1: [1.0, 3.5)", 3); fill("Q2: [3.5, Inf]", 3)]
     @test levels(x) == ["Q1: [1.0, 3.5)", "Q2: [3.5, Inf]"]
 
     x = cut([1:5; -Inf], 2)
-    @test x ≊ [fill("Q1: [-Inf, 2.5)", 2); fill("Q2: [2.5, 5.0]", 3); "Q1: [-Inf, 2.5)"]
+    @test x ≅ [fill("Q1: [-Inf, 2.5)", 2); fill("Q2: [2.5, 5.0]", 3); "Q1: [-Inf, 2.5)"]
     @test levels(x) == ["Q1: [-Inf, 2.5)", "Q2: [2.5, 5.0]"]
 end
 
