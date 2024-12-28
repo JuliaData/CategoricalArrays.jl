@@ -15,8 +15,7 @@ makedocs(
         "Implementation details" => "implementation.md",
         "API index" => "apiindex.md"
         ],
-    checkdocs = :exports,
-    strict=true
+    checkdocs = :exports
 )
 
 deploydocs(
