@@ -257,9 +257,9 @@ end
     @test_throws ArgumentError cut([fill(1, 10); 4], 2)
     @test_throws ArgumentError cut([fill(1, 10); 4], 3)
     x = cut([fill(1, 10); 4], 2, allowempty=true)
-    @test only(unique(x)) == "Q2: [1.0, 4.0]"
+    @test unique(x) == ["Q2: [1.0, 4.0]"]
     x = cut([fill(1, 10); 4], 3, allowempty=true)
-    @test only(unique(x)) == "Q3: [1.0, 4.0]"
+    @test unique(x) == ["Q3: [1.0, 4.0]"]
     @test levels(x) == ["Q1: (1.0, 1.0)", "Q2: (1.0, 1.0)", "Q3: [1.0, 4.0]"]
 
     x = cut([fill(1, 5); fill(4, 5)], 2)
