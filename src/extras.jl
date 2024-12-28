@@ -9,7 +9,9 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
     @inbounds for i in eachindex(X)
         x = X[i]
 
-        if ismissing(x)
+        if x isa Number && isnan(x)
+            throw(ArgumentError("NaN values are not allowed in input vector"))
+        elseif ismissing(x)
             refs[i] = 0
         elseif isequal(x, upper)
             refs[i] = n-1
@@ -137,6 +139,10 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         breaks = sort(breaks)
     end
 
+    if any(x -> x isa Number && isnan(x), breaks)
+        throw(ArgumentError("NaN values are not allowed in breaks"))
+    end
+
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("all breaks other than the last one must be unique " *
                             "unless `allowempty=true`"))
@@ -253,9 +259,13 @@ function cut(x::AbstractArray, ngroups::Integer;
              allowempty::Bool=false)
     ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    breaks = quantile(xnm, (1:ngroups-1)/ngroups)
     # Computing extrema is faster than taking 0 and 1 quantiles
     min_x, max_x = extrema(xnm)
+    if (min_x isa Number && isnan(min_x)) ||
+        (max_x isa Number && isnan(max_x))
+        throw(ArgumentError("NaN values are not allowed in input vector"))
+    end
+    breaks = quantile(xnm, (1:ngroups-1)/ngroups)
     breaks = [min_x; breaks; max_x]
     if !allowempty && !allunique(@view breaks[1:end-1])
         n = length(unique(breaks)) - 1
