@@ -111,9 +111,6 @@ const ≅ = isequal
     @test isa(x, CategoricalVector{Union{Int, String, T}})
     @test isordered(x)
     @test levels(x) == [0, "2", 4, "6", 8]
-
-    @test_throws ArgumentError cut([-0.0, 0.0], 2)
-    @test_throws ArgumentError cut([-0.0, 0.0], 2, labels=[-0.0, 0.0])
 end
 
 @testset "cut with missing values in input" begin
@@ -142,6 +139,11 @@ end
     @test isa(x, CategoricalArray)
     @test isordered(x)
     @test levels(x) == ["Q1: [2.0, 3.5)", "Q2: [3.5, 5.0]"]
+end
+
+@testset "cut(x, n) with invalid n" begin
+    @test_throws ArgumentError cut(1:10, 0)
+    @test_throws ArgumentError cut(1:10, -1)
 end
 
 @testset "cut with formatter function" begin
@@ -185,11 +187,20 @@ end
     x = [zeros(10); ones(10)]
     @test_throws ArgumentError cut(x, [0, 0.1, 0.1, 10])
     @test_throws ArgumentError cut(x, 10)
+    y = cut(x, [0, 0.1, 10, 10])
+    @test y == [fill("[0.0, 0.1)", 10); fill("[0.1, 10.0)", 10)]
+    @test levels(y) == ["[0.0, 0.1)", "[0.1, 10.0)", "[10.0, 10.0]"]
 
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 11])
     y = cut(1:10, [1, 5, 5, 11], allowempty=true)
     @test y == cut(1:10, [1, 5, 11])
     @test levels(y) == ["[1, 5)", "(5, 5)", "[5, 11]"]
+    y = cut(1:10, [1, 5, 11, 11])
+    @test y == [fill("[1, 5)", 4); fill("[5, 11)", 6)]
+    @test levels(y) == ["[1, 5)", "[5, 11)", "[11, 11]"]
+    y = cut(1:10, [1, 5, 10, 10])
+    @test y == [fill("[1, 5)", 4); fill("[5, 10)", 5); "[10, 10]"]
+    @test levels(y) == ["[1, 5)", "[5, 10)", "[10, 10]"]
 
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 5, 11])
     @test_throws ArgumentError cut(1:10, [1, 5, 5, 11],
@@ -242,6 +253,49 @@ end
 
     fmt = (from, to, i; leftclosed, rightclosed) -> (i % 2 == 0 ? to : 0.0)
     @test_throws ArgumentError cut(1:8, 0:2:10, labels=fmt)
+
+    @test_throws ArgumentError cut([fill(1, 10); 4], 2)
+    @test_throws ArgumentError cut([fill(1, 10); 4], 3)
+    x = cut([fill(1, 10); 4], 2, allowempty=true)
+    @test unique(x) == ["Q2: [1.0, 4.0]"]
+    x = cut([fill(1, 10); 4], 3, allowempty=true)
+    @test unique(x) == ["Q3: [1.0, 4.0]"]
+    @test levels(x) == ["Q1: (1.0, 1.0)", "Q2: (1.0, 1.0)", "Q3: [1.0, 4.0]"]
+
+    x = cut([fill(1, 5); fill(4, 5)], 2)
+    @test x == [fill("Q1: [1.0, 2.5)", 5); fill("Q2: [2.5, 4.0]", 5)]
+    @test levels(x) == ["Q1: [1.0, 2.5)", "Q2: [2.5, 4.0]"]
+    @test_throws ArgumentError  cut([fill(1, 5); fill(4, 5)], 3)
+    x = cut([fill(1, 5); fill(4, 5)], 3, allowempty=true)
+    @test x == [fill("Q2: [1.0, 4.0)", 5); fill("Q3: [4.0, 4.0]", 5)]
+    @test levels(x) == ["Q1: (1.0, 1.0)", "Q2: [1.0, 4.0)", "Q3: [4.0, 4.0]"]
+end
+
+@testset "cut with -0.0" begin
+    x = cut([-0.0, 0.0, 0.0, -0.0], 2)
+    @test x == ["Q1: [-0.0, 0.0)", "Q2: [0.0, 0.0]", "Q2: [0.0, 0.0]", "Q1: [-0.0, 0.0)"]
+    @test levels(x) == ["Q1: [-0.0, 0.0)", "Q2: [0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], [-0.0, 0.0, 0.0])
+    @test x == ["[-0.0, 0.0)", "[0.0, 0.0]", "[0.0, 0.0]", "[-0.0, 0.0)"]
+    @test levels(x) == ["[-0.0, 0.0)", "[0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], [-0.0, 0.0])
+    @test x == fill("[-0.0, 0.0]", 4)
+    @test levels(x) == ["[-0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], [0.0], extend=true)
+    @test x == fill("[-0.0, 0.0]", 4)
+    @test levels(x) == ["[-0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], [-0.0], extend=true)
+    @test x == fill("[-0.0, 0.0]", 4)
+    @test levels(x) == ["[-0.0, 0.0]"]
+
+    x = cut([-0.0, 0.0, 0.0, -0.0], 2, labels=[-0.0, 0.0])
+    @test x == [-0.0, 0.0, 0.0, -0.0]
+
+    @test_throws ArgumentError cut([-0.0, 0.0, 0.0, -0.0], [-0.0, -0.0, 0.0])
 end
 
 @testset "cut with extend=true" begin
@@ -274,6 +328,37 @@ end
 
     x = @inferred cut(-1:0.5:1, [0, 1], extend=true)
     @test x == ["[-1.0, 0.0)", "[-1.0, 0.0)", "[0.0, 1.0]", "[0.0, 1.0]", "[0.0, 1.0]"]
+end
+
+@testset "cut with NaN and Inf" begin
+    @test_throws ArgumentError("NaN values are not allowed in input vector") cut([1, NaN, 2, 3], [1, 10])
+    @test_throws ArgumentError("NaN values are not allowed in input vector") cut([1, NaN, 2, 3], [1], extend=true)
+    @test_throws ArgumentError("NaN values are not allowed in input vector") cut([1, NaN, 2, 3], 2)
+    @test_throws ArgumentError("NaN values are not allowed in breaks") cut([1, 2], [1, NaN])
+
+    x = cut([1, Inf], [1], extend=true)
+    @test x ≅ ["[1.0, Inf]", "[1.0, Inf]"]
+    @test levels(x) == ["[1.0, Inf]"]
+
+    x = cut([1, -Inf], [1], extend=true)
+    @test x ≅ ["[-Inf, 1.0]", "[-Inf, 1.0]"]
+    @test levels(x) == ["[-Inf, 1.0]"]
+
+    x = cut([1:5; Inf], [1, 2, Inf])
+    @test x ≅ ["[1.0, 2.0)"; fill("[2.0, Inf]", 5)]
+    @test levels(x) == ["[1.0, 2.0)", "[2.0, Inf]"]
+
+    x = cut([1:5; -Inf], [-Inf, 2, 5])
+    @test x ≅ ["[-Inf, 2.0)"; fill("[2.0, 5.0]", 4); "[-Inf, 2.0)"]
+    @test levels(x) == ["[-Inf, 2.0)", "[2.0, 5.0]"]
+
+    x = cut([1:5; Inf], 2)
+    @test x ≅ [fill("Q1: [1.0, 3.5)", 3); fill("Q2: [3.5, Inf]", 3)]
+    @test levels(x) == ["Q1: [1.0, 3.5)", "Q2: [3.5, Inf]"]
+
+    x = cut([1:5; -Inf], 2)
+    @test x ≅ [fill("Q1: [-Inf, 2.5)", 2); fill("Q2: [2.5, 5.0]", 3); "Q1: [-Inf, 2.5)"]
+    @test levels(x) == ["Q1: [-Inf, 2.5)", "Q2: [2.5, 5.0]"]
 end
 
 end
