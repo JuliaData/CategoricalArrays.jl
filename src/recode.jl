@@ -71,7 +71,7 @@ function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs) wh
         x = src[i]
 
         j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
-        if !isnothing(j)
+        if j !== nothing
             dest[i] = recode_to[j]
             @goto nextitem
         end
@@ -121,7 +121,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
         x = src[i]
 
         j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
-        if !isnothing(j)
+        if j !== nothing
             drefs[i] = dupvals ? pairmap[j] : j
             @goto nextitem
         end
