@@ -63,21 +63,23 @@ function recode!(dest::AbstractArray, src::AbstractArray, default::Any, pairs::P
     _recode!(dest, src, default, opt_pairs)
 end
 
-function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs) where {T}
+function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs::NTuple{<:Any, Pair}) where {T}
     recode_to = last.(pairs)
     recode_from = first.(pairs)
     
     @inbounds for i in eachindex(dest, src)
         x = src[i]
 
+        # @inline is needed for type stability and Compat for compatibility before julia v1.8
+        # we use isequal and recode_in because we cannot really
+        # distinguish scalars from collections
         j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+        
+        # Value in one of the pairs
         if j !== nothing
             dest[i] = recode_to[j]
-            @goto nextitem
-        end
-
         # Value not in any of the pairs
-        if ismissing(x)
+        elseif ismissing(x)
             eltype(dest) >: Missing ||
                 throw(MissingException("missing value found, but dest does not support them: " *
                                        "recode them to a supported value"))
@@ -94,19 +96,17 @@ function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs) wh
         else
             dest[i] = default
         end
-
-        @label nextitem
     end
 
     dest
 end
 
-function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any, pairs) where {T, R}
-    recode_to = last.(pairs)
+function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any,
+        pairs::NTuple{<:Any, Pair}) where {T, R}
     recode_from = first.(pairs)
+    vals = T[p.second for p in pairs]
 
-    vals = convert.(T, recode_to)
-    vals = default === nothing ? vals : (vals..., default)
+    default !== nothing && push!(vals, default)
 
     levels!(dest.pool, filter!(!ismissing, unique(vals)))
     # In the absence of duplicated recoded values, we do not need to lookup the reference
@@ -115,19 +115,17 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
 
     drefs = dest.refs
     pairmap = [ismissing(v) ? zero(R) : get(dest.pool, v) for v in vals]
-    defaultref = default === nothing ? nothing : ismissing(default) ? 0 : get(dest.pool, default)
+    defaultref = default === nothing || ismissing(default) ? zero(R) : get(dest.pool, default)
 
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
-        j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+        # we use isequal and recode_in because we cannot really
+        # distinguish scalars from collections
+        j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x, y), recode_from)
         if j !== nothing
             drefs[i] = dupvals ? pairmap[j] : j
-            @goto nextitem
-        end
-
-        # Value not in any of the pairs
-        if ismissing(x)
+        elseif ismissing(x)
             eltype(dest) >: Missing ||
                 throw(MissingException("missing value found, but dest does not support them: " *
                                        "recode them to a supported value"))
@@ -144,8 +142,6 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
         else
             drefs[i] = defaultref
         end
-
-        @label nextitem
     end
 
     # Put existing levels first, and sort them if possible
@@ -169,19 +165,20 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
 end
 
 function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
-                 default::Any, pairs::Tuple) where {T, N, R<:Integer}
+                 default::Any, pairs::NTuple{<:Any, Pair}) where {T, N, R<:Integer}
+    recode_from = first.(pairs)
     vals = T[p.second for p in pairs]
+             
     if default === nothing
         srclevels = levels(src)
 
         # Remove recoded levels as they won't appear in result
-        firsts = (p.first for p in pairs)
         keptlevels = Vector{T}(undef, 0)
         sizehint!(keptlevels, length(srclevels))
 
         for l in srclevels
-            if !(any(x -> x ≅ l, firsts) ||
-                 any(f -> recode_in(l, f), firsts))
+            if !(any(x -> x ≅ l, recode_from) ||
+                 any(f -> recode_in(l, f), recode_from))
                 try
                     push!(keptlevels, l)
                 catch err
@@ -228,7 +225,7 @@ function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
     @inbounds for (i, l) in enumerate(srclevels)
         for j in 1:length(pairs)
             p = pairs[j]
-            if l ≅ p.first ||recode_in(l, p.first)
+            if l ≅ p.first || recode_in(l, p.first)
                 levelsmap[i+1] = pairmap[j]
                 @goto nextitem
             end
