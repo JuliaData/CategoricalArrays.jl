@@ -1,4 +1,3 @@
-import Compat
 const ≅ = isequal
 
 """
