@@ -62,7 +62,8 @@ function recode!(dest::AbstractArray, src::AbstractArray, default::Any, pairs::P
     _recode!(dest, src, default, opt_pairs)
 end
 
-function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs::NTuple{<:Any, Pair}) where {T}
+function _recode!(dest::AbstractArray{T}, src::AbstractArray, default,
+                  pairs::NTuple{<:Any, Pair}) where {T}
     recode_to = last.(pairs)
     recode_from = first.(pairs)
     
@@ -101,7 +102,7 @@ function _recode!(dest::AbstractArray{T}, src::AbstractArray, default, pairs::NT
 end
 
 function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any,
-        pairs::NTuple{<:Any, Pair}) where {T, R}
+                  pairs::NTuple{<:Any, Pair}) where {T, R}
     recode_from = first.(pairs)
     vals = T[p.second for p in pairs]
 
@@ -119,11 +120,15 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
+        # @inline is needed for type stability and Compat for compatibility before julia v1.8  
         # we use isequal and recode_in because we cannot really
         # distinguish scalars from collections
         j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x, y), recode_from)
+
+        # Value in one of the pairs
         if j !== nothing
             drefs[i] = dupvals ? pairmap[j] : j
+        # Value not in any of the pairs
         elseif ismissing(x)
             eltype(dest) >: Missing ||
                 throw(MissingException("missing value found, but dest does not support them: " *
@@ -164,7 +169,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
 end
 
 function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
-                 default::Any, pairs::NTuple{<:Any, Pair}) where {T, N, R<:Integer}
+                  default::Any, pairs::NTuple{<:Any, Pair}) where {T, N, R<:Integer}
     recode_from = first.(pairs)
     vals = T[p.second for p in pairs]
              
