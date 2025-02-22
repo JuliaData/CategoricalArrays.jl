@@ -127,18 +127,18 @@ end
 
 @testset "cut([5, 4, 3, 2], 2)" begin
     x = @inferred cut([5, 4, 3, 2], 2)
-    @test x == ["Q2: [3.5, 5.0]", "Q2: [3.5, 5.0]", "Q1: [2.0, 3.5)", "Q1: [2.0, 3.5)"]
+    @test x == ["Q2: [4, 5]", "Q2: [4, 5]", "Q1: [2, 4)", "Q1: [2, 4)"]
     @test isa(x, CategoricalArray)
     @test isordered(x)
-    @test levels(x) == ["Q1: [2.0, 3.5)", "Q2: [3.5, 5.0]"]
+    @test levels(x) == ["Q1: [2, 4)", "Q2: [4, 5]"]
 end
 
 @testset "cut(x, n) with missing values" begin
     x = @inferred cut([5, 4, 3, missing, 2], 2)
-    @test x ≅ ["Q2: [3.5, 5.0]", "Q2: [3.5, 5.0]", "Q1: [2.0, 3.5)", missing, "Q1: [2.0, 3.5)"]
+    @test x ≅ ["Q2: [4, 5]", "Q2: [4, 5]", "Q1: [2, 4)", missing, "Q1: [2, 4)"]
     @test isa(x, CategoricalArray)
     @test isordered(x)
-    @test levels(x) == ["Q1: [2.0, 3.5)", "Q2: [3.5, 5.0]"]
+    @test levels(x) == ["Q1: [2, 4)", "Q2: [4, 5]"]
 end
 
 @testset "cut(x, n) with invalid n" begin
@@ -257,18 +257,18 @@ end
     @test_throws ArgumentError cut([fill(1, 10); 4], 2)
     @test_throws ArgumentError cut([fill(1, 10); 4], 3)
     x = cut([fill(1, 10); 4], 2, allowempty=true)
-    @test unique(x) == ["Q2: [1.0, 4.0]"]
+    @test unique(x) == ["Q2: [1, 4]"]
     x = cut([fill(1, 10); 4], 3, allowempty=true)
-    @test unique(x) == ["Q3: [1.0, 4.0]"]
-    @test levels(x) == ["Q1: (1.0, 1.0)", "Q2: (1.0, 1.0)", "Q3: [1.0, 4.0]"]
+    @test unique(x) == ["Q3: [1, 4]"]
+    @test levels(x) == ["Q1: (1, 1)", "Q2: (1, 1)", "Q3: [1, 4]"]
 
     x = cut([fill(1, 5); fill(4, 5)], 2)
-    @test x == [fill("Q1: [1.0, 2.5)", 5); fill("Q2: [2.5, 4.0]", 5)]
-    @test levels(x) == ["Q1: [1.0, 2.5)", "Q2: [2.5, 4.0]"]
+    @test x == [fill("Q1: [1, 4)", 5); fill("Q2: [4, 4]", 5)]
+    @test levels(x) == ["Q1: [1, 4)", "Q2: [4, 4]"]
     @test_throws ArgumentError  cut([fill(1, 5); fill(4, 5)], 3)
     x = cut([fill(1, 5); fill(4, 5)], 3, allowempty=true)
-    @test x == [fill("Q2: [1.0, 4.0)", 5); fill("Q3: [4.0, 4.0]", 5)]
-    @test levels(x) == ["Q1: (1.0, 1.0)", "Q2: [1.0, 4.0)", "Q3: [4.0, 4.0]"]
+    @test x == [fill("Q2: [1, 4)", 5); fill("Q3: [4, 4]", 5)]
+    @test levels(x) == ["Q1: (1, 1)", "Q2: [1, 4)", "Q3: [4, 4]"]
 end
 
 @testset "cut with -0.0" begin
@@ -353,12 +353,12 @@ end
     @test levels(x) == ["[-Inf, 2.0)", "[2.0, 5.0]"]
 
     x = cut([1:5; Inf], 2)
-    @test x ≅ [fill("Q1: [1.0, 3.5)", 3); fill("Q2: [3.5, Inf]", 3)]
-    @test levels(x) == ["Q1: [1.0, 3.5)", "Q2: [3.5, Inf]"]
+    @test x ≅ [fill("Q1: [1.0, 4.0)", 3); fill("Q2: [4.0, Inf]", 3)]
+    @test levels(x) == ["Q1: [1.0, 4.0)", "Q2: [4.0, Inf]"]
 
     x = cut([1:5; -Inf], 2)
-    @test x ≅ [fill("Q1: [-Inf, 2.5)", 2); fill("Q2: [2.5, 5.0]", 3); "Q1: [-Inf, 2.5)"]
-    @test levels(x) == ["Q1: [-Inf, 2.5)", "Q2: [2.5, 5.0]"]
+    @test x ≅ [fill("Q1: [-Inf, 3.0)", 2); fill("Q2: [3.0, 5.0]", 3); "Q1: [-Inf, 3.0)"]
+    @test levels(x) == ["Q1: [-Inf, 3.0)", "Q2: [3.0, 5.0]"]
 end
 
 end
