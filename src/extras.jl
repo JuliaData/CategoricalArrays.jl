@@ -42,8 +42,8 @@ default_formatter(from, to, i; leftclosed, rightclosed) =
 
 Cut a numeric array into intervals at values `breaks`
 and return an ordered `CategoricalArray` indicating
-the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
-i.e. the lower bound is included and the upper bound is excluded, except
+the interval into which each entry falls. Intervals are of the form `[lower, upper)`
+(closed on the left), i.e. the lower bound is included and the upper bound is excluded, except
 the last interval, which is closed on both ends, i.e. `[lower, upper]`.
 
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
@@ -233,12 +233,27 @@ Provide the default label format for the `cut(x, ngroups)` method.
 quantile_formatter(from, to, i; leftclosed, rightclosed) =
     string("Q", i, ": ", leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
 
+function _quantile!(v::AbstractVector, p::AbstractVector)
+    n = length(v)
+    n > 0 || throw(ArgumentError("cannot compute quantiles of empty data vector"))
+    sort!(v)
+    return map(p) do i
+        v[clamp(ceil(Int, n*i), 0, n-1) + firstindex(v)]
+    end
+end
+_quantile(x::AbstractArray, p::AbstractVector) =
+    _quantile!(Base.copymutable(vec(x)), p)
+_quantile(x, p::AbstractVector) = _quantile!(collect(x), p)
+
 """
     cut(x::AbstractArray, ngroups::Integer;
         labels::Union{AbstractVector{<:AbstractString},Function},
         allowempty::Bool=false)
 
-Cut a numeric array into `ngroups` quantiles, determined using `quantile`.
+Cut a numeric array into `ngroups` quantiles.
+
+Cutpoints differ from those returned by `Statistics.quantile` as they are suited
+for intervals closed on the left and taken from actual values in `x`.
 
 If `x` contains `missing` values, they are automatically skipped when computing
 quantiles.
@@ -265,8 +280,7 @@ function cut(x::AbstractArray, ngroups::Integer;
         (max_x isa Number && isnan(max_x))
         throw(ArgumentError("NaN values are not allowed in input vector"))
     end
-    breaks = quantile(xnm, (1:ngroups-1)/ngroups)
-    breaks = [min_x; breaks; max_x]
+    breaks = _quantile(xnm, (0:ngroups)/ngroups)
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
                             "too many duplicated values in `x`. " *
