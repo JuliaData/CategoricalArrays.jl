@@ -77,17 +77,17 @@ julia> cut(-1:0.5:1, [0, 1], extend=true)
 
 julia> cut(-1:0.5:1, 2)
 5-element CategoricalArray{String,1,UInt32}:
- "Q1: [-1.0, 0.0)"
- "Q1: [-1.0, 0.0)"
- "Q2: [0.0, 1.0]"
- "Q2: [0.0, 1.0]"
- "Q2: [0.0, 1.0]" 
+ "Q1: [-1.0, 0.5)"
+ "Q1: [-1.0, 0.5)"
+ "Q1: [-1.0, 0.5)"
+ "Q2: [0.5, 1.0]"
+ "Q2: [0.5, 1.0]" 
 
 julia> cut(-1:0.5:1, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
  "A"
  "A"
- "B"
+ "A"
  "B"
  "B" 
 
@@ -95,7 +95,7 @@ julia> cut(-1:0.5:1, 2, labels=[-0.5, +0.5])
 5-element CategoricalArray{Float64,1,UInt32}:
  -0.5
  -0.5
- 0.5
+ -0.5
  0.5
  0.5
 
@@ -104,11 +104,11 @@ fmt (generic function with 1 method)
 
 julia> cut(-1:0.5:1, 3, labels=fmt)
 5-element CategoricalArray{String,1,UInt32}:
- "grp 1 (-1.0//-0.3333333333333335)"
- "grp 1 (-1.0//-0.3333333333333335)"
- "grp 2 (-0.3333333333333335//0.33333333333333326)"
- "grp 3 (0.33333333333333326//1.0)"
- "grp 3 (0.33333333333333326//1.0)"
+ "grp 1 (-1.0//0.0)"
+ "grp 1 (-1.0//0.0)"
+ "grp 2 (0.0//1.0)"
+ "grp 2 (0.0//1.0)"
+ "grp 3 (1.0//1.0)"
 ```
 """
 @inline function cut(x::AbstractArray, breaks::AbstractVector;
@@ -233,17 +233,21 @@ Provide the default label format for the `cut(x, ngroups)` method.
 quantile_formatter(from, to, i; leftclosed, rightclosed) =
     string("Q", i, ": ", leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
 
-function _quantile!(v::AbstractVector, p::AbstractVector)
+function _quantile!(v::AbstractVector, ps::AbstractVector)
     n = length(v)
     n > 0 || throw(ArgumentError("cannot compute quantiles of empty data vector"))
-    sort!(v)
-    return map(p) do i
-        v[clamp(ceil(Int, n*i), 0, n-1) + firstindex(v)]
+    return map(ps) do p
+        i = clamp(ceil(Int, n*p), 1, n) + firstindex(v) - 1
+        q = v[i]
+        # Take next distinct value even if quantile falls in a series of duplicated values
+        @inbounds for j in (i+1):lastindex(v)
+            q_prev = q
+            q = v[j]
+            q_prev != q && break
+        end
+        return q
     end
 end
-_quantile(x::AbstractArray, p::AbstractVector) =
-    _quantile!(Base.copymutable(vec(x)), p)
-_quantile(x, p::AbstractVector) = _quantile!(collect(x), p)
 
 """
     cut(x::AbstractArray, ngroups::Integer;
@@ -253,7 +257,9 @@ _quantile(x, p::AbstractVector) = _quantile!(collect(x), p)
 Cut a numeric array into `ngroups` quantiles.
 
 Cutpoints differ from those returned by `Statistics.quantile` as they are suited
-for intervals closed on the left and taken from actual values in `x`.
+for intervals closed on the left and taken from actual values in `x`. However,
+group assignments are identical to those which would be obtained with type 1
+quantiles if intervals were closed on the right.
 
 If `x` contains `missing` values, they are automatically skipped when computing
 quantiles.
@@ -273,14 +279,14 @@ function cut(x::AbstractArray, ngroups::Integer;
              labels::Union{AbstractVector{<:SupportedTypes},Function}=quantile_formatter,
              allowempty::Bool=false)
     ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
-    xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    # Computing extrema is faster than taking 0 and 1 quantiles
-    min_x, max_x = extrema(xnm)
+    xnm = eltype(x) >: Missing ? sort!(collect(skipmissing(x))) : sort(x)
+    min_x, max_x = first(xnm), last(xnm)
     if (min_x isa Number && isnan(min_x)) ||
         (max_x isa Number && isnan(max_x))
         throw(ArgumentError("NaN values are not allowed in input vector"))
     end
-    breaks = _quantile(xnm, (0:ngroups)/ngroups)
+    qs = _quantile!(xnm, (1:(ngroups-1))/ngroups)
+    breaks = [min_x; qs; max_x]
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
                             "too many duplicated values in `x`. " *
