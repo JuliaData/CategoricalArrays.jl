@@ -254,21 +254,21 @@ end
     fmt = (from, to, i; leftclosed, rightclosed) -> (i % 2 == 0 ? to : 0.0)
     @test_throws ArgumentError cut(1:8, 0:2:10, labels=fmt)
 
-    @test_throws ArgumentError cut([fill(1, 10); 4], 2)
+    x = cut([fill(1, 10); 4], 2)
+    @test x == [fill("Q1: [1, 4)", 10); "Q2: [4, 4]"]
+    @test levels(x) == ["Q1: [1, 4)", "Q2: [4, 4]"]
     @test_throws ArgumentError cut([fill(1, 10); 4], 3)
-    x = cut([fill(1, 10); 4], 2, allowempty=true)
-    @test unique(x) == ["Q2: [1, 4]"]
     x = cut([fill(1, 10); 4], 3, allowempty=true)
-    @test unique(x) == ["Q3: [1, 4]"]
-    @test levels(x) == ["Q1: (1, 1)", "Q2: (1, 1)", "Q3: [1, 4]"]
+    @test x == [fill("Q1: [1, 4)", 10); "Q3: [4, 4]"]
+    @test levels(x) == ["Q1: [1, 4)", "Q2: (4, 4)", "Q3: [4, 4]"]
 
     x = cut([fill(1, 5); fill(4, 5)], 2)
     @test x == [fill("Q1: [1, 4)", 5); fill("Q2: [4, 4]", 5)]
     @test levels(x) == ["Q1: [1, 4)", "Q2: [4, 4]"]
     @test_throws ArgumentError  cut([fill(1, 5); fill(4, 5)], 3)
     x = cut([fill(1, 5); fill(4, 5)], 3, allowempty=true)
-    @test x == [fill("Q2: [1, 4)", 5); fill("Q3: [4, 4]", 5)]
-    @test levels(x) == ["Q1: (1, 1)", "Q2: [1, 4)", "Q3: [4, 4]"]
+    @test x == [fill("Q1: [1, 4)", 5); fill("Q3: [4, 4]", 5)]
+    @test levels(x) == ["Q1: [1, 4)", "Q2: (4, 4)", "Q3: [4, 4]"]
 end
 
 @testset "cut with -0.0" begin
