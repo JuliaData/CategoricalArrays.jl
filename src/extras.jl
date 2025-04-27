@@ -77,25 +77,25 @@ julia> cut(-1:0.5:1, [0, 1], extend=true)
 
 julia> cut(-1:0.5:1, 2)
 5-element CategoricalArray{String,1,UInt32}:
- "Q1: [-1.0, 0.5)"
- "Q1: [-1.0, 0.5)"
- "Q1: [-1.0, 0.5)"
- "Q2: [0.5, 1.0]"
- "Q2: [0.5, 1.0]" 
+ "Q1: [-1.0, 0.0)"
+ "Q1: [-1.0, 0.0)"
+ "Q2: [0.0, 1.0]"
+ "Q2: [0.0, 1.0]"
+ "Q2: [0.0, 1.0]"
 
 julia> cut(-1:0.5:1, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
  "A"
  "A"
- "A"
  "B"
- "B" 
+ "B"
+ "B"
 
 julia> cut(-1:0.5:1, 2, labels=[-0.5, +0.5])
 5-element CategoricalArray{Float64,1,UInt32}:
  -0.5
  -0.5
- -0.5
+ 0.5
  0.5
  0.5
 
@@ -106,9 +106,9 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
 5-element CategoricalArray{String,1,UInt32}:
  "grp 1 (-1.0//0.0)"
  "grp 1 (-1.0//0.0)"
- "grp 2 (0.0//1.0)"
- "grp 2 (0.0//1.0)"
- "grp 3 (1.0//1.0)"
+ "grp 2 (0.0//0.5)"
+ "grp 3 (0.5//1.0)"
+ "grp 3 (0.5//1.0)"
 ```
 """
 @inline function cut(x::AbstractArray, breaks::AbstractVector;
