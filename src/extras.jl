@@ -233,20 +233,28 @@ Provide the default label format for the `cut(x, ngroups)` method.
 quantile_formatter(from, to, i; leftclosed, rightclosed) =
     string("Q", i, ": ", leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
 
-function _quantile!(v::AbstractVector, ps::AbstractVector)
-    n = length(v)
-    n > 0 || throw(ArgumentError("cannot compute quantiles of empty data vector"))
-    return map(ps) do p
-        i = clamp(ceil(Int, n*p), 1, n) + firstindex(v) - 1
-        q = v[i]
-        # Take next distinct value even if quantile falls in a series of duplicated values
-        @inbounds for j in (i+1):lastindex(v)
-            q_prev = q
-            q = v[j]
-            q_prev != q && break
+"""Find first value in data which is greater than each quantile in ``qs``."""
+function find_breaks(v::AbstractVector, qs::AbstractVector)
+    n = length(qs)
+    breaks = similar(v, n)
+    n == 0 && return breaks
+
+    i = 1
+    q = qs[1]
+    @inbounds for x in v
+        if x > q
+            breaks[i] = x
+            i += 1
+            i > n && break
+            q = qs[i]
         end
-        return q
     end
+    # if last values in x are equal to q, breaks were not initialized
+    for i in i:n
+        breaks[i] = q
+    end
+    @show breaks
+    return breaks
 end
 
 """
@@ -279,14 +287,16 @@ function cut(x::AbstractArray, ngroups::Integer;
              labels::Union{AbstractVector{<:SupportedTypes},Function}=quantile_formatter,
              allowempty::Bool=false)
     ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
-    xnm = eltype(x) >: Missing ? sort!(collect(skipmissing(x))) : sort(x)
-    min_x, max_x = first(xnm), last(xnm)
+    sorted_x = eltype(x) >: Missing ? sort!(collect(skipmissing(x))) : sort(x)
+    min_x, max_x = first(sorted_x), last(sorted_x)
     if (min_x isa Number && isnan(min_x)) ||
         (max_x isa Number && isnan(max_x))
         throw(ArgumentError("NaN values are not allowed in input vector"))
     end
-    qs = _quantile!(xnm, (1:(ngroups-1))/ngroups)
-    breaks = [min_x; qs; max_x]
+    qs = quantile!(sorted_x, (1:(ngroups-1))/ngroups, sorted=true)
+    @show qs, min_x, max_x
+    breaks = [min_x; find_breaks(sorted_x, qs); max_x]
+    @show breaks
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
                             "too many duplicated values in `x`. " *
