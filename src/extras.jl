@@ -253,10 +253,6 @@ function find_breaks(v::AbstractVector, qs::AbstractVector)
             q = qs[i]
         end
     end
-    # if last values in x are equal to q, breaks were not initialized
-    for i in i:n
-        breaks[i] = q
-    end
     return breaks
 end
 
@@ -295,9 +291,7 @@ function cut(x::AbstractArray, ngroups::Integer;
         throw(ArgumentError("NaN values are not allowed in input vector"))
     end
     qs = quantile!(sorted_x, (1:(ngroups-1))/ngroups, sorted=true)
-    @show qs, min_x, max_x
     breaks = [min_x; find_breaks(sorted_x, qs); max_x]
-    @show breaks
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
                             "too many duplicated values in `x`. " *
