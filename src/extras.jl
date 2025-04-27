@@ -233,7 +233,10 @@ Provide the default label format for the `cut(x, ngroups)` method.
 quantile_formatter(from, to, i; leftclosed, rightclosed) =
     string("Q", i, ": ", leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
 
-"""Find first value in data which is greater than each quantile in ``qs``."""
+"""
+Find first value in (sorted) `v` which is greater than or equal to each quantile
+in (sorted) `qs`.
+"""
 function find_breaks(v::AbstractVector, qs::AbstractVector)
     n = length(qs)
     breaks = similar(v, n)
@@ -242,7 +245,8 @@ function find_breaks(v::AbstractVector, qs::AbstractVector)
     i = 1
     q = qs[1]
     @inbounds for x in v
-        if x > q
+        # Use isless and isequal to differentiate -0.0 from 0.0
+        if isless(q, x) || isequal(q, x)
             breaks[i] = x
             i += 1
             i > n && break
@@ -253,7 +257,6 @@ function find_breaks(v::AbstractVector, qs::AbstractVector)
     for i in i:n
         breaks[i] = q
     end
-    @show breaks
     return breaks
 end
 
@@ -264,10 +267,8 @@ end
 
 Cut a numeric array into `ngroups` quantiles.
 
-Cutpoints differ from those returned by `Statistics.quantile` as they are suited
-for intervals closed on the left and taken from actual values in `x`. However,
-group assignments are identical to those which would be obtained with type 1
-quantiles if intervals were closed on the right.
+This is equivalent to `cut(x, quantile(x, (0:ngroups)/ngroups))`,
+but breaks are taken from actual data values instead of estimated quantiles.
 
 If `x` contains `missing` values, they are automatically skipped when computing
 quantiles.
