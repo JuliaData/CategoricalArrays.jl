@@ -160,9 +160,8 @@ function CategoricalArray{T, N, R}(::UndefInitializer, dims::NTuple{N,Int};
     U = leveltype(nonmissingtype(T))
     S = T >: Missing ? Union{U, Missing} : U
     check_supported_eltype(S, T)
-    V = CategoricalValue{U, R}
     levs = levels === nothing ? U[] : collect(U, levels)
-    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R, V}(levs, ordered))
+    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R}(levs, ordered))
 end
 
 CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int};
