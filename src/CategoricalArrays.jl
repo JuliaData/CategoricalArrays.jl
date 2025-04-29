@@ -33,8 +33,6 @@ module CategoricalArrays
     include("extras.jl")
     include("recode.jl")
 
-    include("deprecated.jl")
-
     if !isdefined(Base, :get_extension)
         using Requires: @require
     end

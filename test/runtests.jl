@@ -27,8 +27,7 @@ module TestCategoricalArrays
         "13_arraycommon.jl",
         "14_view.jl",
         "15_extras.jl",
-        "16_recode.jl",
-        "17_deprecated.jl"
+        "16_recode.jl"
     ]
 
     @testset "$test" for test in tests

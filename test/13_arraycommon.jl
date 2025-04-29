@@ -891,7 +891,7 @@ end
             @test sort(cv, rev=rev, by=byf1) ≅ sort(cv, rev=rev, by=byf1)
 
             # Check that by function is not called on unused levels/missing
-            byf2 = x -> (@assert get(x) != "b"; x)
+            byf2 = x -> (@assert x != "b"; x)
             replace!(cv, missing=>"a", "b"=>"a")
             @test sort(cv, rev=rev, by=byf2) ≅ sort(cv, rev=rev, by=byf2)
         end
