@@ -891,10 +891,10 @@ unique(A::CatArrOrSub{T}) where T =
     CategoricalVector{T}(_uniquerefs(A), copy(pool(A)))
 
 function unique!(A::CategoricalVector)
-    _urefs = _uniquerefs(A)
-    if length(_urefs) != length(A)
-        resize!(A.refs, length(_urefs))
-        copyto!(A.refs, _urefs)
+    urefs = _uniquerefs(A)
+    if length(urefs) != length(A)
+        resize!(A.refs, length(urefs))
+        copyto!(A.refs, urefs)
     end
     return A
 end
