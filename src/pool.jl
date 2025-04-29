@@ -67,8 +67,9 @@ it doesn't do this itself to avoid doing a dict lookup twice
 
     i = R(n + 1)
     push!(pool.levels, x)
-    if pool.hash !== nothing
-        pool.hash = hash(x, pool.hash)
+    pool_hash = pool.hash
+    if pool_hash !== nothing
+        pool.hash = hash(x, pool_hash)
     end
     pool.equalto = C_NULL
     pool.subsetof = C_NULL

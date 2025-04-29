@@ -52,27 +52,34 @@ A user defined type could override this method to define an appropriate test fun
 optimize_pair(pair::Pair) = pair
 optimize_pair(pair::Pair{<:AbstractArray}) = Set(pair.first) => pair.second
 
-function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
+function recode!(dest::AbstractArray, src::AbstractArray, default::Any, pairs::Pair...)
     if length(dest) != length(src)
         throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
     end
 
-    opt_pairs = map(optimize_pair, pairs)
+    opt_pairs = optimize_pair.(pairs)
 
+    _recode!(dest, src, default, opt_pairs)
+end
+
+function _recode!(dest::AbstractArray{T}, src::AbstractArray, default,
+                  pairs::NTuple{<:Any, Pair}) where {T}
+    recode_to = last.(pairs)
+    recode_from = first.(pairs)
+    
     @inbounds for i in eachindex(dest, src)
         x = src[i]
 
-        for j in 1:length(opt_pairs)
-            p = opt_pairs[j]
-            # we use isequal and recode_in because we cannot really distinguish scalars from collections
-            if x ≅ p.first || recode_in(x, p.first)
-                dest[i] = p.second
-                @goto nextitem
-            end
-        end
-
+        # @inline is needed for type stability and Compat for compatibility before julia v1.8
+        # we use isequal and recode_in because we cannot really
+        # distinguish scalars from collections
+        j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x,y), recode_from)
+        
+        # Value in one of the pairs
+        if j !== nothing
+            dest[i] = recode_to[j]
         # Value not in any of the pairs
-        if ismissing(x)
+        elseif ismissing(x)
             eltype(dest) >: Missing ||
                 throw(MissingException("missing value found, but dest does not support them: " *
                                        "recode them to a supported value"))
@@ -89,21 +96,16 @@ function recode!(dest::AbstractArray{T}, src::AbstractArray, default::Any, pairs
         else
             dest[i] = default
         end
-
-        @label nextitem
     end
 
     dest
 end
 
-function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pairs::Pair...) where {T}
-    if length(dest) != length(src)
-        throw(DimensionMismatch("dest and src must be of the same length (got $(length(dest)) and $(length(src)))"))
-    end
+function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, default::Any,
+                  pairs::NTuple{<:Any, Pair}) where {T, R}
+    recode_from = first.(pairs)
+    vals = T[p.second for p in pairs]
 
-    opt_pairs = map(optimize_pair, pairs)
-
-    vals = T[p.second for p in opt_pairs]
     default !== nothing && push!(vals, default)
 
     levels!(dest.pool, filter!(!ismissing, unique(vals)))
@@ -112,22 +114,22 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     dupvals = length(vals) != length(levels(dest.pool))
 
     drefs = dest.refs
-    pairmap = [ismissing(v) ? 0 : get(dest.pool, v) for v in vals]
-    defaultref = default === nothing || ismissing(default) ? 0 : get(dest.pool, default)
+    pairmap = [ismissing(v) ? zero(R) : get(dest.pool, v) for v in vals]
+    defaultref = default === nothing || ismissing(default) ? zero(R) : get(dest.pool, default)
+
     @inbounds for i in eachindex(drefs, src)
         x = src[i]
 
-        for j in 1:length(opt_pairs)
-            p = opt_pairs[j]
-            # we use isequal and recode_in because we cannot really distinguish scalars from collections
-            if x ≅ p.first || recode_in(x, p.first)
-                drefs[i] = dupvals ? pairmap[j] : j
-                @goto nextitem
-            end
-        end
+        # @inline is needed for type stability and Compat for compatibility before julia v1.8  
+        # we use isequal and recode_in because we cannot really
+        # distinguish scalars from collections
+        j = Compat.@inline findfirst(y -> isequal(x, y) || recode_in(x, y), recode_from)
 
+        # Value in one of the pairs
+        if j !== nothing
+            drefs[i] = dupvals ? pairmap[j] : j
         # Value not in any of the pairs
-        if ismissing(x)
+        elseif ismissing(x)
             eltype(dest) >: Missing ||
                 throw(MissingException("missing value found, but dest does not support them: " *
                                        "recode them to a supported value"))
@@ -144,8 +146,6 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
         else
             drefs[i] = defaultref
         end
-
-        @label nextitem
     end
 
     # Put existing levels first, and sort them if possible
@@ -168,25 +168,21 @@ function recode!(dest::CategoricalArray{T}, src::AbstractArray, default::Any, pa
     dest
 end
 
-function recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
-                 default::Any, pairs::Pair...) where {T, N, R<:Integer}
-    if length(dest) != length(src)
-        throw(DimensionMismatch("dest and src must be of the same length " *
-                                "(got $(length(dest)) and $(length(src)))"))
-    end
-
+function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
+                  default::Any, pairs::NTuple{<:Any, Pair}) where {T, N, R<:Integer}
+    recode_from = first.(pairs)
     vals = T[p.second for p in pairs]
+             
     if default === nothing
         srclevels = levels(src)
 
         # Remove recoded levels as they won't appear in result
-        firsts = (p.first for p in pairs)
         keptlevels = Vector{T}(undef, 0)
         sizehint!(keptlevels, length(srclevels))
 
         for l in srclevels
-            if !(any(x -> x ≅ l, firsts) ||
-                 any(f -> recode_in(l, f), firsts))
+            if !(any(x -> x ≅ l, recode_from) ||
+                 any(f -> recode_in(l, f), recode_from))
                 try
                     push!(keptlevels, l)
                 catch err

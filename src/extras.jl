@@ -9,11 +9,14 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
     @inbounds for i in eachindex(X)
         x = X[i]
 
-        if ismissing(x)
+        if x isa Number && isnan(x)
+            throw(ArgumentError("NaN values are not allowed in input vector"))
+        elseif ismissing(x)
             refs[i] = 0
-        elseif extend === true && x == upper
+        elseif isequal(x, upper)
             refs[i] = n-1
-        elseif extend !== true && !(lower <= x < upper)
+        elseif extend !== true &&
+            !((isless(lower, x) || isequal(x, lower)) && isless(x, upper))
             extend === missing ||
                 throw(ArgumentError("value $x (at index $i) does not fall inside the breaks: " *
                                     "adapt them manually, or pass extend=true or extend=missing"))
@@ -41,8 +44,7 @@ Cut a numeric array into intervals at values `breaks`
 and return an ordered `CategoricalArray` indicating
 the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
 i.e. the lower bound is included and the upper bound is excluded, except
-if `extend=true` the last interval, which is then closed on both ends,
-i.e. `[lower, upper]`.
+the last interval, which is closed on both ends, i.e. `[lower, upper]`.
 
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
 also accept them.
@@ -50,17 +52,16 @@ also accept them.
 # Keyword arguments
 * `extend::Union{Bool, Missing}=false`: when `false`, an error is raised if some values
   in `x` fall outside of the breaks; when `true`, breaks are automatically added to include
-  all values in `x`, and the upper bound is included in the last interval; when `missing`,
-  values outside of the breaks generate `missing` entries.
+  all values in `x`; when `missing`, values outside of the breaks generate `missing` entries.
 * `labels::Union{AbstractVector, Function}`: a vector of strings, characters
   or numbers giving the names to use for
   the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
-* `allowempty::Bool=false`: when `false`, an error is raised if some breaks appear
-  multiple times, generating empty intervals; when `true`, duplicate breaks are allowed
-  and the intervals they generate are kept as unused levels
-  (but duplicate labels are not allowed).
+* `allowempty::Bool=false`: when `false`, an error is raised if some breaks other than
+  the last one appear multiple times, generating empty intervals; when `true`,
+  duplicate breaks are allowed and the intervals they generate are kept as
+  unused levels (but duplicate labels are not allowed).
 
 # Examples
 ```jldoctest
@@ -134,12 +135,17 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
               extend::Union{Bool, Missing},
               labels::Union{AbstractVector{<:SupportedTypes},Function},
               allowempty::Bool=false) where {T, N}
-    if !allowempty && !allunique(breaks)
-        throw(ArgumentError("all breaks must be unique unless `allowempty=true`"))
-    end
-
     if !issorted(breaks)
         breaks = sort(breaks)
+    end
+
+    if any(x -> x isa Number && isnan(x), breaks)
+        throw(ArgumentError("NaN values are not allowed in breaks"))
+    end
+
+    if !allowempty && !allunique(@view breaks[1:end-1])
+        throw(ArgumentError("all breaks other than the last one must be unique " *
+                            "unless `allowempty=true`"))
     end
 
     if extend === true
@@ -160,11 +166,11 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
                 rethrow(err)
             end
         end
-        if !ismissing(min_x) && breaks[1] > min_x
+        if !ismissing(min_x) && isless(min_x, breaks[1])
             # this type annotation is needed on Julia<1.7 for stable inference
             breaks = [min_x::nonmissingtype(eltype(x)); breaks]
         end
-        if !ismissing(max_x) && breaks[end] < max_x
+        if !ismissing(max_x) && isless(breaks[end], max_x)
             breaks = [breaks; max_x::nonmissingtype(eltype(x))]
         end
         length(breaks) > 1 ||
@@ -191,16 +197,15 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         from = breaks[1:n-1]
         to = breaks[2:n]
         firstlevel = labels(from[1], to[1], 1,
-                            leftclosed=breaks[1] != breaks[2], rightclosed=false)
+                            leftclosed=!isequal(breaks[1], breaks[2]), rightclosed=false)
         levs = Vector{typeof(firstlevel)}(undef, n-1)
         levs[1] = firstlevel
         for i in 2:n-2
             levs[i] = labels(from[i], to[i], i,
-                             leftclosed=breaks[i] != breaks[i+1], rightclosed=false)
+                             leftclosed=!isequal(breaks[i], breaks[i+1]), rightclosed=false)
         end
         levs[end] = labels(from[end], to[end], n-1,
-                           leftclosed=breaks[end-1] != breaks[end],
-                           rightclosed=coalesce(extend, false))
+                           leftclosed=true, rightclosed=true)
     else
         length(labels) == n-1 ||
             throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
@@ -245,21 +250,28 @@ quantiles.
   the labels from the left and right interval boundaries and the group index. Defaults to
   `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval).
 * `allowempty::Bool=false`: when `false`, an error is raised if some quantiles breakpoints
-  are equal, generating empty intervals; when `true`, duplicate breaks are allowed
-  and the intervals they generate are kept as unused levels
-  (but duplicate labels are not allowed).
+  other than the last one are equal, generating empty intervals;
+  when `true`, duplicate breaks are allowed and the intervals they generate are kept as
+  unused levels (but duplicate labels are not allowed).
 """
 function cut(x::AbstractArray, ngroups::Integer;
              labels::Union{AbstractVector{<:SupportedTypes},Function}=quantile_formatter,
              allowempty::Bool=false)
+    ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
     xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    breaks = Statistics.quantile(xnm, (1:ngroups-1)/ngroups)
-    if !allowempty && !allunique(breaks)
-        n = length(unique(breaks)) - 1
-        throw(ArgumentError("cannot compute $ngroups quantiles: `quantile` " *
-                            "returned only $n groups due to duplicated values in `x`." *
+    # Computing extrema is faster than taking 0 and 1 quantiles
+    min_x, max_x = extrema(xnm)
+    if (min_x isa Number && isnan(min_x)) ||
+        (max_x isa Number && isnan(max_x))
+        throw(ArgumentError("NaN values are not allowed in input vector"))
+    end
+    breaks = quantile(xnm, (1:ngroups-1)/ngroups)
+    breaks = [min_x; breaks; max_x]
+    if !allowempty && !allunique(@view breaks[1:end-1])
+        throw(ArgumentError("cannot compute $ngroups quantiles due to " *
+                            "too many duplicated values in `x`. " *
                             "Pass `allowempty=true` to allow empty quantiles or " *
                             "choose a lower value for `ngroups`."))
     end
-    cut(x, breaks; extend=true, labels=labels, allowempty=allowempty)
+    cut(x, breaks; labels=labels, allowempty=allowempty)
 end

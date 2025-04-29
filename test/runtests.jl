@@ -10,6 +10,8 @@ module TestCategoricalArrays
     using Test
     using CategoricalArrays
 
+    const ≊ = isequal
+
     tests = [
         "01_value.jl",
         "04_constructors.jl",
