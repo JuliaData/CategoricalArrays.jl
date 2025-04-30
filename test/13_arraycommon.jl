@@ -2073,53 +2073,55 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     @test levels(readx.var) == levels(x.var)
 end
 
-@testset "writing and reading Arrow files" for f in (identity, passmissing(string))
-    xref = f.([3, 1, 4, 1, 4])
-    x = categorical(f.([3, 1, 4, 1, 4]))
-    tbl = mktemp() do path, io
-        Arrow.write(path, (x=x,))
-        Arrow.Table(path)
-    end
-    @test tbl.x == x
-    @test tbl.x isa Arrow.DictEncoded{CategoricalValue{eltype(xref), UInt32}, Int8,
-                                      <: CategoricalVector{eltype(xref), UInt32}}
-    @test copy(tbl.x) == x
-    @test copy(x) isa CategoricalArray{eltype(xref),1,UInt32}
+if Int == Int64
+    @testset "writing and reading Arrow files" for f in (identity, passmissing(string))
+        xref = f.([3, 1, 4, 1, 4])
+        x = categorical(f.([3, 1, 4, 1, 4]))
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=x,))
+            Arrow.Table(path)
+        end
+        @test tbl.x == x
+        @test tbl.x isa Arrow.DictEncoded{CategoricalValue{eltype(xref), UInt32}, Int8,
+                                        <: CategoricalVector{eltype(xref), UInt32}}
+        @test copy(tbl.x) == x
+        @test copy(x) isa CategoricalArray{eltype(xref),1,UInt32}
 
-    x = categorical(f.([3, 1, 4, 1, 4]), compress=true)
-    tbl = mktemp() do path, io
-        Arrow.write(path, (x=x,))
-        Arrow.Table(path)
-    end
-    @test tbl.x == x
-    @test tbl.x isa Arrow.DictEncoded{CategoricalValue{eltype(xref), UInt8}, Int8,
-                                      <: CategoricalVector{eltype(xref), UInt8}}
-    @test copy(tbl.x) == x
-    @test copy(x) isa CategoricalArray{eltype(xref),1,UInt8}
+        x = categorical(f.([3, 1, 4, 1, 4]), compress=true)
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=x,))
+            Arrow.Table(path)
+        end
+        @test tbl.x == x
+        @test tbl.x isa Arrow.DictEncoded{CategoricalValue{eltype(xref), UInt8}, Int8,
+                                        <: CategoricalVector{eltype(xref), UInt8}}
+        @test copy(tbl.x) == x
+        @test copy(x) isa CategoricalArray{eltype(xref),1,UInt8}
 
-    x = categorical(recode(xref, 1 => missing))
-    tbl = mktemp() do path, io
-        Arrow.write(path, (x=x,))
-        Arrow.Table(path)
-    end
-    @test tbl.x ≅ x
-    @test tbl.x isa Arrow.DictEncoded{Union{CategoricalValue{eltype(xref), UInt32}, Missing},
-                                      Int8,
-                                      <: CategoricalVector{Union{eltype(xref), Missing},
-                                                           UInt32}}
-    @test copy(tbl.x) ≅ x
-    @test copy(x) isa CategoricalArray{Union{eltype(xref), Missing},1,UInt32}
+        x = categorical(recode(xref, 1 => missing))
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=x,))
+            Arrow.Table(path)
+        end
+        @test tbl.x ≅ x
+        @test tbl.x isa Arrow.DictEncoded{Union{CategoricalValue{eltype(xref), UInt32}, Missing},
+                                        Int8,
+                                        <: CategoricalVector{Union{eltype(xref), Missing},
+                                                            UInt32}}
+        @test copy(tbl.x) ≅ x
+        @test copy(x) isa CategoricalArray{Union{eltype(xref), Missing},1,UInt32}
 
-    recode!(x, missing => f(1))
-    tbl = mktemp() do path, io
-        Arrow.write(path, (x=x,))
-        Arrow.Table(path)
+        recode!(x, missing => f(1))
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=x,))
+            Arrow.Table(path)
+        end
+        @test tbl.x == x
+        @test tbl.x isa Arrow.DictEncoded{Union{CategoricalValue{eltype(xref), UInt32}, Missing}, Int8,
+                                        <: CategoricalVector{Union{eltype(xref), Missing}, UInt32}}
+        @test copy(tbl.x) == x
+        @test copy(x) isa CategoricalArray{Union{eltype(xref), Missing},1,UInt32}
     end
-    @test tbl.x == x
-    @test tbl.x isa Arrow.DictEncoded{Union{CategoricalValue{eltype(xref), UInt32}, Missing}, Int8,
-                                      <: CategoricalVector{Union{eltype(xref), Missing}, UInt32}}
-    @test copy(tbl.x) == x
-    @test copy(x) isa CategoricalArray{Union{eltype(xref), Missing},1,UInt32}
 end
 
 @testset "refarray, refvalue, refpool, and invrefpool" begin
