@@ -14,7 +14,7 @@ ArrowTypes.arrowmetadata(::Type{Union{CategoricalValue{T, R}, Missing}}) where {
 
 const REFTYPES = Dict(string(T) => T for T in (Int128, Int16, Int32, Int64, Int8, UInt128,
                                                UInt16, UInt32, UInt64, UInt8))
-function ArrowTypes.JuliaType(::Val{Symbol("JuliaLang.CategoricalArrays.CategoricalArray")},
+function ArrowTypes.JuliaType(::Val{CATARRAY_ARROWNAME},
                               ::Type{S}, meta::String) where S
     R = REFTYPES[meta]
     return CategoricalValue{S, R}
@@ -56,14 +56,14 @@ end
 
 function Base.copy(x::Arrow.DictEncoded{Union{Missing,V}}) where
     {T, R, V<:CategoricalValue{T, R}}
+    ismissing(x.encoding.data[1]) ||
+        throw(ErrorException("`missing` must be the first value in a " *
+                             "`CategoricalArray` pool"))
     levels = collect(skipmissing(x.encoding.data))
     pool = CategoricalPool{T,R}(levels)
     inds = x.indices
     refs = similar(inds, R)
     refs .= inds
-    ismissing(x.encoding.data[1]) ||
-        throw(ErrorException("`missing` must be the first value in a " *
-                             "`CategoricalArray` pool"))
     return CategoricalVector{Union{T,Missing}}(refs, pool)
 end
 
