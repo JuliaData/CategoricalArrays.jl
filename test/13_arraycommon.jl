@@ -2083,7 +2083,7 @@ if Int == Int64
         end
         @test tbl.x == x
         @test tbl.x isa Arrow.DictEncoded{CategoricalValue{eltype(xref), UInt32}, Int8,
-                                        <: CategoricalVector{eltype(xref), UInt32}}
+                                          <: CategoricalVector{eltype(xref), UInt32}}
         @test copy(tbl.x) == x
         @test copy(x) isa CategoricalArray{eltype(xref),1,UInt32}
 
@@ -2094,7 +2094,7 @@ if Int == Int64
         end
         @test tbl.x == x
         @test tbl.x isa Arrow.DictEncoded{CategoricalValue{eltype(xref), UInt8}, Int8,
-                                        <: CategoricalVector{eltype(xref), UInt8}}
+                                          <: CategoricalVector{eltype(xref), UInt8}}
         @test copy(tbl.x) == x
         @test copy(x) isa CategoricalArray{eltype(xref),1,UInt8}
 
@@ -2105,9 +2105,9 @@ if Int == Int64
         end
         @test tbl.x ≅ x
         @test tbl.x isa Arrow.DictEncoded{Union{CategoricalValue{eltype(xref), UInt32}, Missing},
-                                        Int8,
-                                        <: CategoricalVector{Union{eltype(xref), Missing},
-                                                            UInt32}}
+                                          Int8,
+                                          <: CategoricalVector{Union{eltype(xref), Missing},
+                                                               UInt32}}
         @test copy(tbl.x) ≅ x
         @test copy(x) isa CategoricalArray{Union{eltype(xref), Missing},1,UInt32}
 
@@ -2118,7 +2118,7 @@ if Int == Int64
         end
         @test tbl.x == x
         @test tbl.x isa Arrow.DictEncoded{Union{CategoricalValue{eltype(xref), UInt32}, Missing}, Int8,
-                                        <: CategoricalVector{Union{eltype(xref), Missing}, UInt32}}
+                                          <: CategoricalVector{Union{eltype(xref), Missing}, UInt32}}
         @test copy(tbl.x) == x
         @test copy(x) isa CategoricalArray{Union{eltype(xref), Missing},1,UInt32}
     end
