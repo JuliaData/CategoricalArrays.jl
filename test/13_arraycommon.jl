@@ -1328,16 +1328,114 @@ end
     @test levels(x) == [2, 1, 3, 4]
 end
 
-@testset "Array(::CategoricalArray{T}) produces Array{T}" begin
+@testset "Array(::CatArrOrSub{T}) produces Array{T}" begin
     x = [1,1,2,2]
     y = categorical(x)
     z = Array(y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+    z = Array(view(x, 1:4))
     @test typeof(x) == typeof(z)
     @test z == x
 
     x = [1,1,2,missing]
     y = categorical(x)
     z = Array(y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+    z = Array(view(x, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = Vector(y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+    z = Vector(view(x, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = Vector(y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+    z = Vector(view(x, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+
+    x = [1 1 2 2]
+    y = categorical(x)
+    z = Matrix(y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+    z = Matrix(view(x, :, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1 1 2 missing]
+    y = categorical(x)
+    z = Matrix(y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+    z = Matrix(view(x, :, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+end
+
+@testset "convert(Array, ::CatArrOrSub{T}) produces Array{T}" begin
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = convert(Array, y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+    z = Array(view(x, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = convert(Array, y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+    z = Array(view(x, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = convert(Vector, y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+    z = Vector(view(x, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = convert(Vector, y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+    z = Vector(view(x, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+
+    x = [1 1 2 2]
+    y = categorical(x)
+    z = convert(Matrix, y)
+    @test typeof(x) == typeof(z)
+    @test z == x
+    z = Matrix(view(x, :, 1:4))
+    @test typeof(x) == typeof(z)
+    @test z == x
+
+    x = [1 1 2 missing]
+    y = categorical(x)
+    z = convert(Matrix, y)
+    @test typeof(x) == typeof(z)
+    @test z ≅ x
+    z = Matrix(view(x, :, 1:4))
     @test typeof(x) == typeof(z)
     @test z ≅ x
 end
