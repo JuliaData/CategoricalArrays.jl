@@ -1134,7 +1134,7 @@ function Base.sort!(v::CategoricalVector;
     levs = eltype(v) >: Missing ?
         eltype(v)[i == 0 ? missing : CategoricalValue(v.pool, i) for i in 0:length(v.pool)] :
         eltype(v)[CategoricalValue(v.pool, i) for i in 1:length(v.pool)]
-    sortedlevs = sort!(Vector(view(levs, seen)), order=ord)
+    sortedlevs = sort!(Vector{eltype(levs)}(view(levs, seen)), order=ord)
     levelsmap = something.(indexin(sortedlevs, levs))
     j = 0
     refs = v.refs
