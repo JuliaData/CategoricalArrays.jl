@@ -790,13 +790,7 @@ entries corresponding to omitted levels will be set to `missing`.
 Else, `newlevels` must include all levels which appear in the data.
 """
 function levels!(A::CategoricalArray{T, N, R}, newlevels::AbstractVector;
-                 allowmissing::Bool=false,
-                 allow_missing::Union{Bool, Nothing}=nothing) where {T, N, R}
-    if allow_missing !== nothing
-        Base.depwarn("allow_missing argument is deprecated, use allowmissing instead",
-                     :levels!)
-        allowmissing = allow_missing
-    end
+                 allowmissing::Bool=false) where {T, N, R}
     (levels(A) == newlevels) && return A # nothing to do
 
     # map each new level to its ref code

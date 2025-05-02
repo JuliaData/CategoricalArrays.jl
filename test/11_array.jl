@@ -719,7 +719,7 @@ using CategoricalArrays: DefaultRefType, leveltype
         @test levels(x) == ["c", "a", "b"]
 
         ordered!(x, ordered)
-        v = CategoricalValue(2, CategoricalPool(["xyz", "b"]))
+        v = CategoricalValue(CategoricalPool(["xyz", "b"]), 2)
         x[1] = v
         @test x[1] === CategoricalValue(x.pool, 4)
         @test x[2] === CategoricalValue(x.pool, 1)
