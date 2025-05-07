@@ -27,17 +27,56 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
     end
 end
 
-"""
-    default_formatter(from, to, i; leftclosed, rightclosed)
+const CUT_FMT = Printf.Format("%.*g")
 
-Provide the default label format for the `cut(x, breaks)` method.
 """
-default_formatter(from, to, i; leftclosed, rightclosed) =
-    string(leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
+    CategoricalArrays.default_formatter(from, to, i::Integer;
+                                        leftclosed::Bool, rightclosed::Bool,
+                                        sigdigits::Integer)
+
+Provide the default label format for the `cut(x, breaks)` method,
+which is `"[from, to)"` if `leftclosed` is `true` and `"[from, to)"` otherwise.
+
+If they are floating points values, breaks are turned into to strings using
+`@sprintf("%.*g", sigdigits, break)`
+(or `to` using `@sprintf("%.*g", sigdigits, break)` for the last break).
+"""
+function default_formatter(from, to, i::Integer;
+                           leftclosed::Bool, rightclosed::Bool,
+                           sigdigits::Integer)
+    from_str = from isa AbstractFloat ?
+        Printf.format(CUT_FMT, sigdigits, from) :
+        string(from)
+    to_str = to isa AbstractFloat ?
+        Printf.format(CUT_FMT, sigdigits, to) :
+        string(to)
+    string(leftclosed ? "[" : "(", from_str, ", ", to_str, rightclosed ? "]" : ")")
+end
+
+"""
+    CategoricalArrays.numbered_formatter(from, to, i::Integer;
+                                         leftclosed::Bool, rightclosed::Bool,
+                                         sigdigits::Integer)
+
+Provide the default label format for the `cut(x, ngroups)` method
+when `allowempty=true`, which is `"i: [from, to)"` if `leftclosed`
+is `true` and `"i: [from, to)"` otherwise.
+
+If they are floating points values, breaks are turned into to strings using
+`@sprintf("%.*g", sigdigits, breaks)`
+(or `to` using `@sprintf("%.*g", sigdigits, break)` for the last break).
+"""
+numbered_formatter(from, to, i::Integer;
+                   leftclosed::Bool, rightclosed::Bool,
+                   sigdigits::Integer) =
+    string(i, ": ",
+           default_formatter(from, to, i, leftclosed=leftclosed, rightclosed=rightclosed,
+                             sigdigits=sigdigits))
 
 @doc raw"""
     cut(x::AbstractArray, breaks::AbstractVector;
         labels::Union{AbstractVector,Function},
+        sigdigits::Integer=3,
         extend::Union{Bool,Missing}=false, allowempty::Bool=false)
 
 Cut a numeric array into intervals at values `breaks`
@@ -54,10 +93,15 @@ also accept them.
   in `x` fall outside of the breaks; when `true`, breaks are automatically added to include
   all values in `x`; when `missing`, values outside of the breaks generate `missing` entries.
 * `labels::Union{AbstractVector, Function}`: a vector of strings, characters
-  or numbers giving the names to use for
-  the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
+  or numbers giving the names to use for the intervals; or a function
+  `f(from, to, i::Integer; leftclosed::Bool, rightclosed::Bool, sigdigits::Integer)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
-  `"[from, to)"` (or `"[from, to]"` for the rightmost interval if `extend == true`).
+  [`CategoricalArrays.default_formatter`](@ref), giving `"[from, to)"` (or `"[from, to]"`
+  for the rightmost interval if `extend == true`).
+* `sigdigits::Integer=3`: the minimum number of significant digits to use in labels.
+  This value is increased automatically if necessary so that rounded breaks are unique.
+  Only used for floating point types and when `labels` is a function, in which case it
+  is passed to it as a keyword argument.
 * `allowempty::Bool=false`: when `false`, an error is raised if some breaks other than
   the last one appear multiple times, generating empty intervals; when `true`,
   duplicate breaks are allowed and the intervals they generate are kept as
@@ -69,19 +113,19 @@ julia> using CategoricalArrays
 
 julia> cut(-1:0.5:1, [0, 1], extend=true)
 5-element CategoricalArray{String,1,UInt32}:
- "[-1.0, 0.0)"
- "[-1.0, 0.0)"
- "[0.0, 1.0]"
- "[0.0, 1.0]"
- "[0.0, 1.0]" 
+ "[-1, 0)"
+ "[-1, 0)"
+ "[0, 1]"
+ "[0, 1]"
+ "[0, 1]" 
 
 julia> cut(-1:0.5:1, 2)
 5-element CategoricalArray{String,1,UInt32}:
- "Q1: [-1.0, 0.0)"
- "Q1: [-1.0, 0.0)"
- "Q2: [0.0, 1.0]"
- "Q2: [0.0, 1.0]"
- "Q2: [0.0, 1.0]"
+ "[-1, 0)"
+ "[-1, 0)"
+ "[0, 1]"
+ "[0, 1]"
+ "[0, 1]"
 
 julia> cut(-1:0.5:1, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
@@ -114,6 +158,7 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
 @inline function cut(x::AbstractArray, breaks::AbstractVector;
                      extend::Union{Bool, Missing}=false,
                      labels::Union{AbstractVector{<:SupportedTypes},Function}=default_formatter,
+                     sigdigits::Integer=3,
                      allowmissing::Union{Bool, Nothing}=nothing,
                      allow_missing::Union{Bool, Nothing}=nothing,
                      allowempty::Bool=false)
@@ -127,14 +172,15 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
                      :cut)
          extend = missing
     end
-    return _cut(x, breaks, extend, labels, allowempty)
+    return _cut(x, breaks, extend, labels, sigdigits, allowempty)
 end
 
 # Separate function for inferability (thanks to inlining of cut)
 function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
               extend::Union{Bool, Missing},
               labels::Union{AbstractVector{<:SupportedTypes},Function},
-              allowempty::Bool=false) where {T, N}
+              sigdigits::Integer,
+              allowempty::Bool) where {T, N}
     if !issorted(breaks)
         breaks = sort(breaks)
     end
@@ -191,21 +237,55 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
         end
     end
 
+    # Find minimal number of digits so that distinct breaks remain so
+    if eltype(breaks) <: AbstractFloat
+        while true
+            local i
+            for outer i in 2:lastindex(breaks)
+                b1 = breaks[i-1]
+                b2 = breaks[i]
+                isequal(b1, b2) && continue
+
+                b1_str = Printf.format(CUT_FMT, sigdigits, b1)
+                b2_str = Printf.format(CUT_FMT, sigdigits, b2)
+                if b1_str == b2_str
+                    sigdigits += 1
+                    break
+                end
+            end
+            i == lastindex(breaks) && break
+        end
+    end
     n = length(breaks)
     n >= 2 || throw(ArgumentError("at least two breaks must be provided when extend is not true"))
     if labels isa Function
         from = breaks[1:n-1]
         to = breaks[2:n]
-        firstlevel = labels(from[1], to[1], 1,
-                            leftclosed=!isequal(breaks[1], breaks[2]), rightclosed=false)
+        local firstlevel
+        try
+            firstlevel = labels(from[1], to[1], 1,
+                                leftclosed=!isequal(breaks[1], breaks[2]), rightclosed=false,
+                                sigdigits=sigdigits)
+        catch
+            # Support functions defined before v1.0, where sigdigits did not exist
+            Base.depwarn("`labels` function is now required to accept a `sigdigits` keyword argument",
+                         :cut)
+            labels_orig = labels
+            labels = (from, to, i; leftclosed, rightclosed, sigdigits) ->
+                labels_orig(from, to, i; leftclosed, rightclosed)
+            firstlevel = labels_orig(from[1], to[1], 1,
+                                     leftclosed=!isequal(breaks[1], breaks[2]), rightclosed=false)
+        end
         levs = Vector{typeof(firstlevel)}(undef, n-1)
         levs[1] = firstlevel
         for i in 2:n-2
             levs[i] = labels(from[i], to[i], i,
-                             leftclosed=!isequal(breaks[i], breaks[i+1]), rightclosed=false)
+                             leftclosed=!isequal(breaks[i], breaks[i+1]), rightclosed=false,
+                             sigdigits=sigdigits)
         end
         levs[end] = labels(from[end], to[end], n-1,
-                           leftclosed=true, rightclosed=true)
+                           leftclosed=true, rightclosed=true,
+                           sigdigits=sigdigits)
     else
         length(labels) == n-1 ||
             throw(ArgumentError("labels must be of length $(n-1), but got length $(length(labels))"))
@@ -226,39 +306,36 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
 end
 
 """
-    quantile_formatter(from, to, i; leftclosed, rightclosed)
-
-Provide the default label format for the `cut(x, ngroups)` method.
-"""
-quantile_formatter(from, to, i; leftclosed, rightclosed) =
-    string("Q", i, ": ", leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
-
-"""
 Find first value in (sorted) `v` which is greater than or equal to each quantile
 in (sorted) `qs`.
 """
 function find_breaks(v::AbstractVector, qs::AbstractVector)
     n = length(qs)
     breaks = similar(v, n)
-    n == 0 && return breaks
+    breaks_prev = similar(v, n)
+    n == 0 && return (breaks, breaks_prev)
 
     i = 1
     q = qs[1]
-    @inbounds for x in v
+    @inbounds for j in eachindex(v)
+        x = v[j]
         # Use isless and isequal to differentiate -0.0 from 0.0
         if isless(q, x) || isequal(q, x)
             breaks[i] = x
+            # FIXME : handle duplicated breaks
+            breaks_prev[i] = v[clamp(j-1, firstindex(v), lastindex(v))]
             i += 1
             i > n && break
             q = qs[i]
         end
     end
-    return breaks
+    return (breaks, breaks_prev)
 end
 
 """
     cut(x::AbstractArray, ngroups::Integer;
         labels::Union{AbstractVector{<:AbstractString},Function},
+        sigdigits::Integer=3,
         allowempty::Bool=false)
 
 Cut a numeric array into `ngroups` quantiles.
@@ -271,17 +348,25 @@ quantiles.
 
 # Keyword arguments
 * `labels::Union{AbstractVector, Function}`: a vector of strings, characters
-  or numbers giving the names to use for
-  the intervals; or a function `f(from, to, i; leftclosed, rightclosed)` that generates
+  or numbers giving the names to use for the intervals; or a function
+  `f(from, to, i::Integer; leftclosed::Bool, rightclosed::Bool, sigdigits::Integer)` that generates
   the labels from the left and right interval boundaries and the group index. Defaults to
-  `"Qi: [from, to)"` (or `"Qi: [from, to]"` for the rightmost interval).
+  [`CategoricalArrays.default_formatter`](@ref), giving `"[from, to)"` (or `"[from, to]"`
+  for the rightmost interval if `extend == true`) if `allowempty=false`, otherwise to
+  [`CategoricalArrays.numbered_formatter`](@ref), which prefixes the label with the quantile
+  number to ensure uniqueness.
+* `sigdigits::Integer=3`: the minimum number of significant digits to use when rounding
+  breaks for inclusion in generated labels. This value is increased automatically if necessary
+  so that rounded breaks are unique. Only used for floating point types and when `labels` is a
+  function, in which case it is passed to it as a keyword argument.
 * `allowempty::Bool=false`: when `false`, an error is raised if some quantiles breakpoints
   other than the last one are equal, generating empty intervals;
   when `true`, duplicate breaks are allowed and the intervals they generate are kept as
   unused levels (but duplicate labels are not allowed).
 """
 function cut(x::AbstractArray, ngroups::Integer;
-             labels::Union{AbstractVector{<:SupportedTypes},Function}=quantile_formatter,
+             labels::Union{AbstractVector{<:SupportedTypes},Function,Nothing}=nothing,
+             sigdigits::Integer=3,
              allowempty::Bool=false)
     ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
     sorted_x = eltype(x) >: Missing ? sort!(collect(skipmissing(x))) : sort(x)
@@ -291,12 +376,48 @@ function cut(x::AbstractArray, ngroups::Integer;
         throw(ArgumentError("NaN values are not allowed in input vector"))
     end
     qs = quantile!(sorted_x, (1:(ngroups-1))/ngroups, sorted=true)
-    breaks = [min_x; find_breaks(sorted_x, qs); max_x]
+    breaks, breaks_prev = find_breaks(sorted_x, qs)
+    breaks = [min_x; breaks; max_x]
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
                             "too many duplicated values in `x`. " *
                             "Pass `allowempty=true` to allow empty quantiles or " *
                             "choose a lower value for `ngroups`."))
     end
-    cut(x, breaks; labels=labels, allowempty=allowempty)
+    if labels === nothing
+        labels = allowempty ? numbered_formatter : default_formatter
+
+        if eltype(breaks) <: AbstractFloat
+            while true
+                local i
+                for outer i in 2:lastindex(breaks)
+                    b1 = breaks[i-1]
+                    b2 = breaks[i]
+                    isequal(b1, b2) && continue
+
+                    # Find minimal number of digits so that `floor` does not
+                    # return a value that is lower than value immediately below break
+                    # We skip the first break, which is the minimum and has no equivalent
+                    # in `breaks_prev`
+                    b1_rounded = round(b1, sigdigits=sigdigits)
+                    b2_rounded = round(b2, sigdigits=sigdigits)
+                    if i < lastindex(breaks) &&
+                        (isequal(b2_rounded, breaks_prev[i-1]) || isless(b2_rounded, breaks_prev[i-1]))
+                        sigdigits += 1
+                        break
+                    end
+
+                    # Find minimal number of digits so that breaks are unique
+                    b1_str = Printf.format(CUT_FMT, sigdigits, b1)
+                    b2_str = Printf.format(CUT_FMT, sigdigits, b2)
+                    if b1_str == b2_str
+                        sigdigits += 1
+                        break
+                    end
+                end
+                i == lastindex(breaks) && break
+            end
+        end
+    end
+    return cut(x, breaks; labels=labels, sigdigits=sigdigits, allowempty=allowempty)
 end

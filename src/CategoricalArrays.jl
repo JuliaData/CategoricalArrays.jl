@@ -11,10 +11,12 @@ module CategoricalArrays
     import DataAPI: unwrap
     export unwrap
 
+    using Compat
+    @compat public default_formatter, numbered_formatter
+
     using DataAPI
     using Missings
     using Printf
-    import Compat
 
     # JuliaLang/julia#36810
     if VERSION < v"1.5.2"
