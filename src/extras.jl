@@ -88,6 +88,11 @@ the last interval, which is closed on both ends, i.e. `[lower, upper]`.
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
 also accept them.
 
+!!! note
+    For floating point data, breaks may be rounded to `sigdigits` significant digits
+    when generating interval labels, meaning that they may not reflect exactly the cutpoints
+    used.
+
 # Keyword arguments
 * `extend::Union{Bool, Missing}=false`: when `false`, an error is raised if some values
   in `x` fall outside of the breaks; when `true`, breaks are automatically added to include
@@ -312,24 +317,20 @@ in (sorted) `qs`.
 function find_breaks(v::AbstractVector, qs::AbstractVector)
     n = length(qs)
     breaks = similar(v, n)
-    breaks_prev = similar(v, n)
-    n == 0 && return (breaks, breaks_prev)
+    n == 0 && return breaks
 
     i = 1
     q = qs[1]
-    @inbounds for j in eachindex(v)
-        x = v[j]
+    @inbounds for x in v
         # Use isless and isequal to differentiate -0.0 from 0.0
         if isless(q, x) || isequal(q, x)
             breaks[i] = x
-            # FIXME : handle duplicated breaks
-            breaks_prev[i] = v[clamp(j-1, firstindex(v), lastindex(v))]
             i += 1
             i > n && break
             q = qs[i]
         end
     end
-    return (breaks, breaks_prev)
+    return breaks
 end
 
 """
@@ -345,6 +346,11 @@ but breaks are taken from actual data values instead of estimated quantiles.
 
 If `x` contains `missing` values, they are automatically skipped when computing
 quantiles.
+
+!!! note
+    For floating point data, breaks may be rounded to `sigdigits` significant digits
+    when generating interval labels, meaning that they may not reflect exactly the cutpoints
+    used.
 
 # Keyword arguments
 * `labels::Union{AbstractVector, Function}`: a vector of strings, characters
@@ -376,8 +382,7 @@ function cut(x::AbstractArray, ngroups::Integer;
         throw(ArgumentError("NaN values are not allowed in input vector"))
     end
     qs = quantile!(sorted_x, (1:(ngroups-1))/ngroups, sorted=true)
-    breaks, breaks_prev = find_breaks(sorted_x, qs)
-    breaks = [min_x; breaks; max_x]
+    breaks = [min_x; find_breaks(sorted_x, qs); max_x]
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
                             "too many duplicated values in `x`. " *
@@ -386,38 +391,6 @@ function cut(x::AbstractArray, ngroups::Integer;
     end
     if labels === nothing
         labels = allowempty ? numbered_formatter : default_formatter
-
-        if eltype(breaks) <: AbstractFloat
-            while true
-                local i
-                for outer i in 2:lastindex(breaks)
-                    b1 = breaks[i-1]
-                    b2 = breaks[i]
-                    isequal(b1, b2) && continue
-
-                    # Find minimal number of digits so that `floor` does not
-                    # return a value that is lower than value immediately below break
-                    # We skip the first break, which is the minimum and has no equivalent
-                    # in `breaks_prev`
-                    b1_rounded = round(b1, sigdigits=sigdigits)
-                    b2_rounded = round(b2, sigdigits=sigdigits)
-                    if i < lastindex(breaks) &&
-                        (isequal(b2_rounded, breaks_prev[i-1]) || isless(b2_rounded, breaks_prev[i-1]))
-                        sigdigits += 1
-                        break
-                    end
-
-                    # Find minimal number of digits so that breaks are unique
-                    b1_str = Printf.format(CUT_FMT, sigdigits, b1)
-                    b2_str = Printf.format(CUT_FMT, sigdigits, b2)
-                    if b1_str == b2_str
-                        sigdigits += 1
-                        break
-                    end
-                end
-                i == lastindex(breaks) && break
-            end
-        end
     end
     return cut(x, breaks; labels=labels, sigdigits=sigdigits, allowempty=allowempty)
 end
