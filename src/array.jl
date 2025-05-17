@@ -1,7 +1,7 @@
 ## Code for CategoricalArray
 
 import Base: Array, convert, collect, copy, getindex, setindex!, similar, size,
-             unique, vcat, in, summary, float, complex, copyto!
+             unique, unique!, vcat, in, summary, float, complex, copyto!
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
@@ -160,9 +160,8 @@ function CategoricalArray{T, N, R}(::UndefInitializer, dims::NTuple{N,Int};
     U = leveltype(nonmissingtype(T))
     S = T >: Missing ? Union{U, Missing} : U
     check_supported_eltype(S, T)
-    V = CategoricalValue{U, R}
     levs = levels === nothing ? U[] : collect(U, levels)
-    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R, V}(levs, ordered))
+    CategoricalArray{S, N}(zeros(R, dims), CategoricalPool{U, R}(levs, ordered))
 end
 
 CategoricalArray{T, N}(::UndefInitializer, dims::NTuple{N,Int};
@@ -868,31 +867,36 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::AbstractVector;
     return A
 end
 
-function _unique(::Type{S},
-                 refs::AbstractArray{T},
-                 pool::CategoricalPool) where {S, T<:Integer}
-    nlevels = length(levels(pool)) + 1
-    order = fill(0, nlevels) # 0 indicates not seen
-    # If we don't track missings, short-circuit even if none has been seen
-    count = S >: Missing ? 0 : 1
-    @inbounds for i in refs
-        if order[i + 1] == 0
-            count += 1
-            order[i + 1] = count
-            count == nlevels && break
+# return unique refs (each value is unique) in the order of appearance in `refs`
+# equivalent to fallback Base.unique() implementation,
+# but short-circuits once references to all levels are encountered
+function _uniquerefs(A::CatArrOrSub{T}) where T
+    arefs = refs(A)
+    res = similar(arefs, 0)
+    nlevels = length(levels(A))
+    maxunique = nlevels + (T >: Missing ? 1 : 0)
+    seen = fill(false, nlevels + 1) # always +1 for 0 (missing ref)
+    @inbounds for ref in arefs
+        if !seen[ref + 1]
+            push!(res, ref)
+            seen[ref + 1] = true
+            (length(res) == maxunique) && break
         end
     end
-    S[i == 1 ? missing : levels(pool)[i - 1] for i in sortperm(order) if order[i] != 0]
+    return res
 end
 
-"""
-    unique(A::CategoricalArray)
+unique(A::CatArrOrSub{T}) where T =
+    CategoricalVector{T}(_uniquerefs(A), copy(pool(A)))
 
-Return levels which appear in `A` in their order of appearance.
-This function is significantly slower than [`levels`](@ref DataAPI.levels)
-since it needs to check whether levels are used or not.
-"""
-unique(A::CategoricalArray{T}) where {T} = _unique(T, A.refs, A.pool)
+function unique!(A::CategoricalVector)
+    urefs = _uniquerefs(A)
+    if length(urefs) != length(A)
+        resize!(A.refs, length(urefs))
+        copyto!(A.refs, urefs)
+    end
+    return A
+end
 
 """
     droplevels!(A::CategoricalArray)

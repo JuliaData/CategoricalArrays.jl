@@ -2,20 +2,18 @@ const catpool_seed = UInt === UInt32 ? 0xe3cf1386 : 0x356f2c715023f1a5
 
 hashlevels(levs::AbstractVector) = foldl((h, x) -> hash(x, h), levs, init=catpool_seed)
 
-CategoricalPool{T, R, V}(ordered::Bool=false) where {T, R, V} =
-    CategoricalPool{T, R, V}(T[], ordered)
 CategoricalPool{T, R}(ordered::Bool=false) where {T, R} =
     CategoricalPool{T, R}(T[], ordered)
 CategoricalPool{T}(ordered::Bool=false) where {T} =
     CategoricalPool{T, DefaultRefType}(T[], ordered)
 
 CategoricalPool{T, R}(levels::AbstractVector, ordered::Bool=false) where {T, R} =
-    CategoricalPool{T, R, CategoricalValue{T, R}}(convert(Vector{T}, levels), ordered)
+    CategoricalPool{T, R}(convert(Vector{T}, levels), ordered)
 CategoricalPool(levels::AbstractVector{T}, ordered::Bool=false) where {T} =
     CategoricalPool{T, DefaultRefType}(convert(Vector{T}, levels), ordered)
 
 CategoricalPool(invindex::Dict{T, R}, ordered::Bool=false) where {T, R <: Integer} =
-    CategoricalPool{T, R, CategoricalValue{T, R}}(invindex, ordered)
+    CategoricalPool{T, R}(invindex, ordered)
 
 Base.convert(::Type{T}, pool::T) where {T <: CategoricalPool} = pool
 
@@ -29,12 +27,12 @@ function Base.convert(::Type{CategoricalPool{T, R}}, pool::CategoricalPool) wher
 
     levelsT = convert(Vector{T}, pool.levels)
     invindexT = convert(Dict{T, R}, pool.invindex)
-    return CategoricalPool{T, R, CategoricalValue{T, R}}(levelsT, invindexT, pool.ordered)
+    return CategoricalPool{T, R}(levelsT, invindexT, pool.ordered)
 end
 
-Base.copy(pool::CategoricalPool{T, R, V}) where {T, R, V} =
-    CategoricalPool{T, R, V}(copy(pool.levels), copy(pool.invindex),
-                             pool.ordered, pool.hash)
+Base.copy(pool::CategoricalPool{T, R}) where {T, R} =
+    CategoricalPool{T, R}(copy(pool.levels), copy(pool.invindex),
+                          pool.ordered, pool.hash)
 
 function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
     @static if VERSION >= v"1.6.0"
