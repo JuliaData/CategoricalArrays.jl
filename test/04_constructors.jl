@@ -5,22 +5,10 @@ using CategoricalArrays: DefaultRefType
 
 @testset "Type parameter constraints" begin
     # cannot use categorical value as level type
-    @test_throws TypeError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
+    @test_throws TypeError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8}(
             Dict{CategoricalValue{Int,UInt8}, UInt8}(), false)
-    @test_throws TypeError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8, CategoricalValue{CategoricalValue{Int,UInt8},UInt8}}(
+    @test_throws TypeError CategoricalPool{CategoricalValue{Int,UInt8}, UInt8}(
                 CategoricalValue{Int,UInt8}[], false)
-    # cannot use non-categorical value as categorical value type
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Int[], false)
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, Int}(Dict{Int, UInt8}(), false)
-    # level type of the pool and categorical value must match
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{String, UInt8}}(Int[], false)
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{String, UInt8}}(Dict{Int, UInt8}(), false)
-    # reference type of the pool and categorical value must match
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Int[], false)
-    @test_throws ArgumentError CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt16}}(Dict{Int, UInt8}(), false)
-    # correct types combination
-    @test CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}}(Int[], false) isa CategoricalPool
-    @test CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}}(Dict{Int, UInt8}(), false) isa CategoricalPool
 end
 
 @testset "empty CategoricalPool{String}" begin
@@ -38,7 +26,7 @@ end
 @testset "empty CategoricalPool{Int}" begin
     pool = CategoricalPool{Int, UInt8}()
 
-    @test isa(pool, CategoricalPool{Int, UInt8, CategoricalValue{Int, UInt8}})
+    @test isa(pool, CategoricalPool{Int, UInt8})
 
     @test isa(pool.levels, Vector{Int})
     @test length(pool.levels) == 0
@@ -50,7 +38,7 @@ end
 @testset "CategoricalPool{String, DefaultRefType}(a b c)" begin
     pool = CategoricalPool(["a", "b", "c"])
 
-    @test isa(pool, CategoricalPool{String, UInt32, CategoricalValue{String, UInt32}})
+    @test isa(pool, CategoricalPool{String, UInt32})
 
     @test isa(pool.levels, Vector{String})
     @test pool.levels == ["a", "b", "c"]
@@ -156,7 +144,7 @@ end
 @testset "CategoricalPool{Float64, UInt8}()" begin
     pool = CategoricalPool{Float64, UInt8}([1.0, 2.0, 3.0])
 
-    @test isa(pool, CategoricalPool{Float64, UInt8, CategoricalValue{Float64, UInt8}})
+    @test isa(pool, CategoricalPool{Float64, UInt8})
     @test CategoricalValue(pool, 1) isa CategoricalValue{Float64, UInt8}
 end
 

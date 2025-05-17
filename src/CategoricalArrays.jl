@@ -43,6 +43,7 @@ module CategoricalArrays
 
     @static if !isdefined(Base, :get_extension)
         function __init__()
+            @require Arrow="69666777-d1a9-59fb-9406-91d4454c9d45" include("../ext/CategoricalArraysArrowExt.jl")
             @require JSON="682c06a0-de6a-54ab-a142-c8b1cf79cde6" include("../ext/CategoricalArraysJSONExt.jl")
             @require RecipesBase="3cdcf5f2-1ef4-517c-9805-6587b60abb01" include("../ext/CategoricalArraysRecipesBaseExt.jl")
             @require SentinelArrays="91c51154-3ec4-41a3-a24f-3f23e20d615c" include("../ext/CategoricalArraysSentinelArraysExt.jl")

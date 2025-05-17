@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.0'
+          - '1.6'
           - '1' # automatically expands to the latest stable 1.x release of Julia
           - 'nightly'
         os:
@@ -31,7 +31,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         env:
           cache-name: cache-artifacts
         with:

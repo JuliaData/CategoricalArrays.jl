@@ -19,8 +19,13 @@ const ≅ = isequal
                 @test isordered(x) === ordered
                 @test levels(x) == sort(unique(a))
                 @test unique(x) == unique(a)
+                @test typeof(unique(x)) === typeof(x)
                 @test size(x) === (3,)
                 @test length(x) === 3
+
+                y = copy(x)
+                @test y === unique!(y)
+                @test y == unique(x)
 
                 @test convert(CategoricalArray, x) === x
                 @test convert(CategoricalArray{Union{String, Missing}}, x) === x
@@ -296,6 +301,7 @@ const ≅ = isequal
             @test x ≅ a
             @test levels(x) == filter(x->!ismissing(x), unique(a))
             @test unique(x) ≅ unique(a)
+            @test typeof(unique(x)) === typeof(x)
             @test size(x) === (3,)
             @test length(x) === 3
 
@@ -440,6 +446,7 @@ const ≅ = isequal
         @test x == collect(a)
         @test isordered(x) === ordered
         @test levels(x) == unique(x) == unique(a)
+        @test typeof(unique(x)) === typeof(x)
         @test size(x) === (4,)
         @test length(x) === 4
         @test leveltype(x) === Float64
@@ -616,6 +623,7 @@ const ≅ = isequal
         @test x[4] === CategoricalValue(x.pool, 4)
         @test levels(x) == unique(a)
         @test unique(x) == unique(collect(x))
+        @test typeof(unique(x)) === typeof(x)
 
         x[1:2] .= -1
         @test x[1] === CategoricalValue(x.pool, 5)
@@ -625,6 +633,7 @@ const ≅ = isequal
         @test isordered(x) === false
         @test levels(x) == vcat(unique(a), -1)
         @test unique(x) == unique(collect(x))
+        @test typeof(unique(x)) === typeof(x)
 
 
         ordered!(x, ordered)
@@ -656,6 +665,7 @@ const ≅ = isequal
         @test x == a
         @test isordered(x) === ordered
         @test levels(x) == unique(x) == unique(a)
+        @test unique(x) isa CategoricalVector{Union{String, Missing}, R}
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -816,6 +826,7 @@ const ≅ = isequal
         @test isordered(x) === ordered
         @test levels(x) == filter(x->!ismissing(x), unique(a))
         @test unique(x) ≅ unique(a)
+        @test unique(x) isa CategoricalVector{Union{String, Missing}, R}
         @test size(x) === (2, 3)
         @test length(x) === 6
 
@@ -1137,6 +1148,7 @@ end
     x = CategoricalArray(["Old", "Young", "Middle", missing, "Young"])
     @test levels(x) == ["Middle", "Old", "Young"]
     @test unique(x) ≅ ["Old", "Young", "Middle", missing]
+    @test typeof(unique(x)) === typeof(x)
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]
     @test unique(x) ≅ ["Old", "Young", "Middle", missing]
