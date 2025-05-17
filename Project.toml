@@ -16,6 +16,7 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 Arrow = "69666777-d1a9-59fb-9406-91d4454c9d45"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 SentinelArrays = "91c51154-3ec4-41a3-a24f-3f23e20d615c"
 StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 
@@ -23,6 +24,7 @@ StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 CategoricalArraysArrowExt = "Arrow"
 CategoricalArraysJSONExt = "JSON"
 CategoricalArraysRecipesBaseExt = "RecipesBase"
+CategoricalArraysStatsBaseExt = "StatsBase"
 CategoricalArraysSentinelArraysExt = "SentinelArrays"
 CategoricalArraysStructTypesExt = "StructTypes"
 
@@ -37,6 +39,7 @@ RecipesBase = "1.1"
 Requires = "1"
 SentinelArrays = "1"
 Statistics = "1"
+StatsBase = "0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21, 0.22, 0.23, 0.24, 0.25, 0.26, 0.27, 0.28, 0.29, 0.30, 0.31, 0.32, 0.33, 0.34"
 StructTypes = "1"
 julia = "1.6"
 
@@ -49,8 +52,9 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PooledArrays = "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 SentinelArrays = "91c51154-3ec4-41a3-a24f-3f23e20d615c"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Arrow", "Dates", "JSON", "JSON3", "Plots", "PooledArrays", "RecipesBase", "SentinelArrays", "StructTypes", "Test"]
+test = ["Arrow", "Dates", "JSON", "JSON3", "Plots", "PooledArrays", "RecipesBase", "SentinelArrays", "StatsBase", "StructTypes", "Test"]

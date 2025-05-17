@@ -1,6 +1,8 @@
 module TestExtras
 using Test
 using CategoricalArrays
+using StatsBase
+using Missings
 
 const ≅ = isequal
 
@@ -421,6 +423,28 @@ end
              1.6134999167460663e11, 7.396308745225059e11], 3)
     @test levels(x) == ["[1.4e-07, 0.254)", "[0.254, 1.82e+10)", "[1.82e+10, 8.8e+11]"]
 
+end
+
+@testset "cut with weighted quantiles" begin
+    @test_throws ArgumentError cut(1:3, 3, weights=1:3)
+
+    x = collect(Float64, 1:100)
+    w = fweights(repeat(1:10, inner=10))
+    y = cut(x, 10, weights=w)
+    @test levelcode.(y) == levelcode.(cut(x, quantile(x, w, (0:10)./10)))
+    @test levels(y) == ["[1, 29)", "[29, 43)", "[43, 53)", "[53, 62)", "[62, 70)",
+                        "[70, 77)", "[77, 83)", "[83, 89)", "[89, 95)", "[95, 100]"]
+
+    mx = allowmissing(x)
+    mx[2] = mx[10] = missing
+    nm_inds = .!ismissing.(mx)
+    y = cut(mx, 10, weights=w)
+    @test levelcode.(y) ≅ levelcode.(cut(mx, quantile(x[nm_inds], w[nm_inds], (0:10)./10)))
+    @test levels(y) == ["[1, 30)", "[30, 43)", "[43, 53)", "[53, 62)", "[62, 70)",
+                        "[70, 77)", "[77, 83)", "[83, 89)", "[89, 95)", "[95, 100]"]
+
+    x[5] = NaN
+    @test_throws ArgumentError cut(x, 3, weights=w)
 end
 
 end
