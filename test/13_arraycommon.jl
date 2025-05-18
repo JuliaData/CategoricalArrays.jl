@@ -8,7 +8,7 @@ using PooledArrays
 using JSON3
 using StructTypes
 using RecipesBase
-using Plots
+using RecipesPipeline
 using SentinelArrays
 using Arrow
 using Missings
