@@ -12,13 +12,15 @@ jobs:
       fail-fast: false
       matrix:
         version:
+          # FIXME! Switch from 1.6 to 'min' once we require a higher minimum
+          # We can't switch yet as there is a method ambiguity for a depndency
+          # in version 1.6.0.
           - '1.6'
+          - 'lts'
           - '1' # automatically expands to the latest stable 1.x release of Julia
-          - 'nightly'
+          - 'pre'
         os:
           - ubuntu-latest
-          - macOS-latest
-          - windows-latest
         arch:
           - x64
           - x86

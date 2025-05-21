@@ -164,19 +164,7 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
                      extend::Union{Bool, Missing}=false,
                      labels::Union{AbstractVector{<:SupportedTypes},Function}=default_formatter,
                      sigdigits::Integer=3,
-                     allowmissing::Union{Bool, Nothing}=nothing,
-                     allow_missing::Union{Bool, Nothing}=nothing,
                      allowempty::Bool=false)
-    if allow_missing !== nothing
-        Base.depwarn("allow_missing argument is deprecated, use extend=missing instead",
-                     :cut)
-        extend = missing
-    end
-    if allowmissing !== nothing
-        Base.depwarn("allowmissing argument is deprecated, use extend=missing instead",
-                     :cut)
-         extend = missing
-    end
     return _cut(x, breaks, extend, labels, sigdigits, allowempty)
 end
 
