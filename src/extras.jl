@@ -27,7 +27,9 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
     end
 end
 
-const CUT_FMT = Printf.Format("%.*g")
+if VERSION >= v"1.10"
+    const CUT_FMT = Printf.Format("%.*g")
+end
 
 """
     CategoricalArrays.default_formatter(from, to, i::Integer;
@@ -44,12 +46,21 @@ If they are floating points values, breaks are turned into to strings using
 function default_formatter(from, to, i::Integer;
                            leftclosed::Bool, rightclosed::Bool,
                            sigdigits::Integer)
-    from_str = from isa AbstractFloat ?
-        Printf.format(CUT_FMT, sigdigits, from) :
-        string(from)
-    to_str = to isa AbstractFloat ?
-        Printf.format(CUT_FMT, sigdigits, to) :
-        string(to)
+    @static if VERSION >= v"1.10"
+        from_str = from isa AbstractFloat ?
+            Printf.format(CUT_FMT, sigdigits, from) :
+            string(from)
+        to_str = to isa AbstractFloat ?
+            Printf.format(CUT_FMT, sigdigits, to) :
+            string(to)
+    else
+        from_str = from isa AbstractFloat ?
+            Printf.format(Printf.Format("%.$(sigdigits)g"), from) :
+            string(from)
+        to_str = to isa AbstractFloat ?
+            Printf.format(Printf.Format("%.$(sigdigits)g"), to) :
+            string(to)
+    end
     string(leftclosed ? "[" : "(", from_str, ", ", to_str, rightclosed ? "]" : ")")
 end
 
@@ -239,8 +250,13 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
                 b2 = breaks[i]
                 isequal(b1, b2) && continue
 
-                b1_str = Printf.format(CUT_FMT, sigdigits, b1)
-                b2_str = Printf.format(CUT_FMT, sigdigits, b2)
+                @static if VERSION >= v"1.9"
+                    b1_str = Printf.format(CUT_FMT, sigdigits, b1)
+                    b2_str = Printf.format(CUT_FMT, sigdigits, b2)
+                else
+                    b1_str = Printf.format(Printf.Format("%.$(sigdigits)g"), b1)
+                    b2_str = Printf.format(Printf.Format("%.$(sigdigits)g"), b2)
+                end
                 if b1_str == b2_str
                     sigdigits += 1
                     break
