@@ -42,8 +42,8 @@ default_formatter(from, to, i; leftclosed, rightclosed) =
 
 Cut a numeric array into intervals at values `breaks`
 and return an ordered `CategoricalArray` indicating
-the interval into which each entry falls. Intervals are of the form `[lower, upper)`,
-i.e. the lower bound is included and the upper bound is excluded, except
+the interval into which each entry falls. Intervals are of the form `[lower, upper)`
+(closed on the left), i.e. the lower bound is included and the upper bound is excluded, except
 the last interval, which is closed on both ends, i.e. `[lower, upper]`.
 
 If `x` accepts missing values (i.e. `eltype(x) >: Missing`) the returned array will
@@ -81,7 +81,7 @@ julia> cut(-1:0.5:1, 2)
  "Q1: [-1.0, 0.0)"
  "Q2: [0.0, 1.0]"
  "Q2: [0.0, 1.0]"
- "Q2: [0.0, 1.0]" 
+ "Q2: [0.0, 1.0]"
 
 julia> cut(-1:0.5:1, 2, labels=["A", "B"])
 5-element CategoricalArray{String,1,UInt32}:
@@ -89,7 +89,7 @@ julia> cut(-1:0.5:1, 2, labels=["A", "B"])
  "A"
  "B"
  "B"
- "B" 
+ "B"
 
 julia> cut(-1:0.5:1, 2, labels=[-0.5, +0.5])
 5-element CategoricalArray{Float64,1,UInt32}:
@@ -104,11 +104,11 @@ fmt (generic function with 1 method)
 
 julia> cut(-1:0.5:1, 3, labels=fmt)
 5-element CategoricalArray{String,1,UInt32}:
- "grp 1 (-1.0//-0.3333333333333335)"
- "grp 1 (-1.0//-0.3333333333333335)"
- "grp 2 (-0.3333333333333335//0.33333333333333326)"
- "grp 3 (0.33333333333333326//1.0)"
- "grp 3 (0.33333333333333326//1.0)"
+ "grp 1 (-1.0//0.0)"
+ "grp 1 (-1.0//0.0)"
+ "grp 2 (0.0//0.5)"
+ "grp 3 (0.5//1.0)"
+ "grp 3 (0.5//1.0)"
 ```
 """
 @inline function cut(x::AbstractArray, breaks::AbstractVector;
@@ -222,11 +222,37 @@ quantile_formatter(from, to, i; leftclosed, rightclosed) =
     string("Q", i, ": ", leftclosed ? "[" : "(", from, ", ", to, rightclosed ? "]" : ")")
 
 """
+Find first value in (sorted) `v` which is greater than or equal to each quantile
+in (sorted) `qs`.
+"""
+function find_breaks(v::AbstractVector, qs::AbstractVector)
+    n = length(qs)
+    breaks = similar(v, n)
+    n == 0 && return breaks
+
+    i = 1
+    q = qs[1]
+    @inbounds for x in v
+        # Use isless and isequal to differentiate -0.0 from 0.0
+        if isless(q, x) || isequal(q, x)
+            breaks[i] = x
+            i += 1
+            i > n && break
+            q = qs[i]
+        end
+    end
+    return breaks
+end
+
+"""
     cut(x::AbstractArray, ngroups::Integer;
         labels::Union{AbstractVector{<:AbstractString},Function},
         allowempty::Bool=false)
 
-Cut a numeric array into `ngroups` quantiles, determined using `quantile`.
+Cut a numeric array into `ngroups` quantiles.
+
+This is equivalent to `cut(x, quantile(x, (0:ngroups)/ngroups))`,
+but breaks are taken from actual data values instead of estimated quantiles.
 
 If `x` contains `missing` values, they are automatically skipped when computing
 quantiles.
@@ -246,15 +272,14 @@ function cut(x::AbstractArray, ngroups::Integer;
              labels::Union{AbstractVector{<:SupportedTypes},Function}=quantile_formatter,
              allowempty::Bool=false)
     ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
-    xnm = eltype(x) >: Missing ? skipmissing(x) : x
-    # Computing extrema is faster than taking 0 and 1 quantiles
-    min_x, max_x = extrema(xnm)
+    sorted_x = eltype(x) >: Missing ? sort!(collect(skipmissing(x))) : sort(x)
+    min_x, max_x = first(sorted_x), last(sorted_x)
     if (min_x isa Number && isnan(min_x)) ||
         (max_x isa Number && isnan(max_x))
         throw(ArgumentError("NaN values are not allowed in input vector"))
     end
-    breaks = quantile(xnm, (1:ngroups-1)/ngroups)
-    breaks = [min_x; breaks; max_x]
+    qs = quantile!(sorted_x, (1:(ngroups-1))/ngroups, sorted=true)
+    breaks = [min_x; find_breaks(sorted_x, qs); max_x]
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
                             "too many duplicated values in `x`. " *
