@@ -27,7 +27,9 @@ function fill_refs!(refs::AbstractArray, X::AbstractArray,
     end
 end
 
-const CUT_FMT = Printf.Format("%.*g")
+if VERSION >= v"1.10"
+    const CUT_FMT = Printf.Format("%.*g")
+end
 
 """
     CategoricalArrays.default_formatter(from, to, i::Integer;
@@ -44,12 +46,21 @@ If they are floating points values, breaks are turned into to strings using
 function default_formatter(from, to, i::Integer;
                            leftclosed::Bool, rightclosed::Bool,
                            sigdigits::Integer)
-    from_str = from isa AbstractFloat ?
-        Printf.format(CUT_FMT, sigdigits, from) :
-        string(from)
-    to_str = to isa AbstractFloat ?
-        Printf.format(CUT_FMT, sigdigits, to) :
-        string(to)
+    @static if VERSION >= v"1.10"
+        from_str = from isa AbstractFloat ?
+            Printf.format(CUT_FMT, sigdigits, from) :
+            string(from)
+        to_str = to isa AbstractFloat ?
+            Printf.format(CUT_FMT, sigdigits, to) :
+            string(to)
+    else
+        from_str = from isa AbstractFloat ?
+            Printf.format(Printf.Format("%.$(sigdigits)g"), from) :
+            string(from)
+        to_str = to isa AbstractFloat ?
+            Printf.format(Printf.Format("%.$(sigdigits)g"), to) :
+            string(to)
+    end
     string(leftclosed ? "[" : "(", from_str, ", ", to_str, rightclosed ? "]" : ")")
 end
 
@@ -164,19 +175,7 @@ julia> cut(-1:0.5:1, 3, labels=fmt)
                      extend::Union{Bool, Missing}=false,
                      labels::Union{AbstractVector{<:SupportedTypes},Function}=default_formatter,
                      sigdigits::Integer=3,
-                     allowmissing::Union{Bool, Nothing}=nothing,
-                     allow_missing::Union{Bool, Nothing}=nothing,
                      allowempty::Bool=false)
-    if allow_missing !== nothing
-        Base.depwarn("allow_missing argument is deprecated, use extend=missing instead",
-                     :cut)
-        extend = missing
-    end
-    if allowmissing !== nothing
-        Base.depwarn("allowmissing argument is deprecated, use extend=missing instead",
-                     :cut)
-         extend = missing
-    end
     return _cut(x, breaks, extend, labels, sigdigits, allowempty)
 end
 
@@ -251,8 +250,13 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
                 b2 = breaks[i]
                 isequal(b1, b2) && continue
 
-                b1_str = Printf.format(CUT_FMT, sigdigits, b1)
-                b2_str = Printf.format(CUT_FMT, sigdigits, b2)
+                @static if VERSION >= v"1.9"
+                    b1_str = Printf.format(CUT_FMT, sigdigits, b1)
+                    b2_str = Printf.format(CUT_FMT, sigdigits, b2)
+                else
+                    b1_str = Printf.format(Printf.Format("%.$(sigdigits)g"), b1)
+                    b2_str = Printf.format(Printf.Format("%.$(sigdigits)g"), b2)
+                end
                 if b1_str == b2_str
                     sigdigits += 1
                     break
