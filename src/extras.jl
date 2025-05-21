@@ -337,11 +337,17 @@ function find_breaks(v::AbstractVector, qs::AbstractVector)
     return breaks
 end
 
+# AbstractWeights method is defined in StatsBase extension
+# There is no in-place weighted quantile method in StatsBase
+_wquantile(x::AbstractArray, w::AbstractVector, p::AbstractVector) =
+    throw(ArgumentError("`weights` must be an `AbstractWeights` vector from StatsBase.jl"))
+
 """
     cut(x::AbstractArray, ngroups::Integer;
         labels::Union{AbstractVector{<:AbstractString},Function},
         sigdigits::Integer=3,
-        allowempty::Bool=false)
+        allowempty::Bool=false,
+        weights::Union{AbstractWeights, Nothing}=nothing)
 
 Cut a numeric array into `ngroups` quantiles.
 
@@ -373,19 +379,41 @@ quantiles.
   other than the last one are equal, generating empty intervals;
   when `true`, duplicate breaks are allowed and the intervals they generate are kept as
   unused levels (but duplicate labels are not allowed).
+* `weights::Union{AbstractWeights, Nothing}=nothing`: observations weights to used when
+  computing quantiles (see `quantile` documentation in StatsBase).
 """
 function cut(x::AbstractArray, ngroups::Integer;
              labels::Union{AbstractVector{<:SupportedTypes},Function,Nothing}=nothing,
              sigdigits::Integer=3,
-             allowempty::Bool=false)
+             allowempty::Bool=false,
+             weights::Union{AbstractVector, Nothing}=nothing)
     ngroups >= 1 || throw(ArgumentError("ngroups must be strictly positive (got $ngroups)"))
-    sorted_x = eltype(x) >: Missing ? sort!(collect(skipmissing(x))) : sort(x)
-    min_x, max_x = first(sorted_x), last(sorted_x)
-    if (min_x isa Number && isnan(min_x)) ||
-        (max_x isa Number && isnan(max_x))
-        throw(ArgumentError("NaN values are not allowed in input vector"))
+    if weights === nothing
+        sorted_x = eltype(x) >: Missing ? sort!(collect(skipmissing(x))) : sort(x)
+        min_x, max_x = first(sorted_x), last(sorted_x)
+        if (min_x isa Number && isnan(min_x)) ||
+            (max_x isa Number && isnan(max_x))
+            throw(ArgumentError("NaN values are not allowed in input vector"))
+        end
+        qs = quantile!(sorted_x, (1:(ngroups-1))/ngroups, sorted=true)
+    else
+        if eltype(x) >: Missing
+            nm_inds = findall(!ismissing, x)
+            nm_x = view(x, nm_inds)
+            # TODO: use a view once this is supported (JuliaStats/StatsBase.jl#723)
+            nm_weights = weights[nm_inds]
+        else
+            nm_x = x
+            nm_weights = weights
+        end
+        sorted_x = sort(nm_x)
+        min_x, max_x = first(sorted_x), last(sorted_x)
+        if (min_x isa Number && isnan(min_x)) ||
+            (max_x isa Number && isnan(max_x))
+            throw(ArgumentError("NaN values are not allowed in input vector"))
+        end
+        qs = _wquantile(nm_x, nm_weights, (1:(ngroups-1))/ngroups)
     end
-    qs = quantile!(sorted_x, (1:(ngroups-1))/ngroups, sorted=true)
     breaks = [min_x; find_breaks(sorted_x, qs); max_x]
     if !allowempty && !allunique(@view breaks[1:end-1])
         throw(ArgumentError("cannot compute $ngroups quantiles due to " *
