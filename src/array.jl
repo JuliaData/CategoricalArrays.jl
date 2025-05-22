@@ -1098,13 +1098,8 @@ function Base.Broadcast.broadcasted(::typeof(levelcode), A::CategoricalArray{T})
     end
 end
 
-function Base.sort!(v::CategoricalVector;
-                    # alg is ignored since counting sort is more efficient
-                    alg::Base.Algorithm=Base.Sort.defalg(v),
-                    lt=isless,
-                    by=identity,
-                    rev::Bool=false,
-                    order::Base.Ordering=Base.Forward)
+function Base.sort!(v::CategoricalVector; kws...) 
+    # dispatch regardless of alg since counting sort is more efficient
     counts = zeros(UInt, length(v.pool) + (eltype(v) >: Missing))
 
     # do a count/histogram of the references
@@ -1112,14 +1107,12 @@ function Base.sort!(v::CategoricalVector;
         counts[ref + (eltype(v) >: Missing)] += 1
     end
 
-    # compute the order in which to read from counts
-    ord = Base.Sort.ord(lt, by, rev, order)
     seen = counts .> 0
     anymissing = eltype(v) >: Missing && seen[1]
     levs = eltype(v) >: Missing ?
         eltype(v)[i == 0 ? missing : CategoricalValue(v.pool, i) for i in 0:length(v.pool)] :
         eltype(v)[CategoricalValue(v.pool, i) for i in 1:length(v.pool)]
-    sortedlevs = sort!(Vector(view(levs, seen)), order=ord)
+    sortedlevs = sort!(Vector(view(levs, seen)); kws...)
     levelsmap = something.(indexin(sortedlevs, levs))
     j = 0
     refs = v.refs
