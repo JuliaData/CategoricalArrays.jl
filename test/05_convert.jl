@@ -55,9 +55,9 @@ using CategoricalArrays: DefaultRefType, refcode, reftype, leveltype
         @test convert(Union{T, U}, v3)::T == v3
     end
 
-    @test unwrap(v1) === get(v1) === 1
-    @test unwrap(v2) === get(v2) === 2
-    @test unwrap(v3) === get(v3) === 3
+    @test unwrap(v1) === 1
+    @test unwrap(v2) === 2
+    @test unwrap(v3) === 3
 
     @test promote(1, v1) === (1, 1)
     @test promote(1.0, v1) === (1.0, 1.0)
