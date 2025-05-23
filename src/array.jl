@@ -1,6 +1,7 @@
 ## Code for CategoricalArray
 
-import Base: Array, convert, collect, copy, getindex, setindex!, similar, size,
+import Base: Array, Vector, Matrix, convert, collect, copy, getindex,
+             setindex!, similar, size,
              unique, unique!, vcat, in, summary, float, complex, copyto!
 
 # Used for keyword argument default value
@@ -409,6 +410,12 @@ convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{T, N, R}) where {
 convert(::Type{CategoricalArray{T, N}}, A::CategoricalArray{T, N}) where {T, N} = A
 convert(::Type{CategoricalArray{T}}, A::CategoricalArray{T}) where {T} = A
 convert(::Type{CategoricalArray}, A::CategoricalArray) = A
+
+convert(::Type{Array{S, N}}, A::CatArrOrSub{T, N}) where {S, T, N} =
+    collect(S, A)
+convert(::Type{Array}, A::CatArrOrSub) = unwrap.(A)
+convert(::Type{Vector}, A::CatArrOrSub) = unwrap.(A)
+convert(::Type{Matrix}, A::CatArrOrSub) = unwrap.(A)
 
 function Base.:(==)(A::CategoricalArray{S}, B::CategoricalArray{T}) where {S, T}
     if size(A) != size(B)
@@ -1048,8 +1055,10 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
     end
 end
 
-Array(A::CategoricalArray{T}) where {T} = Array{T}(A)
-collect(A::CategoricalArray) = copy(A)
+Array(A::CatArrOrSub{T}) where {T} = Array{T}(A)
+Vector(A::CatArrOrSub{T}) where {T} = Vector{T}(A)
+Matrix(A::CatArrOrSub{T}) where {T} = Matrix{T}(A)
+collect(A::CatArrOrSub) = copy(A)
 
 # Defined for performance
 collect(x::Base.SkipMissing{<: CatArrOrSub{T}}) where {T} =
@@ -1119,7 +1128,7 @@ function Base.sort!(v::CategoricalVector;
     levs = eltype(v) >: Missing ?
         eltype(v)[i == 0 ? missing : CategoricalValue(v.pool, i) for i in 0:length(v.pool)] :
         eltype(v)[CategoricalValue(v.pool, i) for i in 1:length(v.pool)]
-    sortedlevs = sort!(Vector(view(levs, seen)), order=ord)
+    sortedlevs = sort!(Vector{eltype(levs)}(view(levs, seen)), order=ord)
     levelsmap = something.(indexin(sortedlevs, levs))
     j = 0
     refs = v.refs
