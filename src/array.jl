@@ -239,7 +239,7 @@ function CategoricalArray{T, N, R}(A::CategoricalArray{S, N, Q};
         catch err
             err isa LevelsException || rethrow(err)
             throw(ArgumentError("encountered value(s) not in specified `levels`: " *
-                                "$(setdiff(CategoricalArrays.levels(res), levels))"))
+                                "$(setdiff(_levels(res), levels))"))
         end
     end
     return res
@@ -358,18 +358,18 @@ function _convert(::Type{CategoricalArray{T, N, R}}, A::AbstractArray{S, N};
     copyto!(res, A)
 
     if levels !== nothing
-        CategoricalArrays.levels(res) == levels ||
+        _levels(res) == levels ||
             throw(ArgumentError("encountered value(s) not in specified `levels`: " *
-                                "$(setdiff(CategoricalArrays.levels(res), levels))"))
+                                "$(setdiff(_levels(res), levels))"))
     else
         # if order is defined for level type, automatically apply it
         L = leveltype(res)
         if Base.OrderStyle(L) isa Base.Ordered
-            levels!(res, sort(CategoricalArrays.levels(res)))
+            levels!(res, sort(_levels(res)))
         elseif hasmethod(isless, (L, L))
             # isless may throw an error, e.g. for AbstractArray{T} of unordered T
             try
-                levels!(res, sort(CategoricalArrays.levels(res)))
+                levels!(res, sort(_levels(res)))
             catch e
                  e isa MethodError || rethrow(e)
             end
@@ -382,7 +382,7 @@ end
 # From CategoricalArray (preserve levels, ordering and R)
 function convert(::Type{CategoricalArray{T, N, R}}, A::CategoricalArray{S, N}) where {S, T, N, R}
     if length(A.pool) > typemax(R)
-        throw(LevelsException{T, R}(levels(A)[typemax(R)+1:end]))
+        throw(LevelsException{T, R}(_levels(A)[typemax(R)+1:end]))
     end
 
     if !(T >: Missing) && S >: Missing && any(iszero, A.refs)
@@ -460,7 +460,7 @@ size(A::CategoricalArray) = size(A.refs)
 Base.IndexStyle(::Type{<:CategoricalArray}) = IndexLinear()
 
 function update_refs!(A::CategoricalArray, newlevels::AbstractVector)
-    oldlevels = levels(A)
+    oldlevels = _levels(A)
     levelsmap = similar(A.refs, length(oldlevels)+1)
     # 0 maps to a missing value
     levelsmap[1] = 0
@@ -478,7 +478,7 @@ function merge_pools!(A::CatArrOrSub,
                       updaterefs::Bool=true,
                       updatepool::Bool=true)
     newlevels, ordered = merge_pools(pool(A), pool(B))
-    oldlevels = levels(A)
+    oldlevels = _levels(A)
     pA = A isa SubArray ? parent(A) : A
     ordered!(pA, ordered)
     # If A's levels are an ordered superset of new (merged) pool, no need to recompute refs
@@ -537,8 +537,8 @@ function copyto!(dest::CatArrOrSub{T, N, R}, dstart::Integer,
 
     # try converting src to dest type to avoid partial copy corruption of dest
     # in the event that the src cannot be copied into dest
-    slevs = convert(Vector{T}, levels(src))
-    dlevs = levels(dest)
+    slevs = convert(Vector{T}, _levels(src))
+    dlevs = _levels(dest)
     if eltype(src) >: Missing && !(eltype(dest) >: Missing) && !all(x -> x > 0, srefs)
         throw(MissingException("cannot copy array with missing values to an array with element type $T"))
     end
@@ -591,7 +591,7 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
         return invoke(copyto!, Tuple{AbstractArray, Integer, AbstractArray, Integer, Integer},
                       dest, dstart, src, sstart, n)
     end
-    newdestlevs = destlevs = copy(levels(dest)) # copy since we need original levels below
+    newdestlevs = destlevs = copy(_levels(dest)) # copy since we need original levels below
     srclevsnm = T2 >: Missing ? setdiff(srclevs, [missing]) : srclevs
     if !(srclevsnm ⊆ destlevs)
         # if order is defined for level type, automatically apply it
@@ -701,7 +701,7 @@ While this will reduce memory use, this function is type-unstable, which can aff
 performance inside the function where the call is made. Therefore, use it with caution.
 """
 function compress(A::CategoricalArray{T, N}) where {T, N}
-    R = reftype(length(levels(A.pool)))
+    R = reftype(length(_levels(A.pool)))
     convert(CategoricalArray{T, N, R}, A)
 end
 
@@ -719,11 +719,11 @@ decompress(A::CategoricalArray{T, N}) where {T, N} =
     convert(CategoricalArray{T, N, DefaultRefType}, A)
 
 function vcat(A::CategoricalArray...)
-    ordered = any(isordered, A) && all(a->isordered(a) || isempty(levels(a)), A)
-    newlevels, ordered = mergelevels(ordered, map(levels, A)...)
+    ordered = any(isordered, A) && all(a->isordered(a) || isempty(_levels(a)), A)
+    newlevels, ordered = mergelevels(ordered, map(_levels, A)...)
 
     refsvec = map(A) do a
-        ii = convert(Vector{Int}, indexin(levels(a.pool), newlevels))
+        ii = convert(Vector{Int}, indexin(_levels(a.pool), newlevels))
         [x==0 ? 0 : ii[x] for x in a.refs]::Array{Int,ndims(a)}
     end
 
@@ -761,23 +761,25 @@ This may include levels which do not actually appear in the data
 `missing` will be included only if it appears in the data and
 `skipmissing=false` is passed.
 
-The returned vector is an internal field of `x` which must not be mutated
+The returned vector is owned by `x` and must not be mutated
 as doing so would corrupt it.
 """
-@inline function DataAPI.levels(A::CatArrOrSub{T}; skipmissing::Bool=true) where T
+@inline function DataAPI.levels(A::CatArrOrSub; skipmissing::Bool=true)
     if eltype(A) >: Missing && !skipmissing
         if any(==(0), refs(A))
-            T[levels(pool(A)); missing]
+            eltype(A)[levels(pool(A)); missing]
         else
-            convert(Vector{T}, levels(pool(A)))
+            levels_missing(pool(A))
         end
     else
         levels(pool(A))
     end
 end
 
+_levels(A::CatArrOrSub) = _levels(pool(A))
+
 """
-    levels!(A::CategoricalArray, newlevels::Vector; allowmissing::Bool=false)
+    levels!(A::CategoricalArray, newlevels::AbstractVector; allowmissing::Bool=false)
 
 Set the levels categorical array `A`. The order of appearance of levels will be respected
 by [`levels`](@ref DataAPI.levels), which may affect display of results in some operations; if `A` is
@@ -791,7 +793,7 @@ Else, `newlevels` must include all levels which appear in the data.
 """
 function levels!(A::CategoricalArray{T, N, R}, newlevels::AbstractVector;
                  allowmissing::Bool=false) where {T, N, R}
-    (levels(A) == newlevels) && return A # nothing to do
+    (_levels(A) == newlevels) && return A # nothing to do
 
     # map each new level to its ref code
     newlv2ref = Dict{eltype(newlevels), Int}()
@@ -806,7 +808,7 @@ function levels!(A::CategoricalArray{T, N, R}, newlevels::AbstractVector;
     end
 
     # map each old ref code to new ref code (or 0 if no such level)
-    oldlevels = levels(pool(A))
+    oldlevels = _levels(pool(A))
     oldref2newref = fill(0, length(oldlevels) + 1)
     for (i, lv) in enumerate(oldlevels)
         oldref2newref[i + 1] = get(newlv2ref, lv, 0)
@@ -867,7 +869,7 @@ end
 function _uniquerefs(A::CatArrOrSub{T}) where T
     arefs = refs(A)
     res = similar(arefs, 0)
-    nlevels = length(levels(A))
+    nlevels = length(_levels(A))
     maxunique = nlevels + (T >: Missing ? 1 : 0)
     seen = fill(false, nlevels + 1) # always +1 for 0 (missing ref)
     @inbounds for ref in arefs
@@ -900,7 +902,7 @@ returned by [`levels`](@ref DataAPI.levels)).
 """
 function droplevels!(A::CategoricalArray)
     arefs = refs(A)
-    nlevels = length(levels(A)) + 1 # +1 for missing
+    nlevels = length(_levels(A)) + 1 # +1 for missing
     seen = fill(false, nlevels)
     seen[1] = true # assume that missing is always observed to simplify checks
     nseen = 1
@@ -913,7 +915,7 @@ function droplevels!(A::CategoricalArray)
     end
 
     # replace the pool
-    A.pool = typeof(pool(A))(@inbounds(levels(A)[view(seen, 2:nlevels)]), isordered(A))
+    A.pool = typeof(pool(A))(@inbounds(_levels(A)[view(seen, 2:nlevels)]), isordered(A))
     # recode refs to keep only the seen ones (optimized version of update_refs!())
     seen[1] = false # to start levelsmap from 0
     levelsmap = cumsum(seen)
@@ -1030,7 +1032,7 @@ end
                              ordered=_isordered(A),
                              compress::Bool=false) where {T, N, R}
     # @inline is needed so that return type is inferred when compress is not provided
-    RefType = compress ? reftype(length(CategoricalArrays.levels(A))) : R
+    RefType = compress ? reftype(length(_levels(A))) : R
     CategoricalArray{T, N, RefType}(A, levels=levels, ordered=ordered)
 end
 
@@ -1043,7 +1045,7 @@ function in(x::CategoricalValue, y::CategoricalArray{T, N, R}) where {T, N, R}
     if x.pool === y.pool
         return refcode(x) in y.refs
     else
-        ref = get(y.pool, levels(x.pool)[refcode(x)], zero(R))
+        ref = get(y.pool, _levels(x.pool)[refcode(x)], zero(R))
         return ref != 0 ? ref in y.refs : false
     end
 end

@@ -27,6 +27,8 @@ reftype(x::Any) = reftype(typeof(x))
 pool(x::CategoricalValue) = x.pool
 refcode(x::CategoricalValue) = x.ref
 isordered(x::CategoricalValue) = isordered(x.pool)
+DataAPI.levels(x::CategoricalValue) = levels(pool(x))
+_levels(x::CategoricalValue) = _levels(pool(x))
 
 # extract the type of the original value from array eltype `T`
 unwrap_catvaluetype(::Type{T}) where {T} = T
@@ -42,7 +44,7 @@ unwrap_catvaluetype(::Type{T}) where {T <: CategoricalValue} = leveltype(T)
 
 Get the value wrapped by categorical value `x`. If `x` is `Missing` return `missing`.
 """
-DataAPI.unwrap(x::CategoricalValue) = levels(x)[refcode(x)]
+DataAPI.unwrap(x::CategoricalValue) = _levels(x)[refcode(x)]
 
 """
     levelcode(x::CategoricalValue)
@@ -59,10 +61,8 @@ Return `missing`.
 """
 levelcode(x::Missing) = missing
 
-DataAPI.levels(x::CategoricalValue) = levels(pool(x))
-
 function cat_promote_type(::Type{S}, ::Type{T}) where {S, T}
-    U = promote_type(S, T)
+    U = promote_type(unwrap_catvaluetype(S), unwrap_catvaluetype(T))
     U <: Union{SupportedTypes, Missing} ?
         U : typeintersect(Union{SupportedTypes, Missing}, Union{S, T})
 end

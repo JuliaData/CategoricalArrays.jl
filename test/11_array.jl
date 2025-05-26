@@ -746,7 +746,7 @@ end
     @test y == unique(x)
 
     x = CategoricalArray(String[])
-    @test isa(levels(x), Vector{String}) && isempty(levels(x))
+    @test isa(levels(x), CategoricalVector{String, DefaultRefType}) && isempty(levels(x))
     @test isa(unique(x), typeof(x)) && isempty(unique(x))
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]

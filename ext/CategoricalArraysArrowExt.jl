@@ -7,6 +7,8 @@ import Arrow: ArrowTypes
 const CATARRAY_ARROWNAME = Symbol("JuliaLang.CategoricalArrays.CategoricalArray")
 ArrowTypes.arrowname(::Type{<:CategoricalValue}) = CATARRAY_ARROWNAME
 ArrowTypes.arrowmetadata(::Type{CategoricalValue{T, R}}) where {T, R} = string(R)
+ArrowTypes.ArrowType(::Type{<:CategoricalValue{T}}) where {T} = T
+ArrowTypes.toarrow(x::CategoricalValue) = unwrap(x)
 
 ArrowTypes.arrowname(::Type{Union{<:CategoricalValue, Missing}}) = CATARRAY_ARROWNAME
 ArrowTypes.arrowmetadata(::Type{Union{CategoricalValue{T, R}, Missing}}) where {T, R} =

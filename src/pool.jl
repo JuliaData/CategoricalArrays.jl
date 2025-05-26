@@ -21,8 +21,8 @@ Base.convert(::Type{CategoricalPool{S}}, pool::CategoricalPool{T, R}) where {S, 
     convert(CategoricalPool{S, R}, pool)
 
 function Base.convert(::Type{CategoricalPool{T, R}}, pool::CategoricalPool) where {T, R <: Integer}
-    if length(levels(pool)) > typemax(R)
-        throw(LevelsException{T, R}(levels(pool)[typemax(R)+1:end]))
+    if length(pool.levels) > typemax(R)
+        throw(LevelsException{T, R}(pool.levels[typemax(R)+1:end]))
     end
 
     levelsT = convert(Vector{T}, pool.levels)
@@ -37,10 +37,10 @@ Base.copy(pool::CategoricalPool{T, R}) where {T, R} =
 function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
     @static if VERSION >= v"1.6.0"
         @printf(io, "%s{%s, %s}([%s])", CategoricalPool, T, R,
-                join(map(repr, levels(pool)), ", "))
+                join(map(repr, pool.levels), ", "))
     else
         @printf(io, "%s{%s,%s}([%s])", CategoricalPool, T, R,
-                join(map(repr, levels(pool)), ", "))
+                join(map(repr, pool.levels), ", "))
     end
 
     pool.ordered && print(io, " with ordered levels")
@@ -65,6 +65,7 @@ it doesn't do this itself to avoid doing a dict lookup twice
 
     i = R(n + 1)
     push!(pool.levels, x)
+    push!(pool.levelsinds, i)
     pool_hash = pool.hash
     if pool_hash !== nothing
         pool.hash = hash(x, pool_hash)
@@ -185,10 +186,10 @@ function merge_pools(a::CategoricalPool{T}, b::CategoricalPool) where {T}
         newlevs = T[]
         ordered = isordered(a)
     elseif length(a) == 0
-        newlevs = Vector{T}(levels(b))
+        newlevs = Vector{T}(b.levels)
         ordered = isordered(b)
     elseif length(b) == 0
-        newlevs = copy(levels(a))
+        newlevs = copy(a.levels)
         ordered = isordered(a)
     else
         ordered = isordered(a) && (isordered(b) || b ⊆ a)
@@ -200,7 +201,7 @@ end
 
 @inline function Base.hash(pool::CategoricalPool, h::UInt)
     if pool.hash === nothing
-        pool.hash = hashlevels(levels(pool))
+        pool.hash = hashlevels(pool.levels)
     end
     hash(pool.hash, h)
 end
@@ -246,9 +247,9 @@ end
 
 # Contrary to the CategoricalArray one, this method only allows adding new levels at the end
 # so that existing CategoricalValue objects still point to the same value
-function levels!(pool::CategoricalPool{S, R}, newlevels::Vector;
+function levels!(pool::CategoricalPool{S, R}, newlevels::AbstractVector;
                  checkunique::Bool=true) where {S, R}
-    levs = convert(Vector{S}, newlevels)
+    levs = newlevels isa CategoricalVector{S} ? newlevels : convert(Vector{S}, newlevels)
     if checkunique && !allunique(levs)
         throw(ArgumentError(string("duplicated levels found in levs: ",
                                    join(unique(filter(x->sum(levs.==x)>1, levs)), ", "))))
@@ -259,24 +260,30 @@ function levels!(pool::CategoricalPool{S, R}, newlevels::Vector;
     n = length(levs)
 
     if n > typemax(R)
-        throw(LevelsException{S, R}(setdiff(levs, levels(pool))[typemax(R)-length(levels(pool))+1:end]))
+        throw(LevelsException{S, R}(setdiff(levs, pool.levels)[typemax(R)-length(pool.levels)+1:end]))
     end
 
     empty!(pool.invindex)
     resize!(pool.levels, n)
+    resize!(pool.levelsinds, n)
     pool.hash = nothing
     pool.equalto = C_NULL
     pool.subsetof = C_NULL
     for i in 1:n
         v = levs[i]
         pool.levels[i] = v
+        pool.levelsinds[i] = i
         pool.invindex[v] = i
     end
 
     return pool
 end
 
-DataAPI.levels(pool::CategoricalPool) = pool.levels
+DataAPI.levels(pool::CategoricalPool{T}) where {T} =
+    CategoricalVector{T}(pool.levelsinds, pool)
+levels_missing(pool::CategoricalPool{T}) where {T} =
+    CategoricalVector{Union{T, Missing}}(pool.levelsinds, pool)
+_levels(pool::CategoricalPool) = pool.levels
 
 isordered(pool::CategoricalPool) = pool.ordered
 ordered!(pool::CategoricalPool, ordered) = (pool.ordered = ordered; pool)

@@ -111,7 +111,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
     levels!(dest.pool, filter!(!ismissing, unique(vals)))
     # In the absence of duplicated recoded values, we do not need to lookup the reference
     # for each pair in the loop, which is more efficient (with loop unswitching)
-    dupvals = length(vals) != length(levels(dest.pool))
+    dupvals = length(vals) != length(_levels(dest.pool))
 
     drefs = dest.refs
     pairmap = [ismissing(v) ? zero(R) : get(dest.pool, v) for v in vals]
@@ -150,7 +150,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
 
     # Put existing levels first, and sort them if possible
     # for consistency with CategoricalArray
-    oldlevels = setdiff(levels(dest), vals)
+    oldlevels = setdiff(_levels(dest), vals)
     filter!(!ismissing, oldlevels)
     L = eltype(oldlevels)
     if Base.OrderStyle(L) isa Base.Ordered
@@ -163,7 +163,7 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
             e isa MethodError || rethrow(e)
         end
     end
-    levels!(dest, union(oldlevels, levels(dest)))
+    levels!(dest, union(oldlevels, _levels(dest)))
 
     dest
 end
@@ -174,7 +174,7 @@ function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
     vals = T[p.second for p in pairs]
              
     if default === nothing
-        srclevels = levels(src)
+        srclevels = _levels(src)
 
         # Remove recoded levels as they won't appear in result
         keptlevels = Vector{T}(undef, 0)
@@ -201,7 +201,7 @@ function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
         ordered = false
     end
 
-    srclevels = src.pool === dest.pool ? copy(levels(src.pool)) : levels(src.pool)
+    srclevels = src.pool === dest.pool ? copy(_levels(src.pool)) : _levels(src.pool)
     if length(levs) > length(srclevels) && view(levs, 1:length(srclevels)) == srclevels
         levels!(dest.pool, levs)
     else

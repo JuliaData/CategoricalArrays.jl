@@ -20,7 +20,7 @@ By default, the levels are lexically sorted, which is clearly not correct in our
 
 ```jldoctest using
 julia> levels(x)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "Middle"
  "Old"
  "Young"
@@ -68,7 +68,7 @@ To get rid of the `"Old"` group, just call the [`droplevels!`](@ref) function:
 
 ```jldoctest using
 julia> levels(x)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "Young"
  "Middle"
  "Old"
@@ -81,7 +81,7 @@ julia> droplevels!(x)
  "Young"
 
 julia> levels(x)
-2-element Vector{String}:
+2-element CategoricalArray{String,1,UInt32}:
  "Young"
  "Middle"
 
@@ -139,7 +139,7 @@ Levels still need to be reordered manually:
 
 ```jldoctest using
 julia> levels(y)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "Middle"
  "Old"
  "Young"
@@ -263,7 +263,7 @@ true
 Likewise, assigning a `CategoricalValue` from `y` to an entry in `x` expands the levels of `x` with all levels from `y`, *respecting the ordering of levels of both vectors if possible*:
 ```jldoctest using
 julia> levels(x)
-2-element Vector{String}:
+2-element CategoricalArray{String,1,UInt32}:
  "Middle"
  "Old"
 
@@ -271,7 +271,7 @@ julia> x[1] = y[1]
 CategoricalValue{String, UInt32} "Young" (1/2)
 
 julia> levels(x)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "Young"
  "Middle"
  "Old"
@@ -296,7 +296,7 @@ julia> ab = vcat(a, b)
  "c"
 
 julia> levels(ab)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "a"
  "b"
  "c"
@@ -320,7 +320,7 @@ julia> ab2 = vcat(a, b)
  "c"
 
 julia> levels(ab2)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "a"
  "b"
  "c"
