@@ -22,6 +22,8 @@ end
     for i in 1:3
         x = CategoricalValue(pool, i)
 
+        @test levels(x) == levels(pool)
+        @test levels(x) isa CategoricalVector{String, UInt32}
         @test leveltype(x) === String
         @test leveltype(typeof(x)) === String
         @test reftype(x) === DefaultRefType
@@ -48,6 +50,8 @@ end
     for i in 1:3
         x = CategoricalValue(pool, i)
 
+        @test levels(x) == levels(pool)
+        @test levels(x) isa CategoricalVector{String, UInt8}
         @test leveltype(x) === String
         @test leveltype(typeof(x)) === String
         @test reftype(x) === UInt8
@@ -68,7 +72,8 @@ end
     for x in (CategoricalValue(pool, 1), arr, view(arr, 2:3))
         for (i, v) in enumerate(levels(pool))
             @test CategoricalValue(v, x) ===
-                CategoricalValue(float(v), x) ===
+                CategoricalValue(unwrap(v), x) ===
+                CategoricalValue(float(unwrap(v)), x) ===
                 CategoricalValue(CategoricalValue(pool, i), x) ===
                 CategoricalValue(pool, i)
         end

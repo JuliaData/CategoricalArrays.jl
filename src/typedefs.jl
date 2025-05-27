@@ -8,6 +8,7 @@ const SupportedTypes = Union{AbstractString, AbstractChar, Number}
 # * `R` integer type for referencing category levels
 mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer}
     levels::Vector{T}          # category levels ordered by their reference codes
+    levelsinds::Vector{R}      # set to 1:length(levels), used by `levels(p)`
     invindex::Dict{T, R}       # map from category levels to their reference codes
     ordered::Bool              # whether levels can be compared using <
     hash::Union{UInt, Nothing} # hash of levels
@@ -45,8 +46,8 @@ mutable struct CategoricalPool{T <: SupportedTypes, R <: Integer}
                                    invindex::Dict{T, R},
                                    ordered::Bool,
                                    hash::Union{UInt, Nothing}=nothing) where {T, R}
-        pool = new(levels, invindex, ordered, hash, C_NULL, C_NULL)
-        return pool
+        return new(levels, 1:length(levels), invindex,
+                   ordered, hash, C_NULL, C_NULL)
     end
 end
 

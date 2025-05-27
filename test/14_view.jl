@@ -11,7 +11,8 @@ const ≅ = isequal
 
     x = CategoricalArray{Union{T, eltype(a)}}(a, ordered=order)
     v = view(x, inds)
-    @test levels(v) === levels(x)
+    @test levels(x) isa CategoricalVector{nonmissingtype(eltype(a))}
+    @test levels(v) == levels(x)
     @test unique(v) == (ndims(v) > 0 ? unique(a[inds]) : [a[inds]])
     @test isordered(v) === isordered(x)
 end

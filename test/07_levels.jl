@@ -1,15 +1,16 @@
 module TestLevels
 using Test
 using CategoricalArrays
-using CategoricalArrays: DefaultRefType, levels!, hashlevels
+using CategoricalArrays: DefaultRefType, levels!, hashlevels, _levels
 
 @testset "CategoricalPool{Int} updates levels and order correctly" begin
     pool = CategoricalPool([2, 1, 3])
 
-    @test isa(levels(pool), Vector{Int})
+    @test isa(levels(pool), CategoricalVector{Int, DefaultRefType})
     @test length(pool) === 3
-    @test levels(pool) == [2, 1, 3]
-    @test all([levels(CategoricalValue(pool, i)) for i in 1:3] .=== Ref(levels(pool)))
+    @test levels(pool) == _levels(pool) == [2, 1, 3]
+    @test all([levels(CategoricalValue(pool, i)) for i in 1:3] .== Ref(levels(pool)))
+    @test pool.levelsinds == 1:3
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3)
     @test pool.hash === nothing
     @test pool.equalto == C_NULL
@@ -20,7 +21,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
         @test isa(pool.levels, Vector{Int})
         @test length(pool) === 4
-        @test levels(pool) == [2, 1, 3, 4]
+        @test levels(pool) == _levels(pool) == [2, 1, 3, 4]
+        @test pool.levelsinds == 1:4
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4)
         @test pool.hash === nothing
         @test pool.equalto == C_NULL
@@ -34,7 +36,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
         @test isa(pool.levels, Vector{Int})
         @test length(pool) === 5
-        @test levels(pool) == [2, 1, 3, 4, 0]
+        @test levels(pool) == _levels(pool) == [2, 1, 3, 4, 0]
+        @test pool.levelsinds == 1:5
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5)
         @test pool.hash === nothing
         @test pool.equalto == C_NULL
@@ -48,7 +51,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
         @test isa(pool.levels, Vector{Int})
         @test length(pool) === 7
-        @test levels(pool) == [2, 1, 3, 4, 0, 10, 11]
+        @test levels(pool) == _levels(pool) == [2, 1, 3, 4, 0, 10, 11]
+        @test pool.levelsinds == 1:7
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7)
         @test pool.hash === nothing
         @test pool.equalto == C_NULL
@@ -64,7 +68,8 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
         @test isa(pool.levels, Vector{Int})
         @test length(pool) === 9
-        @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13]
+        @test levels(pool) == _levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13]
+        @test pool.levelsinds == 1:9
         @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9)
         @test pool.hash === nothing
         @test pool.equalto == C_NULL
@@ -84,15 +89,10 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     # Adding levels while preserving existing ones
     levs = [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14]
     @test levels!(pool, levs) === pool
-    @test levels(pool) == levs
-    @test levels(pool) !== levs
-    @test pool.hash === nothing
-    @test pool.equalto == C_NULL
-    @test pool.subsetof == C_NULL
-
+    @test levels(pool) == _levels(pool) == levs
+    @test pool.levels !== levs
     @test isa(pool.levels, Vector{Int})
-    @test length(pool) === 11
-    @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14]
+    @test pool.levelsinds == 1:11
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11)
     @test pool.hash === nothing
@@ -109,7 +109,10 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
     @test isa(pool.levels, Vector{Int})
     @test length(pool) == 12
-    @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20]
+    @test levels(pool) ==
+        _levels(pool) ==
+        [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20]
+    @test pool.levelsinds == 1:12
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12)
     @test pool.hash === nothing
@@ -128,7 +131,10 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
     @test isa(pool.levels, Vector{Int})
     @test length(pool) == 14
-    @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
+    @test levels(pool) ==
+        _levels(pool) ==
+        [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
+    @test pool.levelsinds == 1:14
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
     @test pool.hash === nothing
@@ -143,7 +149,10 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
     @test isa(pool.levels, Vector{Int})
     @test length(pool) == 14
-    @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
+    @test levels(pool) ==
+        _levels(pool) ==
+        [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
+    @test pool.levelsinds == 1:14
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
     @test pool.hash === CategoricalArrays.hashlevels(levels(pool))
@@ -155,7 +164,10 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
 
     @test isa(pool.levels, Vector{Int})
     @test length(pool) == 14
-    @test levels(pool) == [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
+    @test levels(pool) ==
+        _levels(pool) ==
+        [2, 1, 3, 4, 0, 10, 11, 12, 13, 15, 14, 20, 100, 99]
+    @test pool.levelsinds == 1:14
     @test pool.invindex == Dict(2=>1, 1=>2, 3=>3, 4=>4, 0=>5, 10=>6, 11=>7, 12=>8, 13=>9,
                                 15=>10, 14=>11, 20=>12, 100=>13, 99=>14)
     @test pool.hash === CategoricalArrays.hashlevels(levels(pool))
@@ -176,6 +188,22 @@ using CategoricalArrays: DefaultRefType, levels!, hashlevels
     p2 = CategoricalPool(Char[])
     @test push!(p2, p1[1]) === p2
     @test !isordered(p2)
+end
+
+@testset "levels!(::CategoricalPool, ::CategoricalVector)" begin
+    pool = CategoricalPool([2, 1, 3])
+    levels!(pool, categorical([2, 1, 3, 4]))
+    @test levels(pool) == [2, 1, 3, 4]
+
+    pool = CategoricalPool([2, 1, 3])
+    levels!(pool, categorical([2.0, 1.0, 3.0, 4.0]))
+    @test levels(pool) == [2, 1, 3, 4]
+
+    pool = CategoricalPool([2, 1, 3])
+    @test_throws ArgumentError levels!(pool, categorical([2, 2, 1, 3, 4]))
+
+    pool = CategoricalPool([2, 1, 3])
+    @test_throws ArgumentError levels!(pool, categorical(1:3))
 end
 
 @testset "overflow of reftype is detected and doesn't corrupt levels" begin
