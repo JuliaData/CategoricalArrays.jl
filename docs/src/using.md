@@ -251,7 +251,7 @@ julia> xy = vcat(x, y)
  "Middle"
 
 julia> levels(xy)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  "Young"
  "Middle"
  "Old"
