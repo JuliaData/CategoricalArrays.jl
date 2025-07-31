@@ -8,7 +8,7 @@ julia&gt; x = CategoricalArray([&quot;Old&quot;, &quot;Young&quot;, &quot;Middle
  &quot;Middle&quot;
  &quot;Young&quot;
 </code></pre><p>By default, the levels are lexically sorted, which is clearly not correct in our case and would give incorrect results when testing for order. This is easily fixed using the <code>levels!</code> function to reorder levels:</p><pre><code class="language-julia-repl hljs">julia&gt; levels(x)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  &quot;Middle&quot;
  &quot;Old&quot;
  &quot;Young&quot;
@@ -36,7 +36,7 @@ true
 julia&gt; x[1]
 CategoricalValue{String, UInt32} &quot;Young&quot; (1/3)
 </code></pre><p>The <code>CategoricalArray</code> still considers <code>&quot;Old&quot;</code> as a possible level even if it is unused now. This is necessary to allow efficiently accessing the levels and setting values of elements in the array: indeed, dropping unused levels requires iterating over every element in the array, which is expensive. This property can also be useful to keep track of possible levels, even if they do not occur in practice.</p><p>To get rid of the <code>&quot;Old&quot;</code> group, just call the <a href="../apiindex/#CategoricalArrays.droplevels!-Tuple{CategoricalArray}"><code>droplevels!</code></a> function:</p><pre><code class="language-julia-repl hljs">julia&gt; levels(x)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  &quot;Young&quot;
  &quot;Middle&quot;
  &quot;Old&quot;
@@ -49,7 +49,7 @@ julia&gt; droplevels!(x)
  &quot;Young&quot;
 
 julia&gt; levels(x)
-2-element Vector{String}:
+2-element CategoricalArray{String,1,UInt32}:
  &quot;Young&quot;
  &quot;Middle&quot;
 </code></pre><p>Another solution would have been to call <code>levels!(x, [&quot;Young&quot;, &quot;Middle&quot;])</code> manually. This command is safe too, since it will raise an error when trying to remove levels that are currently used:</p><pre><code class="language-julia-repl hljs">julia&gt; levels!(x, [&quot;Young&quot;, &quot;Midle&quot;])
@@ -74,7 +74,7 @@ julia&gt; levelcode.(x)
  &quot;Middle&quot;
  &quot;Young&quot;
 </code></pre><p>Levels still need to be reordered manually:</p><pre><code class="language-julia-repl hljs">julia&gt; levels(y)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  &quot;Middle&quot;
  &quot;Old&quot;
  &quot;Young&quot;
@@ -140,14 +140,14 @@ julia&gt; levels!(y, [&quot;Young&quot;, &quot;Middle&quot;]);</code></pre><p>If
  &quot;Middle&quot;
 
 julia&gt; levels(xy)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  &quot;Young&quot;
  &quot;Middle&quot;
  &quot;Old&quot;
 
 julia&gt; isordered(xy)
 true</code></pre><p>Likewise, assigning a <code>CategoricalValue</code> from <code>y</code> to an entry in <code>x</code> expands the levels of <code>x</code> with all levels from <code>y</code>, <em>respecting the ordering of levels of both vectors if possible</em>:</p><pre><code class="language-julia-repl hljs">julia&gt; levels(x)
-2-element Vector{String}:
+2-element CategoricalArray{String,1,UInt32}:
  &quot;Middle&quot;
  &quot;Old&quot;
 
@@ -155,7 +155,7 @@ julia&gt; x[1] = y[1]
 CategoricalValue{String, UInt32} &quot;Young&quot; (1/2)
 
 julia&gt; levels(x)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  &quot;Young&quot;
  &quot;Middle&quot;
  &quot;Old&quot;
@@ -175,7 +175,7 @@ julia&gt; ab = vcat(a, b)
  &quot;c&quot;
 
 julia&gt; levels(ab)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  &quot;a&quot;
  &quot;b&quot;
  &quot;c&quot;
@@ -199,10 +199,10 @@ julia&gt; ab2 = vcat(a, b)
  &quot;c&quot;
 
 julia&gt; levels(ab2)
-3-element Vector{String}:
+3-element CategoricalArray{String,1,UInt32}:
  &quot;a&quot;
  &quot;b&quot;
  &quot;c&quot;
 
 julia&gt; isordered(ab2)
-false</code></pre><p>The resulting array is marked as ordered only if all the source array(s) are ordered, with the exception that unordered arrays with no levels do not prompt the result to be marked as unordered. In particular, this allows assignment of a <code>CategoricalValue</code> to an empty <code>CategoricalArray</code> via <code>setindex!</code> to copy the levels of the source value and to mark the result as ordered.</p><p>Do note that in some cases the two sets of levels may have compatible orderings, but it is not possible to determine in what order should levels appear in the merged set. This is the case for example with <code>[&quot;a, &quot;b&quot;, &quot;d&quot;]</code> and <code>[&quot;c&quot;, &quot;d&quot;, &quot;e&quot;]</code>: there is no way to detect that <code>&quot;c&quot;</code> should be inserted exactly after <code>&quot;b&quot;</code> (lexicographic ordering is not relevant here). In such cases, the resulting array is marked as unordered. This situation can only happen when working with data subsets selected based on non-contiguous subsets of levels.</p><h2 id="Exported-functions"><a class="docs-heading-anchor" href="#Exported-functions">Exported functions</a><a id="Exported-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Exported-functions" title="Permalink"></a></h2><p><code>categorical(A)</code> - Construct a categorical array with values from <code>A</code></p><p><code>compress(A)</code> - Return a copy of categorical array <code>A</code> using the smallest possible reference type</p><p><code>cut(x)</code> - Cut a numeric array into intervals and return an ordered <code>CategoricalArray</code></p><p><code>decompress(A)</code> - Return a copy of categorical array <code>A</code> using the default reference type</p><p><code>isordered(A)</code> - Test whether entries in <code>A</code> can be compared using <code>&lt;</code>, <code>&gt;</code> and similar operators</p><p><code>ordered!(A, ordered)</code> - Set whether entries in <code>A</code> can be compared using <code>&lt;</code>, <code>&gt;</code> and similar operators</p><p><code>recode(a[, default], pairs...)</code> - Return a copy of <code>a</code> after replacing one or more values</p><p><code>recode!(a[, default], pairs...)</code> - Replace one or more values in <code>a</code> in-place</p><p><code>unwrap(x)</code> - Return the value contained in categorical value <code>x</code>; if <code>x</code> is <code>Missing</code>               return <code>missing</code></p><p><code>levelcode(x)</code> - Return the code of categorical value <code>x</code>, i.e. its index                   in the set of possible values returned by <code>levels(x)</code>.</p><p>See <a href="../apiindex/#API-Index">API Index</a> for more details.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Overview</a><a class="docs-footer-nextpage" href="../implementation/">Implementation details »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.4 on <span class="colophon-date" title="Friday 23 May 2025 21:36">Friday 23 May 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+false</code></pre><p>The resulting array is marked as ordered only if all the source array(s) are ordered, with the exception that unordered arrays with no levels do not prompt the result to be marked as unordered. In particular, this allows assignment of a <code>CategoricalValue</code> to an empty <code>CategoricalArray</code> via <code>setindex!</code> to copy the levels of the source value and to mark the result as ordered.</p><p>Do note that in some cases the two sets of levels may have compatible orderings, but it is not possible to determine in what order should levels appear in the merged set. This is the case for example with <code>[&quot;a, &quot;b&quot;, &quot;d&quot;]</code> and <code>[&quot;c&quot;, &quot;d&quot;, &quot;e&quot;]</code>: there is no way to detect that <code>&quot;c&quot;</code> should be inserted exactly after <code>&quot;b&quot;</code> (lexicographic ordering is not relevant here). In such cases, the resulting array is marked as unordered. This situation can only happen when working with data subsets selected based on non-contiguous subsets of levels.</p><h2 id="Exported-functions"><a class="docs-heading-anchor" href="#Exported-functions">Exported functions</a><a id="Exported-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Exported-functions" title="Permalink"></a></h2><p><code>categorical(A)</code> - Construct a categorical array with values from <code>A</code></p><p><code>compress(A)</code> - Return a copy of categorical array <code>A</code> using the smallest possible reference type</p><p><code>cut(x)</code> - Cut a numeric array into intervals and return an ordered <code>CategoricalArray</code></p><p><code>decompress(A)</code> - Return a copy of categorical array <code>A</code> using the default reference type</p><p><code>isordered(A)</code> - Test whether entries in <code>A</code> can be compared using <code>&lt;</code>, <code>&gt;</code> and similar operators</p><p><code>ordered!(A, ordered)</code> - Set whether entries in <code>A</code> can be compared using <code>&lt;</code>, <code>&gt;</code> and similar operators</p><p><code>recode(a[, default], pairs...)</code> - Return a copy of <code>a</code> after replacing one or more values</p><p><code>recode!(a[, default], pairs...)</code> - Replace one or more values in <code>a</code> in-place</p><p><code>unwrap(x)</code> - Return the value contained in categorical value <code>x</code>; if <code>x</code> is <code>Missing</code>               return <code>missing</code></p><p><code>levelcode(x)</code> - Return the code of categorical value <code>x</code>, i.e. its index                   in the set of possible values returned by <code>levels(x)</code>.</p><p>See <a href="../apiindex/#API-Index">API Index</a> for more details.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Overview</a><a class="docs-footer-nextpage" href="../implementation/">Implementation details »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Thursday 31 July 2025 09:39">Thursday 31 July 2025</span>. Using Julia version 1.11.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
