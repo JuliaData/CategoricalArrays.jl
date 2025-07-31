@@ -1160,7 +1160,7 @@ end
     @test unique(x) ≅ ["Old", "Young", "Middle", missing]
 
     x = CategoricalArray((Union{String, Missing})[missing])
-    @test isa(levels(x), Vector{String}) && isempty(levels(x))
+    @test isa(levels(x), CategoricalVector{String, DefaultRefType}) && isempty(levels(x))
     @test unique(x) ≅ [missing]
     @test levels!(x, ["Young", "Middle", "Old"]) === x
     @test levels(x) == ["Young", "Middle", "Old"]

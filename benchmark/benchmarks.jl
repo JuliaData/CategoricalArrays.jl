@@ -55,11 +55,11 @@ SUITE["many levels"]["CategoricalArray(::Vector{String})"] =
 a = rand([@sprintf("id%010d", k) for k in 1:1000], 10000)
 ca = CategoricalArray(a)
 
-levs = levels(ca)
+levs = unwrap.(levels(ca))
 SUITE["many levels"]["levels! with original levels"] =
     @benchmarkable levels!(ca, levs)
 
-levs = reverse(levels(ca))
+levs = reverse(unwrap.(levels(ca)))
 SUITE["many levels"]["levels! with resorted levels"] =
     @benchmarkable levels!(ca, levs)
 
