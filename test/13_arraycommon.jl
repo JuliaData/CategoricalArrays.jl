@@ -1336,7 +1336,7 @@ end
     z = Array(y)
     @test typeof(x) == typeof(z)
     @test z == x
-    z = Array(view(x, 1:4))
+    z = Array(view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z == x
 
@@ -1345,7 +1345,7 @@ end
     z = Array(y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
-    z = Array(view(x, 1:4))
+    z = Array(view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z ≅ x
 
@@ -1354,7 +1354,7 @@ end
     z = Vector(y)
     @test typeof(x) == typeof(z)
     @test z == x
-    z = Vector(view(x, 1:4))
+    z = Vector(view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z == x
 
@@ -1363,7 +1363,7 @@ end
     z = Vector(y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
-    z = Vector(view(x, 1:4))
+    z = Vector(view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z ≅ x
 
@@ -1372,7 +1372,7 @@ end
     z = Matrix(y)
     @test typeof(x) == typeof(z)
     @test z == x
-    z = Matrix(view(x, :, 1:4))
+    z = Matrix(view(y, :, 1:4))
     @test typeof(x) == typeof(z)
     @test z == x
 
@@ -1381,7 +1381,7 @@ end
     z = Matrix(y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
-    z = Matrix(view(x, :, 1:4))
+    z = Matrix(view(y, :, 1:4))
     @test typeof(x) == typeof(z)
     @test z ≅ x
 end
@@ -1392,7 +1392,7 @@ end
     z = convert(Array, y)
     @test typeof(x) == typeof(z)
     @test z == x
-    z = Array(view(x, 1:4))
+    z = convert(Array, view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z == x
 
@@ -1401,7 +1401,7 @@ end
     z = convert(Array, y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
-    z = Array(view(x, 1:4))
+    z = convert(Array, view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z ≅ x
 
@@ -1410,7 +1410,7 @@ end
     z = convert(Vector, y)
     @test typeof(x) == typeof(z)
     @test z == x
-    z = Vector(view(x, 1:4))
+    z = convert(Vector, view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z == x
 
@@ -1419,7 +1419,7 @@ end
     z = convert(Vector, y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
-    z = Vector(view(x, 1:4))
+    z = convert(Vector, view(y, 1:4))
     @test typeof(x) == typeof(z)
     @test z ≅ x
 
@@ -1428,7 +1428,7 @@ end
     z = convert(Matrix, y)
     @test typeof(x) == typeof(z)
     @test z == x
-    z = Matrix(view(x, :, 1:4))
+    z = convert(Matrix, view(y, :, 1:4))
     @test typeof(x) == typeof(z)
     @test z == x
 
@@ -1437,7 +1437,7 @@ end
     z = convert(Matrix, y)
     @test typeof(x) == typeof(z)
     @test z ≅ x
-    z = Matrix(view(x, :, 1:4))
+    z = convert(Matrix, view(y, :, 1:4))
     @test typeof(x) == typeof(z)
     @test z ≅ x
 end
@@ -1459,6 +1459,119 @@ end
     @test z ≅ x
     z = convert(Array{Union{Int, Missing}}, y)
     @test typeof(x) == typeof(z)
+    @test z ≅ x
+end
+
+@testset "Array(::CatArrOrSub{T<:CategoricalValue}) produces Array{T}" begin
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = Array{eltype(y)}(y)
+    @test z isa Array{eltype(y)}
+    @test z == x
+    z = Array{eltype(y)}(view(y, 1:4))
+    @test z isa Array{eltype(y)}
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = Array{eltype(y)}(y)
+    @test z isa Array{eltype(y)}
+    @test z ≅ x
+    z = Array{eltype(y)}(view(y, 1:4))
+    @test z isa Array{eltype(y)}
+    @test z ≅ x
+
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = Vector{eltype(y)}(y)
+    @test z isa Vector{eltype(y)}
+    @test z == x
+    z = Vector{eltype(y)}(view(y, 1:4))
+    @test z isa Vector{eltype(y)}
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = Vector{eltype(y)}(y)
+    @test z isa Vector{eltype(y)}
+    @test z ≅ x
+    z = Vector{eltype(y)}(view(y, 1:4))
+    @test z isa Vector{eltype(y)}
+    @test z ≅ x
+
+    x = [1 1 2 2]
+    y = categorical(x)
+    z = Matrix{eltype(y)}(y)
+    @test z isa Matrix{eltype(y)}
+    @test z == x
+    z = Matrix{eltype(y)}(view(y, :, 1:4))
+    @test z isa Matrix{eltype(y)}
+    @test z == x
+
+    x = [1 1 2 missing]
+    y = categorical(x)
+    z = Matrix{eltype(y)}(y)
+    @test z isa Matrix{eltype(y)}
+    @test z ≅ x
+    z = Matrix{eltype(y)}(view(y, :, 1:4))
+    @test z isa Matrix{eltype(y)}
+    @test z ≅ x
+end
+
+
+@testset "convert(Array, ::CatArrOrSub{T<:CategoricalValue}) produces Array{T}" begin
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = convert(Array{eltype(y)}, y)
+    @test z isa Array{eltype(y)}
+    @test z == x
+    z = convert(Array{eltype(y)}, view(y, 1:4))
+    @test z isa Array{eltype(y)}
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = convert(Array{eltype(y)}, y)
+    @test z isa Array{eltype(y)}
+    @test z ≅ x
+    z = convert(Array{eltype(y)}, view(y, 1:4))
+    @test z isa Array{eltype(y)}
+    @test z ≅ x
+
+    x = [1,1,2,2]
+    y = categorical(x)
+    z = convert(Vector{eltype(y)}, y)
+    @test z isa Vector{eltype(y)}
+    @test z == x
+    z = convert(Vector{eltype(y)}, view(y, 1:4))
+    @test z isa Vector{eltype(y)}
+    @test z == x
+
+    x = [1,1,2,missing]
+    y = categorical(x)
+    z = convert(Vector{eltype(y)}, y)
+    @test z isa Vector{eltype(y)}
+    @test z ≅ x
+    z = convert(Vector{eltype(y)}, view(y, 1:4))
+    @test z isa Vector{eltype(y)}
+    @test z ≅ x
+
+    x = [1 1 2 2]
+    y = categorical(x)
+    z = convert(Matrix{eltype(y)}, y)
+    @test z isa Matrix{eltype(y)}
+    @test z == x
+    z = convert(Matrix{eltype(y)}, view(y, :, 1:4))
+    @test z isa Matrix{eltype(y)}
+    @test z == x
+
+    x = [1 1 2 missing]
+    y = categorical(x)
+    z = convert(Matrix{eltype(y)}, y)
+    @test z isa Matrix{eltype(y)}
+    @test z ≅ x
+    z = convert(Matrix{eltype(y)}, view(y, :, 1:4))
+    @test z isa Matrix{eltype(y)}
     @test z ≅ x
 end
 

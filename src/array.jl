@@ -411,8 +411,6 @@ convert(::Type{CategoricalArray{T, N}}, A::CategoricalArray{T, N}) where {T, N} 
 convert(::Type{CategoricalArray{T}}, A::CategoricalArray{T}) where {T} = A
 convert(::Type{CategoricalArray}, A::CategoricalArray) = A
 
-convert(::Type{Array{S, N}}, A::CatArrOrSub{T, N}) where {S, T, N} =
-    collect(S, A)
 convert(::Type{Array}, A::CatArrOrSub) = unwrap.(A)
 convert(::Type{Vector}, A::CatArrOrSub) = unwrap.(A)
 convert(::Type{Matrix}, A::CatArrOrSub) = unwrap.(A)
