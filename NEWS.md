@@ -1,3 +1,12 @@
+# CategoricalArrays.jl v1.0.1 Release Notes
+
+## Bug fixes
+
+* Fix `Array{<:CategoricalValue}` constructors and `convert` to return an `Array`
+  rather than a `CategoricalArray`
+  ([#427](https://github.com/JuliaData/CategoricalArrays.jl/pull/427)).
+
+
 # CategoricalArrays.jl v1.0.0 Release Notes
 
 ## Breaking changes
