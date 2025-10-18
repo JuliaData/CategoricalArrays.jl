@@ -1,3 +1,8 @@
+# CategoricalArrays.jl v1.0.2 Release Notes
+
+* Support JSON.jl version 1.
+
+
 # CategoricalArrays.jl v1.0.1 Release Notes
 
 ## Bug fixes
