@@ -15,45 +15,40 @@ using CategoricalArrays
     ov2 = CategoricalValue(opool, 2)
     ov3 = CategoricalValue(opool, 3)
 
-    if VERSION >= v"1.6.0"
-        @test sprint(show, pool) == "$CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"])"
-        @test sprint(show, opool) == "$CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]) with ordered levels"
+    @test repr(MIME("text/plain"), pool) == "$CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"])"
+    @test repr(MIME("text/plain"), opool) == "$CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"], true)"
 
-        @test sprint(show, nv1) == repr(nv1) == "$CategoricalValue{String, UInt32} \"c\""
-        @test sprint(show, nv2) == repr(nv2) == "$CategoricalValue{String, UInt32} \"b\""
-        @test sprint(show, nv3) == repr(nv3) == "$CategoricalValue{String, UInt32} \"a\""
+    @test repr(MIME("text/plain"), nv1) == "$CategoricalValue{String, UInt32} \"c\""
+    @test repr(MIME("text/plain"), nv2) == "$CategoricalValue{String, UInt32} \"b\""
+    @test repr(MIME("text/plain"), nv3) == "$CategoricalValue{String, UInt32} \"a\""
 
-        @test sprint(show, ov1) == repr(ov1) == "$CategoricalValue{String, UInt32} \"c\" (1/3)"
-        @test sprint(show, ov2) == repr(ov2) == "$CategoricalValue{String, UInt32} \"b\" (2/3)"
-        @test sprint(show, ov3) == repr(ov3) == "$CategoricalValue{String, UInt32} \"a\" (3/3)"
-    else
-        @test sprint(show, pool) == "$CategoricalPool{String,UInt32}([\"c\", \"b\", \"a\"])"
-        @test sprint(show, opool) == "$CategoricalPool{String,UInt32}([\"c\", \"b\", \"a\"]) with ordered levels"
+    @test nv1 == eval(Meta.parse(repr(nv1)))
+    @test nv2 == eval(Meta.parse(repr(nv2)))
+    @test nv3 == eval(Meta.parse(repr(nv3)))
 
-        @test sprint(show, nv1) == repr(nv1) == "$CategoricalValue{String,UInt32} \"c\""
-        @test sprint(show, nv2) == repr(nv2) == "$CategoricalValue{String,UInt32} \"b\""
-        @test sprint(show, nv3) == repr(nv3) == "$CategoricalValue{String,UInt32} \"a\""
+    @test repr(MIME"text/plain"(), ov1) == "$CategoricalValue{String, UInt32} \"c\" (1/3)"
+    @test repr(MIME"text/plain"(), ov2) == "$CategoricalValue{String, UInt32} \"b\" (2/3)"
+    @test repr(MIME"text/plain"(), ov3) == "$CategoricalValue{String, UInt32} \"a\" (3/3)"
 
-        @test sprint(show, ov1) == repr(ov1) == "$CategoricalValue{String,UInt32} \"c\" (1/3)"
-        @test sprint(show, ov2) == repr(ov2) == "$CategoricalValue{String,UInt32} \"b\" (2/3)"
-        @test sprint(show, ov3) == repr(ov3) == "$CategoricalValue{String,UInt32} \"a\" (3/3)"
-    end
+    @test ov1 == eval(Meta.parse(repr(ov1)))
+    @test ov2 == eval(Meta.parse(repr(ov2)))
+    @test ov3 == eval(Meta.parse(repr(ov3)))
 
-    @test sprint(show, nv1, context=:typeinfo=>typeof(nv1)) == "\"c\""
-    @test sprint(show, nv2, context=:typeinfo=>typeof(nv2)) == "\"b\""
-    @test sprint(show, nv3, context=:typeinfo=>typeof(nv3)) == "\"a\""
+    @test repr(MIME("text/plain"), nv1, context=:typeinfo=>typeof(nv1)) == "\"c\""
+    @test repr(MIME("text/plain"), nv2, context=:typeinfo=>typeof(nv2)) == "\"b\""
+    @test repr(MIME("text/plain"), nv3, context=:typeinfo=>typeof(nv3)) == "\"a\""
 
-    @test sprint(show, ov1, context=:typeinfo=>typeof(ov1)) == "\"c\""
-    @test sprint(show, ov2, context=:typeinfo=>typeof(ov2)) == "\"b\""
-    @test sprint(show, ov3, context=:typeinfo=>typeof(ov3)) == "\"a\""
+    @test repr(MIME("text/plain"), ov1, context=:typeinfo=>typeof(ov1)) == "\"c\""
+    @test repr(MIME("text/plain"), ov2, context=:typeinfo=>typeof(ov2)) == "\"b\""
+    @test repr(MIME("text/plain"), ov3, context=:typeinfo=>typeof(ov3)) == "\"a\""
 
-    @test sprint(show, nv1, context=:compact=>true) == "\"c\""
-    @test sprint(show, nv2, context=:compact=>true) == "\"b\""
-    @test sprint(show, nv3, context=:compact=>true) == "\"a\""
+    @test repr(MIME("text/plain"), nv1, context=:compact=>true) == "\"c\""
+    @test repr(MIME("text/plain"), nv2, context=:compact=>true) == "\"b\""
+    @test repr(MIME("text/plain"), nv3, context=:compact=>true) == "\"a\""
 
-    @test sprint(show, ov1, context=:compact=>true) == "\"c\""
-    @test sprint(show, ov2, context=:compact=>true) == "\"b\""
-    @test sprint(show, ov3, context=:compact=>true) == "\"a\""
+    @test repr(MIME("text/plain"), ov1, context=:compact=>true) == "\"c\""
+    @test repr(MIME("text/plain"), ov2, context=:compact=>true) == "\"b\""
+    @test repr(MIME("text/plain"), ov3, context=:compact=>true) == "\"a\""
 
     @test sprint(print, nv1) == sprint(print, ov1) == "c"
     @test sprint(print, nv2) == sprint(print, ov2) == "b"

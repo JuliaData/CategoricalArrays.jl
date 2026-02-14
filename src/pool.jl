@@ -35,15 +35,10 @@ Base.copy(pool::CategoricalPool{T, R}) where {T, R} =
                           pool.ordered, pool.hash)
 
 function Base.show(io::IO, pool::CategoricalPool{T, R}) where {T, R}
-    @static if VERSION >= v"1.6.0"
-        @printf(io, "%s{%s, %s}([%s])", CategoricalPool, T, R,
-                join(map(repr, pool.levels), ", "))
-    else
-        @printf(io, "%s{%s,%s}([%s])", CategoricalPool, T, R,
-                join(map(repr, pool.levels), ", "))
-    end
-
-    pool.ordered && print(io, " with ordered levels")
+    @printf(io, "%s{%s, %s}([%s]", CategoricalPool, T, R,
+        join(map(repr, pool.levels), ", "))
+    pool.ordered && print(io, ", true")
+    print(io, ")")
 end
 
 Base.length(pool::CategoricalPool) = length(pool.levels)
