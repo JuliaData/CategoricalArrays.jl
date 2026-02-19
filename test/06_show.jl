@@ -22,9 +22,9 @@ using CategoricalArrays
     @test repr(MIME("text/plain"), nv2) == "$CategoricalValue{String, UInt32} \"b\""
     @test repr(MIME("text/plain"), nv3) == "$CategoricalValue{String, UInt32} \"a\""
 
-    @test repr(nv1) == "$CategoricalValue{String, UInt32}($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]), 0x00000001)"
-    @test repr(nv2) == "$CategoricalValue{String, UInt32}($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]), 0x00000002)"
-    @test repr(nv3) == "$CategoricalValue{String, UInt32}($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]), 0x00000003)"
+    @test repr(nv1) == "CategoricalValue($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]), 1)"
+    @test repr(nv2) == "CategoricalValue($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]), 2)"
+    @test repr(nv3) == "CategoricalValue($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"]), 3)"
     @test nv1 == eval(Meta.parse(repr(nv1)))
     @test nv2 == eval(Meta.parse(repr(nv2)))
     @test nv3 == eval(Meta.parse(repr(nv3)))
@@ -33,9 +33,9 @@ using CategoricalArrays
     @test repr(MIME"text/plain"(), ov2) == "$CategoricalValue{String, UInt32} \"b\" (2/3)"
     @test repr(MIME"text/plain"(), ov3) == "$CategoricalValue{String, UInt32} \"a\" (3/3)"
 
-    @test repr(ov1) == "$CategoricalValue{String, UInt32}($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"], true), 0x00000001)"
-    @test repr(ov2) == "$CategoricalValue{String, UInt32}($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"], true), 0x00000002)"
-    @test repr(ov3) == "$CategoricalValue{String, UInt32}($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"], true), 0x00000003)"
+    @test repr(ov1) == "CategoricalValue($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"], true), 1)"
+    @test repr(ov2) == "CategoricalValue($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"], true), 2)"
+    @test repr(ov3) == "CategoricalValue($CategoricalPool{String, UInt32}([\"c\", \"b\", \"a\"], true), 3)"
     @test ov1 == eval(Meta.parse(repr(ov1)))
     @test ov2 == eval(Meta.parse(repr(ov2)))
     @test ov3 == eval(Meta.parse(repr(ov3)))

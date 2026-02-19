@@ -96,6 +96,14 @@ Base.convert(::Type{S}, x::CategoricalValue) where {S <: SupportedTypes} =
 
 Base.Broadcast.broadcastable(x::CategoricalValue) = Ref(x)
 
+function Base.show(io::IO, x::CategoricalValue)
+    print(io, "CategoricalValue(")
+    show(io, pool(x))
+    print(io, ", ")
+    print(io, Int(refcode(x)))
+    print(io, ")")
+end
+
 function Base.show(io::IO, ::MIME"text/plain", x::CategoricalValue)
     if get(io, :compact, false) ||
         nonmissingtype(get(io, :typeinfo, Any)) === nonmissingtype(typeof(x))
