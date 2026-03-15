@@ -97,13 +97,21 @@ Base.convert(::Type{S}, x::CategoricalValue) where {S <: SupportedTypes} =
 Base.Broadcast.broadcastable(x::CategoricalValue) = Ref(x)
 
 function Base.show(io::IO, x::CategoricalValue)
+    print(io, "CategoricalValue(")
+    show(io, pool(x))
+    print(io, ", ")
+    print(io, Int(refcode(x)))
+    print(io, ")")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", x::CategoricalValue)
     if get(io, :compact, false) ||
         nonmissingtype(get(io, :typeinfo, Any)) === nonmissingtype(typeof(x))
-        show(io, unwrap(x))
+        show(io, MIME("text/plain"), unwrap(x))
     else
         print(io, typeof(x))
         print(io, ' ')
-        show(io, unwrap(x))
+        show(io, MIME("text/plain"), unwrap(x))
         if isordered(pool(x))
             @printf(io, " (%i/%i)", levelcode(x), length(pool(x)))
         end
