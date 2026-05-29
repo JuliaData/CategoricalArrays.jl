@@ -250,7 +250,7 @@ function _cut(x::AbstractArray{T, N}, breaks::AbstractVector,
                 b2 = breaks[i]
                 isequal(b1, b2) && continue
 
-                @static if VERSION >= v"1.9"
+                @static if VERSION >= v"1.10"
                     b1_str = Printf.format(CUT_FMT, sigdigits, b1)
                     b2_str = Printf.format(CUT_FMT, sigdigits, b2)
                 else
