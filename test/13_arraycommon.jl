@@ -2284,7 +2284,7 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     @test levels(readx.var) == levels(x.var)
 end
 
-if Int == Int64
+if Int == Int64 && isdefined(Arrow, :DictEncoding) # Arrow.jl 2.x
     @testset "writing and reading Arrow files" for f in (identity, passmissing(string))
         xref = f.([3, 1, 4, 1, 4])
         x = categorical(f.([3, 1, 4, 1, 4]))
@@ -2332,6 +2332,46 @@ if Int == Int64
                                           <: CategoricalVector{Union{eltype(xref), Missing}, UInt32}}
         @test copy(tbl.x) == x
         @test copy(x) isa CategoricalArray{Union{eltype(xref), Missing},1,UInt32}
+    end
+elseif Int == Int64 # Arrow.jl 3.x: extension columns materialize eagerly as CategoricalArray
+    @testset "writing and reading Arrow files" for f in (identity, passmissing(string)),
+                                                   enc in (identity, Arrow.DictEncode)
+        xref = f.([3, 1, 4, 1, 4])
+        x = categorical(f.([3, 1, 4, 1, 4]))
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=enc(x),))
+            Arrow.Table(path)
+        end
+        @test tbl.x == x
+        @test tbl.x isa CategoricalVector{eltype(xref), UInt32}
+        @test copy(tbl.x) == x
+        @test copy(tbl.x) isa CategoricalArray{eltype(xref),1,UInt32}
+
+        x = categorical(f.([3, 1, 4, 1, 4]), compress=true)
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=enc(x),))
+            Arrow.Table(path)
+        end
+        @test tbl.x == x
+        @test tbl.x isa CategoricalVector{eltype(xref), UInt8}
+        @test copy(tbl.x) == x
+
+        x = categorical(recode(xref, 1 => missing))
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=enc(x),))
+            Arrow.Table(path)
+        end
+        @test tbl.x ≅ x
+        @test tbl.x isa CategoricalVector{Union{eltype(xref), Missing}, UInt32}
+        @test copy(tbl.x) ≅ x
+
+        recode!(x, missing => f(1))
+        tbl = mktemp() do path, io
+            Arrow.write(path, (x=enc(x),))
+            Arrow.Table(path)
+        end
+        @test tbl.x == x
+        @test copy(tbl.x) == x
     end
 end
 

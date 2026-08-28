@@ -1,3 +1,20 @@
+# CategoricalArrays.jl v1.2.0 Release Notes
+
+## New features
+
+* Support Arrow.jl 3.0 ([#XXX](https://github.com/JuliaData/CategoricalArrays.jl/pull/XXX)).
+  The ArrowTypes.jl mappings for `CategoricalValue` now live in a new
+  `CategoricalArraysArrowTypesExt` extension triggered by ArrowTypes.jl,
+  so they work with both Arrow.jl 2.x and 3.x; the Arrow.jl extension
+  only retains the integrations with Arrow.jl 2.x internal array types.
+  With Arrow.jl 3.x, `Arrow.Table` columns written from a `CategoricalArray`
+  materialize eagerly as `CategoricalArray` again (levels are recovered in
+  order of first appearance; use `levels!` to restore a specific order).
+  A new `ArrowTypes.fromarrow` definition also allows Arrow.jl 2.x to read
+  non-dictionary-encoded categorical columns, such as those written by
+  Arrow.jl 3.x.
+
+
 # CategoricalArrays.jl v1.0.2 Release Notes
 
 * Support JSON.jl version 1.

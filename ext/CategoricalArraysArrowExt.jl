@@ -2,25 +2,15 @@ module CategoricalArraysArrowExt
 
 using CategoricalArrays
 import Arrow
-import Arrow: ArrowTypes
 
-const CATARRAY_ARROWNAME = Symbol("JuliaLang.CategoricalArrays.CategoricalArray")
-ArrowTypes.arrowname(::Type{<:CategoricalValue}) = CATARRAY_ARROWNAME
-ArrowTypes.arrowmetadata(::Type{CategoricalValue{T, R}}) where {T, R} = string(R)
-ArrowTypes.ArrowType(::Type{<:CategoricalValue{T}}) where {T} = T
-ArrowTypes.toarrow(x::CategoricalValue) = unwrap(x)
-
-ArrowTypes.arrowname(::Type{Union{<:CategoricalValue, Missing}}) = CATARRAY_ARROWNAME
-ArrowTypes.arrowmetadata(::Type{Union{CategoricalValue{T, R}, Missing}}) where {T, R} =
-    string(R)
-
-const REFTYPES = Dict(string(T) => T for T in (Int128, Int16, Int32, Int64, Int8, UInt128,
-                                               UInt16, UInt32, UInt64, UInt8))
-function ArrowTypes.JuliaType(::Val{CATARRAY_ARROWNAME},
-                              ::Type{S}, meta::String) where S
-    R = REFTYPES[meta]
-    return CategoricalValue{S, R}
-end
+# The ArrowTypes mappings for CategoricalValue live in
+# CategoricalArraysArrowTypesExt (triggered by ArrowTypes, which Arrow
+# re-exports). This extension only carries integrations with Arrow.jl 2.x
+# internal array types (`Arrow.DictEncoding`, `Arrow.List`, `Arrow.Primitive`,
+# `Arrow.DictEncoded`), which no longer exist in Arrow.jl 3.0: there,
+# `Arrow.Table` materializes extension columns through the recursive
+# ArrowTypes path, so the mappings extension alone suffices.
+@static if isdefined(Arrow, :DictEncoding)
 
 for (MV, MT) in ((:V, :T), (:(Union{V,Missing}), :(Union{T,Missing})))
     @eval begin
@@ -68,5 +58,7 @@ function Base.copy(x::Arrow.DictEncoded{Union{Missing,V}}) where
     refs .= inds
     return CategoricalVector{Union{T,Missing}}(refs, pool)
 end
+
+end # @static if isdefined(Arrow, :DictEncoding)
 
 end
