@@ -2284,7 +2284,47 @@ StructTypes.StructType(::Type{<:MyCustomType}) = StructTypes.Struct()
     @test levels(readx.var) == levels(x.var)
 end
 
-if Int == Int64
+# A ref pool that holds `missing` at index 0, as DataAPI allows.
+struct ZeroRefPool <: AbstractVector{Union{String, Missing}}
+    levels::Vector{String}
+end
+Base.size(p::ZeroRefPool) = (length(p.levels) + 1,)
+Base.axes(p::ZeroRefPool) = (Base.IdentityUnitRange(0:length(p.levels)),)
+Base.getindex(p::ZeroRefPool, i::Int) = i == 0 ? missing : p.levels[i]
+struct ZeroRefVector <: AbstractVector{Union{String, Missing}}
+    refs::Vector{UInt8}
+    pool::ZeroRefPool
+end
+Base.size(v::ZeroRefVector) = size(v.refs)
+Base.getindex(v::ZeroRefVector, i::Int) = v.pool[v.refs[i]]
+DataAPI.refarray(v::ZeroRefVector) = v.refs
+DataAPI.refpool(v::ZeroRefVector) = v.pool
+
+@testset "converting a source whose ref pool starts at index 0" begin
+    v = ZeroRefVector(UInt8[2, 0, 1, 2], ZeroRefPool(["a", "b"]))
+    x = categorical(v)
+    @test x ≅ ["b", missing, "a", "b"]
+    @test levels(x) == ["a", "b"]
+    @test categorical(v, levels=["b", "a"]) ≅ x
+end
+
+if Int == Int64 && !isdefined(Arrow, :DictEncoding)
+    # Arrow 3: a CategoricalArray writes as a dictionary of its levels and reads
+    # back as a dictionary-encoded vector with the same values, levels, and order.
+    @testset "writing and reading Arrow files" for f in (identity, passmissing(string))
+        for x in (categorical(f.([3, 1, 4, 1, 4])),
+                  categorical(f.([3, 1, 4, 1, 4]), ordered=true),
+                  categorical(f.([3, 1, 4, 1, 4]), compress=true),
+                  categorical(recode(f.([3, 1, 4, 1, 4]), f(1) => missing)))
+            tbl = Arrow.Table(Arrow.tobuffer((x=x,)))
+            @test tbl.x ≅ x
+            @test DataAPI.refpool(tbl.x) !== nothing
+            y = categorical(tbl.x, levels=levels(x), ordered=isordered(x))
+            @test y ≅ x
+            @test levels(y) == levels(x)
+        end
+    end
+elseif Int == Int64
     @testset "writing and reading Arrow files" for f in (identity, passmissing(string))
         xref = f.([3, 1, 4, 1, 4])
         x = categorical(f.([3, 1, 4, 1, 4]))

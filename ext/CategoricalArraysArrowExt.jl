@@ -5,6 +5,15 @@ import Arrow
 import Arrow: ArrowTypes
 
 const CATARRAY_ARROWNAME = Symbol("JuliaLang.CategoricalArrays.CategoricalArray")
+
+# Arrow 3 has no `DictEncoding` (its dictionary columns are views).
+if !isdefined(Arrow, :DictEncoding)
+    # Arrow 3 writes a CategoricalArray as a dictionary of its levels (keeping
+    # `isordered`) and reads it back as a dictionary-encoded vector, which
+    # `categorical` converts. Columns that Arrow 2 labelled read as their levels.
+    ArrowTypes.JuliaType(::Val{CATARRAY_ARROWNAME}, ::Type{S}, meta::String) where {S} = S
+else
+
 ArrowTypes.arrowname(::Type{<:CategoricalValue}) = CATARRAY_ARROWNAME
 ArrowTypes.arrowmetadata(::Type{CategoricalValue{T, R}}) where {T, R} = string(R)
 ArrowTypes.ArrowType(::Type{<:CategoricalValue{T}}) where {T} = T
@@ -68,5 +77,7 @@ function Base.copy(x::Arrow.DictEncoded{Union{Missing,V}}) where
     refs .= inds
     return CategoricalVector{Union{T,Missing}}(refs, pool)
 end
+
+end # Arrow 2
 
 end

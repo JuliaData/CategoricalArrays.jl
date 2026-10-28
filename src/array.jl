@@ -607,7 +607,9 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
         newdestlevs = union(destlevs, srclevsnm)
         levels!(pool(dest), newdestlevs, checkunique=false)
     end
-    levelsmap = something.(indexin(srclevs, [missing; newdestlevs])) .- 1
+    # `collect`: a ref pool may start at index 0 (`missing`), and `indexin`
+    # cannot allocate a result with offset axes. `j` below is 1-based.
+    levelsmap = something.(indexin(collect(srclevs), [missing; newdestlevs])) .- 1
     destrefs = refs(dest)
     seen = fill(false, length(newdestlevs)+1)
     firstind = firstindex(srclevs)
