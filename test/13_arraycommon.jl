@@ -2309,6 +2309,13 @@ DataAPI.refpool(v::ZeroRefVector) = v.pool
 end
 
 if Int == Int64 && !isdefined(Arrow, :DictEncoding)
+    @testset "Arrow 2 categorical storage remains dictionary encoded" begin
+        tbl = Arrow.Table(joinpath(@__DIR__, "fixtures", "arrow2-categorical.arrow"))
+        @test tbl.x ≅ ["high", missing, "low", "high"]
+        @test DataAPI.refpool(tbl.x) !== nothing
+        @test DataAPI.levels(tbl.x) == ["low", "medium", "high"]
+        @test !isordered(tbl.x)
+    end
     # Arrow 3: a CategoricalArray writes as a dictionary of its levels and reads
     # back as a dictionary-encoded vector with the same values, levels, and order.
     @testset "writing and reading Arrow files" for f in (identity, passmissing(string))
@@ -2319,6 +2326,8 @@ if Int == Int64 && !isdefined(Arrow, :DictEncoding)
             tbl = Arrow.Table(Arrow.tobuffer((x=x,)))
             @test tbl.x ≅ x
             @test DataAPI.refpool(tbl.x) !== nothing
+            @test DataAPI.levels(tbl.x) == levels(x)
+            @test isordered(tbl.x) == isordered(x)
             y = categorical(tbl.x, levels=levels(x), ordered=isordered(x))
             @test y ≅ x
             @test levels(y) == levels(x)
