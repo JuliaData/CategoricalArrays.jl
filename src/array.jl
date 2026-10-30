@@ -596,6 +596,9 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
         return invoke(copyto!, Tuple{AbstractArray, Integer, AbstractArray, Integer, Integer},
                       dest, dstart, src, sstart, n)
     end
+    firstind = firstindex(srclevs)
+    # Reference pools may start at zero; set operations and indexin need plain axes.
+    srclevs = collect(srclevs)
     newdestlevs = destlevs = copy(_levels(dest)) # copy since we need original levels below
     srclevsnm = T2 >: Missing ? setdiff(srclevs, [missing]) : srclevs
     if !(srclevsnm ⊆ destlevs)
@@ -610,7 +613,6 @@ function copyto!(dest::CatArrOrSub{T1, N, R}, dstart::Integer,
     levelsmap = something.(indexin(srclevs, [missing; newdestlevs])) .- 1
     destrefs = refs(dest)
     seen = fill(false, length(newdestlevs)+1)
-    firstind = firstindex(srclevs)
     @inbounds for i in 0:(n-1)
         j = srcrefs[sstart+i] - firstind + 1
         ref = levelsmap[j]

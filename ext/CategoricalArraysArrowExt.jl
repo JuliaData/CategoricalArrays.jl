@@ -5,6 +5,10 @@ import Arrow
 import Arrow: ArrowTypes
 
 const CATARRAY_ARROWNAME = Symbol("JuliaLang.CategoricalArrays.CategoricalArray")
+
+# Arrow 3 handles categorical arrays through DataAPI and its own extension.
+if isdefined(Arrow, :DictEncoding)
+
 ArrowTypes.arrowname(::Type{<:CategoricalValue}) = CATARRAY_ARROWNAME
 ArrowTypes.arrowmetadata(::Type{CategoricalValue{T, R}}) where {T, R} = string(R)
 ArrowTypes.ArrowType(::Type{<:CategoricalValue{T}}) where {T} = T
@@ -68,5 +72,7 @@ function Base.copy(x::Arrow.DictEncoded{Union{Missing,V}}) where
     refs .= inds
     return CategoricalVector{Union{T,Missing}}(refs, pool)
 end
+
+end # Arrow 2
 
 end
