@@ -6,6 +6,7 @@ import Base: Array, Vector, Matrix, convert, collect, copy, getindex,
 
 # Used for keyword argument default value
 _isordered(x::AbstractCategoricalArray) = isordered(x)
+_isordered(x::SubArray{<:Any, <:Any, <:CategoricalArray}) = isordered(x)
 _isordered(x::Any) = false
 
 function reftype(sz::Int)
@@ -38,11 +39,13 @@ fixstringtype(T::Union) = Union{fixstringtype(T.a), fixstringtype(T.b)}
 fixstringtype(::Type{Union{}}) = Union{}
 
 # Find a narrow type that is supported to hold all elements if possible
+# CategoricalValue elements (e.g. from a view of a CategoricalArray) are unwrapped
 function fixtype(A::AbstractArray{T}) where T
-    if T <: Union{SupportedTypes, Missing}
-        return fixstringtype(T)
+    S = unwrap_catvaluetype(T)
+    if S <: Union{SupportedTypes, Missing}
+        return fixstringtype(S)
     else
-        U = fixstringtype(mapreduce(typeof, Base.promote_typejoin, A))
+        U = fixstringtype(unwrap_catvaluetype(mapreduce(typeof, Base.promote_typejoin, A)))
         check_supported_eltype(U, T)
         return U
     end
@@ -1040,6 +1043,9 @@ end
     RefType = compress ? reftype(length(_levels(A))) : R
     CategoricalArray{T, N, RefType}(A, levels=levels, ordered=ordered)
 end
+# A view of a CategoricalArray is handled like the corresponding copy A[inds]
+@inline categorical(A::SubArray{<:Any, <:Any, <:CategoricalArray}; kwargs...) =
+    categorical(copy(A); kwargs...)
 
 function in(x::Any, y::CategoricalArray{T, N, R}) where {T, N, R}
     ref = get(y.pool, x, zero(R))

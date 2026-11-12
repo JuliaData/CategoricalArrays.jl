@@ -45,4 +45,26 @@ end
     end
 end
 
+@testset "categorical and CategoricalArray on a view, ordered=$order" for
+    order in (true, false),
+    a in (categorical(["a", "b", "c", "a"], ordered=order),
+          categorical(["a", "b", missing, "a"], ordered=order))
+
+    v = view(a, 1:2)
+    for y in (categorical(v), categorical(v, levels=levels(a)), CategoricalArray(v))
+        @test y isa CategoricalVector{eltype(a) >: Missing ? Union{String, Missing} : String}
+        @test y == ["a", "b"]
+        @test isordered(y) === order
+    end
+    # like categorical(a[1:2]), the levels of the parent are kept
+    @test levels(categorical(v)) == levels(categorical(a[1:2])) == levels(a)
+    @test levels(categorical(v, levels=["b", "a"])) == ["b", "a"]
+    @test categorical(view(categorical(["a", "b"], compress=true), 1:1)) isa
+        CategoricalVector{String, UInt8}
+    # a vector of CategoricalValues is unwrapped too
+    w = categorical([a[1], a[2]])
+    @test w isa CategoricalVector{String}
+    @test w == ["a", "b"]
+end
+
 end
