@@ -545,13 +545,64 @@ end
     @test isordered(y)
 end
 
-@testset "Recoding ordered CategoricalArray with new level which cannot be ordered" begin
+@testset "Recoding ordered CategoricalArray by renaming a level" begin
     x = CategoricalArray(["a", "c", "b", "a"])
     ordered!(x, true)
     y = @inferred recode(x, "b"=>"d")
     @test y == ["a", "c", "d", "a"]
     @test isa(y, CategoricalVector{String, DefaultRefType})
-    @test levels(y) == ["a", "c", "d"]
+    @test levels(y) == ["a", "d", "c"]
+    @test isordered(y)
+end
+
+@testset "Recoding ordered CategoricalArray by renaming levels (#421)" begin
+    x = categorical([1, 2, 3, 4, 5], ordered=true)
+    y = @inferred recode(x, 5=>9)
+    @test y == [1, 2, 3, 4, 9]
+    @test levels(y) == [1, 2, 3, 4, 9]
+    @test isordered(y)
+
+    # Order of pairs does not matter
+    y = @inferred recode(x, 5=>0, 1=>10)
+    @test y == [10, 2, 3, 4, 0]
+    @test levels(y) == [10, 2, 3, 4, 0]
+    @test isordered(y)
+
+    # Collection matching a single level
+    y = @inferred recode(x, [5]=>9)
+    @test levels(y) == [1, 2, 3, 4, 9]
+    @test isordered(y)
+
+    # With missing values
+    xm = categorical([1, missing, 3], ordered=true)
+    y = @inferred recode(xm, 3=>0)
+    @test y ≅ [1, missing, 0]
+    @test levels(y) == [1, 0]
+    @test isordered(y)
+
+    # Mapping two levels to the same new level
+    y = @inferred recode(x, 5=>9, 1=>9)
+    @test levels(y) == [2, 3, 4, 9]
+    @test !isordered(y)
+
+    # Collection matching several levels
+    y = @inferred recode(x, [1, 5]=>9)
+    @test levels(y) == [2, 3, 4, 9]
+    @test !isordered(y)
+
+    # Pair not matching any level
+    y = @inferred recode(x, 6=>9)
+    @test levels(y) == [1, 2, 3, 4, 5, 9]
+    @test !isordered(y)
+
+    # Level matched by several pairs
+    y = @inferred recode(x, 5=>9, 5=>8)
+    @test y == [1, 2, 3, 4, 9]
+    @test !isordered(y)
+
+    # Unordered input stays unordered
+    y = @inferred recode(categorical([1, 2, 3]), 3=>9)
+    @test levels(y) == [1, 2, 9]
     @test !isordered(y)
 end
 

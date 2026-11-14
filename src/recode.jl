@@ -168,12 +168,54 @@ function _recode!(dest::CategoricalArray{T, <:Any, R}, src::AbstractArray, defau
     dest
 end
 
+"""
+    _renamed_levels(T, srclevels, pairs)
+
+If `pairs` only rename levels in `srclevels`, return a vector of levels of type `T`
+in which each renamed level takes the position of the original one. Otherwise,
+return `nothing`.
+
+Levels are considered as renamed when each pair matches exactly one level which
+is not matched by a previous pair, and when the new values are distinct
+from each other and from all levels in `srclevels`.
+"""
+function _renamed_levels(::Type{T}, srclevels::AbstractVector,
+                         pairs::NTuple{<:Any, Pair}) where T
+    newlevels = Vector{Any}(srclevels)
+    matched = falses(length(srclevels))
+    for (j, p) in enumerate(pairs)
+        ismissing(p.second) && return nothing
+        any(x -> x ≅ p.second, srclevels) && return nothing
+        any(k -> pairs[k].second ≅ p.second, 1:j-1) && return nothing
+        idx = findall(l -> l ≅ p.first || recode_in(l, p.first), srclevels)
+        (length(idx) == 1 && !matched[only(idx)]) || return nothing
+        matched[only(idx)] = true
+        newlevels[only(idx)] = p.second
+    end
+    res = Vector{T}(undef, length(newlevels))
+    for (i, l) in enumerate(newlevels)
+        try
+            res[i] = l
+        catch err
+            isa(err, MethodError) || rethrow(err)
+            return nothing
+        end
+    end
+    return res
+end
+
 function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
                   default::Any, pairs::NTuple{<:Any, Pair}) where {T, N, R<:Integer}
     recode_from = first.(pairs)
     vals = T[p.second for p in pairs]
-             
-    if default === nothing
+    # Whether levels were only renamed, in which case the order is preserved as-is
+    renamed = false
+
+    if default === nothing && isordered(src) &&
+        (renamedlevels = _renamed_levels(T, _levels(src), pairs)) !== nothing
+        levs = renamedlevels
+        ordered = renamed = true
+    elseif default === nothing
         srclevels = _levels(src)
 
         # Remove recoded levels as they won't appear in result
@@ -223,7 +265,7 @@ function _recode!(dest::CategoricalArray{T, N, R}, src::CategoricalArray,
     end
     pairmap = [ismissing(p.second) ? 0 : get(dest.pool, p.second) for p in pairs]
     # Preserving ordered property only makes sense if new order is consistent with previous one
-    ordered && (ordered = issorted(pairmap))
+    ordered && !renamed && (ordered = issorted(pairmap))
     ordered!(dest, ordered)
     defaultref = default === nothing || ismissing(default) ? 0 : get(dest.pool, default)
     @inbounds for (i, l) in enumerate(srclevels)
